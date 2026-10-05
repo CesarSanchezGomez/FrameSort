@@ -92,3 +92,14 @@ Items resting up to one block above the top block count, so carpets or slabs on 
 `language` in `config.yml` picks `lang/<language>.yml` (`en_US`, `es_ES`). Keys missing from your file fall back
 to the bundled one. Messages use [MiniMessage](https://docs.advntr.dev/minimessage/format.html); `<prefix>` is
 the `prefix` key.
+
+### Pages
+
+Lists (`tag`, `tags` and the inspection lists) are built from the `pager` keys:
+
+| Key | Content |
+|---|---|
+| `pager.layout` | The whole page, one line per entry. Placeholders: `<entries>`, `<title>`, `<total>`, `<page>`, `<pages>`, `<previous>`, `<next>`. |
+| `pager.empty` | Shown instead of the entries when the list is empty. |
+| `pager.previous.enabled`, `pager.next.enabled` | The buttons; `<page>` is the page they open. Clicking is added by FrameSort, the hover is part of the text. |
+| `pager.previous.disabled`, `pager.next.disabled` | Shown when there is no page in that direction. |
