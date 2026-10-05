@@ -1,0 +1,41 @@
+# ==========================================================================
+#  FrameSort: teleport pads.
+#  A pad is a column of blocks. Dropped items resting on its top block are
+#  sent to the matching targets, like a sorter does with its inventory.
+#  Build the column from the bottom up: the pad is created when its top
+#  block is placed. Reload with /framesort reload.
+# ==========================================================================
+
+config-version: 1
+
+# Who can create pads:
+#   anyone      any player who places the top block on a complete column.
+#   permission  only players with framesort.pad.create.
+#   item        only by placing the pad's special item (/framesort give pad)
+#               as the top block. Breaking it gives the special item back.
+creation: anyone       # anyone | permission | item
+
+# Game ticks between two checks for items resting on pads (items that arrive
+# by water or fall onto a pad are picked up by this check).
+sweep-interval: 10
+
+types:
+  simple:
+    # Top to bottom. The first block is the one items rest on.
+    structure: [CRYING_OBSIDIAN, GILDED_BLACKSTONE]
+    # The special top block for 'creation: item' (its material is always the
+    # first block of the structure).
+    item:
+      name: "<light_purple>Teleport Pad"
+      lore:
+        - "<gray>Place it on top of gilded blackstone."
+      glint: true
+      item-model: ""
+  magma:
+    structure: [MAGMA_BLOCK, CRYING_OBSIDIAN, GILDED_BLACKSTONE]
+    item:
+      name: "<red>Magma Teleport Pad"
+      lore:
+        - "<gray>Place it on crying obsidian over gilded blackstone."
+      glint: true
+      item-model: ""

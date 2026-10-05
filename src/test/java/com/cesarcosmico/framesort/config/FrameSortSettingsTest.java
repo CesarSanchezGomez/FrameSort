@@ -1,0 +1,94 @@
+package com.cesarcosmico.framesort.config;
+
+import com.cesarcosmico.framesort.model.FramePosition;
+import com.cesarcosmico.framesort.model.TargetRegistration;
+import org.bukkit.Material;
+import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.EntityType;
+import org.junit.jupiter.api.Test;
+
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.EnumSet;
+import java.util.List;
+import java.util.Set;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+class FrameSortSettingsTest {
+
+    static YamlConfiguration bundled(String resource) throws Exception {
+        try (InputStream in = FrameSortSettingsTest.class.getResourceAsStream("/" + resource)) {
+            return YamlConfiguration.loadConfiguration(new InputStreamReader(in, StandardCharsets.UTF_8));
+        }
+    }
+
+    @Test
+    void bundledConfigParsesWithoutWarnings() throws Exception {
+        List<String> warnings = new ArrayList<>();
+        FrameSortSettings settings = FrameSortSettings.parse(bundled("config.yml"), warnings::add);
+
+        assertEquals(List.of(), warnings);
+        assertEquals("en_US", settings.language());
+        assertEquals(Material.ENDER_EYE, settings.sorter().activator().material());
+        assertFalse(settings.sorter().requireMarked());
+        assertEquals(20, settings.sorter().tickRate());
+        assertTrue(settings.sorter().showActivity());
+        assertEquals(TargetRegistration.MANUAL, settings.targets().registration());
+        assertEquals(EnumSet.allOf(FramePosition.class), settings.targets().positions());
+        assertEquals(64, settings.delivery().maxDistance());
+        assertTrue(settings.delivery().insertIntoContainers());
+        assertEquals(Material.CARROT_ON_A_STICK, settings.delivery().defaultTargetItem());
+        assertEquals(Material.STICK, settings.inspect().tool());
+        assertNull(settings.sorter().activator().itemModel());
+    }
+
+    @Test
+    void emptyConfigUsesDefaults() {
+        List<String> warnings = new ArrayList<>();
+        FrameSortSettings settings = FrameSortSettings.parse(new YamlConfiguration(), warnings::add);
+
+        assertEquals(List.of(), warnings);
+        assertEquals(64, settings.delivery().maxDistance());
+        assertEquals(Set.of(EntityType.ITEM_FRAME, EntityType.GLOW_ITEM_FRAME), settings.sorter().frameTypes());
+        assertEquals(10, settings.inspect().pageSize());
+    }
+
+    @Test
+    void invalidValuesFallBackWithAWarningEach() throws Exception {
+        YamlConfiguration yaml = new YamlConfiguration();
+        yaml.loadFromString("""
+                sorter:
+                  activator: { material: NOT_A_THING }
+                  tick-rate: 0
+                  frame-types: [ITEM_FRAME, ZOMBIE]
+                targets:
+                  registration: sometimes
+                  positions: [FRONT, UNDER]
+                delivery:
+                  max-distance: lots
+                  default-target-item: ""
+                inspect:
+                  tool: ""
+                """);
+        List<String> warnings = new ArrayList<>();
+        FrameSortSettings settings = FrameSortSettings.parse(yaml, warnings::add);
+
+        assertEquals(Material.ENDER_EYE, settings.sorter().activator().material());
+        assertEquals(20, settings.sorter().tickRate());
+        assertEquals(Set.of(EntityType.ITEM_FRAME), settings.sorter().frameTypes());
+        assertEquals(TargetRegistration.MANUAL, settings.targets().registration());
+        assertEquals(Set.of(FramePosition.FRONT), settings.targets().positions());
+        assertEquals(64, settings.delivery().maxDistance());
+        assertNull(settings.delivery().defaultTargetItem());
+        assertEquals(Material.STICK, settings.inspect().tool());
+        // default-target-item "" is a valid "off", so it does not warn.
+        assertEquals(7, warnings.size(), warnings::toString);
+        assertTrue(warnings.stream().allMatch(w -> w.startsWith("config.yml > ")), warnings::toString);
+    }
+}

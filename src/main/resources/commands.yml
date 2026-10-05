@@ -1,0 +1,22 @@
+# ==========================================================================
+#  FrameSort: commands.
+#  Each top-level key is a command (the key = internal id, don't change it).
+#  You can edit 'name' and 'aliases', set 'enabled: false' to disable it, and
+#  change the permissions. Editing this file requires RESTARTING the server.
+# ==========================================================================
+
+config-version: 1
+
+framesort:
+  enabled: true
+  name: framesort
+  aliases: [fs]
+  permission: framesort.command.help
+  subcommands:
+    tag:     { permission: framesort.command.tag }
+    tags:    { permission: framesort.command.tags }
+    trace:   { permission: framesort.command.trace }
+    inspect: { permission: framesort.command.inspect }
+    give:    { permission: framesort.command.give }
+    reload:  { permission: framesort.command.reload }
+    version: { permission: framesort.command.version }
