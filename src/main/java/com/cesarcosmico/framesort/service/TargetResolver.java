@@ -98,6 +98,12 @@ public final class TargetResolver {
         return best;
     }
 
+    /** The existing tag a frame item stands for through its name, or {@code null}. */
+    public TagCatalog.@Nullable TagView tag(ItemStack frameItem) {
+        NamespacedKey key = tagOf(frameItem);
+        return key == null ? null : tags.find(key);
+    }
+
     /** The tag a frame item stands for through its name, or {@code null}. */
     public static @Nullable NamespacedKey tagOf(ItemStack frameItem) {
         Component name = frameItem.getData(DataComponentTypes.CUSTOM_NAME);
