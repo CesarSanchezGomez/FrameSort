@@ -9,6 +9,7 @@ import org.bukkit.Location;
 import org.bukkit.Particle;
 import org.bukkit.Server;
 import org.bukkit.entity.Player;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.util.Vector;
 
 import java.util.HashMap;
@@ -28,14 +29,16 @@ public final class TraceService {
     private static final long MIN_INTERVAL_MILLIS = 150;
     private static final int MAX_LINE_POINTS = 64;
 
+    private final Plugin plugin;
     private final Server server;
     private final Supplier<FrameSortSettings> settings;
     private final Supplier<Messages> messages;
     private final Map<UUID, Long> until = new HashMap<>();
     private final Map<UUID, Long> lastShown = new HashMap<>();
 
-    public TraceService(Server server, Supplier<FrameSortSettings> settings, Supplier<Messages> messages) {
-        this.server = server;
+    public TraceService(Plugin plugin, Supplier<FrameSortSettings> settings, Supplier<Messages> messages) {
+        this.plugin = plugin;
+        this.server = plugin.getServer();
         this.settings = settings;
         this.messages = messages;
     }
@@ -43,7 +46,17 @@ public final class TraceService {
     /** Starts (or restarts) tracing; returns the seconds actually granted. */
     public int start(Player player, int seconds) {
         int granted = Math.clamp(seconds, 1, settings.get().inspect().traceMaxSeconds());
-        until.put(player.getUniqueId(), System.currentTimeMillis() + granted * 1000L);
+        UUID id = player.getUniqueId();
+        long deadline = System.currentTimeMillis() + granted * 1000L;
+        until.put(id, deadline);
+        // Ends on time even when nothing is delivered nearby; a restart or stop changes the deadline, so this run
+        // then does nothing.
+        player.getScheduler().runDelayed(plugin, task -> {
+            if (until.remove(id, deadline)) {
+                lastShown.remove(id);
+                player.sendMessage(messages.get().get("trace.ended"));
+            }
+        }, () -> forget(id), granted * 20L);
         return granted;
     }
 
