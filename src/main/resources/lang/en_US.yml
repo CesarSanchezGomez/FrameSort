@@ -1,117 +1,117 @@
-prefix: "<white>[</white><gradient:#F7B733:#FC4A1A>FrameSort</gradient><white>]</white> "
+prefix: '<white>[</white><gradient:#F7B733:#FC4A1A>FrameSort</gradient><white>]</white> '
 
 command:
   help:
-    - "<prefix><gray>Sort items into item frames.</gray>"
-    - "<gray>• <white>Right-click</white> a sorter or pad with a <white>stick</white> to see its targets (hold an item in your off hand to see only its targets).</gray>"
-    - "<gray>• <white>Sneak + right-click</white> a frame with the stick to mark it as a target; <white>right-click</white> it to see what it accepts.</gray>"
-    - "<gray>• <white>/framesort trace [seconds|stop]</white> · <white>/framesort tag logs</white> · <white>/framesort tags [search text]</white></gray>"
-  reloaded: "<prefix><green>Configuration reloaded.</green>"
-  reload-failed: "<prefix><red>Reload failed: <error>. The previous configuration is still active; see the console.</red>"
-  version: "<prefix><white>FrameSort <green><version></green></white>"
+    - '<prefix><gray>Sort items into item frames.</gray>'
+    - '<gray>• <white>Right-click</white> a sorter or pad with a <white>stick</white> to see its targets (hold an item in your off hand to see only its targets).</gray>'
+    - '<gray>• <white>Sneak + right-click</white> a frame with the stick to mark it as a target; <white>right-click</white> it to see what it accepts.</gray>'
+    - '<gray>• <white>/framesort trace [seconds|stop]</white> · <white>/framesort tag logs</white> · <white>/framesort tags [search text]</white></gray>'
+  reloaded: '<prefix><green>Configuration reloaded.</green>'
+  reload-failed: '<prefix><red>Reload failed: <error>. The previous configuration is still active; see the console.</red>'
+  version: '<prefix><white>FrameSort <green><version></green></white>'
 
 pager:
   layout:
-    - ""
-    - "<gradient:#F7B733:#FC4A1A>◤<st>                          </st></gradient> <white>[</white><gradient:#F7B733:#FC4A1A>FrameSort</gradient><white>]</white> <gradient:#FC4A1A:#F7B733><st>                          </st>◥</gradient>"
-    - ""
-    - "  <white><title></white> <dark_gray>·</dark_gray> <gray><total></gray>"
-    - ""
-    - "<entries>"
-    - ""
-    - "<gradient:#F7B733:#FC4A1A>◣<st>                         </st></gradient> <previous> <white>| <page>—<pages> |</white> <next> <gradient:#FC4A1A:#F7B733><st>                         </st>◢</gradient>"
-    - ""
-  empty: "<gray>  Nothing to show.</gray>"
-  previous: "<gradient:#F7B733:#FC4A1A>«</gradient>"
-  previous-disabled: "<dark_gray>«</dark_gray>"
-  previous-hover: "<gray>Click to go to page <page></gray>"
-  next: "<gradient:#FC4A1A:#F7B733>»</gradient>"
-  next-disabled: "<dark_gray>»</dark_gray>"
-  next-hover: "<gray>Click to go to page <page></gray>"
+    - ''
+    - '<gradient:#F7B733:#FC4A1A>◤<st>                          </st></gradient> <white>[</white><gradient:#F7B733:#FC4A1A>FrameSort</gradient><white>]</white> <gradient:#FC4A1A:#F7B733><st>                          </st>◥</gradient>'
+    - ''
+    - '  <white><title></white> <dark_gray>·</dark_gray> <gray><total></gray>'
+    - ''
+    - '<entries>'
+    - ''
+    - '<gradient:#F7B733:#FC4A1A>◣<st>                         </st></gradient> <previous> <white>| <page>—<pages> |</white> <next> <gradient:#FC4A1A:#F7B733><st>                         </st>◢</gradient>'
+    - ''
+  empty: '<gray>  Nothing to show.</gray>'
+  previous: '<gradient:#F7B733:#FC4A1A>«</gradient>'
+  previous-disabled: '<dark_gray>«</dark_gray>'
+  previous-hover: '<gray>Click to go to page <page></gray>'
+  next: '<gradient:#FC4A1A:#F7B733>»</gradient>'
+  next-disabled: '<dark_gray>»</dark_gray>'
+  next-hover: '<gray>Click to go to page <page></gray>'
 inspect:
   source:
-    sorter: "sorter"
-    pad: "teleport pad"
-  title: "Targets of this <source> (<x>, <y>, <z>)"
-  title-item: "Where <item> goes from this <source>"
+    sorter: 'sorter'
+    pad: 'teleport pad'
+  title: 'Targets of this <source> (<x>, <y>, <z>)'
+  title-item: 'Where <item> goes from this <source>'
   section:
-    containers: "<green>Into containers:</green>"
-    dropped: "<yellow>Dropped at:</yellow>"
+    containers: '<green>Into containers:</green>'
+    dropped: '<yellow>Dropped at:</yellow>'
   excess:
-    lava: "<red>Anything left over is destroyed by lava.</red>"
-    stay: "<gray>Anything left over stays until there is room.</gray>"
+    lava: '<red>Anything left over is destroyed by lava.</red>'
+    stay: '<gray>Anything left over stays until there is room.</gray>'
   target:
-    dropped: "<yellow>dropped here</yellow>"
-    lava: "<red>lava</red>"
-  line: "<gray>  • <white><item></white> <dark_gray>→</dark_gray> <target> <dark_gray>(<x>, <y>, <z>) · <distance> m</dark_gray></gray>"
-  no-listing: "<prefix><gray>Right-click a sorter or pad with the tool first.</gray>"
+    dropped: '<yellow>dropped here</yellow>'
+    lava: '<red>lava</red>'
+  line: '<gray>  • <white><item></white> <dark_gray>→</dark_gray> <target> <dark_gray>(<x>, <y>, <z>) · <distance> m</dark_gray></gray>'
+  no-listing: '<prefix><gray>Right-click a sorter or pad with the tool first.</gray>'
 
 frame:
-  header: "<prefix><white>Target frame</white> <dark_gray>(<x>, <y>, <z>)</dark_gray>"
+  header: '<prefix><white>Target frame</white> <dark_gray>(<x>, <y>, <z>)</dark_gray>'
   status:
-    target: "<green>  This frame is a target</green> <gray>(on the <position> of its block).</gray>"
-    unmarked: "<yellow>  Not a target yet: sneak + right-click it with the tool to mark it.</yellow>"
-    not-allowed: "<red>  Not a target: frames can't be used on the <position> of a block here.</red>"
-    wrong-type: "<red>  Not a target: this kind of frame is not used for targets.</red>"
+    target: '<green>  This frame is a target</green> <gray>(on the <position> of its block).</gray>'
+    unmarked: '<yellow>  Not a target yet: sneak + right-click it with the tool to mark it.</yellow>'
+    not-allowed: '<red>  Not a target: frames can''t be used on the <position> of a block here.</red>'
+    wrong-type: '<red>  Not a target: this kind of frame is not used for targets.</red>'
   into:
-    container: "<gray>  Items go into: <white><block></white></gray>"
-    dropped: "<gray>  Items are dropped in front of it.</gray>"
-    lava: "<gray>  Items are <red>destroyed by lava</red>.</gray>"
+    container: '<gray>  Items go into: <white><block></white></gray>'
+    dropped: '<gray>  Items are dropped in front of it.</gray>'
+    lava: '<gray>  Items are <red>destroyed by lava</red>.</gray>'
   accepts:
-    exact: "<gray>  Accepts <white><item></white> (exact match first).</gray>"
-    tag: "<gray>  Accepts everything in <white>#<tag></white> (<count> items) <dark_gray>[click to list]</dark_gray></gray>"
-    contents: "<gray>  Accepts what its contents hold (<count> stacks).</gray>"
-    similar: "<gray>  Accepts any <white><material></white> when nothing matches better.</gray>"
-    default: "<gray>  Default target: takes whatever matches no other frame.</gray>"
-  sources: "<gray>  Sorters and pads in range: <white><count></white></gray>"
+    exact: '<gray>  Accepts <white><item></white> (exact match first).</gray>'
+    tag: '<gray>  Accepts everything in <white>#<tag></white> (<count> items) <dark_gray>[click to list]</dark_gray></gray>'
+    contents: '<gray>  Accepts what its contents hold (<count> stacks).</gray>'
+    similar: '<gray>  Accepts any <white><material></white> when nothing matches better.</gray>'
+    default: '<gray>  Default target: takes whatever matches no other frame.</gray>'
+  sources: '<gray>  Sorters and pads in range: <white><count></white></gray>'
 
 mark:
-  marked: "<prefix><green>This frame is now a target.</green>"
-  unmarked: "<prefix><yellow>This frame is no longer a target.</yellow>"
-  automatic: "<prefix><gray>Every frame is a target already on this server.</gray>"
-  no-permission: "<prefix><red>You can't mark target frames.</red>"
-  wrong-type: "<prefix><red>This kind of frame can't be a target.</red>"
-  wrong-position: "<prefix><red>Target frames can't go on the <position> of a block here. Allowed: <allowed>.</red>"
+  marked: '<prefix><green>This frame is now a target.</green>'
+  unmarked: '<prefix><yellow>This frame is no longer a target.</yellow>'
+  automatic: '<prefix><gray>Every frame is a target already on this server.</gray>'
+  no-permission: '<prefix><red>You can''t mark target frames.</red>'
+  wrong-type: '<prefix><red>This kind of frame can''t be a target.</red>'
+  wrong-position: '<prefix><red>Target frames can''t go on the <position> of a block here. Allowed: <allowed>.</red>'
 
 position:
-  top: "top"
-  bottom: "bottom"
-  front: "front"
-  back: "back"
-  left: "left"
-  right: "right"
-  side: "side"
+  top: 'top'
+  bottom: 'bottom'
+  front: 'front'
+  back: 'back'
+  left: 'left'
+  right: 'right'
+  side: 'side'
 
 trace:
-  started: "<prefix><green>Tracing deliveries within <radius> blocks for <seconds> seconds.</green> <gray>Stop with /framesort trace stop.</gray>"
-  stopped: "<prefix><gray>Tracing stopped.</gray>"
-  not-running: "<prefix><gray>You are not tracing.</gray>"
-  ended: "<prefix><gray>Tracing ended.</gray>"
-  action-bar: "<white><amount>× <item></white> <dark_gray>→</dark_gray> <kind> <gray>(<x>, <y>, <z>)</gray>"
+  started: '<prefix><green>Tracing deliveries within <radius> blocks for <seconds> seconds.</green> <gray>Stop with /framesort trace stop.</gray>'
+  stopped: '<prefix><gray>Tracing stopped.</gray>'
+  not-running: '<prefix><gray>You are not tracing.</gray>'
+  ended: '<prefix><gray>Tracing ended.</gray>'
+  action-bar: '<white><amount>× <item></white> <dark_gray>→</dark_gray> <kind> <gray>(<x>, <y>, <z>)</gray>'
   kind:
-    container: "<green>container</green>"
-    dropped: "<yellow>dropped</yellow>"
-    destroyed: "<red>lava</red>"
+    container: '<green>container</green>'
+    dropped: '<yellow>dropped</yellow>'
+    destroyed: '<red>lava</red>'
 
 tag:
-  title: "#<tag> <dark_gray>(<kind>)</dark_gray>"
+  title: '#<tag> <dark_gray>(<kind>)</dark_gray>'
   kind:
-    item: "item tag"
-    block: "block tag"
-  entry: "<gray>  • <white><item></white></gray>"
-  unknown: "<prefix><red>There is no item or block tag called <white>#<tag></white>. Try /framesort tags.</red>"
+    item: 'item tag'
+    block: 'block tag'
+  entry: '<gray>  • <white><item></white></gray>'
+  unknown: '<prefix><red>There is no item or block tag called <white>#<tag></white>. Try /framesort tags.</red>'
 
 tags:
-  title: "Tags"
-  title-search: "Tags containing \"<text>\""
-  entry: "<gray>  • <white>#<tag></white></gray>"
-  hover: "<gray>Click to see what this tag contains</gray>"
+  title: 'Tags'
+  title-search: 'Tags containing "<text>"'
+  entry: '<gray>  • <white>#<tag></white></gray>'
+  hover: '<gray>Click to see what this tag contains</gray>'
 
 give:
-  done: "<prefix><green>Gave <white><amount>× <item></white> to <white><player></white>.</green>"
-  players-only: "<prefix><red>Name a player: /framesort give ... [player]</red>"
-  unknown-pad: "There is no pad type called '<type>'"
+  done: '<prefix><green>Gave <white><amount>× <item></white> to <white><player></white>.</green>'
+  players-only: '<prefix><red>Name a player: /framesort give ... [player]</red>'
+  unknown-pad: 'There is no pad type called ''<type>'''
 
 pad:
-  created: "<prefix><green>Teleport pad <white><type></white> created.</green>"
-  not-allowed: "<prefix><red>You can't create teleport pads here.</red>"
+  created: '<prefix><green>Teleport pad <white><type></white> created.</green>'
+  not-allowed: '<prefix><red>You can''t create teleport pads here.</red>'

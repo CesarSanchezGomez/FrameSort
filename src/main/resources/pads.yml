@@ -26,16 +26,16 @@ types:
     # The special top block for 'creation: item' (its material is always the
     # first block of the structure).
     item:
-      name: "<light_purple>Teleport Pad"
+      name: '<light_purple>Teleport Pad'
       lore:
-        - "<gray>Place it on top of gilded blackstone."
+        - '<gray>Place it on top of gilded blackstone.'
       glint: true
-      item-model: ""
+      item-model: ''
   magma:
     structure: [MAGMA_BLOCK, CRYING_OBSIDIAN, GILDED_BLACKSTONE]
     item:
-      name: "<red>Magma Teleport Pad"
+      name: '<red>Magma Teleport Pad'
       lore:
-        - "<gray>Place it on crying obsidian over gilded blackstone."
+        - '<gray>Place it on crying obsidian over gilded blackstone.'
       glint: true
-      item-model: ""
+      item-model: ''

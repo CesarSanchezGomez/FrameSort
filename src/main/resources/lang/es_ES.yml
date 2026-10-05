@@ -1,117 +1,117 @@
-prefix: "<white>[</white><gradient:#F7B733:#FC4A1A>FrameSort</gradient><white>]</white> "
+prefix: '<white>[</white><gradient:#F7B733:#FC4A1A>FrameSort</gradient><white>]</white> '
 
 command:
   help:
-    - "<prefix><gray>Ordena items en marcos.</gray>"
-    - "<gray>• <white>Clic derecho</white> a un sorter o pad con un <white>palo</white> para ver sus destinos (con un item en la otra mano, solo los de ese item).</gray>"
-    - "<gray>• <white>Shift + clic derecho</white> a un marco con el palo para marcarlo como destino; <white>clic derecho</white> para ver qué acepta.</gray>"
-    - "<gray>• <white>/framesort trace [segundos|stop]</white> · <white>/framesort tag logs</white> · <white>/framesort tags [search texto]</white></gray>"
-  reloaded: "<prefix><green>Configuración recargada.</green>"
-  reload-failed: "<prefix><red>La recarga falló: <error>. Sigue activa la configuración anterior; mira la consola.</red>"
-  version: "<prefix><white>FrameSort <green><version></green></white>"
+    - '<prefix><gray>Ordena items en marcos.</gray>'
+    - '<gray>• <white>Clic derecho</white> a un sorter o pad con un <white>palo</white> para ver sus destinos (con un item en la otra mano, solo los de ese item).</gray>'
+    - '<gray>• <white>Shift + clic derecho</white> a un marco con el palo para marcarlo como destino; <white>clic derecho</white> para ver qué acepta.</gray>'
+    - '<gray>• <white>/framesort trace [segundos|stop]</white> · <white>/framesort tag logs</white> · <white>/framesort tags [search texto]</white></gray>'
+  reloaded: '<prefix><green>Configuración recargada.</green>'
+  reload-failed: '<prefix><red>La recarga falló: <error>. Sigue activa la configuración anterior; mira la consola.</red>'
+  version: '<prefix><white>FrameSort <green><version></green></white>'
 
 pager:
   layout:
-    - ""
-    - "<gradient:#F7B733:#FC4A1A>◤<st>                          </st></gradient> <white>[</white><gradient:#F7B733:#FC4A1A>FrameSort</gradient><white>]</white> <gradient:#FC4A1A:#F7B733><st>                          </st>◥</gradient>"
-    - ""
-    - "  <white><title></white> <dark_gray>·</dark_gray> <gray><total></gray>"
-    - ""
-    - "<entries>"
-    - ""
-    - "<gradient:#F7B733:#FC4A1A>◣<st>                         </st></gradient> <previous> <white>| <page>—<pages> |</white> <next> <gradient:#FC4A1A:#F7B733><st>                         </st>◢</gradient>"
-    - ""
-  empty: "<gray>  No hay nada que mostrar.</gray>"
-  previous: "<gradient:#F7B733:#FC4A1A>«</gradient>"
-  previous-disabled: "<dark_gray>«</dark_gray>"
-  previous-hover: "<gray>Clic para ir a la página <page></gray>"
-  next: "<gradient:#FC4A1A:#F7B733>»</gradient>"
-  next-disabled: "<dark_gray>»</dark_gray>"
-  next-hover: "<gray>Clic para ir a la página <page></gray>"
+    - ''
+    - '<gradient:#F7B733:#FC4A1A>◤<st>                          </st></gradient> <white>[</white><gradient:#F7B733:#FC4A1A>FrameSort</gradient><white>]</white> <gradient:#FC4A1A:#F7B733><st>                          </st>◥</gradient>'
+    - ''
+    - '  <white><title></white> <dark_gray>·</dark_gray> <gray><total></gray>'
+    - ''
+    - '<entries>'
+    - ''
+    - '<gradient:#F7B733:#FC4A1A>◣<st>                         </st></gradient> <previous> <white>| <page>—<pages> |</white> <next> <gradient:#FC4A1A:#F7B733><st>                         </st>◢</gradient>'
+    - ''
+  empty: '<gray>  No hay nada que mostrar.</gray>'
+  previous: '<gradient:#F7B733:#FC4A1A>«</gradient>'
+  previous-disabled: '<dark_gray>«</dark_gray>'
+  previous-hover: '<gray>Clic para ir a la página <page></gray>'
+  next: '<gradient:#FC4A1A:#F7B733>»</gradient>'
+  next-disabled: '<dark_gray>»</dark_gray>'
+  next-hover: '<gray>Clic para ir a la página <page></gray>'
 inspect:
   source:
-    sorter: "sorter"
-    pad: "teleport pad"
-  title: "Destinos de este <source> (<x>, <y>, <z>)"
-  title-item: "Adónde va <item> desde este <source>"
+    sorter: 'sorter'
+    pad: 'teleport pad'
+  title: 'Destinos de este <source> (<x>, <y>, <z>)'
+  title-item: 'Adónde va <item> desde este <source>'
   section:
-    containers: "<green>A contenedores:</green>"
-    dropped: "<yellow>Se suelta en:</yellow>"
+    containers: '<green>A contenedores:</green>'
+    dropped: '<yellow>Se suelta en:</yellow>'
   excess:
-    lava: "<red>Lo que sobre se destruye en la lava.</red>"
-    stay: "<gray>Lo que sobre se queda hasta que haya sitio.</gray>"
+    lava: '<red>Lo que sobre se destruye en la lava.</red>'
+    stay: '<gray>Lo que sobre se queda hasta que haya sitio.</gray>'
   target:
-    dropped: "<yellow>se suelta aquí</yellow>"
-    lava: "<red>lava</red>"
-  line: "<gray>  • <white><item></white> <dark_gray>→</dark_gray> <target> <dark_gray>(<x>, <y>, <z>) · <distance> m</dark_gray></gray>"
-  no-listing: "<prefix><gray>Primero haz clic derecho a un sorter o pad con la herramienta.</gray>"
+    dropped: '<yellow>se suelta aquí</yellow>'
+    lava: '<red>lava</red>'
+  line: '<gray>  • <white><item></white> <dark_gray>→</dark_gray> <target> <dark_gray>(<x>, <y>, <z>) · <distance> m</dark_gray></gray>'
+  no-listing: '<prefix><gray>Primero haz clic derecho a un sorter o pad con la herramienta.</gray>'
 
 frame:
-  header: "<prefix><white>Marco destino</white> <dark_gray>(<x>, <y>, <z>)</dark_gray>"
+  header: '<prefix><white>Marco destino</white> <dark_gray>(<x>, <y>, <z>)</dark_gray>'
   status:
-    target: "<green>  Este marco es un destino</green> <gray>(en la cara <position> de su bloque).</gray>"
-    unmarked: "<yellow>  Aún no es destino: haz shift + clic derecho con la herramienta para marcarlo.</yellow>"
-    not-allowed: "<red>  No es destino: aquí no se permiten marcos en la cara <position> de un bloque.</red>"
-    wrong-type: "<red>  No es destino: este tipo de marco no se usa como destino.</red>"
+    target: '<green>  Este marco es un destino</green> <gray>(en la cara <position> de su bloque).</gray>'
+    unmarked: '<yellow>  Aún no es destino: haz shift + clic derecho con la herramienta para marcarlo.</yellow>'
+    not-allowed: '<red>  No es destino: aquí no se permiten marcos en la cara <position> de un bloque.</red>'
+    wrong-type: '<red>  No es destino: este tipo de marco no se usa como destino.</red>'
   into:
-    container: "<gray>  Los items van a: <white><block></white></gray>"
-    dropped: "<gray>  Los items se sueltan delante del marco.</gray>"
-    lava: "<gray>  Los items se <red>destruyen en la lava</red>.</gray>"
+    container: '<gray>  Los items van a: <white><block></white></gray>'
+    dropped: '<gray>  Los items se sueltan delante del marco.</gray>'
+    lava: '<gray>  Los items se <red>destruyen en la lava</red>.</gray>'
   accepts:
-    exact: "<gray>  Acepta <white><item></white> (primero coincidencia exacta).</gray>"
-    tag: "<gray>  Acepta todo lo de <white>#<tag></white> (<count> items) <dark_gray>[clic para ver]</dark_gray></gray>"
-    contents: "<gray>  Acepta lo que hay en su contenido (<count> stacks).</gray>"
-    similar: "<gray>  Acepta cualquier <white><material></white> si nada coincide mejor.</gray>"
-    default: "<gray>  Destino por defecto: recibe lo que no encaja en ningún otro marco.</gray>"
-  sources: "<gray>  Sorters y pads al alcance: <white><count></white></gray>"
+    exact: '<gray>  Acepta <white><item></white> (primero coincidencia exacta).</gray>'
+    tag: '<gray>  Acepta todo lo de <white>#<tag></white> (<count> items) <dark_gray>[clic para ver]</dark_gray></gray>'
+    contents: '<gray>  Acepta lo que hay en su contenido (<count> stacks).</gray>'
+    similar: '<gray>  Acepta cualquier <white><material></white> si nada coincide mejor.</gray>'
+    default: '<gray>  Destino por defecto: recibe lo que no encaja en ningún otro marco.</gray>'
+  sources: '<gray>  Sorters y pads al alcance: <white><count></white></gray>'
 
 mark:
-  marked: "<prefix><green>Este marco ahora es un destino.</green>"
-  unmarked: "<prefix><yellow>Este marco ya no es un destino.</yellow>"
-  automatic: "<prefix><gray>En este servidor todos los marcos ya son destinos.</gray>"
-  no-permission: "<prefix><red>No puedes marcar marcos como destino.</red>"
-  wrong-type: "<prefix><red>Este tipo de marco no puede ser destino.</red>"
-  wrong-position: "<prefix><red>Aquí los destinos no pueden ir en la cara <position> de un bloque. Permitidas: <allowed>.</red>"
+  marked: '<prefix><green>Este marco ahora es un destino.</green>'
+  unmarked: '<prefix><yellow>Este marco ya no es un destino.</yellow>'
+  automatic: '<prefix><gray>En este servidor todos los marcos ya son destinos.</gray>'
+  no-permission: '<prefix><red>No puedes marcar marcos como destino.</red>'
+  wrong-type: '<prefix><red>Este tipo de marco no puede ser destino.</red>'
+  wrong-position: '<prefix><red>Aquí los destinos no pueden ir en la cara <position> de un bloque. Permitidas: <allowed>.</red>'
 
 position:
-  top: "superior"
-  bottom: "inferior"
-  front: "frontal"
-  back: "trasera"
-  left: "izquierda"
-  right: "derecha"
-  side: "lateral"
+  top: 'superior'
+  bottom: 'inferior'
+  front: 'frontal'
+  back: 'trasera'
+  left: 'izquierda'
+  right: 'derecha'
+  side: 'lateral'
 
 trace:
-  started: "<prefix><green>Rastreando entregas a menos de <radius> bloques durante <seconds> segundos.</green> <gray>Para con /framesort trace stop.</gray>"
-  stopped: "<prefix><gray>Rastreo detenido.</gray>"
-  not-running: "<prefix><gray>No estás rastreando.</gray>"
-  ended: "<prefix><gray>El rastreo ha terminado.</gray>"
-  action-bar: "<white><amount>× <item></white> <dark_gray>→</dark_gray> <kind> <gray>(<x>, <y>, <z>)</gray>"
+  started: '<prefix><green>Rastreando entregas a menos de <radius> bloques durante <seconds> segundos.</green> <gray>Para con /framesort trace stop.</gray>'
+  stopped: '<prefix><gray>Rastreo detenido.</gray>'
+  not-running: '<prefix><gray>No estás rastreando.</gray>'
+  ended: '<prefix><gray>El rastreo ha terminado.</gray>'
+  action-bar: '<white><amount>× <item></white> <dark_gray>→</dark_gray> <kind> <gray>(<x>, <y>, <z>)</gray>'
   kind:
-    container: "<green>contenedor</green>"
-    dropped: "<yellow>suelto</yellow>"
-    destroyed: "<red>lava</red>"
+    container: '<green>contenedor</green>'
+    dropped: '<yellow>suelto</yellow>'
+    destroyed: '<red>lava</red>'
 
 tag:
-  title: "#<tag> <dark_gray>(<kind>)</dark_gray>"
+  title: '#<tag> <dark_gray>(<kind>)</dark_gray>'
   kind:
-    item: "tag de items"
-    block: "tag de bloques"
-  entry: "<gray>  • <white><item></white></gray>"
-  unknown: "<prefix><red>No existe ningún tag de items o bloques llamado <white>#<tag></white>. Prueba /framesort tags.</red>"
+    item: 'tag de items'
+    block: 'tag de bloques'
+  entry: '<gray>  • <white><item></white></gray>'
+  unknown: '<prefix><red>No existe ningún tag de items o bloques llamado <white>#<tag></white>. Prueba /framesort tags.</red>'
 
 tags:
-  title: "Tags"
-  title-search: "Tags que contienen \"<text>\""
-  entry: "<gray>  • <white>#<tag></white></gray>"
-  hover: "<gray>Clic para ver qué contiene este tag</gray>"
+  title: 'Tags'
+  title-search: 'Tags que contienen "<text>"'
+  entry: '<gray>  • <white>#<tag></white></gray>'
+  hover: '<gray>Clic para ver qué contiene este tag</gray>'
 
 give:
-  done: "<prefix><green>Entregado <white><amount>× <item></white> a <white><player></white>.</green>"
-  players-only: "<prefix><red>Indica un jugador: /framesort give ... [jugador]</red>"
-  unknown-pad: "No existe ningún tipo de pad llamado '<type>'"
+  done: '<prefix><green>Entregado <white><amount>× <item></white> a <white><player></white>.</green>'
+  players-only: '<prefix><red>Indica un jugador: /framesort give ... [jugador]</red>'
+  unknown-pad: 'No existe ningún tipo de pad llamado ''<type>'''
 
 pad:
-  created: "<prefix><green>Teleport pad <white><type></white> creado.</green>"
-  not-allowed: "<prefix><red>No puedes crear teleport pads aquí.</red>"
+  created: '<prefix><green>Teleport pad <white><type></white> creado.</green>'
+  not-allowed: '<prefix><red>No puedes crear teleport pads aquí.</red>'
