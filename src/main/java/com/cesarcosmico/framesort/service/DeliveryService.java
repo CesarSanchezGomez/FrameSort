@@ -80,7 +80,7 @@ public final class DeliveryService {
         boolean stale = false;
         for (TargetResolver.Match match : matches) {
             ItemFrame frame = match.frame();
-            if (!frame.isValid() || !frame.getItem().equals(match.frameItem())) {
+            if (!frame.isValid() || !FrameGeometry.attachedLoaded(frame) || !frame.getItem().equals(match.frameItem())) {
                 stale = true;
                 continue;
             }
@@ -135,7 +135,8 @@ public final class DeliveryService {
     }
 
     private int offer(ItemFrame frame, ItemStack stack, int amount, Location from) {
-        Inventory inventory = inventory(FrameGeometry.attachedBlock(frame));
+        Inventory inventory = frame.isValid() && FrameGeometry.attachedLoaded(frame)
+                ? inventory(FrameGeometry.attachedBlock(frame)) : null;
         if (inventory == null) {
             return Delivery.GONE;
         }

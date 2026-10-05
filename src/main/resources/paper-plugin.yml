@@ -1,0 +1,67 @@
+name: FrameSort
+version: '${version}'
+main: com.cesarcosmico.framesort.FrameSortPlugin
+api-version: '26.2'
+authors: [ CesarCosmico ]
+description: Send items to item frames from sorter dispensers and teleport pads, without hopper chains.
+website: https://github.com/CesarSanchezGomez/Framesort
+
+permissions:
+  framesort.*:
+    description: Full access to FrameSort.
+    default: op
+    children:
+      framesort.use: true
+      framesort.admin: true
+  framesort.use:
+    description: Player access (tool, target marking, tags, tracing).
+    default: true
+    children:
+      framesort.inspect: true
+      framesort.target.create: true
+      framesort.command.help: true
+      framesort.command.tag: true
+      framesort.command.tags: true
+      framesort.command.trace: true
+      framesort.command.inspect: true
+  framesort.admin:
+    description: Administrator access (give items, reload, version, pads in permission mode).
+    default: op
+    children:
+      framesort.pad.create: true
+      framesort.command.give: true
+      framesort.command.reload: true
+      framesort.command.version: true
+  framesort.inspect:
+    description: Use the tool to inspect sorters, pads and target frames.
+    default: true
+  framesort.target.create:
+    description: Mark item frames as targets (targets.registration manual).
+    default: true
+  framesort.pad.create:
+    description: Create teleport pads when pads.yml has creation set to permission.
+    default: op
+  framesort.command.help:
+    description: Show the help with /framesort.
+    default: true
+  framesort.command.tag:
+    description: List the contents of a tag with /framesort tag.
+    default: true
+  framesort.command.tags:
+    description: List tags with /framesort tags.
+    default: true
+  framesort.command.trace:
+    description: Trace nearby deliveries with /framesort trace.
+    default: true
+  framesort.command.inspect:
+    description: Page through inspection results with /framesort inspect.
+    default: true
+  framesort.command.give:
+    description: Give sorter activators and pad blocks with /framesort give.
+    default: op
+  framesort.command.reload:
+    description: Reload the configuration with /framesort reload.
+    default: op
+  framesort.command.version:
+    description: Show the plugin version with /framesort version.
+    default: op

@@ -40,6 +40,8 @@ public final class SorterService {
     private static final MiniMessage MINI_MESSAGE = MiniMessage.miniMessage();
     // Shulker boxes inside bundles inside shulker boxes…: deep enough for any real setup, and bounded.
     private static final int MAX_DEPTH = 8;
+    // A sorter frame whose dispenser sits in an unloaded chunk looks again this often.
+    private static final long RETRY_TICKS = 100;
 
     private static final class Sorter {
         private final ItemFrame frame;
@@ -68,10 +70,18 @@ public final class SorterService {
 
     /** Registers the frame's dispenser as a sorter, or stops it when the frame no longer makes one. */
     public void consider(ItemFrame frame) {
+        boolean holdsActivator = holdsActivator(frame);
+        if (!FrameGeometry.attachedLoaded(frame)) {
+            // Only frames that could make a sorter wait for the neighbouring chunk; the rest are never sorters.
+            if (holdsActivator) {
+                frame.getScheduler().runDelayed(plugin, task -> consider(frame), null, RETRY_TICKS);
+            }
+            return;
+        }
         Block block = FrameGeometry.attachedBlock(frame);
         BlockKey key = FrameGeometry.key(block);
         Sorter existing = sorters.get(key);
-        if (makesSorter(frame, block)) {
+        if (holdsActivator && block.getType() == Material.DISPENSER) {
             if (existing == null) {
                 SorterSettings sorter = settings.get().sorter();
                 sorters.put(key, new Sorter(frame, block, tick + 1 + (nextPhase++ % sorter.tickRate())));
@@ -143,6 +153,10 @@ public final class SorterService {
                 sorters.remove(entry.getKey());
                 continue;
             }
+            if (!FrameGeometry.attachedLoaded(current.frame)) {
+                current.due = tick + sorter.tickRate();
+                continue;
+            }
             if (!makesSorter(current.frame, current.block)) {
                 sorters.remove(entry.getKey());
                 applyLook(current.frame, current.block, false);
@@ -157,10 +171,13 @@ public final class SorterService {
         }
     }
 
-    private boolean makesSorter(ItemFrame frame, Block block) {
+    private boolean holdsActivator(ItemFrame frame) {
         SorterSettings sorter = settings.get().sorter();
-        return frame.isValid() && sorter.frameTypes().contains(frame.getType())
-                && block.getType() == Material.DISPENSER && sorter.isActivator(frame.getItem());
+        return frame.isValid() && sorter.frameTypes().contains(frame.getType()) && sorter.isActivator(frame.getItem());
+    }
+
+    private boolean makesSorter(ItemFrame frame, Block block) {
+        return holdsActivator(frame) && block.getType() == Material.DISPENSER;
     }
 
     private void dispense(Sorter sorter) {

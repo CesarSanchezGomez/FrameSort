@@ -22,6 +22,15 @@ public final class FrameGeometry {
         return frame.getLocation().getBlock().getRelative(frame.getAttachedFace());
     }
 
+    /**
+     * Whether the block the frame hangs on is loaded. A frame on a chunk border can hang on a block of the next
+     * chunk, and reading an unloaded block would load that chunk synchronously.
+     */
+    public static boolean attachedLoaded(ItemFrame frame) {
+        Block block = attachedBlock(frame);
+        return block.getWorld().isChunkLoaded(block.getX() >> 4, block.getZ() >> 4);
+    }
+
     public static FramePosition position(ItemFrame frame) {
         BlockFace attached = frame.getAttachedFace();
         BlockData data = frame.getLocation().getBlock().getRelative(attached).getBlockData();

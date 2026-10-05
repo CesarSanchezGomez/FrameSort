@@ -130,7 +130,8 @@ public final class TargetResolver {
         List<Match> matches = new ArrayList<>();
         for (ItemFrame frame : index.near(key, current.delivery().maxDistance())) {
             ItemStack shown = frame.getItem();
-            if (shown.isEmpty() || !current.targets().positions().contains(FrameGeometry.position(frame))) {
+            if (shown.isEmpty() || !FrameGeometry.attachedLoaded(frame)
+                    || !current.targets().positions().contains(FrameGeometry.position(frame))) {
                 continue;
             }
             Block attached = FrameGeometry.attachedBlock(frame);

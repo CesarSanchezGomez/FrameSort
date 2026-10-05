@@ -94,7 +94,7 @@ public final class InspectService {
             List<ItemFrame> frames = new ArrayList<>(index.near(center, settings.get().delivery().maxDistance()));
             frames.sort(Comparator.comparingLong(frame -> distanceSquared(frame, center)));
             for (ItemFrame frame : frames) {
-                if (frame.getItem().isEmpty() || !allowed(frame)) {
+                if (frame.getItem().isEmpty() || !FrameGeometry.attachedLoaded(frame) || !allowed(frame)) {
                     continue;
                 }
                 lines.add(line(text, frame, center));
@@ -218,7 +218,7 @@ public final class InspectService {
         TargetSet<ItemFrame> drops = new TargetSet<>();
         for (TargetResolver.Match match : resolver.matches(source, filter)) {
             ItemFrame frame = match.frame();
-            if (!frame.isValid()) {
+            if (!frame.isValid() || !FrameGeometry.attachedLoaded(frame)) {
                 continue;
             }
             if (insert && DeliveryService.inventory(FrameGeometry.attachedBlock(frame)) != null) {
