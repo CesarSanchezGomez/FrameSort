@@ -19,15 +19,18 @@ sorter:
     # true: only the activator from /framesort give sorter.
     require-marked: false
     # Look of the activator handed out by FrameSort (MiniMessage).
-    name: '<gold>Sorter Activator'
+    name: '<gradient:#F7B733:#FC4A1A>Sorter Activator</gradient>'
     lore:
-      - '<gray>Place it in an item frame on a dispenser.'
+      - ''
+      - ' <gray>Place it in an item frame</gray> '
+      - ' <gray>on a dispenser.</gray> '
+      - ''
     glint: true
     item-model: ''
   # Frame types that can hold the activator.
   frame-types: [ITEM_FRAME, GLOW_ITEM_FRAME]
   # Name shown when the sorter's inventory is opened (MiniMessage). '' = none.
-  custom-name: '<gray>Item Sorter'
+  custom-name: '<gradient:#F7B733:#FC4A1A>Item Sorter</gradient>'
   # Game ticks between two sends of the same sorter (20 = 1 second).
   tick-rate: 20
   # true: a sorter powered by redstone stops sending.

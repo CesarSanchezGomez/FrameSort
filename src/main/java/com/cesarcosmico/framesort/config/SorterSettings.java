@@ -29,7 +29,7 @@ public record SorterSettings(ItemTemplate activator, boolean requireMarked, Set<
     static SorterSettings parse(ConfigReader reader) {
         ConfigReader activator = reader.sectionOrEmpty("activator");
         Material material = activator.requiredMaterial("material", Material.ENDER_EYE);
-        String customName = reader.string("custom-name", "<gray>Item Sorter");
+        String customName = reader.string("custom-name", "<gradient:#F7B733:#FC4A1A>Item Sorter</gradient>");
         return new SorterSettings(
                 ItemTemplate.parse(activator, material),
                 activator.bool("require-marked", false),
