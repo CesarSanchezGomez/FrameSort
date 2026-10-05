@@ -1,33 +1,33 @@
 prefix: "<white>[</white><gradient:#F7B733:#FC4A1A>FrameSort</gradient><white>]</white> "
 
 command:
-  help: |-
-    <prefix><gray>Sort items into item frames.</gray>
-    <gray>• <white>Right-click</white> a sorter or pad with a <white>stick</white> to see its targets (hold an item in your off hand to see only its targets).</gray>
-    <gray>• <white>Sneak + right-click</white> a frame with the stick to mark it as a target; <white>right-click</white> it to see what it accepts.</gray>
-    <gray>• <white>/framesort trace [seconds|stop]</white> · <white>/framesort tag \<tag></white> · <white>/framesort tags [search \<text>]</white></gray>
+  help:
+    - "<prefix><gray>Sort items into item frames.</gray>"
+    - "<gray>• <white>Right-click</white> a sorter or pad with a <white>stick</white> to see its targets (hold an item in your off hand to see only its targets).</gray>"
+    - "<gray>• <white>Sneak + right-click</white> a frame with the stick to mark it as a target; <white>right-click</white> it to see what it accepts.</gray>"
+    - "<gray>• <white>/framesort trace [seconds|stop]</white> · <white>/framesort tag logs</white> · <white>/framesort tags [search text]</white></gray>"
   reloaded: "<prefix><green>Configuration reloaded.</green>"
   reload-failed: "<prefix><red>Reload failed: <error>. The previous configuration is still active; see the console.</red>"
   version: "<prefix><white>FrameSort <green><version></green></white>"
 
 pager:
   layout:
-    - ''
-    - '<gradient:#F7B733:#FC4A1A>◤<st>                 </st></gradient> <white>[</white><gradient:#F7B733:#FC4A1A>FrameSort</gradient><white>]</white> <gradient:#FC4A1A:#F7B733><st>                 </st>◥</gradient>'
-    - '  <white><title></white> <dark_gray>·</dark_gray> <gray><total></gray>'
-    - ''
-    - '<entries>'
-    - ''
-    - '<gradient:#F7B733:#FC4A1A>◣<st>                   </st></gradient> <previous> <white>| <page>/<pages> |</white> <next> <gradient:#FC4A1A:#F7B733><st>                   </st>◢</gradient>'
-    - ''
-  empty: '<gray>  Nothing to show.</gray>'
-  previous: '<gradient:#F7B733:#FC4A1A>«</gradient>'
-  previous-disabled: '<dark_gray>«</dark_gray>'
-  previous-hover: '<gray>Click to go to page <page></gray>'
-  next: '<gradient:#FC4A1A:#F7B733>»</gradient>'
-  next-disabled: '<dark_gray>»</dark_gray>'
-  next-hover: '<gray>Click to go to page <page></gray>'
-
+    - ""
+    - "<gradient:#F7B733:#FC4A1A>◤<st>                          </st></gradient> <white>[</white><gradient:#F7B733:#FC4A1A>FrameSort</gradient><white>]</white> <gradient:#FC4A1A:#F7B733><st>                          </st>◥</gradient>"
+    - ""
+    - "  <white><title></white> <dark_gray>·</dark_gray> <gray><total></gray>"
+    - ""
+    - "<entries>"
+    - ""
+    - "<gradient:#F7B733:#FC4A1A>◣<st>                         </st></gradient> <previous> <white>| <page>—<pages> |</white> <next> <gradient:#FC4A1A:#F7B733><st>                         </st>◢</gradient>"
+    - ""
+  empty: "<gray>  Nothing to show.</gray>"
+  previous: "<gradient:#F7B733:#FC4A1A>«</gradient>"
+  previous-disabled: "<dark_gray>«</dark_gray>"
+  previous-hover: "<gray>Click to go to page <page></gray>"
+  next: "<gradient:#FC4A1A:#F7B733>»</gradient>"
+  next-disabled: "<dark_gray>»</dark_gray>"
+  next-hover: "<gray>Click to go to page <page></gray>"
 inspect:
   source:
     sorter: "sorter"
