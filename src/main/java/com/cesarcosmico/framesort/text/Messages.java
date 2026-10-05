@@ -1,17 +1,17 @@
 package com.cesarcosmico.framesort.text;
 
+import com.cesarcosmico.framesort.config.ConfigFiles;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
+import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.Plugin;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
+import java.util.function.Consumer;
 
 /** Player-facing text from {@code lang/<language>.yml}; keys missing there fall back to the bundled file. */
 public final class Messages {
@@ -27,23 +27,18 @@ public final class Messages {
         this.prefix = Placeholder.parsed("prefix", messages.getString("prefix", ""));
     }
 
-    public static Messages load(Plugin plugin, String language) throws IOException {
+    public static Messages load(Plugin plugin, String language, Consumer<String> warn)
+            throws IOException, InvalidConfigurationException {
         String path = "lang/" + language + ".yml";
         if (plugin.getResource(path) == null && !new File(plugin.getDataFolder(), path).exists()) {
-            plugin.getLogger().warning("Unknown language '" + language + "', using " + DEFAULT_LANGUAGE + ".");
+            warn.accept("Unknown language '" + language + "', using " + DEFAULT_LANGUAGE + ".");
             path = "lang/" + DEFAULT_LANGUAGE + ".yml";
         }
-        File file = new File(plugin.getDataFolder(), path);
-        if (!file.exists() && plugin.getResource(path) != null) {
-            plugin.saveResource(path, false);
-        }
-        YamlConfiguration loaded = YamlConfiguration.loadConfiguration(file);
-        String defaultsPath = plugin.getResource(path) != null ? path : "lang/" + DEFAULT_LANGUAGE + ".yml";
-        try (InputStream bundled = plugin.getResource(defaultsPath)) {
-            if (bundled != null) {
-                loaded.setDefaults(YamlConfiguration.loadConfiguration(
-                        new InputStreamReader(bundled, StandardCharsets.UTF_8)));
-            }
+        YamlConfiguration loaded = ConfigFiles.load(plugin, path);
+        YamlConfiguration defaults = ConfigFiles.bundled(plugin,
+                plugin.getResource(path) != null ? path : "lang/" + DEFAULT_LANGUAGE + ".yml");
+        if (defaults != null) {
+            loaded.setDefaults(defaults);
         }
         return new Messages(loaded);
     }

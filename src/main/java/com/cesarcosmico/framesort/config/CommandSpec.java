@@ -1,14 +1,15 @@
 package com.cesarcosmico.framesort.config;
 
-import org.jspecify.annotations.Nullable;
-
 import java.util.List;
-import java.util.Map;
 
-public record CommandSpec(boolean enabled, String name, List<String> aliases,
-                          String permission, Map<String, String> subPermissions) {
+/**
+ * One command feature from {@code commands.yml}.
+ *
+ * @param paths every path that runs the feature, as words without the slash: {@code [framesort, tag]}
+ */
+public record CommandSpec(String id, boolean enabled, String permission, List<List<String>> paths) {
 
-    public @Nullable String subPermission(String subcommand) {
-        return subPermissions.get(subcommand);
+    public CommandSpec {
+        paths = paths.stream().map(List::copyOf).toList();
     }
 }

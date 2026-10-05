@@ -7,8 +7,10 @@ command:
     - '<gray>• <white>Shift + clic derecho</white> a un marco con el palo para marcarlo como destino; <white>clic derecho</white> para ver qué acepta.</gray>'
     - '<gray>• <white>/framesort trace [segundos|stop]</white> · <white>/framesort tag logs</white> · <white>/framesort tags [search texto]</white></gray>'
   reloaded: '<prefix><green>Configuración recargada.</green>'
+  reloaded-with-warnings: '<prefix><yellow>Configuración recargada con <count> aviso(s): esos ajustes usan su valor por defecto. Mira la consola.</yellow>'
   reload-failed: '<prefix><red>La recarga falló: <error>. Sigue activa la configuración anterior; mira la consola.</red>'
   version: '<prefix><white>FrameSort <green><version></green></white>'
+  players-only: '<prefix><red>Solo los jugadores pueden usar este comando.</red>'
 
 pager:
   layout:

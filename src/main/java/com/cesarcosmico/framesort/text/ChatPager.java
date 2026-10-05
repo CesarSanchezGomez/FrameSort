@@ -6,6 +6,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.JoinConfiguration;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
+import org.jspecify.annotations.Nullable;
 
 import java.util.List;
 
@@ -16,10 +17,11 @@ public final class ChatPager {
     }
 
     /**
-     * @param pageCommand the command that shows another page, with {@code %d} where the page number goes
+     * @param pageCommand the command that shows another page, with {@code %d} where the page number goes, or
+     *                    {@code null} for buttons that can't be clicked
      */
     public static void send(Audience audience, Messages messages, Component title, List<Component> lines,
-                            int requested, int pageSize, String pageCommand) {
+                            int requested, int pageSize, @Nullable String pageCommand) {
         Page page = Page.of(requested, lines.size(), pageSize);
         Component entries = lines.isEmpty()
                 ? messages.get("pager.empty")
@@ -36,11 +38,12 @@ public final class ChatPager {
                 Placeholder.unparsed("pages", "%02d".formatted(page.count()))));
     }
 
-    private static Component button(Messages messages, String key, boolean enabled, String pageCommand, int target) {
+    private static Component button(Messages messages, String key, boolean enabled, @Nullable String pageCommand,
+                                    int target) {
         if (!enabled) {
             return messages.get(key + ".disabled");
         }
-        return messages.get(key + ".enabled", Placeholder.unparsed("page", String.valueOf(target)))
-                .clickEvent(ClickEvent.runCommand(pageCommand.formatted(target)));
+        Component button = messages.get(key + ".enabled", Placeholder.unparsed("page", String.valueOf(target)));
+        return pageCommand == null ? button : button.clickEvent(ClickEvent.runCommand(pageCommand.formatted(target)));
     }
 }

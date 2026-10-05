@@ -7,8 +7,10 @@ command:
     - '<gray>• <white>Sneak + right-click</white> a frame with the stick to mark it as a target; <white>right-click</white> it to see what it accepts.</gray>'
     - '<gray>• <white>/framesort trace [seconds|stop]</white> · <white>/framesort tag logs</white> · <white>/framesort tags [search text]</white></gray>'
   reloaded: '<prefix><green>Configuration reloaded.</green>'
+  reloaded-with-warnings: '<prefix><yellow>Configuration reloaded with <count> warning(s): those settings use their defaults. See the console.</yellow>'
   reload-failed: '<prefix><red>Reload failed: <error>. The previous configuration is still active; see the console.</red>'
   version: '<prefix><white>FrameSort <green><version></green></white>'
+  players-only: '<prefix><red>Only players can use this command.</red>'
 
 pager:
   layout:

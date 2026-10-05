@@ -1,17 +1,74 @@
-# FrameSort: commands. Top-level keys are fixed ids; changes need a restart.
+# FrameSort: commands. Changes need a restart.
+#
+# Each section is one feature; its key is a fixed id, don't change it.
+#   enabled     false removes the feature from every path.
+#   permission  needed to see and run it. Empty means everyone. A permission FrameSort doesn't declare is
+#               granted to ops only, unless a permissions plugin gives it.
+#   usage       every full path that runs it. The first word is the root command, so a feature can also live
+#               under its own command ('/fstrace'). The arguments follow the path, as in the comment above each one.
 
 config-version: 1
 
-framesort:
+# Usage: [COMMAND]
+help:
   enabled: true
-  name: framesort
-  aliases: [fs]
-  permission: framesort.command.help
-  subcommands:
-    tag:     { permission: framesort.command.tag }
-    tags:    { permission: framesort.command.tags }
-    trace:   { permission: framesort.command.trace }
-    inspect: { permission: framesort.command.inspect }
-    give:    { permission: framesort.command.give }
-    reload:  { permission: framesort.command.reload }
-    version: { permission: framesort.command.version }
+  permission: 'framesort.command.help'
+  usage:
+    - '/framesort'
+    - '/fs'
+
+# Usage: [COMMAND] <tag> [page]
+tag:
+  enabled: true
+  permission: 'framesort.command.tag'
+  usage:
+    - '/framesort tag'
+    - '/fs tag'
+
+# Usage: [COMMAND] [page] | [COMMAND] search <text> [page]
+tags:
+  enabled: true
+  permission: 'framesort.command.tags'
+  usage:
+    - '/framesort tags'
+    - '/fs tags'
+
+# Usage: [COMMAND] [seconds] | [COMMAND] stop
+trace:
+  enabled: true
+  permission: 'framesort.command.trace'
+  usage:
+    - '/framesort trace'
+    - '/fs trace'
+
+# Usage: [COMMAND] <page>
+inspect:
+  enabled: true
+  permission: 'framesort.command.inspect'
+  usage:
+    - '/framesort inspect'
+    - '/fs inspect'
+
+# Usage: [COMMAND] sorter [player] [amount] | [COMMAND] pad <type> [player] [amount]
+give:
+  enabled: true
+  permission: 'framesort.command.give'
+  usage:
+    - '/framesort give'
+    - '/fs give'
+
+# Usage: [COMMAND]
+reload:
+  enabled: true
+  permission: 'framesort.command.reload'
+  usage:
+    - '/framesort reload'
+    - '/fs reload'
+
+# Usage: [COMMAND]
+version:
+  enabled: true
+  permission: 'framesort.command.version'
+  usage:
+    - '/framesort version'
+    - '/fs version'

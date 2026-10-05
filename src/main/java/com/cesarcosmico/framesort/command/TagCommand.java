@@ -18,14 +18,13 @@ import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
-import org.jspecify.annotations.Nullable;
 
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 
-public final class TagCommand implements Subcommand {
+public final class TagCommand implements CommandFeature {
 
     private final TagCatalog tags;
     private final Supplier<Messages> messages;
@@ -43,18 +42,16 @@ public final class TagCommand implements Subcommand {
     }
 
     @Override
-    public LiteralArgumentBuilder<CommandSourceStack> node(String root, @Nullable String permission) {
-        return Commands.literal("tag")
-                .requires(source -> FrameSortCommand.allowed(source.getSender(), permission))
-                .then(Commands.argument("tag", ArgumentTypes.namespacedKey())
-                        .suggests(this::suggestTags)
-                        .executes(context -> showTag(context, root, 1))
-                        .then(Commands.argument("page", IntegerArgumentType.integer(1))
-                                .executes(context -> showTag(context, root,
-                                        IntegerArgumentType.getInteger(context, "page")))));
+    public void attach(LiteralArgumentBuilder<CommandSourceStack> node, String path) {
+        node.then(Commands.argument("tag", ArgumentTypes.namespacedKey())
+                .suggests(this::suggestTags)
+                .executes(context -> showTag(context, path, 1))
+                .then(Commands.argument("page", IntegerArgumentType.integer(1))
+                        .executes(context -> showTag(context, path,
+                                IntegerArgumentType.getInteger(context, "page")))));
     }
 
-    private int showTag(CommandContext<CommandSourceStack> context, String root, int page) {
+    private int showTag(CommandContext<CommandSourceStack> context, String path, int page) {
         NamespacedKey key = context.getArgument("tag", NamespacedKey.class);
         Messages text = messages.get();
         TagCatalog.TagView view = tags.find(key);
@@ -69,7 +66,7 @@ public final class TagCommand implements Subcommand {
                 Placeholder.unparsed("tag", name),
                 Placeholder.component("kind", text.get("tag.kind." + view.kind().name().toLowerCase(Locale.ROOT))));
         ChatPager.send(context.getSource().getSender(), text, title, lines, page,
-                settings.get().inspect().pageSize(), "/" + root + " tag " + name + " %d");
+                settings.get().inspect().pageSize(), path + " " + name + " %d");
         return Command.SINGLE_SUCCESS;
     }
 

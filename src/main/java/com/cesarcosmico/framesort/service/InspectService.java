@@ -1,5 +1,6 @@
 package com.cesarcosmico.framesort.service;
 
+import com.cesarcosmico.framesort.config.CommandsConfig;
 import com.cesarcosmico.framesort.config.FrameSortSettings;
 import com.cesarcosmico.framesort.config.InspectSettings;
 import com.cesarcosmico.framesort.config.TargetSettings;
@@ -21,6 +22,7 @@ import org.bukkit.entity.ItemFrame;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -36,7 +38,6 @@ public final class InspectService {
 
     public static final String MARK_PERMISSION = "framesort.target.create";
 
-
     private record Listing(Component title, List<Component> lines) {
     }
 
@@ -46,14 +47,14 @@ public final class InspectService {
     private final TargetResolver resolver;
     private final SorterService sorters;
     private final PadService pads;
-    private final String commandName;
-    private final String pageCommand;
+    private final @Nullable String tagCommand;
+    private final @Nullable String pageCommand;
     private final Map<UUID, Listing> listings = new HashMap<>();
     private final HighlightService highlights;
 
     public InspectService(HighlightService highlights, Supplier<FrameSortSettings> settings, Supplier<Messages> messages,
                           TargetIndex index, TargetResolver resolver, SorterService sorters,
-                          PadService pads, String commandName) {
+                          PadService pads, CommandsConfig commands) {
         this.highlights = highlights;
         this.settings = settings;
         this.messages = messages;
@@ -61,8 +62,10 @@ public final class InspectService {
         this.resolver = resolver;
         this.sorters = sorters;
         this.pads = pads;
-        this.commandName = commandName;
-        this.pageCommand = "/" + commandName + " inspect %d";
+        // Links follow commands.yml; a disabled feature leaves them as plain text.
+        this.tagCommand = commands.primaryUsage("tag");
+        String inspect = commands.primaryUsage("inspect");
+        this.pageCommand = inspect == null ? null : inspect + " %d";
     }
 
     /** With an item in {@code filter}, only where that item would go, chosen like a real delivery. */
@@ -122,10 +125,11 @@ public final class InspectService {
         ItemStack shown = frame.getItem();
         TagCatalog.TagView view = resolver.tag(shown);
         if (view != null) {
-            player.sendMessage(text.get("frame.accepts.tag",
+            Component accepts = text.get("frame.accepts.tag",
                     Placeholder.unparsed("tag", view.key().asString()),
-                    Placeholder.unparsed("count", String.valueOf(view.materials().size())))
-                    .clickEvent(ClickEvent.runCommand("/" + commandName + " tag " + view.key().asString())));
+                    Placeholder.unparsed("count", String.valueOf(view.materials().size())));
+            player.sendMessage(tagCommand == null ? accepts
+                    : accepts.clickEvent(ClickEvent.runCommand(tagCommand + " " + view.key().asString())));
         }
         player.sendMessage(text.get("frame.accepts.exact", Placeholder.component("item", shown.effectiveName())));
         List<ItemStack> contents = TargetResolver.contents(shown);

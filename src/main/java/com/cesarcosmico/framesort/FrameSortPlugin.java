@@ -1,13 +1,17 @@
 package com.cesarcosmico.framesort;
 
-import com.cesarcosmico.framesort.command.CommandRegistrar;
-import com.cesarcosmico.framesort.command.FrameSortCommand;
+import com.cesarcosmico.framesort.command.CommandFeature;
+import com.cesarcosmico.framesort.command.CommandTree;
 import com.cesarcosmico.framesort.command.GiveCommand;
+import com.cesarcosmico.framesort.command.HelpCommand;
 import com.cesarcosmico.framesort.command.InspectCommand;
+import com.cesarcosmico.framesort.command.ReloadCommand;
 import com.cesarcosmico.framesort.command.TagCommand;
 import com.cesarcosmico.framesort.command.TagsCommand;
 import com.cesarcosmico.framesort.command.TraceCommand;
+import com.cesarcosmico.framesort.command.VersionCommand;
 import com.cesarcosmico.framesort.config.CommandsConfig;
+import com.cesarcosmico.framesort.config.ConfigFiles;
 import com.cesarcosmico.framesort.config.ConfigHolder;
 import com.cesarcosmico.framesort.config.ConfigValidator;
 import com.cesarcosmico.framesort.config.FrameSortSettings;
@@ -26,9 +30,13 @@ import com.cesarcosmico.framesort.service.TargetIndex;
 import com.cesarcosmico.framesort.service.TargetResolver;
 import com.cesarcosmico.framesort.service.TraceService;
 import com.cesarcosmico.framesort.text.Messages;
+import com.mojang.brigadier.tree.LiteralCommandNode;
+import io.papermc.paper.command.brigadier.CommandSourceStack;
+import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents;
 import org.bukkit.Chunk;
 import org.bukkit.Material;
 import org.bukkit.World;
+import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.ItemFrame;
@@ -36,12 +44,16 @@ import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitTask;
 
-import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.logging.Level;
 
 public final class FrameSortPlugin extends JavaPlugin {
+
+    private static final String COMMAND_DESCRIPTION = "Sort items into item frames";
 
     private ConfigHolder<FrameSortSettings> settings;
     private ConfigHolder<PadSettings> pads;
@@ -56,18 +68,18 @@ public final class FrameSortPlugin extends JavaPlugin {
 
     @Override
     public void onEnable() {
+        Consumer<String> warn = getLogger()::warning;
+        CommandsConfig commands;
         try {
-            saveDefaultConfig();
-            settings = new ConfigHolder<>(loadSettings());
-            pads = new ConfigHolder<>(loadPads());
-            messages = new ConfigHolder<>(Messages.load(this, settings.get().language()));
+            settings = new ConfigHolder<>(loadSettings(warn));
+            pads = new ConfigHolder<>(loadPads(warn));
+            messages = new ConfigHolder<>(Messages.load(this, settings.get().language(), warn));
+            commands = CommandsConfig.load(this, warn);
         } catch (Exception e) {
             getLogger().log(Level.SEVERE, "FrameSort could not start: " + e.getMessage(), e);
             getServer().getPluginManager().disablePlugin(this);
             return;
         }
-        CommandsConfig commands = CommandsConfig.load(this);
-        String commandName = commands.effective("framesort", FrameSortCommand.DEFAULTS).name();
 
         tags = new TagCatalog();
         index = new TargetIndex(settings);
@@ -77,17 +89,24 @@ public final class FrameSortPlugin extends JavaPlugin {
         sorters = new SorterService(this, settings, delivery);
         padService = new PadService(getServer(), pads, delivery);
         inspect = new InspectService(new HighlightService(this), settings, messages, index, resolver, sorters,
-                padService, commandName);
+                padService, commands);
 
         register(new TargetListener(index), new SorterListener(sorters), new PadListener(padService, messages),
                 new ToolListener(settings, inspect, sorters, padService, trace));
-        new CommandRegistrar(this, commands, List.of(new FrameSortCommand(messages, List.of(
+        List<CommandFeature> features = List.of(
+                new HelpCommand(messages),
                 new TagCommand(tags, messages, settings),
-                new TagsCommand(tags, messages, settings),
+                new TagsCommand(tags, messages, settings, commands),
                 new TraceCommand(trace, messages, settings),
                 new InspectCommand(inspect, messages),
-                new GiveCommand(sorters, padService, pads, messages)),
-                getPluginMeta().getVersion(), this::reload, getLogger()))).register();
+                new GiveCommand(sorters, padService, pads, messages),
+                new ReloadCommand(messages, this::reload, getLogger()),
+                new VersionCommand(messages, getPluginMeta().getVersion()));
+        getLifecycleManager().registerEventHandler(LifecycleEvents.COMMANDS, event -> {
+            for (LiteralCommandNode<CommandSourceStack> root : CommandTree.build(features, commands)) {
+                event.registrar().register(root, COMMAND_DESCRIPTION);
+            }
+        });
 
         // Chunks and frames that were loaded before the plugin enabled fire no events for us.
         for (World world : getServer().getWorlds()) {
@@ -112,12 +131,20 @@ public final class FrameSortPlugin extends JavaPlugin {
         }
     }
 
-    /** Loads everything first and swaps only when all of it parsed, so a broken file keeps the old state. */
-    private void reload() throws Exception {
-        reloadConfig();
-        FrameSortSettings newSettings = loadSettings();
-        PadSettings newPads = loadPads();
-        Messages newMessages = Messages.load(this, newSettings.language());
+    /**
+     * Loads everything first and swaps only when all of it parsed, so a broken file keeps the old state.
+     *
+     * @return how many settings were invalid and fell back to their defaults
+     */
+    private int reload() throws IOException, InvalidConfigurationException {
+        List<String> warnings = new ArrayList<>();
+        Consumer<String> warn = warning -> {
+            warnings.add(warning);
+            getLogger().warning(warning);
+        };
+        FrameSortSettings newSettings = loadSettings(warn);
+        PadSettings newPads = loadPads(warn);
+        Messages newMessages = Messages.load(this, newSettings.language(), warn);
         settings.set(newSettings);
         pads.set(newPads);
         messages.set(newMessages);
@@ -125,6 +152,7 @@ public final class FrameSortPlugin extends JavaPlugin {
         resolver.clear();
         index.clear();
         scanFrames();
+        return warnings.size();
     }
 
     private void scanFrames() {
@@ -140,19 +168,16 @@ public final class FrameSortPlugin extends JavaPlugin {
         }
     }
 
-    private FrameSortSettings loadSettings() {
-        ConfigValidator.check(this, getConfig(), "config.yml");
-        return FrameSortSettings.parse(getConfig(), getLogger()::warning);
+    private FrameSortSettings loadSettings(Consumer<String> warn) throws IOException, InvalidConfigurationException {
+        YamlConfiguration yaml = ConfigFiles.load(this, "config.yml");
+        ConfigValidator.check(this, yaml, "config.yml", warn);
+        return FrameSortSettings.parse(yaml, warn);
     }
 
-    private PadSettings loadPads() {
-        File file = new File(getDataFolder(), "pads.yml");
-        if (!file.exists()) {
-            saveResource("pads.yml", false);
-        }
-        YamlConfiguration yaml = YamlConfiguration.loadConfiguration(file);
-        ConfigValidator.check(this, yaml, "pads.yml", Set.of("types"));
-        return PadSettings.parse(yaml, getLogger()::warning, Material::isBlock);
+    private PadSettings loadPads(Consumer<String> warn) throws IOException, InvalidConfigurationException {
+        YamlConfiguration yaml = ConfigFiles.load(this, "pads.yml");
+        ConfigValidator.check(this, yaml, "pads.yml", Set.of("types"), warn);
+        return PadSettings.parse(yaml, warn, Material::isBlock);
     }
 
     private void register(Listener... listeners) {
