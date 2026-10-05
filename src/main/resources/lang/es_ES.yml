@@ -78,7 +78,9 @@ position:
   bottom: "inferior"
   front: "frontal"
   back: "trasera"
-  sides: "lateral"
+  left: "izquierda"
+  right: "derecha"
+  side: "lateral"
 
 trace:
   started: "<prefix><green>Rastreando entregas a menos de <radius> bloques durante <seconds> segundos.</green> <gray>Para con /framesort trace stop.</gray>"

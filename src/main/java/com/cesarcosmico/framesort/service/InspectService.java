@@ -28,6 +28,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.function.Supplier;
 
@@ -174,12 +175,12 @@ public final class InspectService {
             player.sendMessage(text.get("mark.wrong-type"));
             return;
         }
-        FramePosition position = FrameGeometry.position(frame);
-        if (!targets.positions().contains(position)) {
+        Set<FramePosition> position = FrameGeometry.positions(frame);
+        if (!targets.allows(position)) {
             player.sendMessage(text.get("mark.wrong-position",
                     Placeholder.component("position", positionName(text, position)),
                     Placeholder.component("allowed", Component.join(JoinConfiguration.commas(true),
-                            targets.positions().stream().sorted().map(p -> positionName(text, p)).toList()))));
+                            targets.positions().stream().sorted().map(p -> positionName(text, Set.of(p))).toList()))));
             return;
         }
         boolean mark = !index.isMarked(frame);
@@ -258,19 +259,19 @@ public final class InspectService {
 
     private Component status(Messages text, ItemFrame frame) {
         TargetSettings targets = settings.get().targets();
-        FramePosition position = FrameGeometry.position(frame);
+        Set<FramePosition> position = FrameGeometry.positions(frame);
         TagResolver where = Placeholder.component("position", positionName(text, position));
         if (!targets.frameTypes().contains(frame.getType())) {
             return text.get("frame.status.wrong-type");
         }
-        if (!targets.positions().contains(position)) {
+        if (!targets.allows(position)) {
             return text.get("frame.status.not-allowed", where);
         }
         return index.isTarget(frame) ? text.get("frame.status.target", where) : text.get("frame.status.unmarked");
     }
 
     private boolean allowed(ItemFrame frame) {
-        return settings.get().targets().positions().contains(FrameGeometry.position(frame));
+        return settings.get().targets().allows(FrameGeometry.positions(frame));
     }
 
     private HighlightService.Highlight highlight(ItemFrame frame) {
@@ -299,8 +300,11 @@ public final class InspectService {
         return Component.translatable(block.getType());
     }
 
-    private static Component positionName(Messages text, FramePosition position) {
-        return text.get("position." + position.name().toLowerCase(Locale.ROOT));
+    // A frame on a container without a facing counts as every side: it is just "a side".
+    private static Component positionName(Messages text, Set<FramePosition> position) {
+        return position.size() == 1
+                ? text.get("position." + position.iterator().next().name().toLowerCase(Locale.ROOT))
+                : text.get("position.side");
     }
 
     private static TagResolver coordinates(Location location) {

@@ -78,7 +78,9 @@ position:
   bottom: "bottom"
   front: "front"
   back: "back"
-  sides: "side"
+  left: "left"
+  right: "right"
+  side: "side"
 
 trace:
   started: "<prefix><green>Tracing deliveries within <radius> blocks for <seconds> seconds.</green> <gray>Stop with /framesort trace stop.</gray>"

@@ -72,7 +72,7 @@ class FrameSortSettingsTest {
                   frame-types: [ITEM_FRAME, ZOMBIE]
                 targets:
                   registration: sometimes
-                  positions: [FRONT, UNDER]
+                  positions: [FRONT, SIDES, UNDER]
                 delivery:
                   max-distance: lots
                   default-target-item: ""
@@ -87,7 +87,8 @@ class FrameSortSettingsTest {
         assertEquals(20, settings.sorter().tickRate());
         assertEquals(Set.of(EntityType.ITEM_FRAME), settings.sorter().frameTypes());
         assertEquals(TargetRegistration.MANUAL, settings.targets().registration());
-        assertEquals(Set.of(FramePosition.FRONT), settings.targets().positions());
+        assertEquals(Set.of(FramePosition.FRONT, FramePosition.LEFT, FramePosition.RIGHT),
+                settings.targets().positions());
         assertEquals(64, settings.delivery().maxDistance());
         assertNull(settings.delivery().defaultTargetItem());
         assertEquals(Material.STICK, settings.inspect().tool());

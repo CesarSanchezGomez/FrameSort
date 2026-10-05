@@ -131,7 +131,7 @@ public final class TargetResolver {
         for (ItemFrame frame : index.near(key, current.delivery().maxDistance())) {
             ItemStack shown = frame.getItem();
             if (shown.isEmpty() || !FrameGeometry.attachedLoaded(frame)
-                    || !current.targets().positions().contains(FrameGeometry.position(frame))) {
+                    || !current.targets().allows(FrameGeometry.positions(frame))) {
                 continue;
             }
             Block attached = FrameGeometry.attachedBlock(frame);

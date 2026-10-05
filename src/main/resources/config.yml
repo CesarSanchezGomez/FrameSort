@@ -42,10 +42,12 @@ targets:
   # manual: only frames marked by a player (sneak + right-click with the tool).
   # automatic: every frame of the types below, in the allowed positions.
   registration: manual   # manual | automatic
-  # Where the frame may hang on its container. FRONT and BACK follow the way
-  # the container faces (chests, barrels, furnaces...); on blocks without a
-  # facing every side face counts as SIDES.
-  positions: [TOP, BOTTOM, FRONT, BACK, SIDES]
+  # Where the frame may hang on its container. FRONT, BACK, LEFT and RIGHT
+  # follow the way the container faces (chests, barrels, furnaces...); left
+  # and right are as seen standing in front of it. SIDES = LEFT + RIGHT. On
+  # blocks without a facing (hoppers, upright barrels) a side face counts as
+  # any of FRONT, BACK, LEFT or RIGHT.
+  positions: [TOP, BOTTOM, FRONT, BACK, LEFT, RIGHT]
   frame-types: [ITEM_FRAME, GLOW_ITEM_FRAME]
 
 delivery:

@@ -11,6 +11,8 @@ import org.bukkit.block.data.Directional;
 import org.bukkit.block.data.type.Hopper;
 import org.bukkit.entity.ItemFrame;
 
+import java.util.Set;
+
 /** Where frames hang and how blocks map to keys. */
 public final class FrameGeometry {
 
@@ -31,7 +33,7 @@ public final class FrameGeometry {
         return block.getWorld().isChunkLoaded(block.getX() >> 4, block.getZ() >> 4);
     }
 
-    public static FramePosition position(ItemFrame frame) {
+    public static Set<FramePosition> positions(ItemFrame frame) {
         BlockFace attached = frame.getAttachedFace();
         BlockData data = frame.getLocation().getBlock().getRelative(attached).getBlockData();
         // A hopper's facing is where it outputs, not a front.

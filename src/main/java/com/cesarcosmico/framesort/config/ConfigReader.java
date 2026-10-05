@@ -36,6 +36,10 @@ public final class ConfigReader {
         warn.accept(file + " > " + prefix + ": " + problem);
     }
 
+    public boolean isSet(String path) {
+        return root.isSet(path);
+    }
+
     public String string(String path, String fallback) {
         String value = root.getString(path);
         return value == null ? fallback : value;
