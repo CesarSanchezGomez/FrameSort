@@ -65,11 +65,12 @@ public final class TagCommand implements Subcommand {
             return Command.SINGLE_SUCCESS;
         }
         List<Component> lines = view.materials().stream().map(material -> entry(text, material)).toList();
+        String name = shortName(view.key());
         Component title = text.get("tag.title",
-                Placeholder.unparsed("tag", view.key().asString()),
+                Placeholder.unparsed("tag", name),
                 Placeholder.component("kind", text.get("tag.kind." + view.kind().name().toLowerCase(Locale.ROOT))));
         ChatPager.send(context.getSource().getSender(), text, title, lines, page,
-                settings.get().inspect().pageSize(), "/" + root + " tag " + view.key().asString() + " %d");
+                settings.get().inspect().pageSize(), "/" + root + " tag " + name + " %d");
         return Command.SINGLE_SUCCESS;
     }
 
