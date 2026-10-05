@@ -42,8 +42,8 @@ never duplicated.
 | `/framesort reload` | `framesort.command.reload` | op |
 | `/framesort version` | `framesort.command.version` | op |
 
-`/fs` is an alias. Names, aliases and permissions can be changed in `commands.yml`; see
-[docs/commands.md](docs/commands.md).
+Every command also runs as `/fs`. Where each command lives, its permission and whether it is enabled are set in
+`commands.yml`; see [docs/commands.md](docs/commands.md).
 
 ## Configuration
 

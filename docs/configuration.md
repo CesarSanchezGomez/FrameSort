@@ -2,7 +2,9 @@
 
 Every file has a `config-version`. When FrameSort's defaults change, the console lists missing and unknown keys;
 your files are never rewritten. Invalid values are reported with their path and replaced by the default.
-`/framesort reload` applies `config.yml`, `pads.yml` and the language file; `commands.yml` needs a restart.
+`/framesort reload` applies `config.yml`, `pads.yml` and the language file and tells you how many values fell back
+to their defaults. A file that is not valid YAML stops the reload and the previous configuration stays active.
+`commands.yml` needs a restart.
 
 Text values are written in single quotes; an apostrophe inside one is written twice (`'can''t'`). Text with
 several lines (help, lore, the page layout) is a YAML list, one line per entry. Item lore starts and ends with an

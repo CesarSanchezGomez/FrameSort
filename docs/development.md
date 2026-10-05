@@ -19,16 +19,21 @@ com.cesarcosmico.framesort
 ├── FrameSortPlugin   composition root: wires everything, one tick task, reload
 ├── model/            plain rules: priorities, best-priority set, delivery, frame positions, paging
 ├── service/          target index and resolver, delivery, sorters, pads, inspection, tracing, tags
-├── config/           typed settings, pads.yml, commands.yml, validation, reload holder
+├── config/           typed settings, pads.yml, commands.yml, strict YAML loading, validation, reload holder
 ├── item/             persistent data keys, item templates, the pad codec for chunks
 ├── text/             messages and the chat pager
-├── command/          Brigadier commands, one class per subcommand
+├── command/          one class per command feature; CommandTree builds the roots from commands.yml
 ├── listener/         Bukkit listeners, one per feature
 └── api/              TargetBindEvent, for other plugins
 ```
 
-Dependencies are wired by constructor in `FrameSortPlugin`; there are no static instances. `DeliveryService.Source`
-(a sorter slot or a pad item entity) and `Subcommand` are the only interfaces.
+Dependencies are wired by constructor in `FrameSortPlugin`; there are no static instances. The interfaces are
+`DeliveryService.Source` (a sorter slot or a pad item entity), `Delivery.Offer` (what `model.Delivery` needs from a
+container) and `CommandFeature` (one per command feature).
+
+`commands.yml` only places features: `CommandTree` joins every enabled path into Brigadier literals, makes a literal
+visible to anyone allowed to run something below it, and checks each feature's own permission on its command and
+arguments.
 
 ## Data
 

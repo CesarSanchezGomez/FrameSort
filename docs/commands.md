@@ -41,17 +41,24 @@ Empty frames are left alone, so the tool item can still be put into a frame.
 
 ## commands.yml
 
-Each command's name, aliases, permissions and whether it is enabled can be changed in `commands.yml`. The top
-level key is an internal id: don't change it. Changes need a server restart.
+Each section of `commands.yml` is one command feature: `help`, `tag`, `tags`, `trace`, `inspect`, `give`,
+`reload` and `version`. The key is fixed; what can change is:
+
+| Key | Meaning |
+|---|---|
+| `enabled` | `false` removes the feature from every path. |
+| `permission` | Needed to see and run it. Empty means everyone. A permission FrameSort doesn't declare is granted to ops only, unless a permissions plugin gives it. |
+| `usage` | Every full path that runs it. The first word is the root command; the arguments follow the path. |
+
+Paths that start with the same words share them, so a feature can move under another root or get a command of its
+own. Clickable links in chat (pages, tags) use the first path of their feature. Changes need a server restart.
 
 ```yaml
-framesort:
+trace:
   enabled: true
-  name: framesort
-  aliases: [fs]
-  permission: framesort.command.help
-  subcommands:
-    tag:     { permission: framesort.command.tag }
-    give:    { permission: framesort.command.give }
-    # ...
+  permission: 'framesort.command.trace'
+  usage:
+    - '/framesort trace'
+    - '/fs trace'
+    - '/fstrace'      # also /fstrace [seconds|stop]
 ```
