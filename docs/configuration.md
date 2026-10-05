@@ -1,0 +1,84 @@
+# Configuration
+
+Every file has a `config-version`. When FrameSort's defaults change, the console lists missing and unknown keys;
+your files are never rewritten. Invalid values are reported with their path and replaced by the default.
+`/framesort reload` applies `config.yml`, `pads.yml` and the language file; `commands.yml` needs a restart.
+
+## config.yml
+
+### sorter
+
+| Key | Default | Meaning |
+|---|---|---|
+| `activator.material` | `ENDER_EYE` | Item that turns a dispenser into a sorter when placed in a frame on it. |
+| `activator.require-marked` | `false` | `true`: only the activator from `/framesort give sorter` (or a recipe below) works, not any item of that material. |
+| `activator.name`, `lore`, `glint`, `item-model` | | Look of the activator FrameSort hands out (MiniMessage). |
+| `recipes` | `[]` | Crafting recipes (for example from a datapack) whose result becomes the activator, so it can be crafted with its marker. |
+| `frame-types` | `[ITEM_FRAME, GLOW_ITEM_FRAME]` | Frames that can hold the activator. |
+| `custom-name` | `<gray>Item Sorter` | Name shown in the sorter's inventory. `""` = none. |
+| `tick-rate` | `20` | Ticks between two sends of the same sorter. |
+| `disable-when-powered` | `false` | A powered sorter stops sending. |
+| `hide-frame` | `true` | Hides the activator's frame while the sorter works. |
+| `show-activity` | `true` | Rotates the activator every time the sorter sends something. |
+
+A sorter never dispenses like a plain dispenser. It sends one random stack per turn; when the stack is a shulker box
+or bundle with contents, it sends a stack from inside instead.
+
+### targets
+
+| Key | Default | Meaning |
+|---|---|---|
+| `registration` | `manual` | `manual`: only frames marked with the tool. `automatic`: every frame of `frame-types`. |
+| `positions` | all | Where a target frame may hang on its block: `TOP`, `BOTTOM`, `FRONT`, `BACK`, `SIDES`. `FRONT` and `BACK` follow the way the block faces (chests, barrels, furnaces…); on blocks without a facing, and for hoppers, every side face counts as `SIDES`. |
+| `frame-types` | `[ITEM_FRAME, GLOW_ITEM_FRAME]` | Frames that can be targets. |
+
+With `automatic`, consider `positions: [FRONT, TOP]` so decorative frames on the sides of chests are not used.
+
+### delivery
+
+| Key | Default | Meaning |
+|---|---|---|
+| `max-distance` | `64` | Targets are searched within this many blocks of the sorter or pad. |
+| `insert-into-containers` | `true` | `true`: items go into the container behind the frame. `false`: items are always dropped in front of the frame. |
+| `default-target-item` | `CARROT_ON_A_STICK` | Frames holding it take whatever matches no other frame. `""` = off. |
+
+How a destination is chosen:
+
+1. Every target in range that accepts the item gets a priority: exact item, then tag, then material. A match
+   through a shulker box or bundle in the frame ranks just below the same direct match, and the default target
+   comes last.
+2. Only the best priority is used, separately for frames with a container and frames without one.
+3. The item goes into the containers in random order until it is all in.
+4. Whatever is left is dropped at one random frame without a container.
+5. If those frames are all on lava cauldrons, the rest is destroyed. If there is nowhere to go, the item stays.
+
+### inspect
+
+| Key | Default | Meaning |
+|---|---|---|
+| `tool` | `STICK` | The inspection and marking tool. |
+| `highlight-seconds` | `10` | How long targets stay highlighted for the player who inspected them. |
+| `page-size` | `10` | Lines per page in lists. |
+| `trace-radius` | `32` | `/framesort trace` shows deliveries from sorters and pads within this radius. |
+| `trace-default-seconds`, `trace-max-seconds` | `60`, `600` | Tracing duration. |
+
+## pads.yml
+
+| Key | Default | Meaning |
+|---|---|---|
+| `creation` | `anyone` | `anyone`: any player who places the top block on a complete column. `permission`: only players with `framesort.pad.create`. `item`: only by placing the pad's special item (from `/framesort give pad`) as the top block. |
+| `sweep-interval` | `10` | Ticks between checks for items resting on pads. Items that arrive by water or fall onto a pad are picked up then. |
+| `types.<id>.structure` | | Blocks from top to bottom. Items rest on the first one. |
+| `types.<id>.item` | | `name`, `lore`, `glint`, `item-model` of the special top block (its material is the first block of the structure). |
+
+A pad is created when its top block is placed on the rest of the column, so build it bottom up. It counts as long
+as the column stays complete; breaking the top block removes it. In `item` mode, breaking it gives the special item
+back. The top block of a registered pad can't be pushed by pistons or blown up.
+
+Items resting up to one block above the top block count, so carpets or slabs on the pad are fine.
+
+## Language
+
+`language` in `config.yml` picks `lang/<language>.yml` (`en_US`, `es_ES`). Keys missing from your file fall back
+to the bundled one. Messages use [MiniMessage](https://docs.advntr.dev/minimessage/format.html); `<prefix>` is
+the `prefix` key.
