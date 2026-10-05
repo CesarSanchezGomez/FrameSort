@@ -5,7 +5,6 @@ import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.JoinConfiguration;
 import net.kyori.adventure.text.event.ClickEvent;
-import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 
 import java.util.List;
@@ -28,12 +27,8 @@ public final class ChatPager {
         Component entries = lines.isEmpty()
                 ? messages.get("pager.empty")
                 : Component.join(JoinConfiguration.newlines(), lines.subList(page.from(), page.to()));
-        Component previous = page.hasPrevious()
-                ? button(messages, "pager.previous", pageCommand, page.number() - 1)
-                : messages.get("pager.previous-disabled");
-        Component next = page.hasNext()
-                ? button(messages, "pager.next", pageCommand, page.number() + 1)
-                : messages.get("pager.next-disabled");
+        Component previous = button(messages, "pager.previous", page.hasPrevious(), pageCommand, page.number() - 1);
+        Component next = button(messages, "pager.next", page.hasNext(), pageCommand, page.number() + 1);
         audience.sendMessage(messages.get("pager.layout",
                 Placeholder.component("title", title),
                 Placeholder.unparsed("total", String.valueOf(lines.size())),
@@ -44,10 +39,11 @@ public final class ChatPager {
                 Placeholder.unparsed("pages", "%02d".formatted(page.count()))));
     }
 
-    private static Component button(Messages messages, String key, String pageCommand, int target) {
-        return messages.get(key)
-                .clickEvent(ClickEvent.runCommand(pageCommand.formatted(target)))
-                .hoverEvent(HoverEvent.showText(messages.get(key + "-hover",
-                        Placeholder.unparsed("page", String.valueOf(target)))));
+    private static Component button(Messages messages, String key, boolean enabled, String pageCommand, int target) {
+        if (!enabled) {
+            return messages.get(key + ".disabled");
+        }
+        return messages.get(key + ".enabled", Placeholder.unparsed("page", String.valueOf(target)))
+                .clickEvent(ClickEvent.runCommand(pageCommand.formatted(target)));
     }
 }

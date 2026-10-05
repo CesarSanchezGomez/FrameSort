@@ -22,12 +22,13 @@ pager:
     - '<gradient:#F7B733:#FC4A1A>◣<st>                         </st></gradient> <previous> <white>| <page>—<pages> |</white> <next> <gradient:#FC4A1A:#F7B733><st>                         </st>◢</gradient>'
     - ''
   empty: '<gray>  No hay nada que mostrar.</gray>'
-  previous: '<gradient:#F7B733:#FC4A1A>«</gradient>'
-  previous-disabled: '<dark_gray>«</dark_gray>'
-  previous-hover: '<gray>Clic para ir a la página <page></gray>'
-  next: '<gradient:#FC4A1A:#F7B733>»</gradient>'
-  next-disabled: '<dark_gray>»</dark_gray>'
-  next-hover: '<gray>Clic para ir a la página <page></gray>'
+  previous:
+    enabled: '<hover:show_text:"<gray>Clic para ir a la página <page></gray>"><gradient:#F7B733:#FC4A1A>«</gradient></hover>'
+    disabled: '<dark_gray>«</dark_gray>'
+  next:
+    enabled: '<hover:show_text:"<gray>Clic para ir a la página <page></gray>"><gradient:#FC4A1A:#F7B733>»</gradient></hover>'
+    disabled: '<dark_gray>»</dark_gray>'
+
 inspect:
   source:
     sorter: 'sorter'
