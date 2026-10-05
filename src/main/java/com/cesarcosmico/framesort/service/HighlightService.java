@@ -2,17 +2,14 @@ package com.cesarcosmico.framesort.service;
 
 import org.bukkit.Color;
 import org.bukkit.Location;
-import org.bukkit.Material;
 import org.bukkit.block.BlockFace;
-import org.bukkit.entity.BlockDisplay;
-import org.bukkit.entity.Display;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.ItemDisplay;
 import org.bukkit.entity.ItemFrame;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
-import org.bukkit.util.Transformation;
-import org.joml.Quaternionf;
-import org.joml.Vector3f;
+import org.joml.Matrix4f;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -21,9 +18,9 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * Makes frames glow for one player. Each frame gets a temporary, non-persistent block display shaped like the frame,
- * glowing in an exact colour and hidden from everyone else. Making the frame itself glow would show it to every
- * player, in a colour that depends on scoreboard teams.
+ * Makes the items in frames glow for one player. Each frame gets a temporary, non-persistent item display that
+ * copies its item exactly where the frame draws it, glowing in an exact colour and hidden from everyone else.
+ * Making the frame itself glow would show it to every player, in a colour that depends on scoreboard teams.
  */
 public final class HighlightService {
 
@@ -32,11 +29,9 @@ public final class HighlightService {
 
     // Enough for any inspection a player can read; bounds the entities one click can spawn.
     private static final int MAX_SHOWN = 64;
-    private static final float PIXEL = 1f / 16;
-    private static final float MARGIN = 0.02f;
 
     private final Plugin plugin;
-    private final Map<UUID, List<BlockDisplay>> shown = new HashMap<>();
+    private final Map<UUID, List<ItemDisplay>> shown = new HashMap<>();
 
     public HighlightService(Plugin plugin) {
         this.plugin = plugin;
@@ -46,9 +41,9 @@ public final class HighlightService {
     public void show(Player player, List<Highlight> highlights, int seconds) {
         UUID id = player.getUniqueId();
         clear(id);
-        List<BlockDisplay> displays = new ArrayList<>();
+        List<ItemDisplay> displays = new ArrayList<>();
         for (Highlight highlight : highlights.subList(0, Math.min(MAX_SHOWN, highlights.size()))) {
-            if (highlight.frame().isValid()) {
+            if (highlight.frame().isValid() && !highlight.frame().getItem().isEmpty()) {
                 displays.add(spawn(player, highlight));
             }
         }
@@ -64,7 +59,7 @@ public final class HighlightService {
     }
 
     public void clear(UUID player) {
-        List<BlockDisplay> displays = shown.remove(player);
+        List<ItemDisplay> displays = shown.remove(player);
         if (displays != null) {
             displays.forEach(Entity::remove);
         }
@@ -75,17 +70,20 @@ public final class HighlightService {
         shown.clear();
     }
 
-    private BlockDisplay spawn(Player player, Highlight highlight) {
+    private ItemDisplay spawn(Player player, Highlight highlight) {
         ItemFrame frame = highlight.frame();
-        Location corner = frame.getLocation().getBlock().getLocation();
-        Transformation box = frameBox(frame.getFacing());
-        BlockDisplay display = corner.getWorld().spawn(corner, BlockDisplay.class, entity -> {
+        Location at = frame.getLocation();
+        at.setYaw(0);
+        at.setPitch(0);
+        ItemStack item = frame.getItem().clone();
+        Matrix4f transform = itemTransform(frame.getFacing(), frame.getRotation().ordinal(), frame.isVisible());
+        ItemDisplay display = at.getWorld().spawn(at, ItemDisplay.class, entity -> {
             // Set before the entity is sent to anyone, so no other player ever sees it.
             entity.setVisibleByDefault(false);
             entity.setPersistent(false);
-            entity.setBlock(Material.GLASS.createBlockData());
-            entity.setTransformation(box);
-            entity.setBrightness(new Display.Brightness(15, 15));
+            entity.setItemStack(item);
+            entity.setItemDisplayTransform(ItemDisplay.ItemDisplayTransform.FIXED);
+            entity.setTransformationMatrix(transform);
             entity.setGlowColorOverride(highlight.color());
             entity.setGlowing(true);
         });
@@ -94,25 +92,32 @@ public final class HighlightService {
     }
 
     /**
-     * The frame's box inside its own block: 12 x 12 pixels and 1 pixel thick, lying against the face it hangs on
-     * (the opposite of where it faces), slightly enlarged so the outline wraps the frame.
+     * Where the vanilla item frame renderer draws the item, relative to the frame entity: the steps of
+     * {@code ItemFrameRenderer#submit} in Minecraft 26.2, ending with a half turn that undoes the one
+     * {@code ItemDisplayRenderer} adds, so the copy lands on the real item.
      */
-    private static Transformation frameBox(BlockFace facing) {
-        float[] min = {2 * PIXEL - MARGIN, 2 * PIXEL - MARGIN, 2 * PIXEL - MARGIN};
-        float[] max = {14 * PIXEL + MARGIN, 14 * PIXEL + MARGIN, 14 * PIXEL + MARGIN};
-        int axis = facing.getModX() != 0 ? 0 : facing.getModY() != 0 ? 1 : 2;
-        int direction = facing.getModX() + facing.getModY() + facing.getModZ();
-        if (direction > 0) {
-            min[axis] = -MARGIN;
-            max[axis] = PIXEL + MARGIN;
-        } else {
-            min[axis] = 1 - PIXEL - MARGIN;
-            max[axis] = 1 + MARGIN;
-        }
-        return new Transformation(
-                new Vector3f(min[0], min[1], min[2]),
-                new Quaternionf(),
-                new Vector3f(max[0] - min[0], max[1] - min[1], max[2] - min[2]),
-                new Quaternionf());
+    static Matrix4f itemTransform(BlockFace facing, int rotation, boolean visibleFrame) {
+        boolean horizontal = facing.getModY() == 0;
+        float xRot = horizontal ? 0 : -90f * facing.getModY();
+        float yRot = horizontal ? 180f - yRot(facing) : 180f;
+        float offset = 0.46875f;
+        return new Matrix4f()
+                .translate(facing.getModX() * offset, facing.getModY() * offset, facing.getModZ() * offset)
+                .rotateX((float) Math.toRadians(xRot))
+                .rotateY((float) Math.toRadians(yRot))
+                .translate(0, 0, visibleFrame ? 0.4375f : 0.5f)
+                .rotateZ((float) Math.toRadians(rotation * 45f))
+                .scale(0.5f)
+                .rotateY((float) -Math.PI);
+    }
+
+    // Minecraft's Direction#toYRot.
+    private static float yRot(BlockFace facing) {
+        return switch (facing) {
+            case WEST -> 90f;
+            case NORTH -> 180f;
+            case EAST -> 270f;
+            default -> 0f;
+        };
     }
 }
