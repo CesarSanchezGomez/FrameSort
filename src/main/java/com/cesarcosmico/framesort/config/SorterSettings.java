@@ -3,12 +3,10 @@ package com.cesarcosmico.framesort.config;
 import com.cesarcosmico.framesort.item.ItemTemplate;
 import com.cesarcosmico.framesort.item.Keys;
 import org.bukkit.Material;
-import org.bukkit.NamespacedKey;
 import org.bukkit.entity.EntityType;
 import org.bukkit.inventory.ItemStack;
 import org.jspecify.annotations.Nullable;
 
-import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -18,14 +16,13 @@ import java.util.stream.Collectors;
  * @param requireMarked when true only the activator given by FrameSort works; otherwise any item of its material
  * @param customName    MiniMessage name given to the dispenser, or {@code null} to leave it unnamed
  */
-public record SorterSettings(ItemTemplate activator, boolean requireMarked, List<NamespacedKey> recipes,
-                             Set<EntityType> frameTypes, @Nullable String customName, int tickRate,
+public record SorterSettings(ItemTemplate activator, boolean requireMarked, Set<EntityType> frameTypes,
+                             @Nullable String customName, int tickRate,
                              boolean disableWhenPowered, boolean hideFrame, boolean showActivity) {
 
     static final Set<EntityType> ITEM_FRAMES = Set.of(EntityType.ITEM_FRAME, EntityType.GLOW_ITEM_FRAME);
 
     public SorterSettings {
-        recipes = List.copyOf(recipes);
         frameTypes = Set.copyOf(frameTypes);
     }
 
@@ -36,7 +33,6 @@ public record SorterSettings(ItemTemplate activator, boolean requireMarked, List
         return new SorterSettings(
                 ItemTemplate.parse(activator, material),
                 activator.bool("require-marked", false),
-                reader.keys("recipes"),
                 frameTypes(reader, "frame-types"),
                 customName.isBlank() ? null : customName,
                 reader.integer("tick-rate", 20, 1, 1200),

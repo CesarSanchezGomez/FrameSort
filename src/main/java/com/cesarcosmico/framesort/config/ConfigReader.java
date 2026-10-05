@@ -120,19 +120,6 @@ public final class ConfigReader {
         return key;
     }
 
-    public List<NamespacedKey> keys(String path) {
-        List<NamespacedKey> keys = new ArrayList<>();
-        for (String value : root.getStringList(path)) {
-            NamespacedKey key = NamespacedKey.fromString(value.toLowerCase(Locale.ROOT));
-            if (key == null) {
-                warn(path, "'" + value + "' is not a valid namespaced key, ignored");
-            } else {
-                keys.add(key);
-            }
-        }
-        return List.copyOf(keys);
-    }
-
     public <E extends Enum<E>> E enumValue(String path, Class<E> type, E fallback) {
         String name = root.getString(path);
         if (name == null) {

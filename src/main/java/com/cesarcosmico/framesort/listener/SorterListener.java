@@ -12,8 +12,6 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockDispenseEvent;
 import org.bukkit.event.hanging.HangingBreakEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
-import org.bukkit.event.inventory.PrepareItemCraftEvent;
-import org.bukkit.inventory.Recipe;
 
 public final class SorterListener implements Listener {
 
@@ -61,14 +59,6 @@ public final class SorterListener implements Listener {
     public void onClose(InventoryCloseEvent event) {
         if (event.getInventory().getHolder(false) instanceof Dispenser dispenser) {
             sorters.wake(dispenser.getBlock());
-        }
-    }
-
-    @EventHandler
-    public void onCraft(PrepareItemCraftEvent event) {
-        Recipe recipe = event.getRecipe();
-        if (recipe != null && sorters.isActivatorRecipe(recipe)) {
-            event.getInventory().setResult(sorters.createActivator(1));
         }
     }
 }

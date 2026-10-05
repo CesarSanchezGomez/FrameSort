@@ -16,7 +16,7 @@ sorter:
   activator:
     material: ENDER_EYE
     # false: any item of this material activates a sorter.
-    # true: only the activator from /framesort give sorter (or a recipe below).
+    # true: only the activator from /framesort give sorter.
     require-marked: false
     # Look of the activator handed out by FrameSort (MiniMessage).
     name: "<gold>Sorter Activator"
@@ -24,8 +24,6 @@ sorter:
       - "<gray>Place it in an item frame on a dispenser."
     glint: true
     item-model: ""
-  # Crafting recipes (from a datapack) whose result becomes the activator.
-  recipes: []
   # Frame types that can hold the activator.
   frame-types: [ITEM_FRAME, GLOW_ITEM_FRAME]
   # Name shown when the sorter's inventory is opened (MiniMessage). "" = none.

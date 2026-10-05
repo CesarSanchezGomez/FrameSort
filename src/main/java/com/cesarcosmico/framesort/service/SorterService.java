@@ -9,7 +9,6 @@ import io.papermc.paper.datacomponent.item.BundleContents;
 import io.papermc.paper.datacomponent.item.ItemContainerContents;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
-import org.bukkit.Keyed;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -17,7 +16,6 @@ import org.bukkit.block.Dispenser;
 import org.bukkit.entity.ItemFrame;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.Recipe;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.util.Vector;
 import org.jspecify.annotations.Nullable;
@@ -135,10 +133,6 @@ public final class SorterService {
 
     public ItemStack createActivator(int amount) {
         return settings.get().sorter().activator().create(Keys.ACTIVATOR, "sorter", amount);
-    }
-
-    public boolean isActivatorRecipe(Recipe recipe) {
-        return recipe instanceof Keyed keyed && settings.get().sorter().recipes().contains(keyed.getKey());
     }
 
     public void tick() {

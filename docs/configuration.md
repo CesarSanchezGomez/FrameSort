@@ -11,9 +11,8 @@ your files are never rewritten. Invalid values are reported with their path and 
 | Key | Default | Meaning |
 |---|---|---|
 | `activator.material` | `ENDER_EYE` | Item that turns a dispenser into a sorter when placed in a frame on it. |
-| `activator.require-marked` | `false` | `true`: only the activator from `/framesort give sorter` (or a recipe below) works, not any item of that material. |
+| `activator.require-marked` | `false` | `true`: only the activator from `/framesort give sorter` works, not any item of that material. |
 | `activator.name`, `lore`, `glint`, `item-model` | | Look of the activator FrameSort hands out (MiniMessage). |
-| `recipes` | `[]` | Crafting recipes (for example from a datapack) whose result becomes the activator, so it can be crafted with its marker. |
 | `frame-types` | `[ITEM_FRAME, GLOW_ITEM_FRAME]` | Frames that can hold the activator. |
 | `custom-name` | `<gray>Item Sorter` | Name shown in the sorter's inventory. `""` = none. |
 | `tick-rate` | `20` | Ticks between two sends of the same sorter. |
