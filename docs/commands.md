@@ -22,7 +22,7 @@ The tool is a stick by default (`inspect.tool`) and needs `framesort.inspect`.
 
 | Action | Result |
 |---|---|
-| Right-click a sorter or the top block of a pad | Its targets glow for you only (green: into a container, yellow: dropped, red: lava; see `inspect.colors`) and are listed, nearest first. With an item in your off hand, only where that item would go: containers first, then drop spots. |
+| Right-click a sorter or the top block of a pad | The items in its target frames glow for you only (green: into a container, yellow: dropped, red: lava; see `inspect.colors`) and the targets are listed, nearest first. With an item in your off hand, only where that item would go: containers first, then drop spots. |
 | Right-click a frame with an item | Whether it is a target, where its items go, what it accepts, and how many sorters and pads reach it. |
 | Sneak + right-click a frame with an item | Marks or unmarks it as a target (`targets.registration: manual`, needs `framesort.target.create`). |
 

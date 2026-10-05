@@ -28,7 +28,7 @@ or bundle with contents, it sends a stack from inside instead.
 | Key | Default | Meaning |
 |---|---|---|
 | `registration` | `manual` | `manual`: only frames marked with the tool. `automatic`: every frame of `frame-types`. |
-| `positions` | all | Where a target frame may hang on its block: `TOP`, `BOTTOM`, `FRONT`, `BACK`, `SIDES`. `FRONT` and `BACK` follow the way the block faces (chests, barrels, furnaces…); on blocks without a facing, and for hoppers, every side face counts as `SIDES`. |
+| `positions` | all | Where a target frame may hang on its block: `TOP`, `BOTTOM`, `FRONT`, `BACK`, `LEFT`, `RIGHT` (`SIDES` = `LEFT` + `RIGHT`). `FRONT`, `BACK`, `LEFT` and `RIGHT` follow the way the block faces (chests, barrels, furnaces…); left and right are as seen standing in front of it. On blocks without a horizontal facing (hoppers, upright barrels, composters) a side face counts as any of the four. |
 | `frame-types` | `[ITEM_FRAME, GLOW_ITEM_FRAME]` | Frames that can be targets. |
 
 With `automatic`, consider `positions: [FRONT, TOP]` so decorative frames on the sides of chests are not used.
@@ -50,6 +50,12 @@ How a destination is chosen:
 3. The item goes into the containers in random order until it is all in.
 4. Whatever is left is dropped at one random frame without a container.
 5. If those frames are all on lava cauldrons, the rest is destroyed. If there is nowhere to go, the item stays.
+
+**Lava cauldrons are trash cans.** A target frame on a lava cauldron holds the item to destroy and is chosen like
+any other frame (exact item, tag, material); with `registration: manual` it must be marked too. If a container
+also takes that item, the lava only gets what doesn't fit; if the lava frame is the only match, everything that
+arrives is destroyed. With the default target item (a carrot on a stick) in the frame, it destroys whatever has
+no other target. An empty frame does nothing.
 
 ### inspect
 
