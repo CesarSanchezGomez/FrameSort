@@ -11,13 +11,22 @@ command:
   version: "<prefix><white>FrameSort <green><version></green></white>"
 
 pager:
-  header: "<prefix><white><title></white> <dark_gray>·</dark_gray> <gray><total> · página <page>/<pages></gray>"
-  empty: "<gray>  No hay nada que mostrar.</gray>"
-  previous: "<gold>« Anterior</gold>"
-  next: "<gold>Siguiente »</gold>"
-  previous-disabled: "<dark_gray>« Anterior</dark_gray>"
-  next-disabled: "<dark_gray>Siguiente »</dark_gray>"
-  footer: "  <previous> <dark_gray>|</dark_gray> <next>"
+  layout:
+    - ''
+    - '<gradient:#F7B733:#FC4A1A>◤<st>                 </st></gradient> <white>[</white><gradient:#F7B733:#FC4A1A>FrameSort</gradient><white>]</white> <gradient:#FC4A1A:#F7B733><st>                 </st>◥</gradient>'
+    - '  <white><title></white> <dark_gray>·</dark_gray> <gray><total></gray>'
+    - ''
+    - '<entries>'
+    - ''
+    - '<gradient:#F7B733:#FC4A1A>◣<st>                   </st></gradient> <previous> <white>| <page>/<pages> |</white> <next> <gradient:#FC4A1A:#F7B733><st>                   </st>◢</gradient>'
+    - ''
+  empty: '<gray>  No hay nada que mostrar.</gray>'
+  previous: '<gradient:#F7B733:#FC4A1A>«</gradient>'
+  previous-disabled: '<dark_gray>«</dark_gray>'
+  previous-hover: '<gray>Clic para ir a la página <page></gray>'
+  next: '<gradient:#FC4A1A:#F7B733>»</gradient>'
+  next-disabled: '<dark_gray>»</dark_gray>'
+  next-hover: '<gray>Clic para ir a la página <page></gray>'
 
 inspect:
   source:
@@ -87,7 +96,7 @@ tag:
   kind:
     item: "tag de items"
     block: "tag de bloques"
-  entry: "<gray>  • <white><item></white> <dark_gray><id></dark_gray></gray>"
+  entry: "<gray>  • <white><item></white></gray>"
   unknown: "<prefix><red>No existe ningún tag de items o bloques llamado <white>#<tag></white>. Prueba /framesort tags.</red>"
 
 tags:

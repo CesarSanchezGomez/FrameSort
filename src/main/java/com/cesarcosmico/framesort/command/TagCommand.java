@@ -88,9 +88,7 @@ public final class TagCommand implements Subcommand {
     }
 
     private static Component entry(Messages text, Material material) {
-        return text.get("tag.entry",
-                        Placeholder.component("item", Component.translatable(material)),
-                        Placeholder.unparsed("id", material.getKey().asString()))
+        return text.get("tag.entry", Placeholder.component("item", Component.translatable(material)))
                 .hoverEvent(HoverEvent.showText(Component.text(material.getKey().asString())));
     }
 

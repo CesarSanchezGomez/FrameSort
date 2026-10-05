@@ -42,7 +42,9 @@ class LangFilesTest {
         for (String locale : new String[]{"en_US", "es_ES"}) {
             YamlConfiguration yaml = lang(locale);
             for (String key : leaves(yaml)) {
-                String value = yaml.getString(key, "");
+                String value = yaml.isList(key)
+                        ? String.join("<newline>", yaml.getStringList(key))
+                        : yaml.getString(key, "");
                 assertDoesNotThrow(() -> strict.deserialize(value), locale + " " + key);
             }
         }

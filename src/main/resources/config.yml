@@ -69,7 +69,7 @@ inspect:
     dropped: "#FFFF55"
     lava: "#FF5555"
   # Lines per page in /framesort tag, tags and the inspection lists.
-  page-size: 10
+  page-size: 8
   # /framesort trace shows deliveries from sorters and pads within this radius.
   trace-radius: 32
   trace-default-seconds: 60

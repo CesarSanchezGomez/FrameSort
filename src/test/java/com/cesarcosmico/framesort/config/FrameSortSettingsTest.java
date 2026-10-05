@@ -59,7 +59,7 @@ class FrameSortSettingsTest {
         assertEquals(List.of(), warnings);
         assertEquals(64, settings.delivery().maxDistance());
         assertEquals(Set.of(EntityType.ITEM_FRAME, EntityType.GLOW_ITEM_FRAME), settings.sorter().frameTypes());
-        assertEquals(10, settings.inspect().pageSize());
+        assertEquals(8, settings.inspect().pageSize());
     }
 
     @Test

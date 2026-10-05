@@ -48,8 +48,12 @@ public final class Messages {
         return new Messages(loaded);
     }
 
+    /** A message; a YAML list is one message whose lines are joined with {@code <newline>}. */
     public Component get(String key, TagResolver... resolvers) {
-        return MINI_MESSAGE.deserialize(messages.getString(key, key),
+        String raw = messages.isList(key)
+                ? String.join("<newline>", messages.getStringList(key))
+                : messages.getString(key, key);
+        return MINI_MESSAGE.deserialize(raw,
                 TagResolver.resolver(prefix, TagResolver.resolver(resolvers)));
     }
 }
