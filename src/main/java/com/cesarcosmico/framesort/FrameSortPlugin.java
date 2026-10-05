@@ -17,6 +17,7 @@ import com.cesarcosmico.framesort.listener.SorterListener;
 import com.cesarcosmico.framesort.listener.TargetListener;
 import com.cesarcosmico.framesort.listener.ToolListener;
 import com.cesarcosmico.framesort.service.DeliveryService;
+import com.cesarcosmico.framesort.service.HighlightService;
 import com.cesarcosmico.framesort.service.InspectService;
 import com.cesarcosmico.framesort.service.PadService;
 import com.cesarcosmico.framesort.service.SorterService;
@@ -75,7 +76,8 @@ public final class FrameSortPlugin extends JavaPlugin {
         DeliveryService delivery = new DeliveryService(settings, resolver, trace::report);
         sorters = new SorterService(this, settings, delivery);
         padService = new PadService(getServer(), pads, delivery);
-        inspect = new InspectService(this, settings, messages, index, resolver, sorters, padService, commandName);
+        inspect = new InspectService(new HighlightService(this), settings, messages, index, resolver, sorters,
+                padService, commandName);
 
         register(new TargetListener(index), new SorterListener(sorters), new PadListener(padService, messages),
                 new ToolListener(settings, inspect, sorters, padService, trace));

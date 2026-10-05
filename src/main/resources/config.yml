@@ -60,8 +60,14 @@ delivery:
 inspect:
   # Right-click a sorter, pad or target frame with this item to inspect it.
   tool: STICK
-  # How long the targets stay highlighted for the player who inspected them.
+  # How long the targets glow for the player who inspected them (only that
+  # player sees it).
   highlight-seconds: 10
+  # Glow and trace colours (#RRGGBB) by where items end up.
+  colors:
+    container: "#55FF55"
+    dropped: "#FFFF55"
+    lava: "#FF5555"
   # Lines per page in /framesort tag, tags and the inspection lists.
   page-size: 10
   # /framesort trace shows deliveries from sorters and pads within this radius.

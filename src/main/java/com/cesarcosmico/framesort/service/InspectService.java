@@ -1,6 +1,7 @@
 package com.cesarcosmico.framesort.service;
 
 import com.cesarcosmico.framesort.config.FrameSortSettings;
+import com.cesarcosmico.framesort.config.InspectSettings;
 import com.cesarcosmico.framesort.config.TargetSettings;
 import com.cesarcosmico.framesort.model.BlockKey;
 import com.cesarcosmico.framesort.model.FramePosition;
@@ -8,7 +9,6 @@ import com.cesarcosmico.framesort.model.TargetRegistration;
 import com.cesarcosmico.framesort.model.TargetSet;
 import com.cesarcosmico.framesort.text.ChatPager;
 import com.cesarcosmico.framesort.text.Messages;
-import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.JoinConfiguration;
 import net.kyori.adventure.text.event.ClickEvent;
@@ -16,13 +16,11 @@ import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import org.bukkit.Color;
 import org.bukkit.Location;
-import org.bukkit.Particle;
 import org.bukkit.block.Block;
 import org.bukkit.entity.ItemFrame;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.plugin.Plugin;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -41,18 +39,11 @@ public final class InspectService {
 
     public static final String MARK_PERMISSION = "framesort.target.create";
 
-    private static final Color CONTAINER_COLOR = Color.LIME;
-    private static final Color DROP_COLOR = Color.YELLOW;
-    private static final Color LAVA_COLOR = Color.RED;
 
     /** The last list a player inspected, so the page buttons can show another page of it. */
     private record Listing(Component title, List<Component> lines) {
     }
 
-    private record Highlight(Location location, Color color) {
-    }
-
-    private final Plugin plugin;
     private final Supplier<FrameSortSettings> settings;
     private final Supplier<Messages> messages;
     private final TargetIndex index;
@@ -62,12 +53,12 @@ public final class InspectService {
     private final String commandName;
     private final String pageCommand;
     private final Map<UUID, Listing> listings = new HashMap<>();
-    private final Map<UUID, ScheduledTask> highlights = new HashMap<>();
+    private final HighlightService highlights;
 
-    public InspectService(Plugin plugin, Supplier<FrameSortSettings> settings, Supplier<Messages> messages,
+    public InspectService(HighlightService highlights, Supplier<FrameSortSettings> settings, Supplier<Messages> messages,
                           TargetIndex index, TargetResolver resolver, SorterService sorters,
                           PadService pads, String commandName) {
-        this.plugin = plugin;
+        this.highlights = highlights;
         this.settings = settings;
         this.messages = messages;
         this.index = index;
@@ -87,7 +78,7 @@ public final class InspectService {
         Component kind = text.get(pad ? "inspect.source.pad" : "inspect.source.sorter");
         BlockKey center = FrameGeometry.key(source);
         List<Component> lines = new ArrayList<>();
-        List<Highlight> marks = new ArrayList<>();
+        List<HighlightService.Highlight> marks = new ArrayList<>();
         Component title;
         if (filter.isEmpty()) {
             title = text.get("inspect.title", Placeholder.component("source", kind), coordinates(source.getLocation()));
@@ -194,25 +185,22 @@ public final class InspectService {
         boolean mark = !index.isMarked(frame);
         index.setMarked(frame, player.getUniqueId(), mark);
         player.sendMessage(text.get(mark ? "mark.marked" : "mark.unmarked"));
-        highlight(player, List.of(new Highlight(frame.getLocation(), mark ? CONTAINER_COLOR : LAVA_COLOR)));
+        InspectSettings.Colors colors = settings.get().inspect().colors();
+        highlight(player, List.of(new HighlightService.Highlight(frame, mark ? colors.container() : colors.lava())));
     }
 
     public void forget(UUID player) {
         listings.remove(player);
-        ScheduledTask task = highlights.remove(player);
-        if (task != null) {
-            task.cancel();
-        }
+        highlights.clear(player);
     }
 
     public void stopAll() {
-        highlights.values().forEach(ScheduledTask::cancel);
-        highlights.clear();
+        highlights.clearAll();
         listings.clear();
     }
 
     private void filtered(Messages text, Block source, BlockKey center, ItemStack filter,
-                          List<Component> lines, List<Highlight> marks) {
+                          List<Component> lines, List<HighlightService.Highlight> marks) {
         boolean insert = settings.get().delivery().insertIntoContainers();
         TargetSet<ItemFrame> containers = new TargetSet<>();
         TargetSet<ItemFrame> drops = new TargetSet<>();
@@ -285,48 +273,22 @@ public final class InspectService {
         return settings.get().targets().positions().contains(FrameGeometry.position(frame));
     }
 
-    private Highlight highlight(ItemFrame frame) {
+    private HighlightService.Highlight highlight(ItemFrame frame) {
+        InspectSettings.Colors colors = settings.get().inspect().colors();
         Color color;
         if (DeliveryService.isLava(frame)) {
-            color = LAVA_COLOR;
+            color = colors.lava();
         } else if (settings.get().delivery().insertIntoContainers()
                 && DeliveryService.inventory(FrameGeometry.attachedBlock(frame)) != null) {
-            color = CONTAINER_COLOR;
+            color = colors.container();
         } else {
-            color = DROP_COLOR;
+            color = colors.dropped();
         }
-        return new Highlight(frame.getLocation(), color);
+        return new HighlightService.Highlight(frame, color);
     }
 
-    // Particles sent to this player only; the player's scheduler drops the task if they leave.
-    private void highlight(Player player, List<Highlight> marks) {
-        forgetHighlight(player.getUniqueId());
-        if (marks.isEmpty()) {
-            return;
-        }
-        int runs = settings.get().inspect().highlightSeconds() * 2;
-        int[] left = {runs};
-        ScheduledTask task = player.getScheduler().runAtFixedRate(plugin, scheduled -> {
-            if (left[0]-- <= 0) {
-                scheduled.cancel();
-                highlights.remove(player.getUniqueId(), scheduled);
-                return;
-            }
-            for (Highlight mark : marks) {
-                player.spawnParticle(Particle.DUST, mark.location(), 6, 0.15, 0.15, 0.15, 0,
-                        new Particle.DustOptions(mark.color(), 1.3f));
-            }
-        }, () -> highlights.remove(player.getUniqueId()), 1, 10);
-        if (task != null) {
-            highlights.put(player.getUniqueId(), task);
-        }
-    }
-
-    private void forgetHighlight(UUID player) {
-        ScheduledTask task = highlights.remove(player);
-        if (task != null) {
-            task.cancel();
-        }
+    private void highlight(Player player, List<HighlightService.Highlight> marks) {
+        highlights.show(player, marks, settings.get().inspect().highlightSeconds());
     }
 
     private static long distanceSquared(ItemFrame frame, BlockKey center) {

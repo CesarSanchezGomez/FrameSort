@@ -1,5 +1,6 @@
 package com.cesarcosmico.framesort.config;
 
+import org.bukkit.Color;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.ConfigurationSection;
@@ -108,6 +109,24 @@ public final class ConfigReader {
         return List.copyOf(materials);
     }
 
+    /** A {@code #RRGGBB} colour. */
+    public Color color(String path, Color fallback) {
+        String value = root.getString(path);
+        if (value == null) {
+            return fallback;
+        }
+        String hex = value.trim().startsWith("#") ? value.trim().substring(1) : value.trim();
+        if (hex.length() == 6) {
+            try {
+                return Color.fromRGB(Integer.parseInt(hex, 16));
+            } catch (NumberFormatException ignored) {
+                // Reported below, like any other invalid value.
+            }
+        }
+        warn(path, "'" + value + "' is not a #RRGGBB colour, using " + hex(fallback));
+        return fallback;
+    }
+
     public @Nullable NamespacedKey key(String path) {
         String value = root.getString(path, "");
         if (value.isBlank()) {
@@ -168,6 +187,10 @@ public final class ConfigReader {
 
     public Set<String> childKeys() {
         return root.getKeys(false);
+    }
+
+    private static String hex(Color color) {
+        return String.format("#%06X", color.asRGB());
     }
 
     private static <E extends Enum<E>> @Nullable E parseEnum(Class<E> type, String name) {
