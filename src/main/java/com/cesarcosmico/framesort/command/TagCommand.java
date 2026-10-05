@@ -25,7 +25,6 @@ import java.util.Locale;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 
-/** {@code tag <tag> [page]}: the items or blocks a tag contains, one page at a time. */
 public final class TagCommand implements Subcommand {
 
     private final TagCatalog tags;

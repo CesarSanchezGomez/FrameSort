@@ -4,7 +4,6 @@ import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
 import org.jspecify.annotations.Nullable;
 
-/** A {@code /framesort} subcommand; its permission comes from {@code commands.yml} under its id. */
 public interface Subcommand {
 
     String id();

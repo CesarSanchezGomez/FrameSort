@@ -9,7 +9,6 @@ public final class TargetSet<T> {
     private final List<T> targets = new ArrayList<>();
     private int best = Integer.MAX_VALUE;
 
-    /** Whether a match at this priority could still be kept; lets callers skip worse checks early. */
     public boolean isRelevant(int priority) {
         return priority <= best;
     }

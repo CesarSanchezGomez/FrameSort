@@ -47,7 +47,6 @@ public final class SorterListener implements Listener {
         sorters.considerLater(event.getItemFrame());
     }
 
-    // A sorter never dispenses like a plain dispenser.
     @EventHandler(ignoreCancelled = true)
     public void onDispense(BlockDispenseEvent event) {
         if (sorters.isSorter(event.getBlock())) {

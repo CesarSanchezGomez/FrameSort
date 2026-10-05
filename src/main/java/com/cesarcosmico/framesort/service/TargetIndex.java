@@ -19,11 +19,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.function.Supplier;
 
-/**
- * Target frames by chunk, kept in step with entities being added to and removed from worlds (which includes
- * chunk loads and unloads), so finding targets near a source only looks at the chunks in range instead of every
- * entity in the world. Each world has an epoch that changes whenever its targets change.
- */
+/** Indexed by chunk so a lookup only scans the chunks in range; the per-world epoch invalidates cached matches. */
 public final class TargetIndex {
 
     private final Supplier<FrameSortSettings> settings;
@@ -51,7 +47,6 @@ public final class TargetIndex {
         }
     }
 
-    /** Something about the world's targets changed (an item put in or taken from a frame, for example). */
     public void changed(World world) {
         epochs.merge(world.getUID(), 1L, Long::sum);
     }
@@ -64,7 +59,6 @@ public final class TargetIndex {
         return frame.getPersistentDataContainer().has(Keys.TARGET);
     }
 
-    /** Marks or unmarks a frame as a target (manual registration); the mark stays with the entity. */
     public void setMarked(ItemFrame frame, UUID by, boolean marked) {
         if (marked) {
             frame.getPersistentDataContainer().set(Keys.TARGET, PersistentDataType.STRING, by.toString());
@@ -81,7 +75,6 @@ public final class TargetIndex {
         return inChunk != null && inChunk.contains(frame);
     }
 
-    /** Valid target frames within {@code radius} blocks of {@code center}. */
     public List<ItemFrame> near(BlockKey center, int radius) {
         long radiusSquared = (long) radius * radius;
         List<ItemFrame> found = new ArrayList<>();

@@ -19,11 +19,7 @@ import org.bukkit.inventory.EquipmentSlot;
 
 import java.util.function.Supplier;
 
-/**
- * The tool: right-click a sorter or pad to see its targets, right-click a target frame to see what it accepts,
- * sneak + right-click a frame to mark it as a target. Empty frames are left alone, so the tool item can still be
- * put into a frame.
- */
+/** Empty frames are left alone, so the tool item can still be put into a frame. */
 public final class ToolListener implements Listener {
 
     public static final String PERMISSION = "framesort.inspect";

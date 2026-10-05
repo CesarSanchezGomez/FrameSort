@@ -13,7 +13,6 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.function.Supplier;
 
-/** {@code inspect <page>}: another page of the last list the player got with the tool (the page buttons run it). */
 public final class InspectCommand implements Subcommand {
 
     private final InspectService inspect;

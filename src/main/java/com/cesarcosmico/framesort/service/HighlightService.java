@@ -17,11 +17,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-/**
- * Makes the items in frames glow for one player. Each frame gets a temporary, non-persistent item display that
- * copies its item exactly where the frame draws it, glowing in an exact colour and hidden from everyone else.
- * Making the frame itself glow would show it to every player, in a colour that depends on scoreboard teams.
- */
+/** A per-player copy of the frame item glows instead of the frame: frame glowing is global and its colour team-based. */
 public final class HighlightService {
 
     public record Highlight(ItemFrame frame, Color color) {
@@ -37,7 +33,6 @@ public final class HighlightService {
         this.plugin = plugin;
     }
 
-    /** Replaces whatever the player had highlighted. */
     public void show(Player player, List<Highlight> highlights, int seconds) {
         UUID id = player.getUniqueId();
         clear(id);

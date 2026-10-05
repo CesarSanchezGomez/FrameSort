@@ -10,12 +10,6 @@ import org.jspecify.annotations.Nullable;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-/**
- * The {@code sorter} section.
- *
- * @param requireMarked when true only the activator given by FrameSort works; otherwise any item of its material
- * @param customName    MiniMessage name given to the dispenser, or {@code null} to leave it unnamed
- */
 public record SorterSettings(ItemTemplate activator, boolean requireMarked, Set<EntityType> frameTypes,
                              @Nullable String customName, int tickRate,
                              boolean disableWhenPowered, boolean hideFrame, boolean showActivity) {

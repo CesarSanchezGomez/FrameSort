@@ -22,14 +22,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 
-/**
- * Finds the frames that accept an item around a source (a sorter or pad) and the priority each one matches at.
- * Results are cached per source and item until the world's targets change; callers still check each frame when
- * they use it, because a cached frame may have been emptied or removed since.
- */
+/** Cached until the world's targets change; callers recheck each frame, which may have changed since. */
 public final class TargetResolver {
 
-    /** A frame that accepts the item, the priority it accepts it at and what the frame held at the time. */
     public record Match(ItemFrame frame, int priority, ItemStack frameItem) {
     }
 
@@ -71,7 +66,6 @@ public final class TargetResolver {
         return matches;
     }
 
-    /** Drops a cached result that turned out to be stale. */
     public void forget(Block source, ItemStack item) {
         cache.remove(new CacheKey(FrameGeometry.key(source), item.asOne()));
     }
@@ -98,19 +92,16 @@ public final class TargetResolver {
         return best;
     }
 
-    /** The existing tag a frame item stands for through its name, or {@code null}. */
     public TagCatalog.@Nullable TagView tag(ItemStack frameItem) {
         NamespacedKey key = tagOf(frameItem);
         return key == null ? null : tags.find(key);
     }
 
-    /** The tag a frame item stands for through its name, or {@code null}. */
     public static @Nullable NamespacedKey tagOf(ItemStack frameItem) {
         Component name = frameItem.getData(DataComponentTypes.CUSTOM_NAME);
         return name == null ? null : TagCatalog.parseName(PLAIN.serialize(name));
     }
 
-    /** What a shulker box or bundle item holds; empty for any other item. */
     public static List<ItemStack> contents(ItemStack item) {
         List<ItemStack> contents = new ArrayList<>();
         ItemContainerContents container = item.getData(DataComponentTypes.CONTAINER);

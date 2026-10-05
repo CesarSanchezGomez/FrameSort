@@ -10,7 +10,6 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
 
-/** Keeps the target index in step with frames entering and leaving the world and with their items. */
 public final class TargetListener implements Listener {
 
     private final TargetIndex index;

@@ -26,18 +26,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 
-/**
- * Teleport pads. A pad is registered in its chunk's persistent data when its top block is placed on a complete
- * column, so only loaded pads are ever checked. Every {@code sweep-interval} ticks the items resting on each loaded
- * pad are sent to targets; that also catches items that arrive by water or fall onto a pad.
- */
+/** Pads live in their chunk's data, so only loaded pads are swept; sweeping also catches items that arrive late. */
 public final class PadService {
 
     public static final String CREATE_PERMISSION = "framesort.pad.create";
 
     public enum Placement { CREATED, NOT_ALLOWED, NOT_A_PAD }
 
-    /** The result of placing a block: what happened and, when a pad was created, its type. */
     public record PlaceResult(Placement placement, @Nullable PadType type) {
     }
 
@@ -93,10 +88,7 @@ public final class PadService {
         return new PlaceResult(blocked && !silent ? Placement.NOT_ALLOWED : Placement.NOT_A_PAD, null);
     }
 
-    /**
-     * Unregisters a broken pad. Returns the special item to drop instead of the plain block when pads are made
-     * from items, or {@code null}.
-     */
+    /** Returns the special item to drop instead of the block when pads are made from items, or {@code null}. */
     public @Nullable ItemStack broken(Block block) {
         String typeId = unregister(block);
         if (typeId == null || settings.get().creation() != PadMode.ITEM) {
@@ -119,7 +111,6 @@ public final class PadService {
         return type != null && matches(top, type) ? type : null;
     }
 
-    /** Loaded pad top blocks within {@code radius} of {@code center}. */
     public List<Block> near(BlockKey center, int radius) {
         List<Block> found = new ArrayList<>();
         World world = server.getWorld(center.world());

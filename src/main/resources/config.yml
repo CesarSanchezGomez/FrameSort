@@ -1,24 +1,13 @@
-# ==========================================================================
-#  FrameSort: general settings. Keys use kebab-case.
-#  Teleport pads live in pads.yml, commands in commands.yml and every
-#  message in lang/. Reload with /framesort reload.
-# ==========================================================================
+# FrameSort: general settings. See docs/configuration.md.
 
 config-version: 1
 
-# Language file loaded from lang/<language>.yml
-language: en_US        # en_US | es_ES
+language: en_US   # en_US | es_ES
 
-# A sorter is a dispenser with an item frame on it holding the activator.
-# Every tick-rate ticks it takes a random stack from its inventory (or from a
-# shulker box / bundle inside it) and sends it to the matching targets.
 sorter:
   activator:
     material: ENDER_EYE
-    # false: any item of this material activates a sorter.
-    # true: only the activator from /framesort give sorter.
-    require-marked: false
-    # Look of the activator handed out by FrameSort (MiniMessage).
+    require-marked: false   # true: only the activator from /framesort give sorter
     name: '<gradient:#F7B733:#FC4A1A>Sorter Activator</gradient>'
     lore:
       - ''
@@ -27,55 +16,31 @@ sorter:
       - ''
     glint: true
     item-model: ''
-  # Frame types that can hold the activator.
   frame-types: [ITEM_FRAME, GLOW_ITEM_FRAME]
-  # Name shown when the sorter's inventory is opened (MiniMessage). '' = none.
-  custom-name: '<gradient:#F7B733:#FC4A1A>Item Sorter</gradient>'
-  # Game ticks between two sends of the same sorter (20 = 1 second).
-  tick-rate: 20
-  # true: a sorter powered by redstone stops sending.
+  custom-name: '<gradient:#F7B733:#FC4A1A>Item Sorter</gradient>'   # '' = none
+  tick-rate: 20   # ticks
   disable-when-powered: false
-  # Hide the activator's frame while the sorter is valid.
   hide-frame: true
-  # Rotate the activator in its frame every time the sorter sends something.
   show-activity: true
 
-# Targets are item frames on (or next to) the block that receives the items.
 targets:
-  # manual: only frames marked by a player (sneak + right-click with the tool).
-  # automatic: every frame of the types below, in the allowed positions.
   registration: manual   # manual | automatic
-  # Where the frame may hang on its container. FRONT, BACK, LEFT and RIGHT
-  # follow the way the container faces (chests, barrels, furnaces...); left
-  # and right are as seen standing in front of it. SIDES = LEFT + RIGHT. On
-  # blocks without a facing (hoppers, upright barrels) a side face counts as
-  # any of FRONT, BACK, LEFT or RIGHT.
-  positions: [TOP, BOTTOM, FRONT, BACK, LEFT, RIGHT]
+  positions: [TOP, BOTTOM, FRONT, BACK, LEFT, RIGHT]   # left/right as seen from the front; SIDES = LEFT + RIGHT
   frame-types: [ITEM_FRAME, GLOW_ITEM_FRAME]
 
 delivery:
-  # Targets are searched within this distance (in blocks) of the sorter or pad.
-  max-distance: 64
-  # true: items go straight into the container behind the target frame.
-  # false: items are always dropped in front of the frame.
+  max-distance: 64   # blocks
   insert-into-containers: true
-  # Frames holding this item take whatever matches no other target. '' = off.
-  default-target-item: CARROT_ON_A_STICK
+  default-target-item: CARROT_ON_A_STICK   # '' = off
 
 inspect:
-  # Right-click a sorter, pad or target frame with this item to inspect it.
   tool: STICK
-  # How long the targets glow for the player who inspected them (only that
-  # player sees it).
   highlight-seconds: 10
-  # Glow and trace colours (#RRGGBB) by where items end up.
   colors:
     container: '#55FF55'
     dropped: '#FFFF55'
     lava: '#FF5555'
-  # Lines per page in /framesort tag, tags and the inspection lists.
   page-size: 8
-  # /framesort trace shows deliveries from sorters and pads within this radius.
-  trace-radius: 32
+  trace-radius: 32   # blocks
   trace-default-seconds: 60
   trace-max-seconds: 600

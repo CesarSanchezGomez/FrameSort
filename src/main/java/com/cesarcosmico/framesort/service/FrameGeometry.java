@@ -13,21 +13,16 @@ import org.bukkit.entity.ItemFrame;
 
 import java.util.Set;
 
-/** Where frames hang and how blocks map to keys. */
 public final class FrameGeometry {
 
     private FrameGeometry() {
     }
 
-    /** The block the frame hangs on. */
     public static Block attachedBlock(ItemFrame frame) {
         return frame.getLocation().getBlock().getRelative(frame.getAttachedFace());
     }
 
-    /**
-     * Whether the block the frame hangs on is loaded. A frame on a chunk border can hang on a block of the next
-     * chunk, and reading an unloaded block would load that chunk synchronously.
-     */
+    /** A frame on a chunk border can hang on the next chunk; reading it unloaded would load it synchronously. */
     public static boolean attachedLoaded(ItemFrame frame) {
         Block block = attachedBlock(frame);
         return block.getWorld().isChunkLoaded(block.getX() >> 4, block.getZ() >> 4);

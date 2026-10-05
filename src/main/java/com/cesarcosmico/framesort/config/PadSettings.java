@@ -14,7 +14,6 @@ import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
-/** {@code pads.yml}: who can create teleport pads and which block columns count as one. */
 public record PadSettings(PadMode creation, int sweepInterval, Map<String, PadType> types) {
 
     public PadSettings {

@@ -14,10 +14,7 @@ import java.util.Locale;
 import java.util.Set;
 import java.util.function.Consumer;
 
-/**
- * Typed reads from a YAML section. An invalid value is reported once, with its path, and replaced by the
- * default, so one typo never stops the plugin from loading.
- */
+/** Invalid values are reported with their path and replaced by the default, so a typo never stops loading. */
 public final class ConfigReader {
 
     private final ConfigurationSection root;
@@ -113,7 +110,6 @@ public final class ConfigReader {
         return List.copyOf(materials);
     }
 
-    /** A {@code #RRGGBB} colour. */
     public Color color(String path, Color fallback) {
         String value = root.getString(path);
         if (value == null) {
@@ -177,7 +173,6 @@ public final class ConfigReader {
         return Set.copyOf(values);
     }
 
-    /** The reader for a child section, or {@code null} when it does not exist. */
     public @Nullable ConfigReader section(String path) {
         ConfigurationSection section = root.getConfigurationSection(path);
         return section == null ? null : new ConfigReader(section, file, warn);

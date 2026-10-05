@@ -21,17 +21,9 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-/**
- * Sends a stack from a sorter or pad to its targets: first into the containers behind the best matching frames,
- * in random order; whatever is left is dropped at one random best matching frame without a container; frames on a
- * lava cauldron destroy what nothing else took.
- *
- * <p>Containers are looked up the moment an item goes in, and the source is updated after every container, so a
- * container that vanished (moved by a piston, broken, replaced) is skipped instead of duplicating items.</p>
- */
+/** Containers are looked up the moment items go in, so one that vanished is skipped instead of duplicating items. */
 public final class DeliveryService {
 
-    /** Where items come from: a sorter's slot or an item entity resting on a pad. */
     public interface Source {
 
         ItemStack stack();
@@ -41,7 +33,6 @@ public final class DeliveryService {
         /** Leaves {@code remaining} items in the source; 0 empties it. */
         void commit(int remaining);
 
-        /** Moves what is left to {@code destination}, as an item entity. */
         void moveTo(Location destination);
 
         void destroy();
@@ -49,7 +40,6 @@ public final class DeliveryService {
 
     public enum Kind { CONTAINER, DROPPED, DESTROYED }
 
-    /** One move, reported to observers such as live tracing. */
     public record Delivered(Location from, ItemStack item, int amount, Location to, Kind kind) {
     }
 
@@ -120,7 +110,6 @@ public final class DeliveryService {
         return remaining < amount;
     }
 
-    /** The inventory items go into when a target frame hangs on {@code block}, or {@code null}. */
     public static @Nullable Inventory inventory(Block block) {
         // A composter feeds the hopper under it.
         if (block.getType() == Material.COMPOSTER) {

@@ -32,16 +32,11 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.function.Supplier;
 
-/**
- * What players see with the tool: a source's targets (highlighted for them only and listed page by page), what a
- * target frame accepts, and marking frames as targets.
- */
 public final class InspectService {
 
     public static final String MARK_PERMISSION = "framesort.target.create";
 
 
-    /** The last list a player inspected, so the page buttons can show another page of it. */
     private record Listing(Component title, List<Component> lines) {
     }
 
@@ -70,10 +65,7 @@ public final class InspectService {
         this.pageCommand = "/" + commandName + " inspect %d";
     }
 
-    /**
-     * Lists and highlights a sorter's or pad's targets. With an item in {@code filter}, only the targets that item
-     * would go to, split into containers and drop spots, like a real delivery would choose them.
-     */
+    /** With an item in {@code filter}, only where that item would go, chosen like a real delivery. */
     public void inspectSource(Player player, Block source, boolean pad, ItemStack filter) {
         Messages text = messages.get();
         Component kind = text.get(pad ? "inspect.source.pad" : "inspect.source.sorter");
@@ -102,7 +94,6 @@ public final class InspectService {
         highlight(player, marks);
     }
 
-    /** Shows another page of the last inspected list. */
     public boolean showPage(Player player, int page) {
         Listing listing = listings.get(player.getUniqueId());
         if (listing == null) {
@@ -113,7 +104,6 @@ public final class InspectService {
         return true;
     }
 
-    /** Explains one frame: whether it is a target, where its items go, what it accepts and who sends to it. */
     public void inspectFrame(Player player, ItemFrame frame) {
         Messages text = messages.get();
         player.sendMessage(text.get("frame.header", coordinates(frame.getLocation())));
@@ -159,7 +149,6 @@ public final class InspectService {
         highlight(player, List.of(highlight(frame)));
     }
 
-    /** Marks or unmarks a frame as a target (manual registration). */
     public void toggleMark(Player player, ItemFrame frame) {
         Messages text = messages.get();
         TargetSettings targets = settings.get().targets();

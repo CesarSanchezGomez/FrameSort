@@ -21,7 +21,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.function.Supplier;
 
-/** {@code tags [page]} and {@code tags search <text> [page]}: every tag, each one clickable to see its contents. */
 public final class TagsCommand implements Subcommand {
 
     private final TagCatalog tags;

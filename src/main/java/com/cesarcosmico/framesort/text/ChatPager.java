@@ -9,10 +9,7 @@ import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 
 import java.util.List;
 
-/**
- * Sends a long list one page at a time, framed by the {@code pager.layout} message, with clickable buttons to
- * move between pages. The whole page goes out as one message, so it stays together in the chat.
- */
+/** The whole page is sent as one message, so it stays together in the chat. */
 public final class ChatPager {
 
     private ChatPager() {

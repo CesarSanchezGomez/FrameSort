@@ -9,7 +9,6 @@ import java.util.EnumSet;
 import java.util.Locale;
 import java.util.Set;
 
-/** The {@code targets} section: which item frames receive items. */
 public record TargetSettings(TargetRegistration registration, Set<FramePosition> positions,
                              Set<EntityType> frameTypes) {
 
@@ -25,7 +24,6 @@ public record TargetSettings(TargetRegistration registration, Set<FramePosition>
                 SorterSettings.frameTypes(reader, "frame-types"));
     }
 
-    /** Whether a frame that counts as {@code frame} may be a target. */
     public boolean allows(Set<FramePosition> frame) {
         return !Collections.disjoint(positions, frame);
     }

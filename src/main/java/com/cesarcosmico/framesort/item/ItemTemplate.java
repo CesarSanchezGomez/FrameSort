@@ -14,7 +14,6 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.List;
 
-/** An item FrameSort hands out (the sorter activator, a pad block): how it looks, plus a persistent marker. */
 public record ItemTemplate(Material material, @Nullable String name, List<String> lore, boolean glint,
                            @Nullable NamespacedKey itemModel) {
 
@@ -24,7 +23,6 @@ public record ItemTemplate(Material material, @Nullable String name, List<String
         lore = List.copyOf(lore);
     }
 
-    /** Reads {@code name}, {@code lore}, {@code glint} and {@code item-model}; the material is decided by the caller. */
     public static ItemTemplate parse(ConfigReader reader, Material material) {
         String name = reader.string("name", "");
         return new ItemTemplate(material, name.isBlank() ? null : name, reader.strings("lore"),
@@ -49,7 +47,6 @@ public record ItemTemplate(Material material, @Nullable String name, List<String
         return item;
     }
 
-    /** The marker value FrameSort wrote on this item, or {@code null} for any other item. */
     public static @Nullable String marker(@Nullable ItemStack item, NamespacedKey marker) {
         if (item == null || item.isEmpty()) {
             return null;

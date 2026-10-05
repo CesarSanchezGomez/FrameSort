@@ -17,7 +17,6 @@ import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 
-/** A pad type id from {@code pads.yml}: parsed, suggested and reported in one place. */
 final class PadTypeArgument implements CustomArgumentType.Converted<PadType, String> {
 
     private final Supplier<PadSettings> pads;

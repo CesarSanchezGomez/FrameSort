@@ -3,11 +3,9 @@ package com.cesarcosmico.framesort.config;
 import org.bukkit.Color;
 import org.bukkit.Material;
 
-/** The {@code inspect} section: the tool, target highlighting, list pages, live tracing and their colours. */
 public record InspectSettings(Material tool, int highlightSeconds, int pageSize, int traceRadius,
                               int traceDefaultSeconds, int traceMaxSeconds, Colors colors) {
 
-    /** Highlight and trace colours by where items end up. */
     public record Colors(Color container, Color dropped, Color lava) {
     }
 

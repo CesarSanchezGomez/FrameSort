@@ -26,7 +26,6 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-/** {@code give sorter [player] [amount]} and {@code give pad <type> [player] [amount]}. */
 public final class GiveCommand implements Subcommand {
 
     private interface ItemSource {
@@ -62,7 +61,6 @@ public final class GiveCommand implements Subcommand {
                         .then(targets(Commands.argument("type", padType), pad)));
     }
 
-    /** Adds {@code [player] [amount]} under {@code node}, giving to the sender when no player is named. */
     private <B extends ArgumentBuilder<CommandSourceStack, B>> B targets(B node, ItemSource item) {
         RequiredArgumentBuilder<CommandSourceStack, Integer> amount =
                 Commands.argument("amount", IntegerArgumentType.integer(1, 64));

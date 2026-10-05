@@ -1,9 +1,4 @@
-# ==========================================================================
-#  FrameSort: commands.
-#  Each top-level key is a command (the key = internal id, don't change it).
-#  You can edit 'name' and 'aliases', set 'enabled: false' to disable it, and
-#  change the permissions. Editing this file requires RESTARTING the server.
-# ==========================================================================
+# FrameSort: commands. Top-level keys are fixed ids; changes need a restart.
 
 config-version: 1
 

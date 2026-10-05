@@ -2,7 +2,6 @@ package com.cesarcosmico.framesort.model;
 
 import java.util.UUID;
 
-/** A block position that is safe to use as a map key and to keep after the chunk unloads. */
 public record BlockKey(UUID world, int x, int y, int z) {
 
     public ChunkKey chunk() {

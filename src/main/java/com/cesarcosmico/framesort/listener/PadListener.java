@@ -21,7 +21,6 @@ import org.bukkit.inventory.ItemStack;
 import java.util.List;
 import java.util.function.Supplier;
 
-/** Pad registration (placing and breaking the top block), protection from pistons and explosions, chunk loading. */
 public final class PadListener implements Listener {
 
     private final PadService pads;

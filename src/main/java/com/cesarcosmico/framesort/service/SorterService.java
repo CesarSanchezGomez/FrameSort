@@ -29,10 +29,7 @@ import java.util.Objects;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Supplier;
 
-/**
- * The sorters: dispensers with an item frame on them holding the activator. Each one sends a random stack from
- * its inventory every {@code tick-rate} ticks; sorters are spread over the ticks so they never all act at once.
- */
+/** Sorters are spread over the ticks so they never all act at once. */
 public final class SorterService {
 
     private static final MiniMessage MINI_MESSAGE = MiniMessage.miniMessage();
@@ -66,7 +63,6 @@ public final class SorterService {
         this.delivery = delivery;
     }
 
-    /** Registers the frame's dispenser as a sorter, or stops it when the frame no longer makes one. */
     public void consider(ItemFrame frame) {
         boolean holdsActivator = holdsActivator(frame);
         if (!FrameGeometry.attachedLoaded(frame)) {
@@ -101,7 +97,6 @@ public final class SorterService {
         sorters.values().removeIf(sorter -> sorter.frame.equals(frame));
     }
 
-    /** The frame was broken: the dispenser is a plain dispenser again. */
     public void broken(ItemFrame frame) {
         Block block = FrameGeometry.attachedBlock(frame);
         Sorter sorter = sorters.get(FrameGeometry.key(block));
@@ -115,7 +110,6 @@ public final class SorterService {
         return sorters.containsKey(FrameGeometry.key(block));
     }
 
-    /** Lets the sorter act on the next tick, e.g. after a player filled it. */
     public void wake(Block block) {
         Sorter sorter = sorters.get(FrameGeometry.key(block));
         if (sorter != null) {
@@ -203,7 +197,6 @@ public final class SorterService {
         }
     }
 
-    /** A random filled slot, descending into filled shulker boxes and bundles. */
     private static @Nullable Slot pick(Inventory inventory) {
         List<Integer> filled = new ArrayList<>();
         for (int i = 0; i < inventory.getSize(); i++) {
@@ -252,7 +245,6 @@ public final class SorterService {
         return filled.isEmpty() ? null : filled.getFirst();
     }
 
-    /** One place a stack lives in: a dispenser slot, or a slot inside a shulker box or bundle item. */
     private sealed interface Slot permits InventorySlot, ContainerSlot, BundleSlot {
         ItemStack get();
 

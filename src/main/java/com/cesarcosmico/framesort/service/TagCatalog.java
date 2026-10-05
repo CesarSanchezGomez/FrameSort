@@ -26,7 +26,6 @@ public final class TagCatalog {
 
     public enum Kind { ITEM, BLOCK }
 
-    /** A tag and its materials, sorted by name. */
     public record TagView(NamespacedKey key, Kind kind, List<Material> materials, Set<Material> lookup) {
         public TagView {
             materials = List.copyOf(materials);
@@ -61,7 +60,6 @@ public final class TagCatalog {
         return view != null && view.lookup().contains(material);
     }
 
-    /** Every item and block tag name, sorted. */
     public List<NamespacedKey> names() {
         if (names == null) {
             Set<NamespacedKey> all = new TreeSet<>(Comparator.comparing(NamespacedKey::asString));

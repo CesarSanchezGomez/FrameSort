@@ -15,7 +15,6 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.function.Supplier;
 
-/** {@code trace [seconds]} and {@code trace stop}: live tracing of nearby deliveries. */
 public final class TraceCommand implements Subcommand {
 
     private final TraceService trace;

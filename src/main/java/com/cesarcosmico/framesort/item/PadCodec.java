@@ -10,7 +10,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-/** The teleport pads registered in a chunk, stored in the chunk's persistent data as {@code "x,y,z,type"}. */
 public final class PadCodec {
 
     private PadCodec() {

@@ -127,7 +127,6 @@ public final class FrameSortPlugin extends JavaPlugin {
         scanFrames();
     }
 
-    /** Indexes target frames and (re)checks sorters for every loaded frame. */
     private void scanFrames() {
         for (World world : getServer().getWorlds()) {
             for (Chunk chunk : world.getLoadedChunks()) {

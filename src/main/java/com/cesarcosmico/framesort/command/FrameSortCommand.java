@@ -18,7 +18,6 @@ import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-/** {@code /framesort}: help, plus one subcommand class per feature and {@code reload}/{@code version} here. */
 public final class FrameSortCommand implements PluginCommand {
 
     public static final CommandSpec DEFAULTS = new CommandSpec(true, "framesort", List.of("fs"),

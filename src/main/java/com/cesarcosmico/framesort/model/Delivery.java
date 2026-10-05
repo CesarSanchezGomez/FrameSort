@@ -4,10 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.IntConsumer;
 
-/**
- * Moves an amount into a series of sinks. The remainder is committed to the source right after every sink, so
- * the source never still holds what a sink already took, whatever happens with the next sink.
- */
+/** Commits the remainder to the source after every sink, so a failing sink can never duplicate items. */
 public final class Delivery {
 
     /** Returned by {@link Offer#offer} when the sink no longer exists (a container moved by a piston, broken…). */

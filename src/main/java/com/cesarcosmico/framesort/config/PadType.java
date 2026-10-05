@@ -5,11 +5,7 @@ import org.bukkit.Material;
 
 import java.util.List;
 
-/**
- * A teleport pad: a column of blocks listed top to bottom. Items resting on the top block are sent to targets.
- *
- * @param item the special top block used when pads are created with {@code creation: item}
- */
+/** {@code structure} goes top to bottom; items rest on the first block. */
 public record PadType(String id, List<Material> structure, ItemTemplate item) {
 
     public PadType {

@@ -5,10 +5,7 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.Set;
 
-/**
- * Where a target frame hangs on its container, relative to the way the container faces. Left and right are as
- * seen by a player standing in front of the container, looking at it.
- */
+/** Left and right are as seen by a player standing in front of the container. */
 public enum FramePosition {
     TOP,
     BOTTOM,
@@ -19,13 +16,7 @@ public enum FramePosition {
 
     private static final Set<FramePosition> ANY_SIDE = Set.of(FRONT, BACK, LEFT, RIGHT);
 
-    /**
-     * The positions a frame on {@code face} counts as.
-     *
-     * @param face   the container face the frame hangs on
-     * @param facing the container's facing, or {@code null} when it has none; without a horizontal facing (a hopper,
-     *               an upright barrel) a side face has no front or back, so it counts as every side
-     */
+    /** Without a horizontal {@code facing} (hopper, upright barrel) a side face counts as every side. */
     public static Set<FramePosition> of(BlockFace face, @Nullable BlockFace facing) {
         return switch (face) {
             case UP -> Set.of(TOP);

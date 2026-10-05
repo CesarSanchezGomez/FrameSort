@@ -4,7 +4,6 @@ import org.bukkit.configuration.ConfigurationSection;
 
 import java.util.function.Consumer;
 
-/** {@code config.yml}, parsed once per load or reload into an immutable snapshot. */
 public record FrameSortSettings(String language, SorterSettings sorter, TargetSettings targets,
                                 DeliverySettings delivery, InspectSettings inspect) {
 

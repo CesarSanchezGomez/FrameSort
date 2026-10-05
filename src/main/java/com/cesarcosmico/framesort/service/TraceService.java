@@ -19,10 +19,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.function.Supplier;
 
-/**
- * Live tracing: for a while, a player sees every delivery from nearby sorters and pads in the action bar, with a
- * particle line to where it went. With nobody tracing, a delivery costs one empty-map check.
- */
+/** With nobody tracing, a delivery costs one empty-map check. */
 public final class TraceService {
 
     // At most one action bar per player this often, so a busy sorter does not flood it.
@@ -43,14 +40,12 @@ public final class TraceService {
         this.messages = messages;
     }
 
-    /** Starts (or restarts) tracing; returns the seconds actually granted. */
     public int start(Player player, int seconds) {
         int granted = Math.clamp(seconds, 1, settings.get().inspect().traceMaxSeconds());
         UUID id = player.getUniqueId();
         long deadline = System.currentTimeMillis() + granted * 1000L;
         until.put(id, deadline);
-        // Ends on time even when nothing is delivered nearby; a restart or stop changes the deadline, so this run
-        // then does nothing.
+        // A restart or stop changes the deadline, so a stale run does nothing.
         player.getScheduler().runDelayed(plugin, task -> {
             if (until.remove(id, deadline)) {
                 lastShown.remove(id);
