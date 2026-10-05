@@ -5,7 +5,7 @@
 | Command | What it does |
 |---|---|
 | `/framesort` | Short help. |
-| `/framesort tag <tag> [page]` | The items or blocks in a tag, 10 per page, with buttons for the other pages. Vanilla tags can be written without `minecraft:`. |
+| `/framesort tag <tag> [page]` | The items or blocks in a tag, 8 per page (`inspect.page-size`), in a framed list with « » buttons. Hover an entry to see its id. Vanilla tags can be written without `minecraft:`. |
 | `/framesort tags [page]` | Every item and block tag. Click a tag to list its contents. |
 | `/framesort tags search <text> [page]` | Only the tags whose name contains `<text>`. |
 | `/framesort trace [seconds]` | For a while (default 60 s, at most `inspect.trace-max-seconds`), every delivery from sorters and pads near you shows in the action bar with a particle line to its destination. |
@@ -22,7 +22,7 @@ The tool is a stick by default (`inspect.tool`) and needs `framesort.inspect`.
 
 | Action | Result |
 |---|---|
-| Right-click a sorter or the top block of a pad | Highlights its targets for you only and lists them, nearest first. With an item in your off hand, only where that item would go: containers first, then drop spots. |
+| Right-click a sorter or the top block of a pad | Its targets glow for you only (green: into a container, yellow: dropped, red: lava; see `inspect.colors`) and are listed, nearest first. With an item in your off hand, only where that item would go: containers first, then drop spots. |
 | Right-click a frame with an item | Whether it is a target, where its items go, what it accepts, and how many sorters and pads reach it. |
 | Sneak + right-click a frame with an item | Marks or unmarks it as a target (`targets.registration: manual`, needs `framesort.target.create`). |
 

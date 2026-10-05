@@ -60,8 +60,13 @@ Nothing is stored outside the world:
 
 ## Threading
 
-Everything runs on the main thread: there is no I/O. A single repeating task ticks sorters and pads. Highlights use
-each player's scheduler, so they stop by themselves when the player leaves.
+Everything runs on the main thread: there is no I/O. A single repeating task ticks sorters and pads.
+
+Highlights are temporary block displays shaped like each frame, glowing in an exact colour
+(`Display#setGlowColorOverride`). They are hidden from everyone but the inspecting player
+(`setVisibleByDefault(false)` + `Player#showEntity`), never saved, and removed after `highlight-seconds`, when the
+player leaves or when the plugin disables. Making the frame itself glow would show it to every player, in a colour
+that depends on scoreboard teams.
 
 Architecture conventions shared with the other CesarCosmico plugins are described in the workspace's
 `ARCHITECTURE-STANDARD.md`.

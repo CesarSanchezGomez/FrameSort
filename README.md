@@ -23,8 +23,9 @@ chest, barrel or hopper behind the frame, or dropped in front of it when there i
    random stack from its inventory every second, opening shulker boxes and bundles inside it.
 3. **Teleport pads.** Place crying obsidian on gilded blackstone. Items resting on top are sent to targets. Who
    can create pads is configurable: anyone, players with a permission, or only with a special pad block.
-4. **Inspect.** Right-click a sorter or pad with the stick to highlight its targets and list them. Right-click a
-   target frame to see what it accepts. `/framesort trace` shows every delivery around you live.
+4. **Inspect.** Right-click a sorter or pad with the stick: its targets glow (only for you, in configurable
+   colours) and are listed page by page. Right-click a target frame to see what it accepts. `/framesort trace`
+   shows every delivery around you live.
 
 Containers are looked up the moment items go in, so a container that was moved or broken is skipped: items are
 never duplicated.
