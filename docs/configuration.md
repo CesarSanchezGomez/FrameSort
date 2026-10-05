@@ -4,6 +4,10 @@ Every file has a `config-version`. When FrameSort's defaults change, the console
 your files are never rewritten. Invalid values are reported with their path and replaced by the default.
 `/framesort reload` applies `config.yml`, `pads.yml` and the language file; `commands.yml` needs a restart.
 
+Text values are written in single quotes; an apostrophe inside one is written twice (`'can''t'`). Text with
+several lines (help, lore, the page layout) is a YAML list, one line per entry. Item lore starts and ends with an
+empty line (`''`) and keeps each line short.
+
 ## config.yml
 
 ### sorter
@@ -14,7 +18,7 @@ your files are never rewritten. Invalid values are reported with their path and 
 | `activator.require-marked` | `false` | `true`: only the activator from `/framesort give sorter` works, not any item of that material. |
 | `activator.name`, `lore`, `glint`, `item-model` | | Look of the activator FrameSort hands out (MiniMessage). |
 | `frame-types` | `[ITEM_FRAME, GLOW_ITEM_FRAME]` | Frames that can hold the activator. |
-| `custom-name` | `<gray>Item Sorter` | Name shown in the sorter's inventory. `""` = none. |
+| `custom-name` | `<gradient:#F7B733:#FC4A1A>Item Sorter</gradient>` | Name shown in the sorter's inventory. `''` = none. |
 | `tick-rate` | `20` | Ticks between two sends of the same sorter. |
 | `disable-when-powered` | `false` | A powered sorter stops sending. |
 | `hide-frame` | `true` | Hides the activator's frame while the sorter works. |
@@ -39,7 +43,7 @@ With `automatic`, consider `positions: [FRONT, TOP]` so decorative frames on the
 |---|---|---|
 | `max-distance` | `64` | Targets are searched within this many blocks of the sorter or pad. |
 | `insert-into-containers` | `true` | `true`: items go into the container behind the frame. `false`: items are always dropped in front of the frame. |
-| `default-target-item` | `CARROT_ON_A_STICK` | Frames holding it take whatever matches no other frame. `""` = off. |
+| `default-target-item` | `CARROT_ON_A_STICK` | Frames holding it take whatever matches no other frame. `''` = off. |
 
 How a destination is chosen:
 
