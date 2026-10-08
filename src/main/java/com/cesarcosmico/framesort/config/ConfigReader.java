@@ -13,9 +13,12 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import java.util.function.Consumer;
+import java.util.regex.Pattern;
 
-/** Invalid values are reported with their path and replaced by the default, so a typo never stops loading. */
+/** Invalid values are reported as {@code file > path: problem} and replaced by the default, so a typo never stops loading. */
 public final class ConfigReader {
+
+    private static final Pattern HEX_COLOR = Pattern.compile("#?[0-9a-fA-F]{6}");
 
     private final ConfigurationSection root;
     private final String file;
@@ -28,9 +31,9 @@ public final class ConfigReader {
     }
 
     public void warn(String path, String problem) {
-        String prefix = root.getCurrentPath() == null || root.getCurrentPath().isEmpty()
-                ? path : root.getCurrentPath() + "." + path;
-        warn.accept(file + " > " + prefix + ": " + problem);
+        String current = root.getCurrentPath();
+        String fullPath = current == null || current.isEmpty() ? path : current + "." + path;
+        warn.accept(file + " > " + fullPath + ": " + problem);
     }
 
     public boolean isSet(String path) {
@@ -47,11 +50,14 @@ public final class ConfigReader {
     }
 
     public boolean bool(String path, boolean fallback) {
-        if (root.isSet(path) && !root.isBoolean(path)) {
+        if (!root.isSet(path)) {
+            return fallback;
+        }
+        if (!root.isBoolean(path)) {
             warn(path, "expected true or false, using " + fallback);
             return fallback;
         }
-        return root.getBoolean(path, fallback);
+        return root.getBoolean(path);
     }
 
     public int integer(String path, int fallback, int min, int max) {
@@ -64,6 +70,22 @@ public final class ConfigReader {
         }
         int value = root.getInt(path);
         if (value < min || value > max) {
+            warn(path, value + " is outside " + min + ".." + max + ", using " + fallback);
+            return fallback;
+        }
+        return value;
+    }
+
+    public double decimal(String path, double fallback, double min, double max) {
+        if (!root.isSet(path)) {
+            return fallback;
+        }
+        if (!(root.get(path) instanceof Number number)) {
+            warn(path, "expected a number, using " + fallback);
+            return fallback;
+        }
+        double value = number.doubleValue();
+        if (!Double.isFinite(value) || value < min || value > max) {
             warn(path, value + " is outside " + min + ".." + max + ", using " + fallback);
             return fallback;
         }
@@ -97,12 +119,13 @@ public final class ConfigReader {
         return material;
     }
 
+    /** Unknown entries are reported and skipped. */
     public List<Material> materials(String path) {
         List<Material> materials = new ArrayList<>();
         for (String name : root.getStringList(path)) {
             Material material = Material.matchMaterial(name);
             if (material == null) {
-                warn(path, "unknown material '" + name + "'");
+                warn(path, "unknown material '" + name + "', ignored");
             } else {
                 materials.add(material);
             }
@@ -110,23 +133,21 @@ public final class ConfigReader {
         return List.copyOf(materials);
     }
 
+    /** A {@code #RRGGBB} colour. */
     public Color color(String path, Color fallback) {
         String value = root.getString(path);
         if (value == null) {
             return fallback;
         }
-        String hex = value.trim().startsWith("#") ? value.trim().substring(1) : value.trim();
-        if (hex.length() == 6) {
-            try {
-                return Color.fromRGB(Integer.parseInt(hex, 16));
-            } catch (NumberFormatException ignored) {
-                // Reported below, like any other invalid value.
-            }
+        String trimmed = value.trim();
+        if (!HEX_COLOR.matcher(trimmed).matches()) {
+            warn(path, "'" + value + "' is not a #RRGGBB colour, using " + String.format("#%06X", fallback.asRGB()));
+            return fallback;
         }
-        warn(path, "'" + value + "' is not a #RRGGBB colour, using " + hex(fallback));
-        return fallback;
+        return Color.fromRGB(Integer.parseInt(trimmed.startsWith("#") ? trimmed.substring(1) : trimmed, 16));
     }
 
+    /** A namespaced key such as {@code minecraft:stone}; empty means "none". */
     public @Nullable NamespacedKey key(String path) {
         String value = root.getString(path, "");
         if (value.isBlank()) {
@@ -134,11 +155,12 @@ public final class ConfigReader {
         }
         NamespacedKey key = NamespacedKey.fromString(value.toLowerCase(Locale.ROOT));
         if (key == null) {
-            warn(path, "'" + value + "' is not a valid namespaced key");
+            warn(path, "'" + value + "' is not a valid namespaced key, ignored");
         }
         return key;
     }
 
+    /** Matches the constant ignoring case, with {@code -} for {@code _}, so YAML can use kebab-case. */
     public <E extends Enum<E>> E enumValue(String path, Class<E> type, E fallback) {
         String name = root.getString(path);
         if (name == null) {
@@ -188,15 +210,13 @@ public final class ConfigReader {
         return root.getKeys(false);
     }
 
-    private static String hex(Color color) {
-        return String.format("#%06X", color.asRGB());
-    }
-
     private static <E extends Enum<E>> @Nullable E parseEnum(Class<E> type, String name) {
-        try {
-            return Enum.valueOf(type, name.trim().toUpperCase(Locale.ROOT).replace('-', '_'));
-        } catch (IllegalArgumentException e) {
-            return null;
+        String constant = name.trim().toUpperCase(Locale.ROOT).replace('-', '_');
+        for (E value : type.getEnumConstants()) {
+            if (value.name().equals(constant)) {
+                return value;
+            }
         }
+        return null;
     }
 }

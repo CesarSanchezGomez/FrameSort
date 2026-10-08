@@ -32,9 +32,13 @@ public final class ConfigValidator {
     public static void check(Plugin plugin, ConfigurationSection live, String resource, Set<String> open,
                              Consumer<String> warn) {
         YamlConfiguration bundled = ConfigFiles.bundled(plugin, resource);
-        if (bundled == null) {
-            return;
+        if (bundled != null) {
+            compare(live, bundled, resource, open, warn);
         }
+    }
+
+    static void compare(ConfigurationSection live, ConfigurationSection bundled, String resource, Set<String> open,
+                        Consumer<String> warn) {
         int expected = bundled.getInt(VERSION_KEY, 0);
         int current = live.getInt(VERSION_KEY, 0);
         if (current < expected) {
