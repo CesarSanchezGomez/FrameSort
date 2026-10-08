@@ -8,6 +8,15 @@ chest, barrel or hopper behind the frame, or dropped in front of it when there i
 - **Dependencies:** none.
 - **Storage:** none to set up. Targets, pads and items keep their data in the world (persistent data containers).
 
+## Installation
+
+1. Put `FrameSort-<version>.jar` in the server's `plugins/` folder.
+2. Start the server once. FrameSort writes `config.yml`, `pads.yml`, `commands.yml` and `lang/` to
+   `plugins/FrameSort/`.
+3. Edit them and run `/framesort reload` (`commands.yml` needs a restart).
+
+`/version FrameSort` shows the installed version.
+
 ## How it works
 
 1. **Targets.** Put an item in a frame on a container and sneak + right-click the frame with a stick to mark it
@@ -34,16 +43,27 @@ never duplicated.
 
 | Command | Permission | Default |
 |---|---|---|
-| `/framesort` | `framesort.command.help` | everyone |
+| `/framesort` (help) | `framesort.command.help` | everyone |
 | `/framesort tag <tag> [page]` | `framesort.command.tag` | everyone |
 | `/framesort tags [page]`, `/framesort tags search <text> [page]` | `framesort.command.tags` | everyone |
 | `/framesort trace [seconds\|stop]` | `framesort.command.trace` | everyone |
 | `/framesort give sorter\|pad <type> [player] [amount]` | `framesort.command.give` | op |
 | `/framesort reload` | `framesort.command.reload` | op |
-| `/framesort version` | `framesort.command.version` | op |
 
 Every command also runs as `/fs`. Where each command lives, its permission and whether it is enabled are set in
-`commands.yml`; see [docs/commands.md](docs/commands.md).
+`commands.yml`; see [docs/commands.md](docs/commands.md). The help lists only the commands the player may run.
+
+## Permissions
+
+| Permission | Default | Grants |
+|---|---|---|
+| `framesort.*` | op | everything |
+| `framesort.use` | everyone | using the tool, marking targets and the help, tag, tags, trace and inspect commands |
+| `framesort.admin` | op | creating pads in `permission` mode and the give and reload commands |
+| `framesort.inspect` | everyone | using the tool (a stick by default) |
+| `framesort.target.create` | everyone | marking frames as targets |
+| `framesort.pad.create` | op | creating pads when `pads.yml` has `creation: permission` |
+| `framesort.command.<command>` | as in the table above | each command |
 
 ## Configuration
 
@@ -56,4 +76,6 @@ Every command also runs as `/fs`. Where each command lives, its permission and w
 ./gradlew build
 ```
 
-The jar is written to `build/libs/`. See [docs/development.md](docs/development.md).
+Needs nothing installed beyond a JDK: Gradle downloads Java 25 if it is missing. The jar is written to
+`build/libs/`, and `./gradlew runServer` starts a Paper 26.2 test server with it. See
+[docs/development.md](docs/development.md).

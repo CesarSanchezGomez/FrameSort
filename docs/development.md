@@ -6,10 +6,11 @@
 ./gradlew build
 ```
 
-Requires a JDK 25 or newer (the build targets Java 25 bytecode). The jar is
-`build/libs/FrameSort-<version>.jar`. The Paper API version lives in `gradle.properties`.
+Gradle 9.8 with a Java 25 toolchain; the foojay resolver downloads the JDK when it is missing. The jar is
+`build/libs/FrameSort-<version>.jar`. Versions live in `gradle.properties`, with `paper-api` pinned to an exact
+build. `./gradlew runServer` starts a Paper 26.2 test server in `run/`.
 
-Tests use JUnit 5 and the Paper API types, but no server. Listeners and commands are checked by hand on a test
+Tests use JUnit 6 and the Paper API types, but no server. Listeners and commands are checked by hand on a test
 server.
 
 ## Layout
@@ -27,7 +28,9 @@ com.cesarcosmico.framesort
 └── api/              TargetBindEvent, for other plugins
 ```
 
-Dependencies are wired by constructor in `FrameSortPlugin`; there are no static instances. The interfaces are
+Packages depend on each other without cycles: `model` ← `item` ← `config` ← `text` ← `service` ← `command` and
+`listener`, with `api` used only by `service`. Dependencies are wired by constructor in `FrameSortPlugin`; there are
+no static instances. The interfaces are
 `DeliveryService.Source` (a sorter slot or a pad item entity), `Delivery.Offer` (what `model.Delivery` needs from a
 container) and `CommandFeature` (one per command feature).
 
@@ -77,6 +80,12 @@ show it to every player, in a colour that depends on scoreboard teams, and Paper
 packets.
 
 Tracing ends on a timer per player, so the "tracing ended" message arrives on time even when nothing is delivered.
+
+## Experimental Paper API
+
+`TagCatalog` reads item and block tags through Paper's registry tag API (`Registry#getTag`, `Registry#getTags`,
+`io.papermc.paper.registry.tag.Tag`), marked `@ApiStatus.Experimental`. Check it again whenever the Paper version
+changes.
 
 Architecture conventions shared with the other CesarCosmico plugins are described in the workspace's
 `ARCHITECTURE-STANDARD.md`.

@@ -4,7 +4,7 @@
 
 | Command | What it does |
 |---|---|
-| `/framesort` | Short help. |
+| `/framesort` | Help: how to use the tool, then one line for each command you may run. |
 | `/framesort tag <tag> [page]` | The items or blocks in a tag, 8 per page (`inspect.page-size`), in a framed list with « » buttons. Hover an entry to see its id. Vanilla tags can be written without `minecraft:`. |
 | `/framesort tags [page]` | Every item and block tag. Click a tag to list its contents. |
 | `/framesort tags search <text> [page]` | Only the tags whose name contains `<text>`. |
@@ -14,7 +14,6 @@
 | `/framesort give sorter [player] [amount]` | The sorter activator from `config.yml`. Needed when `sorter.activator.require-marked` is true. |
 | `/framesort give pad <type> [player] [amount]` | The special top block of a pad type. Needed when `pads.yml` has `creation: item`. |
 | `/framesort reload` | Reloads `config.yml`, `pads.yml` and the language file. If a file is broken, the previous configuration stays active. |
-| `/framesort version` | The plugin version. |
 
 ## The tool
 
@@ -34,15 +33,15 @@ Empty frames are left alone, so the tool item can still be put into a frame.
 |---|---|---|
 | `framesort.*` | op | everything |
 | `framesort.use` | everyone | `framesort.inspect`, `framesort.target.create` and the help, tag, tags, trace and inspect commands |
-| `framesort.admin` | op | `framesort.pad.create` and the give, reload and version commands |
+| `framesort.admin` | op | `framesort.pad.create` and the give and reload commands |
 | `framesort.inspect` | everyone | using the tool |
 | `framesort.target.create` | everyone | marking frames as targets |
 | `framesort.pad.create` | op | creating pads when `creation: permission` |
 
 ## commands.yml
 
-Each section of `commands.yml` is one command feature: `help`, `tag`, `tags`, `trace`, `inspect`, `give`,
-`reload` and `version`. The key is fixed; what can change is:
+Each section of `commands.yml` is one command feature: `help`, `tag`, `tags`, `trace`, `inspect`, `give` and
+`reload`. The key is fixed; what can change is:
 
 | Key | Meaning |
 |---|---|
