@@ -1,28 +1,5 @@
-# === Build output ===
-build/
-out/
-libs/
-*.jar
-!gradle/wrapper/gradle-wrapper.jar
-
-# === Gradle ===
 .gradle/
-!gradle/wrapper/gradle-wrapper.properties
-
-# === IDE ===
+build/
+run/
 .idea/
 *.iml
-*.ipr
-*.iws
-.vscode/
-.settings/
-.classpath
-.project
-
-# === OS / tooling junk ===
-.DS_Store
-Thumbs.db
-*.stackdump
-
-# === Local test server ===
-run/

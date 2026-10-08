@@ -1,5 +1,6 @@
 plugins {
     java
+    id("xyz.jpenilla.run-paper") version "3.1.0"
 }
 
 group = property("group") as String
@@ -13,34 +14,30 @@ repositories {
 }
 
 dependencies {
-    // Platform (provided at runtime, never shaded)
     compileOnly("io.papermc.paper:paper-api:${v("paper_api_version")}")
 
-    // Tests use the Paper API types (YAML, Adventure), but never a running server.
+    // Tests use the Paper API types (YAML, Adventure) without a running server.
     testImplementation("io.papermc.paper:paper-api:${v("paper_api_version")}")
-    testImplementation("org.junit.jupiter:junit-jupiter:5.11.4")
+    testImplementation(platform("org.junit:junit-bom:${v("junit_version")}"))
+    testImplementation("org.junit.jupiter:junit-jupiter")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
-val targetJava = v("java_release").toInt()
-
 java {
-    sourceCompatibility = JavaVersion.toVersion(targetJava)
-    targetCompatibility = JavaVersion.toVersion(targetJava)
-    // Only force a toolchain when the running JVM is older than the target.
-    if (JavaVersion.current() < JavaVersion.toVersion(targetJava)) {
-        toolchain.languageVersion.set(JavaLanguageVersion.of(targetJava))
-    }
+    toolchain.languageVersion.set(JavaLanguageVersion.of(v("java_version").toInt()))
 }
 
 tasks.withType<JavaCompile>().configureEach {
     options.encoding = "UTF-8"
-    options.release.set(targetJava)
     options.compilerArgs.add("-Xlint:deprecation")
 }
 
 tasks.test {
     useJUnitPlatform()
+}
+
+tasks.runServer {
+    minecraftVersion(v("minecraft_version"))
 }
 
 tasks.processResources {
