@@ -29,10 +29,14 @@ class FrameSortSettingsTest {
         }
     }
 
+    private static FrameSortSettings parse(YamlConfiguration yaml, List<String> warnings) {
+        return FrameSortSettings.parse(new ConfigReader(yaml, "config.yml", warnings::add));
+    }
+
     @Test
     void bundledConfigParsesWithoutWarnings() throws Exception {
         List<String> warnings = new ArrayList<>();
-        FrameSortSettings settings = FrameSortSettings.parse(bundled("config.yml"), warnings::add);
+        FrameSortSettings settings = parse(bundled("config.yml"), warnings);
 
         assertEquals(List.of(), warnings);
         assertEquals("en_US", settings.language());
@@ -54,7 +58,7 @@ class FrameSortSettingsTest {
     @Test
     void emptyConfigUsesDefaults() {
         List<String> warnings = new ArrayList<>();
-        FrameSortSettings settings = FrameSortSettings.parse(new YamlConfiguration(), warnings::add);
+        FrameSortSettings settings = parse(new YamlConfiguration(), warnings);
 
         assertEquals(List.of(), warnings);
         assertEquals(64, settings.delivery().maxDistance());
@@ -66,6 +70,7 @@ class FrameSortSettingsTest {
     void invalidValuesFallBackWithAWarningEach() throws Exception {
         YamlConfiguration yaml = new YamlConfiguration();
         yaml.loadFromString("""
+                language: ""
                 sorter:
                   activator: { material: NOT_A_THING }
                   tick-rate: 0
@@ -81,8 +86,9 @@ class FrameSortSettingsTest {
                   colors: { dropped: "#ABC", lava: "#00ff7f" }
                 """);
         List<String> warnings = new ArrayList<>();
-        FrameSortSettings settings = FrameSortSettings.parse(yaml, warnings::add);
+        FrameSortSettings settings = parse(yaml, warnings);
 
+        assertEquals("en_US", settings.language());
         assertEquals(Material.ENDER_EYE, settings.sorter().activator().material());
         assertEquals(20, settings.sorter().tickRate());
         assertEquals(Set.of(EntityType.ITEM_FRAME), settings.sorter().frameTypes());
@@ -95,7 +101,7 @@ class FrameSortSettingsTest {
         assertEquals(Color.fromRGB(0xFFFF55), settings.inspect().colors().dropped());
         assertEquals(Color.fromRGB(0x00FF7F), settings.inspect().colors().lava());
         // default-target-item "" is a valid "off", so it does not warn.
-        assertEquals(8, warnings.size(), warnings::toString);
+        assertEquals(9, warnings.size(), warnings::toString);
         assertTrue(warnings.stream().allMatch(w -> w.startsWith("config.yml > ")), warnings::toString);
     }
 }

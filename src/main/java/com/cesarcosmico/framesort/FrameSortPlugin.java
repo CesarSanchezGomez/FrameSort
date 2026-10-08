@@ -12,6 +12,7 @@ import com.cesarcosmico.framesort.command.TraceCommand;
 import com.cesarcosmico.framesort.config.CommandsConfig;
 import com.cesarcosmico.framesort.config.ConfigFiles;
 import com.cesarcosmico.framesort.config.ConfigHolder;
+import com.cesarcosmico.framesort.config.ConfigReader;
 import com.cesarcosmico.framesort.config.ConfigValidator;
 import com.cesarcosmico.framesort.config.FrameSortSettings;
 import com.cesarcosmico.framesort.config.PadSettings;
@@ -169,13 +170,13 @@ public final class FrameSortPlugin extends JavaPlugin {
     private FrameSortSettings loadSettings(Consumer<String> warn) throws IOException, InvalidConfigurationException {
         YamlConfiguration yaml = ConfigFiles.load(this, "config.yml");
         ConfigValidator.check(this, yaml, "config.yml", warn);
-        return FrameSortSettings.parse(yaml, warn);
+        return FrameSortSettings.parse(new ConfigReader(yaml, "config.yml", warn));
     }
 
     private PadSettings loadPads(Consumer<String> warn) throws IOException, InvalidConfigurationException {
         YamlConfiguration yaml = ConfigFiles.load(this, "pads.yml");
         ConfigValidator.check(this, yaml, "pads.yml", Set.of("types"), warn);
-        return PadSettings.parse(yaml, warn, Material::isBlock);
+        return PadSettings.parse(new ConfigReader(yaml, "pads.yml", warn), Material::isBlock);
     }
 
     private void register(Listener... listeners) {

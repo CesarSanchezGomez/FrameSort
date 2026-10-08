@@ -19,10 +19,14 @@ class PadSettingsTest {
     // Material::isBlock needs a running server; diamond is the only non-block these tests use.
     private static final Predicate<Material> IS_BLOCK = material -> material != Material.DIAMOND;
 
+    private static PadSettings parse(YamlConfiguration yaml, List<String> warnings) {
+        return PadSettings.parse(new ConfigReader(yaml, "pads.yml", warnings::add), IS_BLOCK);
+    }
+
     @Test
     void bundledPadsParseWithoutWarnings() throws Exception {
         List<String> warnings = new ArrayList<>();
-        PadSettings settings = PadSettings.parse(FrameSortSettingsTest.bundled("pads.yml"), warnings::add, IS_BLOCK);
+        PadSettings settings = parse(FrameSortSettingsTest.bundled("pads.yml"), warnings);
 
         assertEquals(List.of(), warnings);
         assertEquals(PadMode.ANYONE, settings.creation());
@@ -49,7 +53,7 @@ class PadSettingsTest {
                   flat: 3
                 """);
         List<String> warnings = new ArrayList<>();
-        PadSettings settings = PadSettings.parse(yaml, warnings::add, IS_BLOCK);
+        PadSettings settings = parse(yaml, warnings);
 
         assertEquals(PadMode.ITEM, settings.creation());
         assertEquals(List.of("glass"), List.copyOf(settings.types().keySet()));
@@ -60,7 +64,7 @@ class PadSettingsTest {
     @Test
     void noTypesDisablesPads() {
         List<String> warnings = new ArrayList<>();
-        PadSettings settings = PadSettings.parse(new YamlConfiguration(), warnings::add, IS_BLOCK);
+        PadSettings settings = parse(new YamlConfiguration(), warnings);
 
         assertTrue(settings.types().isEmpty());
         assertEquals(1, warnings.size());

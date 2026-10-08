@@ -3,7 +3,6 @@ package com.cesarcosmico.framesort.config;
 import com.cesarcosmico.framesort.item.ItemTemplate;
 import com.cesarcosmico.framesort.model.PadMode;
 import org.bukkit.Material;
-import org.bukkit.configuration.ConfigurationSection;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Collections;
@@ -11,7 +10,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 public record PadSettings(PadMode creation, int sweepInterval, Map<String, PadType> types) {
@@ -22,8 +20,7 @@ public record PadSettings(PadMode creation, int sweepInterval, Map<String, PadTy
     }
 
     /** {@code isBlock} is {@code Material::isBlock} on a server; it needs the registries, so tests pass their own. */
-    public static PadSettings parse(ConfigurationSection root, Consumer<String> warn, Predicate<Material> isBlock) {
-        ConfigReader reader = new ConfigReader(root, "pads.yml", warn);
+    public static PadSettings parse(ConfigReader reader, Predicate<Material> isBlock) {
         Map<String, PadType> types = new LinkedHashMap<>();
         ConfigReader section = reader.section("types");
         if (section != null) {
