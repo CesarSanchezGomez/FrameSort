@@ -2,7 +2,8 @@
 
 config-version: 1
 
-language: en_US   # en_US | es_ES
+# File in lang/ that player messages come from: en_US, es_ES or a copy of your own.
+language: 'en_US'
 
 sorter:
   activator:

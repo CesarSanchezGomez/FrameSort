@@ -1,3 +1,5 @@
+config-version: 1
+
 prefix: '<white>[</white><gradient:#F7B733:#FC4A1A>FrameSort</gradient><white>]</white> '
 
 command:
