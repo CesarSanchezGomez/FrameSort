@@ -6,6 +6,7 @@
 #               granted to ops only, unless a permissions plugin gives it.
 #   usage       every full path that runs it. The first word is the root command, so a feature can also live
 #               under its own command ('/fstrace'). The arguments follow the path, as in the comment above each one.
+# Help lines in lang/ show the first path of each feature.
 
 config-version: 1
 
@@ -64,11 +65,3 @@ reload:
   usage:
     - '/framesort reload'
     - '/fs reload'
-
-# Usage: [COMMAND]
-version:
-  enabled: true
-  permission: 'framesort.command.version'
-  usage:
-    - '/framesort version'
-    - '/fs version'

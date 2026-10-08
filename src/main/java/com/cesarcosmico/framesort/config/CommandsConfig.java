@@ -19,17 +19,26 @@ import java.util.regex.Pattern;
 
 /**
  * {@code commands.yml}: each top-level section is a feature, keyed by a fixed id, with every path that runs it.
- * The bundled file supplies whatever the server's file leaves out. Commands register once, so edits need a restart.
+ * The bundled file decides which features exist; the server's file overrides their values. Commands register once,
+ * so edits need a restart.
  */
 public final class CommandsConfig {
 
     private static final String FILE = "commands.yml";
     private static final Pattern WORD = Pattern.compile("[a-z0-9_-]+");
 
-    private final Map<String, CommandSpec> specs;
+    /** @param paths every path that runs the feature, as words without the slash: {@code [plugin, tag]} */
+    public record Feature(String id, boolean enabled, String permission, List<List<String>> paths) {
 
-    private CommandsConfig(Map<String, CommandSpec> specs) {
-        this.specs = Map.copyOf(specs);
+        public Feature {
+            paths = paths.stream().map(List::copyOf).toList();
+        }
+    }
+
+    private final Map<String, Feature> features;
+
+    private CommandsConfig(Map<String, Feature> features) {
+        this.features = Map.copyOf(features);
     }
 
     public static CommandsConfig load(Plugin plugin, Consumer<String> warn)
@@ -42,7 +51,7 @@ public final class CommandsConfig {
 
     /** {@code bundled} decides which features exist; {@code live} overrides their values. */
     public static CommandsConfig parse(ConfigurationSection live, ConfigurationSection bundled, Consumer<String> warn) {
-        Map<String, CommandSpec> specs = new LinkedHashMap<>();
+        Map<String, Feature> features = new LinkedHashMap<>();
         Map<List<String>, String> taken = new HashMap<>();
         for (String id : bundled.getKeys(false)) {
             ConfigurationSection defaults = bundled.getConfigurationSection(id);
@@ -57,7 +66,7 @@ public final class CommandsConfig {
             for (String usage : usages) {
                 List<String> path = path(usage);
                 if (path == null) {
-                    reader.warn("usage", "'" + usage + "' must be a slash and lowercase words, like '/framesort tag'");
+                    reader.warn("usage", "'" + usage + "' must be a slash and lowercase words, like '/plugin tag'");
                 } else if (enabled && taken.containsKey(path)) {
                     reader.warn("usage", "'" + usage + "' already runs '" + taken.get(path) + "', ignored");
                 } else {
@@ -70,22 +79,22 @@ public final class CommandsConfig {
             if (enabled && paths.isEmpty()) {
                 reader.warn("usage", "no usable path, so the command can't be run");
             }
-            specs.put(id, new CommandSpec(id, enabled, permission, paths));
+            features.put(id, new Feature(id, enabled, permission, paths));
         }
-        return new CommandsConfig(specs);
+        return new CommandsConfig(features);
     }
 
-    public @Nullable CommandSpec spec(String id) {
-        return specs.get(id);
+    public @Nullable Feature feature(String id) {
+        return features.get(id);
     }
 
-    /** The first path of an enabled feature, such as {@code /framesort tag}, for clickable chat links. */
+    /** The first path of an enabled feature, such as {@code /plugin tag}, for clickable chat links. */
     public @Nullable String primaryUsage(String id) {
-        CommandSpec spec = specs.get(id);
-        if (spec == null || !spec.enabled() || spec.paths().isEmpty()) {
+        Feature feature = features.get(id);
+        if (feature == null || !feature.enabled() || feature.paths().isEmpty()) {
             return null;
         }
-        return "/" + String.join(" ", spec.paths().getFirst());
+        return "/" + String.join(" ", feature.paths().getFirst());
     }
 
     private static @Nullable List<String> path(String usage) {

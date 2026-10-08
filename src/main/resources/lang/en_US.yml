@@ -2,14 +2,18 @@ prefix: '<white>[</white><gradient:#F7B733:#FC4A1A>FrameSort</gradient><white>]<
 
 command:
   help:
-    - '<prefix><gray>Sort items into item frames.</gray>'
-    - '<gray>• <white>Right-click</white> a sorter or pad with a <white>stick</white> to see its targets (hold an item in your off hand to see only its targets).</gray>'
-    - '<gray>• <white>Sneak + right-click</white> a frame with the stick to mark it as a target; <white>right-click</white> it to see what it accepts.</gray>'
-    - '<gray>• <white>/framesort trace [seconds|stop]</white> · <white>/framesort tag logs</white> · <white>/framesort tags [search text]</white></gray>'
+    header:
+      - '<prefix><gray>Sort items into item frames.</gray>'
+      - '<gray>• <white>Right-click</white> a sorter or pad with a <white>stick</white> to see its targets (hold an item in your off hand to see only its targets).</gray>'
+      - '<gray>• <white>Sneak + right-click</white> a frame with the stick to mark it as a target; <white>right-click</white> it to see what it accepts.</gray>'
+    tag: '<gray>• <white><usage> \<tag> [page]</white> <dark_gray>-</dark_gray> what an item or block tag contains.</gray>'
+    tags: '<gray>• <white><usage> [page]</white> · <white><usage> search \<text> [page]</white> <dark_gray>-</dark_gray> item and block tags.</gray>'
+    trace: '<gray>• <white><usage> [seconds|stop]</white> <dark_gray>-</dark_gray> show the deliveries around you.</gray>'
+    give: '<gray>• <white><usage> sorter|pad \<type> [player] [amount]</white> <dark_gray>-</dark_gray> give sorter activators and pad blocks.</gray>'
+    reload: '<gray>• <white><usage></white> <dark_gray>-</dark_gray> reload the configuration.</gray>'
   reloaded: '<prefix><green>Configuration reloaded.</green>'
   reloaded-with-warnings: '<prefix><yellow>Configuration reloaded with <count> warning(s): those settings use their defaults. See the console.</yellow>'
   reload-failed: '<prefix><red>Reload failed: <error>. The previous configuration is still active; see the console.</red>'
-  version: '<prefix><white>FrameSort <green><version></green></white>'
   players-only: '<prefix><red>Only players can use this command.</red>'
 
 pager:

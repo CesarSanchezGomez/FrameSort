@@ -25,13 +25,12 @@ permissions:
       framesort.command.trace: true
       framesort.command.inspect: true
   framesort.admin:
-    description: Administrator access (give items, reload, version, pads in permission mode).
+    description: Administrator access (give items, reload, pads in permission mode).
     default: op
     children:
       framesort.pad.create: true
       framesort.command.give: true
       framesort.command.reload: true
-      framesort.command.version: true
   framesort.inspect:
     description: Use the tool to inspect sorters, pads and target frames.
     default: true
@@ -61,7 +60,4 @@ permissions:
     default: op
   framesort.command.reload:
     description: Reload the configuration with /framesort reload.
-    default: op
-  framesort.command.version:
-    description: Show the plugin version with /framesort version.
     default: op

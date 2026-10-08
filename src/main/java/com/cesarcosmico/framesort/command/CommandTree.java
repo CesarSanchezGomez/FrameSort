@@ -1,6 +1,5 @@
 package com.cesarcosmico.framesort.command;
 
-import com.cesarcosmico.framesort.config.CommandSpec;
 import com.cesarcosmico.framesort.config.CommandsConfig;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.builder.ArgumentBuilder;
@@ -22,7 +21,7 @@ import java.util.function.Predicate;
 
 /**
  * Builds the Brigadier roots from the features and their paths in {@code commands.yml}. Paths that share words
- * share literals, so {@code /framesort tag} and {@code /framesort trace} hang from one {@code framesort}.
+ * share literals, so {@code /plugin tag} and {@code /plugin trace} hang from one {@code plugin}.
  */
 public final class CommandTree {
 
@@ -44,7 +43,7 @@ public final class CommandTree {
                                                                      CommandsConfig config) {
         Map<String, Node> roots = new LinkedHashMap<>();
         for (CommandFeature feature : features) {
-            CommandSpec spec = config.spec(feature.id());
+            CommandsConfig.Feature spec = config.feature(feature.id());
             if (spec == null || !spec.enabled()) {
                 continue;
             }

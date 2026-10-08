@@ -18,12 +18,14 @@ public final class ReloadCommand implements CommandFeature {
     private final Supplier<Messages> messages;
     private final Callable<Integer> reload;
     private final Logger logger;
+    private final String pluginName;
 
-    /** @param reload reloads everything and returns how many settings were invalid and fell back to defaults */
-    public ReloadCommand(Supplier<Messages> messages, Callable<Integer> reload, Logger logger) {
+    /** @param reload reloads everything and returns how many values fell back to their defaults */
+    public ReloadCommand(Supplier<Messages> messages, Callable<Integer> reload, Logger logger, String pluginName) {
         this.messages = messages;
         this.reload = reload;
         this.logger = logger;
+        this.pluginName = pluginName;
     }
 
     @Override
@@ -42,7 +44,7 @@ public final class ReloadCommand implements CommandFeature {
         try {
             warnings = reload.call();
         } catch (Exception e) {
-            logger.log(Level.WARNING, "FrameSort reload failed; the previous configuration is still active.", e);
+            logger.log(Level.WARNING, pluginName + " reload failed; the previous configuration is still active.", e);
             sender.sendMessage(messages.get().get("command.reload-failed",
                     Placeholder.unparsed("error", String.valueOf(e.getMessage()))));
             return Command.SINGLE_SUCCESS;

@@ -15,6 +15,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
+// Structure only. Who may see and run each node is checked by hand on a server (§13.2).
 class CommandTreeTest {
 
     private record Feature(String id) implements CommandFeature {
@@ -27,24 +28,24 @@ class CommandTreeTest {
     private static CommandsConfig config(String text) throws Exception {
         YamlConfiguration yaml = new YamlConfiguration();
         yaml.loadFromString(text);
-        return CommandsConfig.parse(yaml, yaml, w -> { });
+        return CommandsConfig.parse(yaml, yaml, warning -> { });
     }
 
     @Test
     void pathsSharingWordsShareLiterals() throws Exception {
         CommandsConfig config = config("""
-                help: {permission: 'h', usage: ['/framesort', '/fs']}
-                tag: {permission: 't', usage: ['/framesort tag', '/fs tag']}
-                trace: {permission: 'r', usage: ['/framesort trace', '/fstrace']}
+                help: {permission: 'h', usage: ['/plugin', '/p']}
+                tag: {permission: 't', usage: ['/plugin tag', '/p tag']}
+                trace: {permission: 'r', usage: ['/plugin trace', '/ptrace']}
                 """);
         List<LiteralCommandNode<CommandSourceStack>> roots = CommandTree.build(
                 List.of(new Feature("help"), new Feature("tag"), new Feature("trace")), config);
 
-        assertEquals(List.of("framesort", "fs", "fstrace"), roots.stream().map(CommandNode::getName).toList());
-        LiteralCommandNode<CommandSourceStack> framesort = roots.getFirst();
-        assertNotNull(framesort.getCommand());
-        assertNotNull(framesort.getChild("tag"));
-        assertNotNull(framesort.getChild("trace"));
+        assertEquals(List.of("plugin", "p", "ptrace"), roots.stream().map(CommandNode::getName).toList());
+        LiteralCommandNode<CommandSourceStack> plugin = roots.getFirst();
+        assertNotNull(plugin.getCommand());
+        assertNotNull(plugin.getChild("tag"));
+        assertNotNull(plugin.getChild("trace"));
         assertNull(roots.get(1).getChild("trace"));
         assertNotNull(roots.get(2).getCommand());
     }
@@ -52,8 +53,8 @@ class CommandTreeTest {
     @Test
     void disabledFeaturesAreLeftOut() throws Exception {
         CommandsConfig config = config("""
-                help: {permission: 'h', usage: ['/fs']}
-                trace: {enabled: false, permission: 'r', usage: ['/fs trace']}
+                help: {permission: 'h', usage: ['/p']}
+                trace: {enabled: false, permission: 'r', usage: ['/p trace']}
                 """);
         List<LiteralCommandNode<CommandSourceStack>> roots = CommandTree.build(
                 List.of(new Feature("help"), new Feature("trace")), config);
