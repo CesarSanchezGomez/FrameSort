@@ -7,6 +7,7 @@ import com.cesarcosmico.framesort.model.BlockKey;
 import io.papermc.paper.datacomponent.DataComponentTypes;
 import io.papermc.paper.datacomponent.item.BundleContents;
 import io.papermc.paper.datacomponent.item.ItemContainerContents;
+import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Location;
@@ -23,9 +24,12 @@ import org.jspecify.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Supplier;
 
@@ -54,6 +58,8 @@ public final class SorterService {
     private final Supplier<FrameSortSettings> settings;
     private final DeliveryService delivery;
     private final Map<BlockKey, Sorter> sorters = new HashMap<>();
+    // Frames with a retry pending; every load, reload or frame change would otherwise start another retry chain.
+    private final Set<UUID> waiting = new HashSet<>();
     private long tick;
     private int nextPhase;
 
@@ -67,8 +73,15 @@ public final class SorterService {
         boolean holdsActivator = holdsActivator(frame);
         if (!FrameGeometry.attachedLoaded(frame)) {
             // Only frames that could make a sorter wait for the neighbouring chunk; the rest are never sorters.
-            if (holdsActivator) {
-                frame.getScheduler().runDelayed(plugin, task -> consider(frame), null, RETRY_TICKS);
+            if (holdsActivator && waiting.add(frame.getUniqueId())) {
+                Runnable done = () -> waiting.remove(frame.getUniqueId());
+                ScheduledTask retry = frame.getScheduler().runDelayed(plugin, task -> {
+                    done.run();
+                    consider(frame);
+                }, done, RETRY_TICKS);
+                if (retry == null) {
+                    done.run();
+                }
             }
             return;
         }
