@@ -41,6 +41,7 @@ public final class PadListener implements Listener {
         pads.unload(event.getChunk());
     }
 
+    // MONITOR: the pad is registered only once no plugin can still cancel the placement; the event is left alone.
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onPlace(BlockPlaceEvent event) {
         PadService.PlaceResult result = pads.placed(event.getPlayer(), event.getBlockPlaced(), event.getItemInHand());

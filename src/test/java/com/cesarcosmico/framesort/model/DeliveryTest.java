@@ -32,7 +32,7 @@ class DeliveryTest {
 
     @Test
     void vanishedContainerAfterPartialInsertKeepsTheTotal() {
-        // Items used to duplicate here: 14 went into A, B was gone and the source kept all 64.
+        // The duplication this guards against: 14 went into A, B was gone and the source still kept all 64.
         Box a = new Box(14);
         Box b = new Box(null);
         int[] source = {64};

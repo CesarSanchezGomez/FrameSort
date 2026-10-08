@@ -19,7 +19,6 @@ import org.bukkit.inventory.EquipmentSlot;
 
 import java.util.function.Supplier;
 
-/** Empty frames are left alone, so the tool item can still be put into a frame. */
 public final class ToolListener implements Listener {
 
     public static final String PERMISSION = "framesort.inspect";
@@ -58,6 +57,7 @@ public final class ToolListener implements Listener {
         }
     }
 
+    // Empty frames are left alone, so the tool item can still be put into a frame.
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onInteractFrame(PlayerInteractEntityEvent event) {
         Player player = event.getPlayer();

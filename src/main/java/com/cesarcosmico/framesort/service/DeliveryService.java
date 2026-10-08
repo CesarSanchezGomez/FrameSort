@@ -111,7 +111,7 @@ public final class DeliveryService {
     }
 
     public static @Nullable Inventory inventory(Block block) {
-        // A composter feeds the hopper under it.
+        // A composter has no inventory, so a frame on it feeds the hopper underneath, as in a composter farm.
         if (block.getType() == Material.COMPOSTER) {
             Block below = block.getRelative(BlockFace.DOWN);
             return below.getType() == Material.HOPPER ? containerInventory(below) : null;

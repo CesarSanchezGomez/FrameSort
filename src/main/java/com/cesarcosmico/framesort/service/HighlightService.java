@@ -106,7 +106,7 @@ public final class HighlightService {
                 .rotateY((float) -Math.PI);
     }
 
-    // Minecraft's Direction#toYRot.
+    // The angles of Minecraft's Direction#toYRot, so the copy turns like the real item.
     private static float yRot(BlockFace facing) {
         return switch (facing) {
             case WEST -> 90f;

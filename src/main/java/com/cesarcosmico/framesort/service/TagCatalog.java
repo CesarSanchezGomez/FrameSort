@@ -37,7 +37,7 @@ public final class TagCatalog {
     private final Set<NamespacedKey> missing = new HashSet<>();
     private @Nullable List<NamespacedKey> names;
 
-    /** Item tags win over block tags with the same name. */
+    /** An item tag wins over a block tag with the same name: frames sort items. */
     public @Nullable TagView find(NamespacedKey key) {
         TagView cached = found.get(key);
         if (cached != null || missing.contains(key)) {
