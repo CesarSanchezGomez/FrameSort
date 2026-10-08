@@ -121,10 +121,6 @@ public final class SorterService {
         return sorters.values().stream().map(sorter -> sorter.block).toList();
     }
 
-    public void clear() {
-        sorters.clear();
-    }
-
     public ItemStack createActivator(int amount) {
         return settings.get().sorter().activator().create(Keys.ACTIVATOR, "sorter", amount);
     }

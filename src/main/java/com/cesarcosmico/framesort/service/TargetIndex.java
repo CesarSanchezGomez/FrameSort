@@ -92,7 +92,7 @@ public final class TargetIndex {
                 }
             }
         }
-        return found;
+        return List.copyOf(found);
     }
 
     public void clear() {

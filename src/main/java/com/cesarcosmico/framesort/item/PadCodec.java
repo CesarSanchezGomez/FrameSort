@@ -4,7 +4,7 @@ import com.cesarcosmico.framesort.model.BlockKey;
 import org.bukkit.Chunk;
 import org.bukkit.persistence.PersistentDataType;
 
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -29,9 +29,12 @@ public final class PadCodec {
     }
 
     static List<String> encode(Map<BlockKey, String> pads) {
-        List<String> entries = new ArrayList<>();
-        pads.forEach((key, type) -> entries.add(key.x() + "," + key.y() + "," + key.z() + "," + type));
-        return entries;
+        return pads.entrySet().stream()
+                .map(entry -> {
+                    BlockKey key = entry.getKey();
+                    return key.x() + "," + key.y() + "," + key.z() + "," + entry.getValue();
+                })
+                .toList();
     }
 
     /** Malformed entries are dropped: a hand-edited chunk must not stop the others from loading. */
@@ -49,6 +52,6 @@ public final class PadCodec {
                 // Skipped on purpose, see above.
             }
         }
-        return pads;
+        return Collections.unmodifiableMap(pads);
     }
 }

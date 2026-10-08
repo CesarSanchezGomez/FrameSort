@@ -59,10 +59,6 @@ public final class PadService {
         pads.remove(FrameGeometry.key(chunk));
     }
 
-    public void clear() {
-        pads.clear();
-    }
-
     /** Registers a pad when {@code block}, just placed by {@code player} from {@code hand}, completes one. */
     public PlaceResult placed(Player player, Block block, ItemStack hand) {
         PadSettings current = settings.get();
@@ -115,7 +111,7 @@ public final class PadService {
         List<Block> found = new ArrayList<>();
         World world = server.getWorld(center.world());
         if (world == null) {
-            return found;
+            return List.of();
         }
         long radiusSquared = (long) radius * radius;
         for (Map<BlockKey, String> inChunk : pads.values()) {
@@ -125,7 +121,7 @@ public final class PadService {
                 }
             }
         }
-        return found;
+        return List.copyOf(found);
     }
 
     public ItemStack createItem(PadType type, int amount) {

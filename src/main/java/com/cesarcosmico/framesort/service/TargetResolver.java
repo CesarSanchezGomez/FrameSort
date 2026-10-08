@@ -113,7 +113,7 @@ public final class TargetResolver {
             contents.addAll(bundle.contents());
         }
         contents.removeIf(ItemStack::isEmpty);
-        return contents;
+        return List.copyOf(contents);
     }
 
     private List<Match> compute(Block source, BlockKey key, ItemStack item) {
