@@ -25,7 +25,7 @@ public record SorterSettings(ItemTemplate activator, boolean requireMarked, Set<
         Material material = activator.requiredMaterial("material", Material.ENDER_EYE);
         String customName = reader.string("custom-name", "<gradient:#F7B733:#FC4A1A>Item Sorter</gradient>");
         return new SorterSettings(
-                ItemTemplate.parse(activator, material),
+                itemTemplate(activator, material),
                 activator.bool("require-marked", false),
                 frameTypes(reader, "frame-types"),
                 customName.isBlank() ? null : customName,
@@ -40,6 +40,12 @@ public record SorterSettings(ItemTemplate activator, boolean requireMarked, Set<
             return false;
         }
         return !requireMarked || ItemTemplate.marker(item, Keys.ACTIVATOR) != null;
+    }
+
+    static ItemTemplate itemTemplate(ConfigReader reader, Material material) {
+        String name = reader.string("name", "");
+        return new ItemTemplate(material, name.isBlank() ? null : name, reader.strings("lore"),
+                reader.bool("glint", false), reader.key("item-model"));
     }
 
     static Set<EntityType> frameTypes(ConfigReader reader, String path) {

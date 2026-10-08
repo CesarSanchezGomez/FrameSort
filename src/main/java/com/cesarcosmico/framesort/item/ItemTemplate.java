@@ -1,6 +1,5 @@
 package com.cesarcosmico.framesort.item;
 
-import com.cesarcosmico.framesort.config.ConfigReader;
 import io.papermc.paper.datacomponent.DataComponentTypes;
 import io.papermc.paper.datacomponent.item.ItemLore;
 import net.kyori.adventure.text.Component;
@@ -21,12 +20,6 @@ public record ItemTemplate(Material material, @Nullable String name, List<String
 
     public ItemTemplate {
         lore = List.copyOf(lore);
-    }
-
-    public static ItemTemplate parse(ConfigReader reader, Material material) {
-        String name = reader.string("name", "");
-        return new ItemTemplate(material, name.isBlank() ? null : name, reader.strings("lore"),
-                reader.bool("glint", false), reader.key("item-model"));
     }
 
     public ItemStack create(NamespacedKey marker, String value, int amount) {
