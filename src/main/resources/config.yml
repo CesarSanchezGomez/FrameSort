@@ -36,7 +36,7 @@ delivery:
 
 inspect:
   tool: STICK
-  highlight-seconds: 10
+  highlight-seconds: 5
   colors:
     container: '#55FF55'
     dropped: '#FFFF55'

@@ -39,6 +39,21 @@ class PadSettingsTest {
     }
 
     @Test
+    void padItemsKeepTheBlockModel() throws Exception {
+        YamlConfiguration yaml = new YamlConfiguration();
+        yaml.loadFromString("""
+                types:
+                  simple:
+                    structure: [CRYING_OBSIDIAN, GILDED_BLACKSTONE]
+                    item: {item-model: 'minecraft:stick'}
+                """);
+        PadType simple = parse(yaml, new ArrayList<>()).type("simple");
+
+        assertNotNull(simple);
+        assertNull(simple.item().itemModel());
+    }
+
+    @Test
     void invalidTypesAreSkipped() throws Exception {
         YamlConfiguration yaml = new YamlConfiguration();
         yaml.loadFromString("""

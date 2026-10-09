@@ -68,7 +68,7 @@ no other target. An empty frame does nothing.
 | Key | Default | Meaning |
 |---|---|---|
 | `tool` | `STICK` | The inspection and marking tool. |
-| `highlight-seconds` | `10` | How long targets glow for the player who inspected them. Nobody else sees the glow. |
+| `highlight-seconds` | `5` | How long targets glow for the player who inspected them. Nobody else sees the glow. |
 | `colors.container`, `colors.dropped`, `colors.lava` | `#55FF55`, `#FFFF55`, `#FF5555` | Glow and trace colours (`#RRGGBB`) for targets that put items into a container, drop them, or destroy them in lava. |
 | `page-size` | `8` | Entries per page in lists. |
 | `trace-radius` | `32` | `/framesort trace` shows deliveries from sorters and pads within this radius. |
@@ -81,7 +81,7 @@ no other target. An empty frame does nothing.
 | `creation` | `anyone` | `anyone`: any player who places the top block on a complete column. `permission`: only players with `framesort.pad.create`. `item`: only by placing the pad's special item (from `/framesort give pad`) as the top block. |
 | `sweep-interval` | `10` | Ticks between checks for items resting on pads. Items that arrive by water or fall onto a pad are picked up then. |
 | `types.<id>.structure` | | Blocks from top to bottom. Items rest on the first one. |
-| `types.<id>.item` | | `name`, `lore`, `glint`, `item-model` of the special top block (its material is the first block of the structure). |
+| `types.<id>.item` | | `name`, `lore` and `glint` of the special top block (its material is the first block of the structure). |
 
 A pad is created when its top block is placed on the rest of the column, so build it bottom up. It counts as long
 as the column stays complete; breaking the top block removes it. In `item` mode, breaking it gives the special item

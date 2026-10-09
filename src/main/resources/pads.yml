@@ -16,7 +16,6 @@ types:
         - ' <gray>gilded blackstone.</gray> '
         - ''
       glint: true
-      item-model: ''
   magma:
     structure: [MAGMA_BLOCK, CRYING_OBSIDIAN, GILDED_BLACKSTONE]
     item:
@@ -27,4 +26,3 @@ types:
         - ' <gray>over gilded blackstone.</gray> '
         - ''
       glint: true
-      item-model: ''

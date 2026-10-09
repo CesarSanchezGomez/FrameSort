@@ -59,7 +59,7 @@ public record PadSettings(PadMode creation, int sweepInterval, Map<String, PadTy
             reader.warn("structure", "every entry must be a block; pad type '" + id + "' is skipped");
             return null;
         }
-        ItemTemplate item = SorterSettings.itemTemplate(reader.sectionOrEmpty("item"), structure.getFirst());
+        ItemTemplate item = SorterSettings.itemTemplate(reader.sectionOrEmpty("item"), structure.getFirst(), null);
         return new PadType(id.toLowerCase(Locale.ROOT), structure, item);
     }
 }

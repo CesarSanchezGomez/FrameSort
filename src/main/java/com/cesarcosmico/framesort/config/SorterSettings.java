@@ -3,6 +3,7 @@ package com.cesarcosmico.framesort.config;
 import com.cesarcosmico.framesort.item.ItemTemplate;
 import com.cesarcosmico.framesort.item.Keys;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.entity.EntityType;
 import org.bukkit.inventory.ItemStack;
 import org.jspecify.annotations.Nullable;
@@ -25,7 +26,7 @@ public record SorterSettings(ItemTemplate activator, boolean requireMarked, Set<
         Material material = activator.requiredMaterial("material", Material.ENDER_EYE);
         String customName = reader.string("custom-name", "<gradient:#F7B733:#FC4A1A>Item Sorter</gradient>");
         return new SorterSettings(
-                itemTemplate(activator, material),
+                itemTemplate(activator, material, activator.key("item-model")),
                 activator.bool("require-marked", false),
                 frameTypes(reader, "frame-types"),
                 customName.isBlank() ? null : customName,
@@ -42,10 +43,10 @@ public record SorterSettings(ItemTemplate activator, boolean requireMarked, Set<
         return !requireMarked || ItemTemplate.marker(item, Keys.ACTIVATOR) != null;
     }
 
-    static ItemTemplate itemTemplate(ConfigReader reader, Material material) {
+    static ItemTemplate itemTemplate(ConfigReader reader, Material material, @Nullable NamespacedKey model) {
         String name = reader.string("name", "");
         return new ItemTemplate(material, name.isBlank() ? null : name, reader.strings("lore"),
-                reader.bool("glint", false), reader.key("item-model"));
+                reader.bool("glint", false), model);
     }
 
     static Set<EntityType> frameTypes(ConfigReader reader, String path) {

@@ -51,6 +51,7 @@ class FrameSortSettingsTest {
         assertEquals(Material.CARROT_ON_A_STICK, settings.delivery().defaultTargetItem());
         assertEquals(Material.STICK, settings.inspect().tool());
         assertNull(settings.sorter().activator().itemModel());
+        assertEquals(5, settings.inspect().highlightSeconds());
         assertEquals(Color.fromRGB(0x55FF55), settings.inspect().colors().container());
         assertEquals(Color.fromRGB(0xFF5555), settings.inspect().colors().lava());
     }
