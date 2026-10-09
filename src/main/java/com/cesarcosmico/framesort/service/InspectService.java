@@ -49,9 +49,9 @@ public final class InspectService {
     private final Map<UUID, Listing> listings = new HashMap<>();
     private final HighlightService highlights;
 
-    public InspectService(HighlightService highlights, Supplier<FrameSortSettings> settings, Supplier<Messages> messages,
-                          TargetIndex index, TargetResolver resolver, SorterService sorters,
-                          PadService pads, CommandsConfig commands) {
+    public InspectService(HighlightService highlights, Supplier<FrameSortSettings> settings,
+                          Supplier<Messages> messages, TargetIndex index, TargetResolver resolver,
+                          SorterService sorters, PadService pads, CommandsConfig commands) {
         this.highlights = highlights;
         this.settings = settings;
         this.messages = messages;

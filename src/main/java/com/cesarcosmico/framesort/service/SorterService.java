@@ -214,7 +214,8 @@ public final class SorterService {
         }
         // A fresh snapshot, written back at once: it cannot carry stale items.
         if (block.getState() instanceof Dispenser dispenser) {
-            Component name = active && sorter.customName() != null ? MINI_MESSAGE.deserialize(sorter.customName()) : null;
+            String customName = sorter.customName();
+            Component name = active && customName != null ? MINI_MESSAGE.deserialize(customName) : null;
             if (!Objects.equals(dispenser.customName(), name)) {
                 dispenser.customName(name);
                 dispenser.update(true, false);

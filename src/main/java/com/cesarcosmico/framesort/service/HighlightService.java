@@ -17,7 +17,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-/** A per-player copy of the frame item glows instead of the frame: frame glowing is global and its colour team-based. */
+/**
+ * A per-player copy of the frame item glows instead of the frame: frame glowing is global and its colour
+ * team-based.
+ */
 public final class HighlightService {
 
     public record Highlight(ItemFrame frame, Color color) {

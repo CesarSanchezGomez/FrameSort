@@ -68,7 +68,8 @@ public final class GiveCommand implements CommandFeature {
                 .executes(context -> give(context, self(context), item, 1))
                 .then(Commands.argument("player", ArgumentTypes.player())
                         .executes(context -> give(context, named(context), item, 1))
-                        .then(amount.executes(context -> give(context, named(context), item, amountOf.apply(context)))));
+                        .then(amount.executes(
+                                context -> give(context, named(context), item, amountOf.apply(context)))));
     }
 
     private int give(CommandContext<CommandSourceStack> context, @Nullable Player target, ItemSource item, int amount)
