@@ -15,7 +15,7 @@ public record SorterSettings(ItemTemplate activator, boolean requireMarked, Set<
                              @Nullable String customName, int tickRate,
                              boolean disableWhenPowered, boolean hideFrame, boolean showActivity) {
 
-    static final Set<EntityType> ITEM_FRAMES = Set.of(EntityType.ITEM_FRAME, EntityType.GLOW_ITEM_FRAME);
+    private static final Set<EntityType> ITEM_FRAMES = Set.of(EntityType.ITEM_FRAME, EntityType.GLOW_ITEM_FRAME);
 
     public SorterSettings {
         frameTypes = Set.copyOf(frameTypes);
@@ -28,7 +28,7 @@ public record SorterSettings(ItemTemplate activator, boolean requireMarked, Set<
         return new SorterSettings(
                 itemTemplate(activator, material, activator.key("item-model")),
                 activator.bool("require-marked", false),
-                frameTypes(reader, "frame-types"),
+                frameTypes(reader),
                 customName.isBlank() ? null : customName,
                 reader.integer("tick-rate", 20, 1, 1200),
                 reader.bool("disable-when-powered", false),
@@ -49,10 +49,10 @@ public record SorterSettings(ItemTemplate activator, boolean requireMarked, Set<
                 reader.bool("glint", false), model);
     }
 
-    static Set<EntityType> frameTypes(ConfigReader reader, String path) {
-        Set<EntityType> types = reader.enumSet(path, EntityType.class, ITEM_FRAMES);
+    static Set<EntityType> frameTypes(ConfigReader reader) {
+        Set<EntityType> types = reader.enumSet("frame-types", EntityType.class, ITEM_FRAMES);
         if (!ITEM_FRAMES.containsAll(types)) {
-            reader.warn(path, "only ITEM_FRAME and GLOW_ITEM_FRAME are item frames; other types are ignored");
+            reader.warn("frame-types", "only ITEM_FRAME and GLOW_ITEM_FRAME are item frames; other types are ignored");
             types = types.stream().filter(ITEM_FRAMES::contains).collect(Collectors.toSet());
         }
         return types.isEmpty() ? ITEM_FRAMES : types;

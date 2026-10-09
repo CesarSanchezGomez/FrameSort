@@ -73,7 +73,7 @@ public final class TargetResolver {
     }
 
     /** The best priority this frame item accepts {@code item} at, or {@code -1}. */
-    public int priority(ItemStack frameItem, ItemStack item) {
+    private int priority(ItemStack frameItem, ItemStack item) {
         int best = direct(frameItem, item, false);
         if (best != MatchTier.EXACT.priority(false)) {
             for (ItemStack content : contents(frameItem)) {

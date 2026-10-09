@@ -29,7 +29,7 @@ import java.util.function.Supplier;
 /** Pads live in their chunk's data, so only loaded pads are swept; sweeping also catches items that arrive late. */
 public final class PadService {
 
-    public static final String CREATE_PERMISSION = "framesort.pad.create";
+    private static final String CREATE_PERMISSION = "framesort.pad.create";
 
     public enum Placement { CREATED, NOT_ALLOWED, NOT_A_PAD }
 

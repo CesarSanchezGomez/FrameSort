@@ -37,7 +37,7 @@ import java.util.function.Supplier;
 
 public final class InspectService {
 
-    public static final String MARK_PERMISSION = "framesort.target.create";
+    private static final String MARK_PERMISSION = "framesort.target.create";
 
     private record Listing(Component title, List<Component> lines) {
     }

@@ -22,7 +22,7 @@ public record TargetSettings(TargetRegistration registration, Set<FramePosition>
         return new TargetSettings(
                 reader.enumValue("registration", TargetRegistration.class, TargetRegistration.MANUAL),
                 positions(reader),
-                SorterSettings.frameTypes(reader, "frame-types"),
+                SorterSettings.frameTypes(reader),
                 tagged.string("name", "<gradient:#F7B733:#FC4A1A>#<tag></gradient>"),
                 tagged.bool("glint", true));
     }

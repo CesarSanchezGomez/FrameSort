@@ -9,10 +9,6 @@ public final class TargetSet<T> {
     private final List<T> targets = new ArrayList<>();
     private int best = Integer.MAX_VALUE;
 
-    public boolean isRelevant(int priority) {
-        return priority <= best;
-    }
-
     public void add(int priority, T target) {
         if (priority > best) {
             return;

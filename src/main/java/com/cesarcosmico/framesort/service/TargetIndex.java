@@ -67,7 +67,6 @@ public final class TargetIndex {
         }
         remove(frame);
         add(frame);
-        changed(frame.getWorld());
     }
 
     public boolean isTarget(ItemFrame frame) {
