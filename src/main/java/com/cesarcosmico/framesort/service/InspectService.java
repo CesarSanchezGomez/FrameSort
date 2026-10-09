@@ -155,12 +155,12 @@ public final class InspectService {
         if (ItemTagCodec.read(shown) != null) {
             TagCatalog.TagView view = resolver.tag(shown);
             if (view != null) {
-                String tagCommand = commands.usageFor("tag", player::hasPermission);
+                String tagCommand = commands.usageFor("tag-show", player::hasPermission);
                 Component accepts = text.get("frame.accepts.tag",
                         Placeholder.unparsed("tag", view.key().asString()),
                         Placeholder.unparsed("count", String.valueOf(view.materials().size())));
                 lines.add(tagCommand == null ? accepts
-                        : accepts.clickEvent(ClickEvent.runCommand(tagCommand + " show " + view.key().asString())));
+                        : accepts.clickEvent(ClickEvent.runCommand(tagCommand + " " + view.key().asString())));
             }
         } else {
             lines.add(text.get("frame.accepts.exact", Placeholder.component("item", shown.effectiveName())));

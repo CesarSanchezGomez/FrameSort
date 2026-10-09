@@ -18,8 +18,7 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.function.Supplier;
 
-// apply and remove undo each other and share the held-item checks, so both live here.
-final class TagApplyCommand {
+public final class TagApplyCommand implements CommandFeature {
 
     private static final MiniMessage MINI_MESSAGE = MiniMessage.miniMessage();
 
@@ -27,22 +26,24 @@ final class TagApplyCommand {
     private final Supplier<Messages> messages;
     private final Supplier<FrameSortSettings> settings;
 
-    TagApplyCommand(TagArgument tag, Supplier<Messages> messages, Supplier<FrameSortSettings> settings) {
-        this.tag = tag;
+    public TagApplyCommand(TagCatalog tags, Supplier<Messages> messages, Supplier<FrameSortSettings> settings) {
+        this.tag = new TagArgument(tags, messages);
         this.messages = messages;
         this.settings = settings;
     }
 
-    LiteralArgumentBuilder<CommandSourceStack> apply() {
-        return Commands.literal("apply").then(Commands.argument("tag", tag).executes(this::apply));
+    @Override
+    public String id() {
+        return "tag-apply";
     }
 
-    LiteralArgumentBuilder<CommandSourceStack> remove() {
-        return Commands.literal("remove").executes(this::remove);
+    @Override
+    public void attach(LiteralArgumentBuilder<CommandSourceStack> node, String path) {
+        node.then(Commands.argument("tag", tag).executes(this::apply));
     }
 
     private int apply(CommandContext<CommandSourceStack> context) {
-        Player player = holder(context);
+        Player player = holder(context, messages.get());
         if (player == null) {
             return Command.SINGLE_SUCCESS;
         }
@@ -58,30 +59,14 @@ final class TagApplyCommand {
         return Command.SINGLE_SUCCESS;
     }
 
-    private int remove(CommandContext<CommandSourceStack> context) {
-        Player player = holder(context);
-        if (player == null) {
-            return Command.SINGLE_SUCCESS;
-        }
-        ItemStack held = player.getInventory().getItemInMainHand();
-        if (ItemTagCodec.read(held) == null) {
-            player.sendMessage(messages.get().get("tag-item.not-tagged"));
-            return Command.SINGLE_SUCCESS;
-        }
-        ItemTagCodec.clear(held);
-        player.getInventory().setItemInMainHand(held);
-        player.sendMessage(messages.get().get("tag-item.removed"));
-        return Command.SINGLE_SUCCESS;
-    }
-
-    // The player holding an item to work on, after telling the sender why there is none.
-    private @Nullable Player holder(CommandContext<CommandSourceStack> context) {
+    // The player holding an item to work on, after telling the sender why there is none. tag-remove needs it too.
+    static @Nullable Player holder(CommandContext<CommandSourceStack> context, Messages messages) {
         if (!(context.getSource().getSender() instanceof Player player)) {
-            context.getSource().getSender().sendMessage(messages.get().get("command.players-only"));
+            context.getSource().getSender().sendMessage(messages.get("command.players-only"));
             return null;
         }
         if (player.getInventory().getItemInMainHand().isEmpty()) {
-            player.sendMessage(messages.get().get("tag-item.empty-hand"));
+            player.sendMessage(messages.get("tag-item.empty-hand"));
             return null;
         }
         return player;

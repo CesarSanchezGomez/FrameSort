@@ -27,7 +27,11 @@ permissions:
       framesort.inspect: true
       framesort.target.create: true
       framesort.command.help: true
-      framesort.command.tag: true
+      framesort.command.tag-list: true
+      framesort.command.tag-search: true
+      framesort.command.tag-show: true
+      framesort.command.tag-apply: true
+      framesort.command.tag-remove: true
       framesort.command.trace: true
       framesort.command.inspect: true
       framesort.command.where: true
@@ -50,8 +54,20 @@ permissions:
   framesort.command.help:
     description: 'Show the help with /framesort.'
     default: true
-  framesort.command.tag:
-    description: 'List, search and show tags, and apply them to items, with /framesort tag.'
+  framesort.command.tag-list:
+    description: 'List every item and block tag with /framesort tag list.'
+    default: true
+  framesort.command.tag-search:
+    description: 'Search tags by name with /framesort tag search.'
+    default: true
+  framesort.command.tag-show:
+    description: 'Show what a tag contains with /framesort tag show.'
+    default: true
+  framesort.command.tag-apply:
+    description: 'Apply a tag to the held item with /framesort tag apply.'
+    default: true
+  framesort.command.tag-remove:
+    description: 'Take the tag off the held item with /framesort tag remove.'
     default: true
   framesort.command.trace:
     description: 'Trace nearby deliveries with /framesort trace.'

@@ -1,5 +1,6 @@
 package com.cesarcosmico.framesort.command;
 
+import com.cesarcosmico.framesort.config.CommandsConfig;
 import com.cesarcosmico.framesort.config.FrameSortSettings;
 import com.cesarcosmico.framesort.service.TagCatalog;
 import com.cesarcosmico.framesort.text.ChatPager;
@@ -22,25 +23,32 @@ import java.util.List;
 import java.util.Locale;
 import java.util.function.Supplier;
 
-final class TagShowCommand {
+public final class TagShowCommand implements CommandFeature {
 
     private final TagArgument tag;
     private final Supplier<Messages> messages;
     private final Supplier<FrameSortSettings> settings;
+    private final CommandsConfig commands;
 
-    TagShowCommand(TagArgument tag, Supplier<Messages> messages, Supplier<FrameSortSettings> settings) {
-        this.tag = tag;
+    public TagShowCommand(TagCatalog tags, Supplier<Messages> messages, Supplier<FrameSortSettings> settings,
+                          CommandsConfig commands) {
+        this.tag = new TagArgument(tags, messages);
         this.messages = messages;
         this.settings = settings;
+        this.commands = commands;
     }
 
-    LiteralArgumentBuilder<CommandSourceStack> show(String path) {
-        return Commands.literal("show")
-                .then(Commands.argument("tag", tag)
-                        .executes(context -> send(context, path, 1))
-                        .then(Commands.argument("page", IntegerArgumentType.integer(1))
-                                .executes(context -> send(context, path,
-                                        IntegerArgumentType.getInteger(context, "page")))));
+    @Override
+    public String id() {
+        return "tag-show";
+    }
+
+    @Override
+    public void attach(LiteralArgumentBuilder<CommandSourceStack> node, String path) {
+        node.then(Commands.argument("tag", tag)
+                .executes(context -> send(context, path, 1))
+                .then(Commands.argument("page", IntegerArgumentType.integer(1))
+                        .executes(context -> send(context, path, IntegerArgumentType.getInteger(context, "page")))));
     }
 
     private int send(CommandContext<CommandSourceStack> context, String path, int page) {
@@ -49,16 +57,16 @@ final class TagShowCommand {
         Messages text = messages.get();
         List<Component> lines = view.materials().stream().map(material -> entry(text, material)).toList();
         String name = TagArgument.shortName(view.key());
-        // Applying needs a hand, so only players get the button.
-        Component apply = sender instanceof Player
-                ? text.get("tag.apply-button").clickEvent(ClickEvent.runCommand(path + " apply " + name))
-                : Component.empty();
+        // Applying needs a hand, and the button only shows to whoever may apply.
+        String apply = sender instanceof Player ? commands.usageFor("tag-apply", sender::hasPermission) : null;
+        Component button = apply == null ? Component.empty()
+                : text.get("tag.apply-button").clickEvent(ClickEvent.runCommand(apply + " " + name));
         Component title = text.get("tag.title",
                 Placeholder.unparsed("tag", name),
                 Placeholder.component("kind", text.get("tag.kind." + view.kind().name().toLowerCase(Locale.ROOT))),
-                Placeholder.component("apply", apply));
+                Placeholder.component("apply", button));
         ChatPager.send(sender, text, title, lines, page, settings.get().inspect().pageSize(),
-                path + " show " + name + " %d");
+                path + " " + name + " %d");
         return Command.SINGLE_SUCCESS;
     }
 

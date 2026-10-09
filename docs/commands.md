@@ -35,7 +35,7 @@ The frame keeps its item and does not rotate. Empty frames are left alone, so th
 | Permission | Default | Grants |
 |---|---|---|
 | `framesort.*` | op | everything |
-| `framesort.use` | everyone | `framesort.inspect`, `framesort.target.create` and the help, tag, where, trace and inspect commands |
+| `framesort.use` | everyone | `framesort.inspect`, `framesort.target.create` and the help, tag, where, trace and inspect commands (every `framesort.command.tag-*`) |
 | `framesort.admin` | op | `framesort.pad.create` and the give and reload commands |
 | `framesort.inspect` | everyone | inspecting sorters, pads and frames |
 | `framesort.target.create` | everyone | marking frames as targets |
@@ -43,8 +43,9 @@ The frame keeps its item and does not rotate. Empty frames are left alone, so th
 
 ## commands.yml
 
-Each section of `commands.yml` is one command feature: `help`, `tag`, `where`, `trace`, `inspect`, `give`
-and `reload`. The key is fixed; what can change is:
+Each section of `commands.yml` is one command feature: `help`, `tag-list`, `tag-search`, `tag-show`, `tag-apply`,
+`tag-remove`, `where`, `trace`, `inspect`, `give` and `reload`. Each tag action is its own feature, so it has its
+own paths, permission and switch. The key is fixed; what can change is:
 
 | Key | Meaning |
 |---|---|
@@ -63,4 +64,22 @@ trace:
     - '/framesort trace'
     - '/fs trace'
     - '/fstrace'      # also /fstrace [seconds|stop]
+```
+
+Moving the tag list to `/fs tags`, while only staff may apply tags:
+
+```yaml
+tag-list:
+  enabled: true
+  permission: 'framesort.command.tag-list'
+  usage:
+    - '/framesort tags'
+    - '/fs tags'
+
+tag-apply:
+  enabled: true
+  permission: 'myserver.staff'   # not declared by FrameSort, so ops only unless a permissions plugin grants it
+  usage:
+    - '/framesort tag apply'
+    - '/fs tag apply'
 ```

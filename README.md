@@ -49,7 +49,11 @@ never duplicated.
 | Command | Permission | Default |
 |---|---|---|
 | `/framesort` (help) | `framesort.command.help` | everyone |
-| `/framesort tag list [page]`, `/framesort tag search <text> [page]`, `/framesort tag show <tag> [page]`, `/framesort tag apply <tag>`, `/framesort tag remove` | `framesort.command.tag` | everyone |
+| `/framesort tag list [page]` | `framesort.command.tag-list` | everyone |
+| `/framesort tag search <text> [page]` | `framesort.command.tag-search` | everyone |
+| `/framesort tag show <tag> [page]` | `framesort.command.tag-show` | everyone |
+| `/framesort tag apply <tag>` | `framesort.command.tag-apply` | everyone |
+| `/framesort tag remove` | `framesort.command.tag-remove` | everyone |
 | `/framesort where` | `framesort.command.where` | everyone |
 | `/framesort trace [seconds\|stop]` | `framesort.command.trace` | everyone |
 | `/framesort give sorter\|pad <type> [player] [amount]` | `framesort.command.give` | op |
@@ -63,7 +67,7 @@ Every command also runs as `/fs`. Where each command lives, its permission and w
 | Permission | Default | Grants |
 |---|---|---|
 | `framesort.*` | op | everything |
-| `framesort.use` | everyone | inspecting, marking targets and the help, tag, where, trace and inspect commands |
+| `framesort.use` | everyone | inspecting, marking targets and the help, tag, where, trace and inspect commands (every `framesort.command.tag-*`) |
 | `framesort.admin` | op | creating pads in `permission` mode and the give and reload commands |
 | `framesort.inspect` | everyone | inspecting sorters, pads and frames |
 | `framesort.target.create` | everyone | marking frames as targets |

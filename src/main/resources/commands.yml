@@ -18,14 +18,45 @@ help:
     - '/framesort'
     - '/fs'
 
-# Usage: [COMMAND] list [page] | [COMMAND] search <text> [page] | [COMMAND] show <tag> [page]
-#      | [COMMAND] apply <tag> | [COMMAND] remove   (apply and remove work on the item in your main hand)
-tag:
+# Usage: [COMMAND] [page]
+tag-list:
   enabled: true
-  permission: 'framesort.command.tag'
+  permission: 'framesort.command.tag-list'
   usage:
-    - '/framesort tag'
-    - '/fs tag'
+    - '/framesort tag list'
+    - '/fs tag list'
+
+# Usage: [COMMAND] <text> [page]
+tag-search:
+  enabled: true
+  permission: 'framesort.command.tag-search'
+  usage:
+    - '/framesort tag search'
+    - '/fs tag search'
+
+# Usage: [COMMAND] <tag> [page]
+tag-show:
+  enabled: true
+  permission: 'framesort.command.tag-show'
+  usage:
+    - '/framesort tag show'
+    - '/fs tag show'
+
+# Usage: [COMMAND] <tag>   (with the item in your main hand)
+tag-apply:
+  enabled: true
+  permission: 'framesort.command.tag-apply'
+  usage:
+    - '/framesort tag apply'
+    - '/fs tag apply'
+
+# Usage: [COMMAND]   (with the item in your main hand)
+tag-remove:
+  enabled: true
+  permission: 'framesort.command.tag-remove'
+  usage:
+    - '/framesort tag remove'
+    - '/fs tag remove'
 
 # Usage: [COMMAND] (with the item in your main hand)
 where:

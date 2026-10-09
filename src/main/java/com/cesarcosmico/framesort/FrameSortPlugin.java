@@ -6,7 +6,12 @@ import com.cesarcosmico.framesort.command.GiveCommand;
 import com.cesarcosmico.framesort.command.HelpCommand;
 import com.cesarcosmico.framesort.command.InspectCommand;
 import com.cesarcosmico.framesort.command.ReloadCommand;
-import com.cesarcosmico.framesort.command.TagCommand;
+import com.cesarcosmico.framesort.command.TagApplyCommand;
+import com.cesarcosmico.framesort.command.TagListCommand;
+import com.cesarcosmico.framesort.command.TagListing;
+import com.cesarcosmico.framesort.command.TagRemoveCommand;
+import com.cesarcosmico.framesort.command.TagSearchCommand;
+import com.cesarcosmico.framesort.command.TagShowCommand;
 import com.cesarcosmico.framesort.command.TraceCommand;
 import com.cesarcosmico.framesort.command.WhereCommand;
 import com.cesarcosmico.framesort.config.CommandsConfig;
@@ -98,9 +103,16 @@ public final class FrameSortPlugin extends JavaPlugin {
         if (getServer().getPluginManager().isPluginEnabled("WorldGuard")) {
             register(new WorldGuardTargetListener());
         }
+        List<String> helpLines = List.of("tag-list", "tag-search", "tag-show", "tag-apply", "tag-remove", "where",
+                "trace", "give", "reload");
+        TagListing listing = new TagListing(tags, messages, settings, commands);
         List<CommandFeature> features = List.of(
-                new HelpCommand(messages, commands, List.of("tag", "where", "trace", "give", "reload")),
-                new TagCommand(tags, messages, settings),
+                new HelpCommand(messages, commands, helpLines),
+                new TagListCommand(listing),
+                new TagSearchCommand(listing),
+                new TagShowCommand(tags, messages, settings, commands),
+                new TagApplyCommand(tags, messages, settings),
+                new TagRemoveCommand(messages),
                 new TraceCommand(trace, messages, settings),
                 new InspectCommand(inspect, messages),
                 new WhereCommand(inspect, messages, settings),
