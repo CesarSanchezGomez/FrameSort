@@ -5,6 +5,7 @@ import com.cesarcosmico.framesort.config.FrameSortSettings;
 import com.cesarcosmico.framesort.item.ItemTagCodec;
 import com.cesarcosmico.framesort.model.BlockKey;
 import com.cesarcosmico.framesort.model.MatchTier;
+import com.cesarcosmico.framesort.model.TargetSet;
 import io.papermc.paper.datacomponent.DataComponentTypes;
 import io.papermc.paper.datacomponent.item.BundleContents;
 import io.papermc.paper.datacomponent.item.ItemContainerContents;
@@ -24,7 +25,15 @@ import java.util.function.Supplier;
 /** Cached until the world's targets change; callers recheck each frame, which may have changed since. */
 public final class TargetResolver {
 
-    public record Match(ItemFrame frame, int priority, ItemStack frameItem) {
+    /** The frames a delivery would use, split by where the items end up; {@code stale} if a cached frame changed. */
+    public record Plan(List<ItemFrame> containers, List<ItemFrame> drops, boolean stale) {
+        public Plan {
+            containers = List.copyOf(containers);
+            drops = List.copyOf(drops);
+        }
+    }
+
+    private record Match(ItemFrame frame, int priority, ItemStack frameItem) {
     }
 
     private record CacheKey(BlockKey source, ItemStack item) {
@@ -48,7 +57,29 @@ public final class TargetResolver {
         this.tags = tags;
     }
 
-    public List<Match> matches(Block source, ItemStack item) {
+    // Deliveries and inspections both plan here, so an inspection always shows what a delivery would do.
+    public Plan plan(Block source, ItemStack item) {
+        boolean insert = settings.get().delivery().insertIntoContainers();
+        TargetSet<ItemFrame> containers = new TargetSet<>();
+        TargetSet<ItemFrame> drops = new TargetSet<>();
+        boolean stale = false;
+        for (Match match : matches(source, item)) {
+            ItemFrame frame = match.frame();
+            if (!frame.isValid() || !FrameGeometry.attachedLoaded(frame)
+                    || !frame.getItem().equals(match.frameItem())) {
+                stale = true;
+                continue;
+            }
+            if (insert && FrameGeometry.inventory(FrameGeometry.attachedBlock(frame)) != null) {
+                containers.add(match.priority(), frame);
+            } else {
+                drops.add(match.priority(), frame);
+            }
+        }
+        return new Plan(containers.targets(), drops.targets(), stale);
+    }
+
+    private List<Match> matches(Block source, ItemStack item) {
         BlockKey key = FrameGeometry.key(source);
         CacheKey cacheKey = new CacheKey(key, item.asOne());
         long epoch = index.epoch(key.world());

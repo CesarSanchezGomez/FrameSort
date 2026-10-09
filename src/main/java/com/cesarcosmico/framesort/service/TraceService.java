@@ -1,7 +1,6 @@
 package com.cesarcosmico.framesort.service;
 
 import com.cesarcosmico.framesort.config.FrameSortSettings;
-import com.cesarcosmico.framesort.config.InspectSettings;
 import com.cesarcosmico.framesort.text.Messages;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import org.bukkit.Color;
@@ -109,13 +108,7 @@ public final class TraceService {
                 Placeholder.unparsed("x", String.valueOf(to.getBlockX())),
                 Placeholder.unparsed("y", String.valueOf(to.getBlockY())),
                 Placeholder.unparsed("z", String.valueOf(to.getBlockZ()))));
-        InspectSettings.Colors colors = settings.get().inspect().colors();
-        Color color = switch (delivered.kind()) {
-            case CONTAINER -> colors.container();
-            case DROPPED -> colors.dropped();
-            case DESTROYED -> colors.lava();
-        };
-        drawTrail(player, delivered.from(), to, color);
+        drawTrail(player, delivered.from(), to, delivered.kind().color(settings.get().inspect().colors()));
     }
 
     private static void drawTrail(Player player, Location from, Location to, Color color) {

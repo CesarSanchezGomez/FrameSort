@@ -8,7 +8,6 @@ import com.cesarcosmico.framesort.item.ItemTagCodec;
 import com.cesarcosmico.framesort.model.BlockKey;
 import com.cesarcosmico.framesort.model.FramePosition;
 import com.cesarcosmico.framesort.model.TargetRegistration;
-import com.cesarcosmico.framesort.model.TargetSet;
 import com.cesarcosmico.framesort.text.ChatPager;
 import com.cesarcosmico.framesort.text.Messages;
 import net.kyori.adventure.text.Component;
@@ -16,12 +15,10 @@ import net.kyori.adventure.text.JoinConfiguration;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
-import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.entity.ItemFrame;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.jspecify.annotations.Nullable;
 
@@ -141,15 +138,12 @@ public final class InspectService {
         List<Component> lines = new ArrayList<>();
         lines.add(status(text, frame));
 
-        Block attached = FrameGeometry.attachedBlock(frame);
-        Inventory inventory = DeliveryService.inventory(attached);
-        if (DeliveryService.isLava(frame)) {
-            lines.add(text.get("frame.into.lava"));
-        } else if (inventory != null && settings.get().delivery().insertIntoContainers()) {
-            lines.add(text.get("frame.into.container", Placeholder.component("block", blockName(attached))));
-        } else {
-            lines.add(text.get("frame.into.dropped"));
-        }
+        lines.add(switch (kind(frame)) {
+            case CONTAINER -> text.get("frame.into.container",
+                    Placeholder.component("block", blockName(FrameGeometry.attachedBlock(frame))));
+            case DROPPED -> text.get("frame.into.dropped");
+            case DESTROYED -> text.get("frame.into.lava");
+        });
 
         ItemStack shown = frame.getItem();
         if (ItemTagCodec.read(shown) != null) {
@@ -232,23 +226,10 @@ public final class InspectService {
 
     private void filtered(Messages text, Block source, BlockKey center, ItemStack filter,
                           List<Component> lines, List<HighlightService.Highlight> marks) {
-        boolean insert = settings.get().delivery().insertIntoContainers();
-        TargetSet<ItemFrame> containers = new TargetSet<>();
-        TargetSet<ItemFrame> drops = new TargetSet<>();
-        for (TargetResolver.Match match : resolver.matches(source, filter)) {
-            ItemFrame frame = match.frame();
-            if (!frame.isValid() || !FrameGeometry.attachedLoaded(frame)) {
-                continue;
-            }
-            if (insert && DeliveryService.inventory(FrameGeometry.attachedBlock(frame)) != null) {
-                containers.add(match.priority(), frame);
-            } else {
-                drops.add(match.priority(), frame);
-            }
-        }
-        List<ItemFrame> into = containers.targets();
-        List<ItemFrame> overflow = drops.targets().stream().filter(frame -> !DeliveryService.isLava(frame)).toList();
-        boolean lava = drops.targets().stream().anyMatch(DeliveryService::isLava);
+        TargetResolver.Plan plan = resolver.plan(source, filter);
+        List<ItemFrame> into = plan.containers();
+        List<ItemFrame> overflow = plan.drops().stream().filter(frame -> !FrameGeometry.isLava(frame)).toList();
+        boolean lava = plan.drops().stream().anyMatch(FrameGeometry::isLava);
         if (!into.isEmpty()) {
             lines.add(text.get("inspect.section.containers"));
             into.forEach(frame -> {
@@ -269,15 +250,11 @@ public final class InspectService {
     }
 
     private Component line(Messages text, ItemFrame frame, BlockKey center) {
-        Block attached = FrameGeometry.attachedBlock(frame);
-        Component target;
-        if (DeliveryService.isLava(frame)) {
-            target = text.get("inspect.target.lava");
-        } else if (settings.get().delivery().insertIntoContainers() && DeliveryService.inventory(attached) != null) {
-            target = blockName(attached);
-        } else {
-            target = text.get("inspect.target.dropped");
-        }
+        Component target = switch (kind(frame)) {
+            case CONTAINER -> blockName(FrameGeometry.attachedBlock(frame));
+            case DROPPED -> text.get("inspect.target.dropped");
+            case DESTROYED -> text.get("inspect.target.lava");
+        };
         Location location = frame.getLocation();
         return text.get("inspect.line",
                 Placeholder.component("item", frame.getItem().effectiveName()),
@@ -305,17 +282,17 @@ public final class InspectService {
     }
 
     private HighlightService.Highlight highlight(ItemFrame frame) {
-        InspectSettings.Colors colors = settings.get().inspect().colors();
-        Color color;
-        if (DeliveryService.isLava(frame)) {
-            color = colors.lava();
-        } else if (settings.get().delivery().insertIntoContainers()
-                && DeliveryService.inventory(FrameGeometry.attachedBlock(frame)) != null) {
-            color = colors.container();
-        } else {
-            color = colors.dropped();
+        return new HighlightService.Highlight(frame, kind(frame).color(settings.get().inspect().colors()));
+    }
+
+    // Where a delivery would leave items sent to this frame.
+    private DeliveryService.Kind kind(ItemFrame frame) {
+        if (FrameGeometry.isLava(frame)) {
+            return DeliveryService.Kind.DESTROYED;
         }
-        return new HighlightService.Highlight(frame, color);
+        return settings.get().delivery().insertIntoContainers()
+                && FrameGeometry.inventory(FrameGeometry.attachedBlock(frame)) != null
+                ? DeliveryService.Kind.CONTAINER : DeliveryService.Kind.DROPPED;
     }
 
     private void highlight(Player player, List<HighlightService.Highlight> marks) {
