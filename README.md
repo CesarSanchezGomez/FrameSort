@@ -46,6 +46,7 @@ never duplicated.
 | `/framesort` (help) | `framesort.command.help` | everyone |
 | `/framesort tag <tag> [page]` | `framesort.command.tag` | everyone |
 | `/framesort tags [page]`, `/framesort tags search <text> [page]` | `framesort.command.tags` | everyone |
+| `/framesort where <item>` | `framesort.command.where` | everyone |
 | `/framesort trace [seconds\|stop]` | `framesort.command.trace` | everyone |
 | `/framesort give sorter\|pad <type> [player] [amount]` | `framesort.command.give` | op |
 | `/framesort reload` | `framesort.command.reload` | op |
@@ -58,7 +59,7 @@ Every command also runs as `/fs`. Where each command lives, its permission and w
 | Permission | Default | Grants |
 |---|---|---|
 | `framesort.*` | op | everything |
-| `framesort.use` | everyone | inspecting, marking targets and the help, tag, tags, trace and inspect commands |
+| `framesort.use` | everyone | inspecting, marking targets and the help, tag, tags, where, trace and inspect commands |
 | `framesort.admin` | op | creating pads in `permission` mode and the give and reload commands |
 | `framesort.inspect` | everyone | inspecting sorters, pads and frames |
 | `framesort.target.create` | everyone | marking frames as targets |

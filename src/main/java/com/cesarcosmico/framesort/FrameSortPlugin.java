@@ -9,6 +9,7 @@ import com.cesarcosmico.framesort.command.ReloadCommand;
 import com.cesarcosmico.framesort.command.TagCommand;
 import com.cesarcosmico.framesort.command.TagsCommand;
 import com.cesarcosmico.framesort.command.TraceCommand;
+import com.cesarcosmico.framesort.command.WhereCommand;
 import com.cesarcosmico.framesort.config.CommandsConfig;
 import com.cesarcosmico.framesort.config.ConfigFiles;
 import com.cesarcosmico.framesort.config.ConfigHolder;
@@ -94,11 +95,12 @@ public final class FrameSortPlugin extends JavaPlugin {
         register(new TargetListener(index), new SorterListener(sorters), new PadListener(padService, messages),
                 new InspectListener(inspect, sorters, padService, trace));
         List<CommandFeature> features = List.of(
-                new HelpCommand(messages, commands, List.of("tag", "tags", "trace", "give", "reload")),
+                new HelpCommand(messages, commands, List.of("tag", "tags", "where", "trace", "give", "reload")),
                 new TagCommand(tags, messages, settings),
                 new TagsCommand(tags, messages, settings, commands),
                 new TraceCommand(trace, messages, settings),
                 new InspectCommand(inspect, messages),
+                new WhereCommand(inspect, messages, settings),
                 new GiveCommand(sorters, padService, pads, messages),
                 new ReloadCommand(messages, this::reload, getLogger(), getName()));
         getLifecycleManager().registerEventHandler(LifecycleEvents.COMMANDS, event -> {

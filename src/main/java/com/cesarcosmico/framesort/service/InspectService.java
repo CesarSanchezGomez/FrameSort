@@ -100,6 +100,35 @@ public final class InspectService {
         highlight(player, marks);
     }
 
+    /** Inspects the nearest sorter or pad in delivery range as if {@code item} were in the off hand; false if none. */
+    public boolean inspectNearest(Player player, ItemStack item) {
+        BlockKey here = FrameGeometry.key(player.getLocation().getBlock());
+        int radius = settings.get().delivery().maxDistance();
+        long best = (long) radius * radius;
+        Block nearest = null;
+        boolean pad = false;
+        for (Block sorter : sorters.blocks()) {
+            long distance = FrameGeometry.key(sorter).distanceSquared(here);
+            if (distance <= best) {
+                best = distance;
+                nearest = sorter;
+            }
+        }
+        for (Block top : pads.near(here, radius)) {
+            long distance = FrameGeometry.key(top).distanceSquared(here);
+            if (distance <= best) {
+                best = distance;
+                nearest = top;
+                pad = true;
+            }
+        }
+        if (nearest == null) {
+            return false;
+        }
+        inspectSource(player, nearest, pad, item);
+        return true;
+    }
+
     public boolean showPage(Player player, int page) {
         Listing listing = listings.get(player.getUniqueId());
         if (listing == null) {

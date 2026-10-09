@@ -34,6 +34,14 @@ tags:
     - '/framesort tags'
     - '/fs tags'
 
+# Usage: [COMMAND] <item>
+where:
+  enabled: true
+  permission: 'framesort.command.where'
+  usage:
+    - '/framesort where'
+    - '/fs where'
+
 # Usage: [COMMAND] [seconds] | [COMMAND] stop
 trace:
   enabled: true
