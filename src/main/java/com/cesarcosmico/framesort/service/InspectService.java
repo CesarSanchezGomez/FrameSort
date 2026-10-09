@@ -4,7 +4,7 @@ import com.cesarcosmico.framesort.config.CommandsConfig;
 import com.cesarcosmico.framesort.config.FrameSortSettings;
 import com.cesarcosmico.framesort.config.InspectSettings;
 import com.cesarcosmico.framesort.config.TargetSettings;
-import com.cesarcosmico.framesort.item.TagFilterCodec;
+import com.cesarcosmico.framesort.item.ItemTagCodec;
 import com.cesarcosmico.framesort.model.BlockKey;
 import com.cesarcosmico.framesort.model.FramePosition;
 import com.cesarcosmico.framesort.model.TargetRegistration;
@@ -152,7 +152,7 @@ public final class InspectService {
         }
 
         ItemStack shown = frame.getItem();
-        if (TagFilterCodec.read(shown) != null) {
+        if (ItemTagCodec.read(shown) != null) {
             TagCatalog.TagView view = resolver.tag(shown);
             if (view != null) {
                 String tagCommand = commands.usageFor("tag", player::hasPermission);

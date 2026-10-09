@@ -2,7 +2,7 @@ package com.cesarcosmico.framesort.service;
 
 import com.cesarcosmico.framesort.api.TargetBindEvent;
 import com.cesarcosmico.framesort.config.FrameSortSettings;
-import com.cesarcosmico.framesort.item.TagFilterCodec;
+import com.cesarcosmico.framesort.item.ItemTagCodec;
 import com.cesarcosmico.framesort.model.BlockKey;
 import com.cesarcosmico.framesort.model.MatchTier;
 import io.papermc.paper.datacomponent.DataComponentTypes;
@@ -90,9 +90,9 @@ public final class TargetResolver {
         return best;
     }
 
-    /** The tag a filter item stands for, or {@code null} when it is not a filter. */
+    /** The tag a tagged item stands for, or {@code null} when the item has none. */
     public TagCatalog.@Nullable TagView tag(ItemStack frameItem) {
-        NamespacedKey key = TagFilterCodec.read(frameItem);
+        NamespacedKey key = ItemTagCodec.read(frameItem);
         return key == null ? null : tags.find(key);
     }
 
@@ -135,8 +135,8 @@ public final class TargetResolver {
     }
 
     private int direct(ItemStack target, ItemStack item, boolean nested) {
-        // A filter stands only for its tag, never for itself or its material.
-        if (TagFilterCodec.read(target) != null) {
+        // A tagged item stands only for its tag, never for itself or its material.
+        if (ItemTagCodec.read(target) != null) {
             TagCatalog.TagView tag = tag(target);
             return tag != null && tag.lookup().contains(item.getType()) ? MatchTier.TAG.priority(nested) : NO_MATCH;
         }

@@ -2,7 +2,7 @@ package com.cesarcosmico.framesort.command;
 
 import com.cesarcosmico.framesort.config.FrameSortSettings;
 import com.cesarcosmico.framesort.config.TargetSettings;
-import com.cesarcosmico.framesort.item.TagFilterCodec;
+import com.cesarcosmico.framesort.item.ItemTagCodec;
 import com.cesarcosmico.framesort.service.TagCatalog;
 import com.cesarcosmico.framesort.text.Messages;
 import com.mojang.brigadier.Command;
@@ -50,11 +50,11 @@ final class TagApplyCommand {
         String name = TagArgument.shortName(view.key());
         TargetSettings targets = settings.get().targets();
         ItemStack held = player.getInventory().getItemInMainHand();
-        TagFilterCodec.apply(held, view.key(),
-                MINI_MESSAGE.deserialize(targets.filterName(), Placeholder.unparsed("tag", name)),
-                targets.filterGlint());
+        ItemTagCodec.apply(held, view.key(),
+                MINI_MESSAGE.deserialize(targets.taggedName(), Placeholder.unparsed("tag", name)),
+                targets.taggedGlint());
         player.getInventory().setItemInMainHand(held);
-        player.sendMessage(messages.get().get("filter.set", Placeholder.unparsed("tag", name)));
+        player.sendMessage(messages.get().get("tag-item.applied", Placeholder.unparsed("tag", name)));
         return Command.SINGLE_SUCCESS;
     }
 
@@ -64,13 +64,13 @@ final class TagApplyCommand {
             return Command.SINGLE_SUCCESS;
         }
         ItemStack held = player.getInventory().getItemInMainHand();
-        if (TagFilterCodec.read(held) == null) {
-            player.sendMessage(messages.get().get("filter.not-a-filter"));
+        if (ItemTagCodec.read(held) == null) {
+            player.sendMessage(messages.get().get("tag-item.not-tagged"));
             return Command.SINGLE_SUCCESS;
         }
-        TagFilterCodec.clear(held);
+        ItemTagCodec.clear(held);
         player.getInventory().setItemInMainHand(held);
-        player.sendMessage(messages.get().get("filter.cleared"));
+        player.sendMessage(messages.get().get("tag-item.removed"));
         return Command.SINGLE_SUCCESS;
     }
 
@@ -81,7 +81,7 @@ final class TagApplyCommand {
             return null;
         }
         if (player.getInventory().getItemInMainHand().isEmpty()) {
-            player.sendMessage(messages.get().get("filter.empty-hand"));
+            player.sendMessage(messages.get().get("tag-item.empty-hand"));
             return null;
         }
         return player;

@@ -23,7 +23,7 @@ chest, barrel or hopper behind the frame, or dropped in front of it when there i
 1. **Targets.** Put an item in a frame on a container and sneak + right-click the frame with an empty hand to
    mark it as a target. A frame accepts items in this order of preference:
    1. the exact item;
-   2. a tag, when the frame item is a tag filter (`/framesort tag apply <tag>`);
+   2. a tag, when the frame item has one applied (`/framesort tag apply <tag>`);
    3. the same material;
    4. what a shulker box or bundle in the frame contains.
 

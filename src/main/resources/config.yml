@@ -28,8 +28,9 @@ targets:
   registration: manual   # manual | automatic
   positions: [FRONT]   # also TOP, BOTTOM, BACK, LEFT, RIGHT; SIDES = LEFT + RIGHT (as seen from the front)
   frame-types: [ITEM_FRAME, GLOW_ITEM_FRAME]
-  filter-name: '<gradient:#F7B733:#FC4A1A>#<tag></gradient>'   # name of a tag filter (/framesort tag apply <tag>); <tag> is the tag
-  filter-glint: true   # tag filters get the enchantment glint
+  tagged-item:   # what /framesort tag apply <tag> does to the item in your hand
+    name: '<gradient:#F7B733:#FC4A1A>#<tag></gradient>'   # <tag> is the tag
+    glint: true
 
 delivery:
   max-distance: 64   # blocks

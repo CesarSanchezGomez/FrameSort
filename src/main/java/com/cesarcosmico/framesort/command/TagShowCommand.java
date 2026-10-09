@@ -51,12 +51,12 @@ final class TagShowCommand {
         String name = TagArgument.shortName(view.key());
         // Applying needs a hand, so only players get the button.
         Component apply = sender instanceof Player
-                ? text.get("tag.filter-button").clickEvent(ClickEvent.runCommand(path + " apply " + name))
+                ? text.get("tag.apply-button").clickEvent(ClickEvent.runCommand(path + " apply " + name))
                 : Component.empty();
         Component title = text.get("tag.title",
                 Placeholder.unparsed("tag", name),
                 Placeholder.component("kind", text.get("tag.kind." + view.kind().name().toLowerCase(Locale.ROOT))),
-                Placeholder.component("filter", apply));
+                Placeholder.component("apply", apply));
         ChatPager.send(sender, text, title, lines, page, settings.get().inspect().pageSize(),
                 path + " show " + name + " %d");
         return Command.SINGLE_SUCCESS;

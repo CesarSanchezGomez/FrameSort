@@ -8,8 +8,8 @@
 | `/framesort tag show <tag> [page]` | The items or blocks in a tag, 8 per page (`inspect.page-size`), in a framed list with « » buttons. Hover an entry to see its id. Vanilla tags can be written without `minecraft:`. |
 | `/framesort tag list [page]` | Every item and block tag. Click a tag to show its contents. |
 | `/framesort tag search <text> [page]` | Only the tags whose name contains `<text>`. |
-| `/framesort tag apply <tag>` | Turns the item in your main hand into a filter for that tag (its name comes from `targets.filter-name`). The [Filter] button in `/framesort tag show <tag>` runs it. In a frame a filter accepts only its tag. |
-| `/framesort tag remove` | Turns the filter in your main hand back into a plain item. |
+| `/framesort tag apply <tag>` | Applies the tag to the item in your main hand (its name and glint come from `targets.tagged-item`). The [Apply] button in `/framesort tag show <tag>` runs it. In a frame a tagged item accepts only its tag. |
+| `/framesort tag remove` | Takes the tag off the item in your main hand. |
 | `/framesort where` | Where the item in your main hand would go from the nearest sorter or pad within `delivery.max-distance`, listed and highlighted like an inspection with that item in your off hand. Its components count (enchantments, name, contents). |
 | `/framesort trace [seconds]` | For a while (default 60 s, at most `inspect.trace-max-seconds`), every delivery from sorters and pads near you shows in the action bar, with a trail of particles flying to its destination. |
 | `/framesort trace stop` | Stops tracing. |

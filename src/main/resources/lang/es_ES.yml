@@ -11,7 +11,7 @@ command:
     tag:
       - '<gray>• <white><usage> list [página]</white> · <white><usage> search \<texto> [página]</white> <dark_gray>-</dark_gray> tags de items y bloques.</gray>'
       - '<gray>• <white><usage> show \<tag> [página]</white> <dark_gray>-</dark_gray> qué contiene un tag.</gray>'
-      - '<gray>• <white><usage> apply \<tag></white> · <white><usage> remove</white> <dark_gray>-</dark_gray> convierte el item de tu mano en un filtro de tag, o lo deshace.</gray>'
+      - '<gray>• <white><usage> apply \<tag></white> · <white><usage> remove</white> <dark_gray>-</dark_gray> aplica un tag al item de tu mano, o se lo quita.</gray>'
     where: '<gray>• <white><usage></white> <dark_gray>-</dark_gray> adónde iría el item de tu mano desde el sorter o pad más cercano.</gray>'
     trace: '<gray>• <white><usage> [segundos|stop]</white> <dark_gray>-</dark_gray> muestra las entregas a tu alrededor.</gray>'
     give: '<gray>• <white><usage> sorter|pad \<tipo> [jugador] [cantidad]</white> <dark_gray>-</dark_gray> da activadores de sorter y bloques de pad.</gray>'
@@ -105,11 +105,11 @@ position:
   right: 'derecha'
   side: 'lateral'
 
-filter:
-  set: '<prefix><green>El item de tu mano ahora es un filtro de <white>#<tag></white>.</green>'
-  cleared: '<prefix><gray>El item de tu mano ya no es un filtro.</gray>'
-  not-a-filter: '<prefix><gray>El item de tu mano no es un filtro.</gray>'
-  empty-hand: '<prefix><gray>Sujeta el item que quieres convertir en filtro.</gray>'
+tag-item:
+  applied: '<prefix><green>El item de tu mano ahora representa <white>#<tag></white> en los marcos.</green>'
+  removed: '<prefix><gray>El item de tu mano ya no tiene tag.</gray>'
+  not-tagged: '<prefix><gray>El item de tu mano no tiene tag.</gray>'
+  empty-hand: '<prefix><gray>Sujeta el item al que quieres aplicar el tag.</gray>'
 
 where:
   empty-hand: '<prefix><gray>Sujeta el item que quieres consultar.</gray>'
@@ -127,8 +127,8 @@ trace:
     destroyed: '<red>lava</red>'
 
 tag:
-  title: '#<tag> <dark_gray>(<kind>)</dark_gray> <filter>'
-  filter-button: '<hover:show_text:"<gray>Convierte el item de tu mano en un filtro de este tag</gray>"><gradient:#F7B733:#FC4A1A>[Filtro]</gradient></hover>'
+  title: '#<tag> <dark_gray>(<kind>)</dark_gray> <apply>'
+  apply-button: '<hover:show_text:"<gray>Aplica este tag al item de tu mano</gray>"><gradient:#F7B733:#FC4A1A>[Aplicar]</gradient></hover>'
   kind:
     item: 'tag de items'
     block: 'tag de bloques'

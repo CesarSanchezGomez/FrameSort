@@ -8,14 +8,14 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
 import org.jspecify.annotations.Nullable;
 
-// The tag lives in the item's data, not in its name, so renaming a filter never changes what it accepts.
-public final class TagFilterCodec {
+// The tag lives in the item's data, not in its name, so renaming a tagged item never changes what it accepts.
+public final class ItemTagCodec {
 
-    private TagFilterCodec() {
+    private ItemTagCodec() {
     }
 
     public static void apply(ItemStack item, NamespacedKey tag, Component name, boolean glint) {
-        item.editPersistentDataContainer(pdc -> pdc.set(Keys.TAG_FILTER, PersistentDataType.STRING, tag.asString()));
+        item.editPersistentDataContainer(pdc -> pdc.set(Keys.ITEM_TAG, PersistentDataType.STRING, tag.asString()));
         item.setData(DataComponentTypes.CUSTOM_NAME,
                 name.decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
         if (glint) {
@@ -24,13 +24,13 @@ public final class TagFilterCodec {
     }
 
     public static void clear(ItemStack item) {
-        item.editPersistentDataContainer(pdc -> pdc.remove(Keys.TAG_FILTER));
+        item.editPersistentDataContainer(pdc -> pdc.remove(Keys.ITEM_TAG));
         item.unsetData(DataComponentTypes.CUSTOM_NAME);
         item.unsetData(DataComponentTypes.ENCHANTMENT_GLINT_OVERRIDE);
     }
 
     public static @Nullable NamespacedKey read(ItemStack item) {
-        String tag = item.getPersistentDataContainer().get(Keys.TAG_FILTER, PersistentDataType.STRING);
+        String tag = item.getPersistentDataContainer().get(Keys.ITEM_TAG, PersistentDataType.STRING);
         return tag == null ? null : NamespacedKey.fromString(tag);
     }
 }
