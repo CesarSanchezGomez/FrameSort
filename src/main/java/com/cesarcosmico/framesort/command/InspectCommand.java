@@ -29,13 +29,14 @@ public final class InspectCommand implements CommandFeature {
 
     @Override
     public void attach(LiteralArgumentBuilder<CommandSourceStack> node, String path) {
-        node.then(Commands.argument("page", IntegerArgumentType.integer(1))
-                .requires(source -> source.getSender() instanceof Player)
-                .executes(this::page));
+        node.then(Commands.argument("page", IntegerArgumentType.integer(1)).executes(this::page));
     }
 
     private int page(CommandContext<CommandSourceStack> context) {
-        Player player = (Player) context.getSource().getSender();
+        if (!(context.getSource().getSender() instanceof Player player)) {
+            context.getSource().getSender().sendMessage(messages.get().get("command.players-only"));
+            return Command.SINGLE_SUCCESS;
+        }
         if (!inspect.showPage(player, IntegerArgumentType.getInteger(context, "page"))) {
             player.sendMessage(messages.get().get("inspect.no-listing"));
         }
