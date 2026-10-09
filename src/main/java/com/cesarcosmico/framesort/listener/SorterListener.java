@@ -49,7 +49,7 @@ public final class SorterListener implements Listener {
         sorters.considerLater(event.getItemFrame());
     }
 
-    @EventHandler(ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onDispense(BlockDispenseEvent event) {
         if (sorters.isSorter(event.getBlock())) {
             event.setCancelled(true);
