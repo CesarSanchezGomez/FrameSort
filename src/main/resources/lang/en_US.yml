@@ -46,11 +46,11 @@ inspect:
   title-item: 'Where <item> goes from this <source><sorted>'
   sorted: ' <dark_gray>· <count> sorted</dark_gray>'
   section:
-    containers: '<green>Into containers:</green>'
-    dropped: '<yellow>Dropped at:</yellow>'
+    containers: '  <green>Into containers:</green>'
+    dropped: '  <yellow>Dropped at:</yellow>'
   excess:
-    lava: '<red>Anything left over is destroyed by lava.</red>'
-    stay: '<gray>Anything left over stays until there is room.</gray>'
+    lava: '  <red>Anything left over is destroyed by lava.</red>'
+    stay: '  <gray>Anything left over stays until there is room.</gray>'
   target:
     dropped: '<yellow>dropped here</yellow>'
     lava: '<red>lava</red>'

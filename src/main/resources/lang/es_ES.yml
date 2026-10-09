@@ -46,11 +46,11 @@ inspect:
   title-item: 'Adónde va <item> desde este <source><sorted>'
   sorted: ' <dark_gray>· <count> enviados</dark_gray>'
   section:
-    containers: '<green>A contenedores:</green>'
-    dropped: '<yellow>Se suelta en:</yellow>'
+    containers: '  <green>A contenedores:</green>'
+    dropped: '  <yellow>Se suelta en:</yellow>'
   excess:
-    lava: '<red>Lo que sobre se destruye en la lava.</red>'
-    stay: '<gray>Lo que sobre se queda hasta que haya sitio.</gray>'
+    lava: '  <red>Lo que sobre se destruye en la lava.</red>'
+    stay: '  <gray>Lo que sobre se queda hasta que haya sitio.</gray>'
   target:
     dropped: '<yellow>se suelta aquí</yellow>'
     lava: '<red>lava</red>'
