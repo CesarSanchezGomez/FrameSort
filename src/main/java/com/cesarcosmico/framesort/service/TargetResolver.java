@@ -10,7 +10,6 @@ import io.papermc.paper.datacomponent.item.ItemContainerContents;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.Material;
-import org.bukkit.NamespacedKey;
 import org.bukkit.block.Block;
 import org.bukkit.entity.ItemFrame;
 import org.bukkit.inventory.ItemStack;
@@ -93,13 +92,8 @@ public final class TargetResolver {
     }
 
     public TagCatalog.@Nullable TagView tag(ItemStack frameItem) {
-        NamespacedKey key = tagOf(frameItem);
-        return key == null ? null : tags.find(key);
-    }
-
-    public static @Nullable NamespacedKey tagOf(ItemStack frameItem) {
         Component name = frameItem.getData(DataComponentTypes.CUSTOM_NAME);
-        return name == null ? null : TagCatalog.parseName(PLAIN.serialize(name));
+        return name == null ? null : tags.resolve(PLAIN.serialize(name));
     }
 
     public static List<ItemStack> contents(ItemStack item) {
@@ -144,8 +138,8 @@ public final class TargetResolver {
         if (target.isSimilar(item)) {
             return MatchTier.EXACT.priority(nested);
         }
-        NamespacedKey tag = tagOf(target);
-        if (tag != null && tags.contains(tag, item.getType())) {
+        TagCatalog.TagView tag = tag(target);
+        if (tag != null && tag.lookup().contains(item.getType())) {
             return MatchTier.TAG.priority(nested);
         }
         // A filled shulker box or bundle stands for its contents, not for its own material.

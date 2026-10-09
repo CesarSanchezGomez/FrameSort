@@ -56,6 +56,10 @@ How a destination is chosen:
 2. Only the best priority is used, separately for frames with a container and frames without one.
 3. The item goes into the containers in random order until it is all in.
 4. Whatever is left is dropped at one random frame without a container.
+
+A frame accepts a tag when its item is renamed in an anvil to `#` and the tag: `#logs` (or `#minecraft:logs`).
+Without the `#` the name is just a name. The anvil keeps 50 characters; a name it cut short still works when it is
+the start of exactly one tag, as with `#triggers_ambient_desert_dry_vegetation_block_sounds`.
 5. If those frames are all on lava cauldrons, the rest is destroyed. If there is nowhere to go, the item stays.
 
 **Lava cauldrons are trash cans.** A target frame on a lava cauldron holds the item to destroy and is chosen like

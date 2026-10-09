@@ -11,6 +11,7 @@ import org.bukkit.NamespacedKey;
 import org.bukkit.Registry;
 import org.jspecify.annotations.Nullable;
 
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -25,6 +26,10 @@ import java.util.TreeSet;
 public final class TagCatalog {
 
     public enum Kind { ITEM, BLOCK }
+
+    // Minecraft's AnvilMenu.MAX_NAME_LENGTH: a name this long may have been cut by the anvil, so only such a name is
+    // completed to the tag it starts like. Shorter names never are, so "#log" does not turn into "#logs".
+    private static final int ANVIL_NAME_LIMIT = 50;
 
     public record TagView(NamespacedKey key, Kind kind, List<Material> materials, Set<Material> lookup) {
         public TagView {
@@ -55,9 +60,18 @@ public final class TagCatalog {
         return view;
     }
 
-    public boolean contains(NamespacedKey tag, Material material) {
-        TagView view = find(tag);
-        return view != null && view.lookup().contains(material);
+    /** The tag a frame item's name stands for: {@link #parseName}, or {@link #complete} when the anvil cut it. */
+    public @Nullable TagView resolve(String name) {
+        NamespacedKey key = parseName(name);
+        if (key == null) {
+            return null;
+        }
+        TagView view = find(key);
+        if (view != null) {
+            return view;
+        }
+        NamespacedKey completed = complete(name, names());
+        return completed == null ? null : find(completed);
     }
 
     public List<NamespacedKey> names() {
@@ -76,13 +90,34 @@ public final class TagCatalog {
         names = null;
     }
 
-    /** A frame item's name as a tag: {@code logs}, {@code #logs} and {@code minecraft:logs} are the same tag. */
-    public static @Nullable NamespacedKey parseName(String name) {
+    /**
+     * A frame item's name as a tag: {@code #logs} and {@code #minecraft:logs} are the same tag. Without the leading
+     * {@code #}, as in Minecraft's own tag syntax, a name is just a name.
+     */
+    static @Nullable NamespacedKey parseName(String name) {
         String trimmed = name.trim().toLowerCase(Locale.ROOT);
-        if (trimmed.startsWith("#")) {
-            trimmed = trimmed.substring(1);
+        if (!trimmed.startsWith("#") || trimmed.length() == 1) {
+            return null;
         }
-        return trimmed.isEmpty() ? null : NamespacedKey.fromString(trimmed);
+        return NamespacedKey.fromString(trimmed.substring(1));
+    }
+
+    /** The only tag in {@code names} that a name cut by the anvil starts like, or {@code null}. */
+    static @Nullable NamespacedKey complete(String name, Collection<NamespacedKey> names) {
+        NamespacedKey partial = name.length() < ANVIL_NAME_LIMIT ? null : parseName(name);
+        if (partial == null) {
+            return null;
+        }
+        NamespacedKey match = null;
+        for (NamespacedKey candidate : names) {
+            if (candidate.asString().startsWith(partial.asString())) {
+                if (match != null) {
+                    return null;
+                }
+                match = candidate;
+            }
+        }
+        return match;
     }
 
     private static <T extends Keyed> @Nullable TagView load(RegistryKey<T> registryKey, NamespacedKey key, Kind kind) {
