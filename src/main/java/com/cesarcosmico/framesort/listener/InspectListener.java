@@ -4,7 +4,6 @@ import com.cesarcosmico.framesort.service.InspectService;
 import com.cesarcosmico.framesort.service.PadService;
 import com.cesarcosmico.framesort.service.SorterService;
 import com.cesarcosmico.framesort.service.TraceService;
-import io.papermc.paper.event.player.PrePlayerAttackEntityEvent;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.ItemFrame;
@@ -13,6 +12,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
@@ -68,15 +68,19 @@ public final class InspectListener implements Listener {
         }
     }
 
-    // Cancelled before any damage, so the frame keeps its item.
+    // A hit drops the frame's item before PrePlayerAttackEntityEvent fires; this event comes first and, cancelled,
+    // keeps the item in the frame.
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
-    public void onInspectFrame(PrePlayerAttackEntityEvent event) {
-        ItemFrame frame = inspectedFrame(event.getPlayer(), event.getAttacked());
+    public void onInspectFrame(EntityDamageByEntityEvent event) {
+        if (!(event.getDamager() instanceof Player player)) {
+            return;
+        }
+        ItemFrame frame = inspectedFrame(player, event.getEntity());
         if (frame == null) {
             return;
         }
         event.setCancelled(true);
-        inspect.inspectFrame(event.getPlayer(), frame);
+        inspect.inspectFrame(player, frame);
     }
 
     @EventHandler
