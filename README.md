@@ -32,7 +32,7 @@ chest, barrel or hopper behind the frame, or dropped in front of it when there i
    random stack from its inventory every second, opening shulker boxes and bundles inside it.
 3. **Teleport pads.** Place crying obsidian on gilded blackstone. Items resting on top are sent to targets. Who
    can create pads is configurable: anyone, players with a permission, or only with a special pad block.
-4. **Inspect.** Sneak + right-click a sorter or pad with an empty hand: its targets' items glow (only for you, in
+4. **Inspect.** Sneak + right-click a sorter or pad with an empty hand: its target frames glow (only for you, in
    configurable colours) and are listed page by page. Sneak + left-click a target frame to see what it accepts. `/framesort trace`
    shows every delivery around you live.
 

@@ -70,14 +70,14 @@ Nothing is stored outside the world:
 
 Everything runs on the main thread: there is no I/O. A single repeating task ticks sorters and pads.
 
-Highlights are temporary item displays that copy each frame's item, glowing in an exact colour
-(`Display#setGlowColorOverride`). The display's transformation repeats what the vanilla item frame renderer does
-(`ItemFrameRenderer#submit` in 26.2: offset, facing, rotation, half scale, minus the half turn the item display
-renderer adds), so the copy lands exactly on the real item; `HighlightServiceTest` pins it. They are hidden from
+Highlights are temporary item displays showing the flat item frame (or glow item frame) sprite over each frame,
+glowing in an exact colour (`Display#setGlowColorOverride`). The display is turned like the vanilla item frame
+renderer turns the frame (`ItemFrameRenderer#submit` in 26.2, minus the half turn the item display renderer adds) and
+sits just in front of the frame so the two never flicker; `HighlightServiceTest` pins it. They are hidden from
 everyone but the inspecting player (`setVisibleByDefault(false)` + `Player#showEntity`), never saved, and removed
 after `highlight-seconds`, when the player leaves or when the plugin disables. Making the frame itself glow would
-show it to every player, in a colour that depends on scoreboard teams, and Paper has no per-player glow without
-packets.
+show it to every player, in a colour that depends on scoreboard teams; Paper has no per-player glow without
+packets, and a second frame cannot hang in the same spot.
 
 Tracing ends on a timer per player, so the "tracing ended" message arrives on time even when nothing is delivered.
 
