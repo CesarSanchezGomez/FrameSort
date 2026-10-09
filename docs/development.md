@@ -29,11 +29,11 @@ com.cesarcosmico.framesort
 └── api/              TargetBindEvent, for other plugins
 ```
 
-Packages depend on each other without cycles: `model` ← `item` ← `config` ← `text` ← `service` ← `command` and
-`listener`, with `api` used only by `service` and `integration`, which only `FrameSortPlugin` creates. Dependencies are wired by constructor in `FrameSortPlugin`; there are
-no static instances. The interfaces are
-`DeliveryService.Source` (a sorter slot or a pad item entity), `Delivery.Offer` (what `model.Delivery` needs from a
-container) and `CommandFeature` (one per command feature).
+Packages depend on each other without cycles: `model` ← `item` ← `config` ← `text` ← `service` ← `command`,
+`listener` and `integration`. `api` is used only by `service` and `integration`, and only `FrameSortPlugin` creates
+the integration. Dependencies are wired by constructor in `FrameSortPlugin`; there are no static instances. The
+interfaces are `DeliveryService.Source` (a sorter slot or a pad item entity), `Delivery.Offer` (what
+`model.Delivery` needs from a container) and `CommandFeature` (one per command feature).
 
 `commands.yml` only places features: `CommandTree` joins every enabled path into Brigadier literals, makes a literal
 visible to anyone allowed to run something below it, and checks each feature's own permission on its command and
