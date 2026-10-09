@@ -128,8 +128,8 @@ trace:
     destroyed: '<red>lava</red>'
 
 tag:
-  title: '#<tag> <dark_gray>(<kind>)</dark_gray> <apply>'
-  apply-button: '<hover:show_text:"<gray>Aplica este tag al item de tu mano</gray>"><gradient:#F7B733:#FC4A1A>[Aplicar]</gradient></hover>'
+  title: '#<tag> <dark_gray>(<kind>)</dark_gray><apply>'
+  apply-button: ' <hover:show_text:"<gray>Aplica este tag al item de tu mano</gray>"><gradient:#F7B733:#FC4A1A>[Aplicar]</gradient></hover>'
   kind:
     item: 'tag de items'
     block: 'tag de bloques'
