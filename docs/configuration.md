@@ -36,6 +36,7 @@ or bundle with contents, it sends a stack from inside instead.
 | `registration` | `manual` | `manual`: only frames marked by sneak + right-clicking them with an empty hand. `automatic`: every frame of `frame-types`. |
 | `positions` | `[FRONT]` | Where a target frame may hang on its block: `TOP`, `BOTTOM`, `FRONT`, `BACK`, `LEFT`, `RIGHT` (`SIDES` = `LEFT` + `RIGHT`). `FRONT`, `BACK`, `LEFT` and `RIGHT` follow the way the block faces (chests, barrels, furnaces…); left and right are as seen standing in front of it. On blocks without a horizontal facing (hoppers, upright barrels, composters) a side face counts as any of the four. |
 | `frame-types` | `[ITEM_FRAME, GLOW_ITEM_FRAME]` | Frames that can be targets. |
+| `filter-glint` | `true` | Tag filters get the enchantment glint, so they stand out in inventories and frames. |
 | `filter-name` | `'<gradient:#F7B733:#FC4A1A>#<tag></gradient>'` | Name a tag filter gets (MiniMessage); `<tag>` is the tag, without `minecraft:` for vanilla tags. |
 
 Only the front counts by default, so decorative frames on the top or sides of a chest are never used. Add positions

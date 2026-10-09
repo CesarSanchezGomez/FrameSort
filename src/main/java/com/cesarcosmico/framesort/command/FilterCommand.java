@@ -1,6 +1,7 @@
 package com.cesarcosmico.framesort.command;
 
 import com.cesarcosmico.framesort.config.FrameSortSettings;
+import com.cesarcosmico.framesort.config.TargetSettings;
 import com.cesarcosmico.framesort.item.TagFilterCodec;
 import com.cesarcosmico.framesort.service.TagCatalog;
 import com.cesarcosmico.framesort.text.Messages;
@@ -57,8 +58,10 @@ public final class FilterCommand implements CommandFeature {
             TagFilterCodec.clear(held);
             player.sendMessage(messages.get().get("filter.cleared", Placeholder.unparsed("tag", name)));
         } else {
-            TagFilterCodec.apply(held, view.key(), MINI_MESSAGE.deserialize(settings.get().targets().filterName(),
-                    Placeholder.unparsed("tag", name)));
+            TargetSettings targets = settings.get().targets();
+            TagFilterCodec.apply(held, view.key(),
+                    MINI_MESSAGE.deserialize(targets.filterName(), Placeholder.unparsed("tag", name)),
+                    targets.filterGlint());
             player.sendMessage(messages.get().get("filter.set", Placeholder.unparsed("tag", name)));
         }
         player.getInventory().setItemInMainHand(held);

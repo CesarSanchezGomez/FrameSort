@@ -10,7 +10,7 @@ import java.util.Locale;
 import java.util.Set;
 
 public record TargetSettings(TargetRegistration registration, Set<FramePosition> positions,
-                             Set<EntityType> frameTypes, String filterName) {
+                             Set<EntityType> frameTypes, String filterName, boolean filterGlint) {
 
     public TargetSettings {
         positions = Set.copyOf(positions);
@@ -22,7 +22,8 @@ public record TargetSettings(TargetRegistration registration, Set<FramePosition>
                 reader.enumValue("registration", TargetRegistration.class, TargetRegistration.MANUAL),
                 positions(reader),
                 SorterSettings.frameTypes(reader, "frame-types"),
-                reader.string("filter-name", "<gradient:#F7B733:#FC4A1A>#<tag></gradient>"));
+                reader.string("filter-name", "<gradient:#F7B733:#FC4A1A>#<tag></gradient>"),
+                reader.bool("filter-glint", true));
     }
 
     public boolean allows(Set<FramePosition> frame) {

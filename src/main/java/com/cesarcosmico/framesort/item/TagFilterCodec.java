@@ -14,15 +14,19 @@ public final class TagFilterCodec {
     private TagFilterCodec() {
     }
 
-    public static void apply(ItemStack item, NamespacedKey tag, Component name) {
+    public static void apply(ItemStack item, NamespacedKey tag, Component name, boolean glint) {
         item.editPersistentDataContainer(pdc -> pdc.set(Keys.TAG_FILTER, PersistentDataType.STRING, tag.asString()));
         item.setData(DataComponentTypes.CUSTOM_NAME,
                 name.decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+        if (glint) {
+            item.setData(DataComponentTypes.ENCHANTMENT_GLINT_OVERRIDE, true);
+        }
     }
 
     public static void clear(ItemStack item) {
         item.editPersistentDataContainer(pdc -> pdc.remove(Keys.TAG_FILTER));
         item.unsetData(DataComponentTypes.CUSTOM_NAME);
+        item.unsetData(DataComponentTypes.ENCHANTMENT_GLINT_OVERRIDE);
     }
 
     public static @Nullable NamespacedKey read(ItemStack item) {
