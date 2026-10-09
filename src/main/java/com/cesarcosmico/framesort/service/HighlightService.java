@@ -2,10 +2,8 @@ package com.cesarcosmico.framesort.service;
 
 import org.bukkit.Color;
 import org.bukkit.Location;
-import org.bukkit.Material;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.GlowItemFrame;
 import org.bukkit.entity.ItemDisplay;
 import org.bukkit.entity.ItemFrame;
 import org.bukkit.entity.Player;
@@ -19,10 +17,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-/**
- * A per-player display of the frame's own model glows over each frame: making the frame itself glow would show it to
- * everyone, in a colour that depends on scoreboard teams, and a second frame cannot hang in the same spot.
- */
+/** A per-player copy of the frame item glows instead of the frame: frame glowing is global and its colour team-based. */
 public final class HighlightService {
 
     public record Highlight(ItemFrame frame, Color color) {
@@ -30,9 +25,6 @@ public final class HighlightService {
 
     // Enough for any inspection a player can read; bounds the entities one click can spawn.
     private static final int MAX_SHOWN = 64;
-    // The frame entity sits in the middle of its 1/16-thick border, and the flat frame sprite is 1/16 thick too:
-    // centring the sprite this far out puts it just in front of the real frame, so the two never flicker.
-    static final float FRAME_OFFSET = 1 / 16f + 0.002f;
 
     private final Plugin plugin;
     private final Map<UUID, List<ItemDisplay>> shown = new HashMap<>();
@@ -78,13 +70,13 @@ public final class HighlightService {
         Location at = frame.getLocation();
         at.setYaw(0);
         at.setPitch(0);
-        ItemStack model = ItemStack.of(frame instanceof GlowItemFrame ? Material.GLOW_ITEM_FRAME : Material.ITEM_FRAME);
-        Matrix4f transform = frameTransform(frame.getFacing());
+        ItemStack item = frame.getItem().clone();
+        Matrix4f transform = itemTransform(frame.getFacing(), frame.getRotation().ordinal(), frame.isVisible());
         ItemDisplay display = at.getWorld().spawn(at, ItemDisplay.class, entity -> {
             // Set before the entity is sent to anyone, so no other player ever sees it.
             entity.setVisibleByDefault(false);
             entity.setPersistent(false);
-            entity.setItemStack(model);
+            entity.setItemStack(item);
             entity.setItemDisplayTransform(ItemDisplay.ItemDisplayTransform.FIXED);
             entity.setTransformationMatrix(transform);
             entity.setGlowColorOverride(highlight.color());
@@ -95,23 +87,26 @@ public final class HighlightService {
     }
 
     /**
-     * The flat frame sprite, relative to the frame entity: turned like {@code ItemFrameRenderer#submit} in Minecraft 26.2
-     * turns the frame, {@link #FRAME_OFFSET} out from the wall, and with a half turn that undoes the one
-     * {@code ItemDisplayRenderer} adds, so the sprite faces the same way as the frame.
+     * Where the vanilla item frame renderer draws the item, relative to the frame entity: the steps of
+     * {@code ItemFrameRenderer#submit} in Minecraft 26.2, ending with a half turn that undoes the one
+     * {@code ItemDisplayRenderer} adds, so the copy lands on the real item.
      */
-    static Matrix4f frameTransform(BlockFace facing) {
+    static Matrix4f itemTransform(BlockFace facing, int rotation, boolean visibleFrame) {
         boolean horizontal = facing.getModY() == 0;
         float xRot = horizontal ? 0 : -90f * facing.getModY();
         float yRot = horizontal ? 180f - yRot(facing) : 180f;
+        float offset = 0.46875f;
         return new Matrix4f()
-                .translate(facing.getModX() * FRAME_OFFSET, facing.getModY() * FRAME_OFFSET,
-                        facing.getModZ() * FRAME_OFFSET)
+                .translate(facing.getModX() * offset, facing.getModY() * offset, facing.getModZ() * offset)
                 .rotateX((float) Math.toRadians(xRot))
                 .rotateY((float) Math.toRadians(yRot))
+                .translate(0, 0, visibleFrame ? 0.4375f : 0.5f)
+                .rotateZ((float) Math.toRadians(rotation * 45f))
+                .scale(0.5f)
                 .rotateY((float) -Math.PI);
     }
 
-    // The angles of Minecraft's Direction#toYRot, so the sprite turns like the real frame.
+    // The angles of Minecraft's Direction#toYRot, so the copy turns like the real item.
     private static float yRot(BlockFace facing) {
         return switch (facing) {
             case WEST -> 90f;

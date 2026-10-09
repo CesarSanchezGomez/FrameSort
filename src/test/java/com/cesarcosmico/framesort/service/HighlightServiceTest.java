@@ -9,26 +9,25 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class HighlightServiceTest {
 
     private static final float EPSILON = 1e-5f;
-    private static final BlockFace[] FACES = {BlockFace.UP, BlockFace.DOWN, BlockFace.NORTH, BlockFace.SOUTH,
-            BlockFace.EAST, BlockFace.WEST};
 
     @Test
-    void spriteSitsJustInFrontOfTheFrameOnEveryFace() {
-        for (BlockFace facing : FACES) {
-            Vector3f centre = HighlightService.frameTransform(facing).transformPosition(new Vector3f());
-            assertEquals(facing.getModX() * HighlightService.FRAME_OFFSET, centre.x, EPSILON, facing + " x");
-            assertEquals(facing.getModY() * HighlightService.FRAME_OFFSET, centre.y, EPSILON, facing + " y");
-            assertEquals(facing.getModZ() * HighlightService.FRAME_OFFSET, centre.z, EPSILON, facing + " z");
+    void itemCentreSitsJustInFrontOfThePlateOnEveryFace() {
+        for (BlockFace facing : new BlockFace[]{BlockFace.UP, BlockFace.DOWN, BlockFace.NORTH, BlockFace.SOUTH,
+                BlockFace.EAST, BlockFace.WEST}) {
+            for (int rotation = 0; rotation < 8; rotation++) {
+                Vector3f centre = HighlightService.itemTransform(facing, rotation, true)
+                        .transformPosition(new Vector3f());
+                // 0.46875 out to the block centre, then 0.4375 back towards the wall: 1/32 in front of the entity.
+                assertEquals(facing.getModX() / 32f, centre.x, EPSILON, facing + " x");
+                assertEquals(facing.getModY() / 32f, centre.y, EPSILON, facing + " y");
+                assertEquals(facing.getModZ() / 32f, centre.z, EPSILON, facing + " z");
+            }
         }
     }
 
     @Test
-    void spriteLiesFlatAgainstTheWall() {
-        for (BlockFace facing : FACES) {
-            // A flat item lies in its local XY plane, so its local Z axis must point along the frame's facing.
-            Vector3f normal = HighlightService.frameTransform(facing).transformDirection(new Vector3f(0, 0, 1));
-            assertEquals(1f, Math.abs(normal.dot(facing.getModX(), facing.getModY(), facing.getModZ())), EPSILON,
-                    facing.toString());
-        }
+    void invisibleFramesDrawTheItemAgainstTheWall() {
+        Vector3f centre = HighlightService.itemTransform(BlockFace.SOUTH, 0, false).transformPosition(new Vector3f());
+        assertEquals(-1 / 32f, centre.z, EPSILON);
     }
 }
