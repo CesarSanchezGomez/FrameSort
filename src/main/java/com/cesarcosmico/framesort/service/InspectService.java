@@ -160,7 +160,7 @@ public final class InspectService {
                         Placeholder.unparsed("tag", view.key().asString()),
                         Placeholder.unparsed("count", String.valueOf(view.materials().size())));
                 lines.add(tagCommand == null ? accepts
-                        : accepts.clickEvent(ClickEvent.runCommand(tagCommand + " " + view.key().asString())));
+                        : accepts.clickEvent(ClickEvent.runCommand(tagCommand + " show " + view.key().asString())));
             }
         } else {
             lines.add(text.get("frame.accepts.exact", Placeholder.component("item", shown.effectiveName())));

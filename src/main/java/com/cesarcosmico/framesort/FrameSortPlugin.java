@@ -2,13 +2,11 @@ package com.cesarcosmico.framesort;
 
 import com.cesarcosmico.framesort.command.CommandFeature;
 import com.cesarcosmico.framesort.command.CommandTree;
-import com.cesarcosmico.framesort.command.FilterCommand;
 import com.cesarcosmico.framesort.command.GiveCommand;
 import com.cesarcosmico.framesort.command.HelpCommand;
 import com.cesarcosmico.framesort.command.InspectCommand;
 import com.cesarcosmico.framesort.command.ReloadCommand;
 import com.cesarcosmico.framesort.command.TagCommand;
-import com.cesarcosmico.framesort.command.TagsCommand;
 import com.cesarcosmico.framesort.command.TraceCommand;
 import com.cesarcosmico.framesort.command.WhereCommand;
 import com.cesarcosmico.framesort.config.CommandsConfig;
@@ -101,10 +99,8 @@ public final class FrameSortPlugin extends JavaPlugin {
             register(new WorldGuardTargetListener());
         }
         List<CommandFeature> features = List.of(
-                new HelpCommand(messages, commands, List.of("tag", "tags", "filter", "where", "trace", "give", "reload")),
-                new TagCommand(tags, messages, settings, commands),
-                new TagsCommand(tags, messages, settings, commands),
-                new FilterCommand(tags, messages, settings),
+                new HelpCommand(messages, commands, List.of("tag", "where", "trace", "give", "reload")),
+                new TagCommand(tags, messages, settings),
                 new TraceCommand(trace, messages, settings),
                 new InspectCommand(inspect, messages),
                 new WhereCommand(inspect, messages, settings),

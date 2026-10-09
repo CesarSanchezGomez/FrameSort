@@ -8,9 +8,10 @@ command:
       - '<prefix><gray>Sort items into item frames.</gray>'
       - '<gray>• <white>Sneak + right-click</white> a sorter or pad with an empty hand to see its targets (hold an item in your off hand to see only its targets).</gray>'
       - '<gray>• <white>Sneak + right-click</white> a frame with an empty hand to mark it as a target; <white>sneak + left-click</white> it to see what it accepts.</gray>'
-    tag: '<gray>• <white><usage> \<tag> [page]</white> <dark_gray>-</dark_gray> what an item or block tag contains.</gray>'
-    tags: '<gray>• <white><usage> [page]</white> · <white><usage> search \<text> [page]</white> <dark_gray>-</dark_gray> item and block tags.</gray>'
-    filter: '<gray>• <white><usage> \<tag></white> <dark_gray>-</dark_gray> make the item in your hand a filter for a tag, or undo it.</gray>'
+    tag:
+      - '<gray>• <white><usage> list [page]</white> · <white><usage> search \<text> [page]</white> <dark_gray>-</dark_gray> item and block tags.</gray>'
+      - '<gray>• <white><usage> show \<tag> [page]</white> <dark_gray>-</dark_gray> what a tag contains.</gray>'
+      - '<gray>• <white><usage> apply \<tag></white> · <white><usage> remove</white> <dark_gray>-</dark_gray> make the item in your hand a filter for a tag, or undo it.</gray>'
     where: '<gray>• <white><usage></white> <dark_gray>-</dark_gray> where the item in your hand would go from the nearest sorter or pad.</gray>'
     trace: '<gray>• <white><usage> [seconds|stop]</white> <dark_gray>-</dark_gray> show the deliveries around you.</gray>'
     give: '<gray>• <white><usage> sorter|pad \<type> [player] [amount]</white> <dark_gray>-</dark_gray> give sorter activators and pad blocks.</gray>'
@@ -106,7 +107,8 @@ position:
 
 filter:
   set: '<prefix><green>The item in your hand is now a filter for <white>#<tag></white>.</green>'
-  cleared: '<prefix><gray>The item in your hand is no longer a filter for <white>#<tag></white>.</gray>'
+  cleared: '<prefix><gray>The item in your hand is no longer a filter.</gray>'
+  not-a-filter: '<prefix><gray>The item in your hand is not a filter.</gray>'
   empty-hand: '<prefix><gray>Hold the item you want to turn into a filter.</gray>'
 
 where:
@@ -126,18 +128,17 @@ trace:
 
 tag:
   title: '#<tag> <dark_gray>(<kind>)</dark_gray> <filter>'
-  filter-button: '<hover:show_text:"<gray>Make the item in your hand a filter for this tag, or undo it</gray>"><gradient:#F7B733:#FC4A1A>[Filter]</gradient></hover>'
+  filter-button: '<hover:show_text:"<gray>Make the item in your hand a filter for this tag</gray>"><gradient:#F7B733:#FC4A1A>[Filter]</gradient></hover>'
   kind:
     item: 'item tag'
     block: 'block tag'
   entry: '  <color:#F7B733>•</color> <white><item></white>'
-  unknown: '<prefix><red>There is no item or block tag called <white>#<tag></white>. Try /framesort tags.</red>'
-
-tags:
-  title: 'Tags'
-  title-search: 'Tags containing "<text>"'
-  entry: '  <color:#F7B733>•</color> <white>#<tag></white>'
-  hover: '<gray>Click to see what this tag contains</gray>'
+  unknown: '<prefix><red>There is no item or block tag called <white>#<tag></white>. Try /framesort tag list.</red>'
+  list:
+    title: 'Tags'
+    title-search: 'Tags containing "<text>"'
+    entry: '  <color:#F7B733>•</color> <white>#<tag></white>'
+    hover: '<gray>Click to see what this tag contains</gray>'
 
 give:
   done: '<prefix><green>Gave <white><amount>× <item></white> to <white><player></white>.</green>'

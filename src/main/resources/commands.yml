@@ -18,29 +18,14 @@ help:
     - '/framesort'
     - '/fs'
 
-# Usage: [COMMAND] <tag> [page]
+# Usage: [COMMAND] list [page] | [COMMAND] search <text> [page] | [COMMAND] show <tag> [page]
+#      | [COMMAND] apply <tag> | [COMMAND] remove   (apply and remove work on the item in your main hand)
 tag:
   enabled: true
   permission: 'framesort.command.tag'
   usage:
     - '/framesort tag'
     - '/fs tag'
-
-# Usage: [COMMAND] [page] | [COMMAND] search <text> [page]
-tags:
-  enabled: true
-  permission: 'framesort.command.tags'
-  usage:
-    - '/framesort tags'
-    - '/fs tags'
-
-# Usage: [COMMAND] <tag> (with the item in your main hand; again to undo)
-filter:
-  enabled: true
-  permission: 'framesort.command.filter'
-  usage:
-    - '/framesort filter'
-    - '/fs filter'
 
 # Usage: [COMMAND] (with the item in your main hand)
 where:

@@ -47,11 +47,16 @@ final class TagArgument implements CustomArgumentType.Converted<TagCatalog.TagVi
         String typed = builder.getRemainingLowerCase();
         for (NamespacedKey name : tags.names()) {
             String full = name.asString();
-            String shortName = TagCommand.shortName(name);
+            String shortName = shortName(name);
             if (full.startsWith(typed) || shortName.startsWith(typed)) {
                 builder.suggest(full.startsWith(typed) && !shortName.startsWith(typed) ? full : shortName);
             }
         }
         return builder.buildFuture();
+    }
+
+    // Vanilla tags are shown without the "minecraft:" namespace, as players type them.
+    static String shortName(NamespacedKey key) {
+        return NamespacedKey.MINECRAFT.equals(key.getNamespace()) ? key.getKey() : key.asString();
     }
 }

@@ -28,10 +28,8 @@ permissions:
       framesort.target.create: true
       framesort.command.help: true
       framesort.command.tag: true
-      framesort.command.tags: true
       framesort.command.trace: true
       framesort.command.inspect: true
-      framesort.command.filter: true
       framesort.command.where: true
   framesort.admin:
     description: 'Administrator access (give items, reload, pads in permission mode).'
@@ -53,19 +51,13 @@ permissions:
     description: 'Show the help with /framesort.'
     default: true
   framesort.command.tag:
-    description: 'List the contents of a tag with /framesort tag.'
-    default: true
-  framesort.command.tags:
-    description: 'List tags with /framesort tags.'
+    description: 'List, search and show tags, and apply them to items, with /framesort tag.'
     default: true
   framesort.command.trace:
     description: 'Trace nearby deliveries with /framesort trace.'
     default: true
   framesort.command.inspect:
     description: 'Page through inspection results with /framesort inspect.'
-    default: true
-  framesort.command.filter:
-    description: 'Turn the held item into a tag filter, or back, with /framesort filter.'
     default: true
   framesort.command.where:
     description: 'See where the held item would go from the nearest sorter or pad with /framesort where.'

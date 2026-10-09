@@ -8,9 +8,10 @@ command:
       - '<prefix><gray>Ordena items en marcos.</gray>'
       - '<gray>• <white>Shift + clic derecho</white> a un sorter o pad con la mano vacía para ver sus destinos (con un item en la otra mano, solo los de ese item).</gray>'
       - '<gray>• <white>Shift + clic derecho</white> a un marco con la mano vacía para marcarlo como destino; <white>shift + clic izquierdo</white> para ver qué acepta.</gray>'
-    tag: '<gray>• <white><usage> \<tag> [página]</white> <dark_gray>-</dark_gray> qué contiene un tag de items o bloques.</gray>'
-    tags: '<gray>• <white><usage> [página]</white> · <white><usage> search \<texto> [página]</white> <dark_gray>-</dark_gray> tags de items y bloques.</gray>'
-    filter: '<gray>• <white><usage> \<tag></white> <dark_gray>-</dark_gray> convierte el item de tu mano en un filtro de tag, o lo deshace.</gray>'
+    tag:
+      - '<gray>• <white><usage> list [página]</white> · <white><usage> search \<texto> [página]</white> <dark_gray>-</dark_gray> tags de items y bloques.</gray>'
+      - '<gray>• <white><usage> show \<tag> [página]</white> <dark_gray>-</dark_gray> qué contiene un tag.</gray>'
+      - '<gray>• <white><usage> apply \<tag></white> · <white><usage> remove</white> <dark_gray>-</dark_gray> convierte el item de tu mano en un filtro de tag, o lo deshace.</gray>'
     where: '<gray>• <white><usage></white> <dark_gray>-</dark_gray> adónde iría el item de tu mano desde el sorter o pad más cercano.</gray>'
     trace: '<gray>• <white><usage> [segundos|stop]</white> <dark_gray>-</dark_gray> muestra las entregas a tu alrededor.</gray>'
     give: '<gray>• <white><usage> sorter|pad \<tipo> [jugador] [cantidad]</white> <dark_gray>-</dark_gray> da activadores de sorter y bloques de pad.</gray>'
@@ -106,7 +107,8 @@ position:
 
 filter:
   set: '<prefix><green>El item de tu mano ahora es un filtro de <white>#<tag></white>.</green>'
-  cleared: '<prefix><gray>El item de tu mano ya no es un filtro de <white>#<tag></white>.</gray>'
+  cleared: '<prefix><gray>El item de tu mano ya no es un filtro.</gray>'
+  not-a-filter: '<prefix><gray>El item de tu mano no es un filtro.</gray>'
   empty-hand: '<prefix><gray>Sujeta el item que quieres convertir en filtro.</gray>'
 
 where:
@@ -126,18 +128,17 @@ trace:
 
 tag:
   title: '#<tag> <dark_gray>(<kind>)</dark_gray> <filter>'
-  filter-button: '<hover:show_text:"<gray>Convierte el item de tu mano en un filtro de este tag, o lo deshace</gray>"><gradient:#F7B733:#FC4A1A>[Filtro]</gradient></hover>'
+  filter-button: '<hover:show_text:"<gray>Convierte el item de tu mano en un filtro de este tag</gray>"><gradient:#F7B733:#FC4A1A>[Filtro]</gradient></hover>'
   kind:
     item: 'tag de items'
     block: 'tag de bloques'
   entry: '  <color:#F7B733>•</color> <white><item></white>'
-  unknown: '<prefix><red>No existe ningún tag de items o bloques llamado <white>#<tag></white>. Prueba /framesort tags.</red>'
-
-tags:
-  title: 'Tags'
-  title-search: 'Tags que contienen "<text>"'
-  entry: '  <color:#F7B733>•</color> <white>#<tag></white>'
-  hover: '<gray>Clic para ver qué contiene este tag</gray>'
+  unknown: '<prefix><red>No existe ningún tag de items o bloques llamado <white>#<tag></white>. Prueba /framesort tag list.</red>'
+  list:
+    title: 'Tags'
+    title-search: 'Tags que contienen "<text>"'
+    entry: '  <color:#F7B733>•</color> <white>#<tag></white>'
+    hover: '<gray>Clic para ver qué contiene este tag</gray>'
 
 give:
   done: '<prefix><green>Entregado <white><amount>× <item></white> a <white><player></white>.</green>'

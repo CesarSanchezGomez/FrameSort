@@ -60,11 +60,11 @@ How a destination is chosen:
 4. Whatever is left is dropped at one random frame without a container.
 5. If those frames are all on lava cauldrons, the rest is destroyed. If there is nowhere to go, the item stays.
 
-**Tag filters.** `/framesort filter <tag>` (or the [Filter] button in `/framesort tag <tag>`) turns the item in your
-hand into a filter: the tag is stored inside the item and its name is set from `targets.filter-name`. In a frame, a filter accepts everything in its tag and nothing else,
+**Tag filters.** `/framesort tag apply <tag>` (or the [Filter] button in `/framesort tag show <tag>`) turns the item
+in your hand into a filter: the tag is stored inside the item and its name is set from `targets.filter-name`. In a frame, a filter accepts everything in its tag and nothing else,
 not even its own material; inside a shulker box or bundle in the frame it adds its tag to what the frame accepts.
 Renaming the item in an anvil never changes its tag, and a plain renamed item is never a filter.
-Running it again for the same tag turns it back into a normal item.
+`/framesort tag remove` turns it back into a normal item.
 
 **Lava cauldrons are trash cans.** A target frame on a lava cauldron holds the item to destroy and is chosen like
 any other frame (exact item, tag, material); with `registration: manual` it must be marked too. If a container
