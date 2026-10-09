@@ -1,7 +1,8 @@
 # Configuration
 
-Every file has a `config-version`. When FrameSort's defaults change, the console lists missing and unknown keys;
-your files are never rewritten. Invalid values are reported with their path and replaced by the default.
+`config.yml`, `pads.yml` and `commands.yml` have a `config-version`. When FrameSort's defaults change, the console
+lists their missing and unknown keys; your files are never rewritten. Language files fill missing keys on their own
+(see [Language](#language)). Invalid values are reported with their path and replaced by the default.
 `/framesort reload` applies `config.yml`, `pads.yml` and the language file and tells you how many values fell back
 to their defaults. A file that is not valid YAML stops the reload and the previous configuration stays active.
 `commands.yml` needs a restart.
@@ -112,7 +113,7 @@ command, the help follows it; any path you wrote by hand in the text does not.
 
 ### Pages
 
-Lists (`tag`, `tags` and the inspection lists) are built from the `pager` keys:
+Lists (`tag list`, `tag search`, `tag show` and the inspection lists) are built from the `pager` keys:
 
 | Key | Content |
 |---|---|

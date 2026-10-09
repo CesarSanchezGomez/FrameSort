@@ -33,7 +33,8 @@ Packages depend on each other without cycles: `model` ← `item` ← `config` �
 `listener` and `integration`. `api` is used only by `service` and `integration`, and only `FrameSortPlugin` creates
 the integration. Dependencies are wired by constructor in `FrameSortPlugin`; there are no static instances. The
 interfaces are `DeliveryService.Source` (a sorter slot or a pad item entity), `Delivery.Offer` (what
-`model.Delivery` needs from a container) and `CommandFeature` (one per command feature).
+`model.Delivery` needs from a container), `CommandFeature` (one per command feature) and the sealed
+`PadService.Placement` (what placing a pad block did).
 
 `commands.yml` only places features: `CommandTree` joins every enabled path into Brigadier literals, makes a literal
 visible to anyone allowed to run something below it, and checks each feature's own permission on its command and
@@ -59,6 +60,9 @@ Nothing is stored outside the world:
   the world.
 - **Cache.** Matches are cached per source and item (amount ignored) and invalidated by a per-world epoch that
   changes with any target change. A cached frame is checked again before use.
+- **One plan.** `TargetResolver.plan` splits the best targets into containers and drop spots. Deliveries and
+  inspections (`/framesort where`, inspecting with an item in the off hand) both use it, so an inspection shows
+  exactly what a delivery would do.
 - **No duplication.** Containers are looked up the moment items go in, and the source is updated after each
   container (`model.Delivery`). A container that vanished in between is skipped. `DeliveryTest` covers the case
   where a vanished container used to duplicate items.

@@ -56,6 +56,7 @@ never duplicated.
 | `/framesort tag remove` | `framesort.command.tag-remove` | everyone |
 | `/framesort where` | `framesort.command.where` | everyone |
 | `/framesort trace [seconds\|stop]` | `framesort.command.trace` | everyone |
+| `/framesort inspect <page>` (page buttons of an inspection) | `framesort.command.inspect` | everyone |
 | `/framesort give sorter\|pad <type> [player] [amount]` | `framesort.command.give` | op |
 | `/framesort reload` | `framesort.command.reload` | op |
 
