@@ -111,3 +111,8 @@ Lists (`tag`, `tags` and the inspection lists) are built from the `pager` keys:
 | `pager.empty` | Shown instead of the entries when the list is empty. |
 | `pager.previous.enabled`, `pager.next.enabled` | The buttons; `<page>` is the page they open. Clicking is added by FrameSort, the hover is part of the text. |
 | `pager.previous.disabled`, `pager.next.disabled` | Shown when there is no page in that direction. |
+
+### Frame card
+
+What a frame accepts is shown as one message built from `frame.layout`, framed like a page: `<title>` is
+`frame.title` and `<lines>` are the `frame.status`, `frame.into`, `frame.accepts` and `frame.sources` lines that apply.

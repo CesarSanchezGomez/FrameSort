@@ -109,17 +109,17 @@ public final class InspectService {
 
     public void inspectFrame(Player player, ItemFrame frame) {
         Messages text = messages.get();
-        player.sendMessage(text.get("frame.header", coordinates(frame.getLocation())));
-        player.sendMessage(status(text, frame));
+        List<Component> lines = new ArrayList<>();
+        lines.add(status(text, frame));
 
         Block attached = FrameGeometry.attachedBlock(frame);
         Inventory inventory = DeliveryService.inventory(attached);
         if (DeliveryService.isLava(frame)) {
-            player.sendMessage(text.get("frame.into.lava"));
+            lines.add(text.get("frame.into.lava"));
         } else if (inventory != null && settings.get().delivery().insertIntoContainers()) {
-            player.sendMessage(text.get("frame.into.container", Placeholder.component("block", blockName(attached))));
+            lines.add(text.get("frame.into.container", Placeholder.component("block", blockName(attached))));
         } else {
-            player.sendMessage(text.get("frame.into.dropped"));
+            lines.add(text.get("frame.into.dropped"));
         }
 
         ItemStack shown = frame.getItem();
@@ -128,20 +128,20 @@ public final class InspectService {
             Component accepts = text.get("frame.accepts.tag",
                     Placeholder.unparsed("tag", view.key().asString()),
                     Placeholder.unparsed("count", String.valueOf(view.materials().size())));
-            player.sendMessage(tagCommand == null ? accepts
+            lines.add(tagCommand == null ? accepts
                     : accepts.clickEvent(ClickEvent.runCommand(tagCommand + " " + view.key().asString())));
         }
-        player.sendMessage(text.get("frame.accepts.exact", Placeholder.component("item", shown.effectiveName())));
+        lines.add(text.get("frame.accepts.exact", Placeholder.component("item", shown.effectiveName())));
         List<ItemStack> contents = TargetResolver.contents(shown);
         if (!contents.isEmpty()) {
-            player.sendMessage(text.get("frame.accepts.contents",
+            lines.add(text.get("frame.accepts.contents",
                     Placeholder.unparsed("count", String.valueOf(contents.size()))));
         } else {
-            player.sendMessage(text.get("frame.accepts.similar",
+            lines.add(text.get("frame.accepts.similar",
                     Placeholder.component("material", Component.translatable(shown.getType()))));
         }
         if (shown.getType() == settings.get().delivery().defaultTargetItem()) {
-            player.sendMessage(text.get("frame.accepts.default"));
+            lines.add(text.get("frame.accepts.default"));
         }
 
         BlockKey key = FrameGeometry.key(frame.getLocation().getBlock());
@@ -149,7 +149,11 @@ public final class InspectService {
         long sources = sorters.blocks().stream()
                 .filter(block -> FrameGeometry.key(block).distanceSquared(key) <= (long) radius * radius)
                 .count() + pads.near(key, radius).size();
-        player.sendMessage(text.get("frame.sources", Placeholder.unparsed("count", String.valueOf(sources))));
+        lines.add(text.get("frame.sources", Placeholder.unparsed("count", String.valueOf(sources))));
+        // One message, like a page of a list, so the card stays together in chat.
+        player.sendMessage(text.get("frame.layout",
+                Placeholder.component("title", text.get("frame.title", coordinates(frame.getLocation()))),
+                Placeholder.component("lines", Component.join(JoinConfiguration.newlines(), lines))));
         highlight(player, List.of(highlight(frame)));
     }
 

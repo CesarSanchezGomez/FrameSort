@@ -52,27 +52,37 @@ inspect:
   target:
     dropped: '<yellow>dropped here</yellow>'
     lava: '<red>lava</red>'
-  line: '<gray>  • <white><item></white> <dark_gray>→</dark_gray> <target> <dark_gray>(<x>, <y>, <z>) · <distance> m</dark_gray></gray>'
+  line: '  <color:#F7B733>•</color> <white><item></white> <dark_gray>→</dark_gray> <hover:show_text:"<gray><x>, <y>, <z></gray>"><target></hover> <dark_gray><distance> m</dark_gray>'
   no-listing: '<prefix><gray>Sneak + right-click a sorter or pad with an empty hand first.</gray>'
 
 frame:
-  header: '<prefix><white>Target frame</white> <dark_gray>(<x>, <y>, <z>)</dark_gray>'
+  layout:
+    - ''
+    - '<gradient:#F7B733:#FC4A1A>◤<st>                          </st></gradient> <white>[</white><gradient:#F7B733:#FC4A1A>FrameSort</gradient><white>]</white> <gradient:#FC4A1A:#F7B733><st>                          </st>◥</gradient>'
+    - ''
+    - '  <title>'
+    - ''
+    - '<lines>'
+    - ''
+    - '<gradient:#F7B733:#FC4A1A>◣<st>                                   </st></gradient><gradient:#FC4A1A:#F7B733><st>                                   </st>◢</gradient>'
+    - ''
+  title: '<white>Target frame</white> <dark_gray>(<x>, <y>, <z>)</dark_gray>'
   status:
-    target: '<green>  This frame is a target</green> <gray>(on the <position> of its block).</gray>'
-    unmarked: '<yellow>  Not a target yet: sneak + right-click it with an empty hand to mark it.</yellow>'
-    not-allowed: '<red>  Not a target: frames can''t be used on the <position> of a block here.</red>'
-    wrong-type: '<red>  Not a target: this kind of frame is not used for targets.</red>'
+    target: '  <green>✔</green> <gray>A target, on the <position> of its block</gray>'
+    unmarked: '  <yellow>✘</yellow> <gray>Not a target yet: sneak + right-click it with an empty hand</gray>'
+    not-allowed: '  <red>✘</red> <gray>Frames can''t be targets on the <position> of a block here</gray>'
+    wrong-type: '  <red>✘</red> <gray>This kind of frame can''t be a target</gray>'
   into:
-    container: '<gray>  Items go into: <white><block></white></gray>'
-    dropped: '<gray>  Items are dropped in front of it.</gray>'
-    lava: '<gray>  Items are <red>destroyed by lava</red>.</gray>'
+    container: '  <color:#F7B733>•</color> <gray>Items go into</gray> <white><block></white>'
+    dropped: '  <color:#F7B733>•</color> <gray>Items are</gray> <yellow>dropped in front of it</yellow>'
+    lava: '  <color:#F7B733>•</color> <gray>Items are</gray> <red>destroyed by lava</red>'
   accepts:
-    exact: '<gray>  Accepts <white><item></white> (exact match first).</gray>'
-    tag: '<gray>  Accepts everything in <white>#<tag></white> (<count> items) <dark_gray>[click to list]</dark_gray></gray>'
-    contents: '<gray>  Accepts what its contents hold (<count> stacks).</gray>'
-    similar: '<gray>  Accepts any <white><material></white> when nothing matches better.</gray>'
-    default: '<gray>  Default target: takes whatever matches no other frame.</gray>'
-  sources: '<gray>  Sorters and pads in range: <white><count></white></gray>'
+    exact: '  <color:#F7B733>•</color> <gray>Accepts</gray> <white><item></white> <dark_gray>exact match first</dark_gray>'
+    tag: '  <color:#F7B733>•</color> <gray>Accepts</gray> <white>#<tag></white> <dark_gray>· <count> items · [click to list]</dark_gray>'
+    contents: '  <color:#F7B733>•</color> <gray>Accepts what it holds</gray> <dark_gray>· <count> stacks</dark_gray>'
+    similar: '  <color:#F7B733>•</color> <gray>Accepts any</gray> <white><material></white> <dark_gray>when nothing matches better</dark_gray>'
+    default: '  <color:#F7B733>•</color> <gray>Default target:</gray> <white>whatever matches no other frame</white>'
+  sources: '  <color:#F7B733>•</color> <gray>Sorters and pads in range:</gray> <white><count></white>'
 
 mark:
   marked: '<prefix><green>This frame is now a target.</green>'
@@ -107,13 +117,13 @@ tag:
   kind:
     item: 'item tag'
     block: 'block tag'
-  entry: '<gray>  • <white><item></white></gray>'
+  entry: '  <color:#F7B733>•</color> <white><item></white>'
   unknown: '<prefix><red>There is no item or block tag called <white>#<tag></white>. Try /framesort tags.</red>'
 
 tags:
   title: 'Tags'
   title-search: 'Tags containing "<text>"'
-  entry: '<gray>  • <white>#<tag></white></gray>'
+  entry: '  <color:#F7B733>•</color> <white>#<tag></white>'
   hover: '<gray>Click to see what this tag contains</gray>'
 
 give:

@@ -52,27 +52,37 @@ inspect:
   target:
     dropped: '<yellow>se suelta aquí</yellow>'
     lava: '<red>lava</red>'
-  line: '<gray>  • <white><item></white> <dark_gray>→</dark_gray> <target> <dark_gray>(<x>, <y>, <z>) · <distance> m</dark_gray></gray>'
+  line: '  <color:#F7B733>•</color> <white><item></white> <dark_gray>→</dark_gray> <hover:show_text:"<gray><x>, <y>, <z></gray>"><target></hover> <dark_gray><distance> m</dark_gray>'
   no-listing: '<prefix><gray>Primero haz shift + clic derecho a un sorter o pad con la mano vacía.</gray>'
 
 frame:
-  header: '<prefix><white>Marco destino</white> <dark_gray>(<x>, <y>, <z>)</dark_gray>'
+  layout:
+    - ''
+    - '<gradient:#F7B733:#FC4A1A>◤<st>                          </st></gradient> <white>[</white><gradient:#F7B733:#FC4A1A>FrameSort</gradient><white>]</white> <gradient:#FC4A1A:#F7B733><st>                          </st>◥</gradient>'
+    - ''
+    - '  <title>'
+    - ''
+    - '<lines>'
+    - ''
+    - '<gradient:#F7B733:#FC4A1A>◣<st>                                   </st></gradient><gradient:#FC4A1A:#F7B733><st>                                   </st>◢</gradient>'
+    - ''
+  title: '<white>Marco destino</white> <dark_gray>(<x>, <y>, <z>)</dark_gray>'
   status:
-    target: '<green>  Este marco es un destino</green> <gray>(en la cara <position> de su bloque).</gray>'
-    unmarked: '<yellow>  Aún no es destino: haz shift + clic derecho con la mano vacía para marcarlo.</yellow>'
-    not-allowed: '<red>  No es destino: aquí no se permiten marcos en la cara <position> de un bloque.</red>'
-    wrong-type: '<red>  No es destino: este tipo de marco no se usa como destino.</red>'
+    target: '  <green>✔</green> <gray>Es un destino, en la cara <position> de su bloque</gray>'
+    unmarked: '  <yellow>✘</yellow> <gray>Aún no es destino: shift + clic derecho con la mano vacía</gray>'
+    not-allowed: '  <red>✘</red> <gray>Aquí no se permiten destinos en la cara <position> de un bloque</gray>'
+    wrong-type: '  <red>✘</red> <gray>Este tipo de marco no puede ser destino</gray>'
   into:
-    container: '<gray>  Los items van a: <white><block></white></gray>'
-    dropped: '<gray>  Los items se sueltan delante del marco.</gray>'
-    lava: '<gray>  Los items se <red>destruyen en la lava</red>.</gray>'
+    container: '  <color:#F7B733>•</color> <gray>Los items van a</gray> <white><block></white>'
+    dropped: '  <color:#F7B733>•</color> <gray>Los items</gray> <yellow>se sueltan delante</yellow>'
+    lava: '  <color:#F7B733>•</color> <gray>Los items se</gray> <red>destruyen en la lava</red>'
   accepts:
-    exact: '<gray>  Acepta <white><item></white> (primero coincidencia exacta).</gray>'
-    tag: '<gray>  Acepta todo lo de <white>#<tag></white> (<count> items) <dark_gray>[clic para ver]</dark_gray></gray>'
-    contents: '<gray>  Acepta lo que hay en su contenido (<count> stacks).</gray>'
-    similar: '<gray>  Acepta cualquier <white><material></white> si nada coincide mejor.</gray>'
-    default: '<gray>  Destino por defecto: recibe lo que no encaja en ningún otro marco.</gray>'
-  sources: '<gray>  Sorters y pads al alcance: <white><count></white></gray>'
+    exact: '  <color:#F7B733>•</color> <gray>Acepta</gray> <white><item></white> <dark_gray>primero la coincidencia exacta</dark_gray>'
+    tag: '  <color:#F7B733>•</color> <gray>Acepta</gray> <white>#<tag></white> <dark_gray>· <count> items · [clic para ver]</dark_gray>'
+    contents: '  <color:#F7B733>•</color> <gray>Acepta lo que contiene</gray> <dark_gray>· <count> stacks</dark_gray>'
+    similar: '  <color:#F7B733>•</color> <gray>Acepta cualquier</gray> <white><material></white> <dark_gray>si nada coincide mejor</dark_gray>'
+    default: '  <color:#F7B733>•</color> <gray>Destino por defecto:</gray> <white>lo que no encaja en ningún otro marco</white>'
+  sources: '  <color:#F7B733>•</color> <gray>Sorters y pads al alcance:</gray> <white><count></white>'
 
 mark:
   marked: '<prefix><green>Este marco ahora es un destino.</green>'
@@ -107,13 +117,13 @@ tag:
   kind:
     item: 'tag de items'
     block: 'tag de bloques'
-  entry: '<gray>  • <white><item></white></gray>'
+  entry: '  <color:#F7B733>•</color> <white><item></white>'
   unknown: '<prefix><red>No existe ningún tag de items o bloques llamado <white>#<tag></white>. Prueba /framesort tags.</red>'
 
 tags:
   title: 'Tags'
   title-search: 'Tags que contienen "<text>"'
-  entry: '<gray>  • <white>#<tag></white></gray>'
+  entry: '  <color:#F7B733>•</color> <white>#<tag></white>'
   hover: '<gray>Clic para ver qué contiene este tag</gray>'
 
 give:
