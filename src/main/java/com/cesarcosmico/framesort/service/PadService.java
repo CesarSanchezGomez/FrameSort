@@ -31,9 +31,15 @@ public final class PadService {
 
     private static final String CREATE_PERMISSION = "framesort.pad.create";
 
-    public enum Placement { CREATED, NOT_ALLOWED, NOT_A_PAD }
+    public sealed interface Placement {
+        record Created(PadType type) implements Placement {
+        }
 
-    public record PlaceResult(Placement placement, @Nullable PadType type) {
+        record NotAllowed() implements Placement {
+        }
+
+        record NotAPad() implements Placement {
+        }
     }
 
     private final Server server;
@@ -60,7 +66,7 @@ public final class PadService {
     }
 
     /** Registers a pad when {@code block}, just placed by {@code player} from {@code hand}, completes one. */
-    public PlaceResult placed(Player player, Block block, ItemStack hand) {
+    public Placement placed(Player player, Block block, ItemStack hand) {
         PadSettings current = settings.get();
         String marker = ItemTemplate.marker(hand, Keys.PAD_ITEM);
         boolean blocked = false;
@@ -75,13 +81,13 @@ public final class PadService {
             };
             if (allowed) {
                 register(block, type);
-                return new PlaceResult(Placement.CREATED, type);
+                return new Placement.Created(type);
             }
             blocked = true;
         }
         // In item mode a plain block is just a block: building with it is not an error worth a message.
         boolean silent = current.creation() == PadMode.ITEM && marker == null;
-        return new PlaceResult(blocked && !silent ? Placement.NOT_ALLOWED : Placement.NOT_A_PAD, null);
+        return blocked && !silent ? new Placement.NotAllowed() : new Placement.NotAPad();
     }
 
     /** Returns the special item to drop instead of the block when pads are made from items, or {@code null}. */
