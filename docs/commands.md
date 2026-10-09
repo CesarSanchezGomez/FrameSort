@@ -8,7 +8,7 @@
 | `/framesort tag <tag> [page]` | The items or blocks in a tag, 8 per page (`inspect.page-size`), in a framed list with « » buttons. Hover an entry to see its id. Vanilla tags can be written without `minecraft:`. |
 | `/framesort tags [page]` | Every item and block tag. Click a tag to list its contents. |
 | `/framesort tags search <text> [page]` | Only the tags whose name contains `<text>`. |
-| `/framesort tag <tag> filter` | Turns the item in your main hand into a filter for that tag (its name comes from `targets.filter-name`), or back into a plain item if it already is one. The [Filter] button in the tag's list runs it. In a frame a filter accepts only its tag. |
+| `/framesort filter <tag>` | Turns the item in your main hand into a filter for that tag (its name comes from `targets.filter-name`), or back into a plain item if it already is one. The [Filter] button in `/framesort tag <tag>` runs it. In a frame a filter accepts only its tag. |
 | `/framesort where` | Where the item in your main hand would go from the nearest sorter or pad within `delivery.max-distance`, listed and highlighted like an inspection with that item in your off hand. Its components count (enchantments, name, contents). |
 | `/framesort trace [seconds]` | For a while (default 60 s, at most `inspect.trace-max-seconds`), every delivery from sorters and pads near you shows in the action bar, with a trail of particles flying to its destination. |
 | `/framesort trace stop` | Stops tracing. |
@@ -34,7 +34,7 @@ The frame keeps its item and does not rotate. Empty frames are left alone, so th
 | Permission | Default | Grants |
 |---|---|---|
 | `framesort.*` | op | everything |
-| `framesort.use` | everyone | `framesort.inspect`, `framesort.target.create` and the help, tag, tags, where, trace and inspect commands |
+| `framesort.use` | everyone | `framesort.inspect`, `framesort.target.create` and the help, tag, tags, filter, where, trace and inspect commands |
 | `framesort.admin` | op | `framesort.pad.create` and the give and reload commands |
 | `framesort.inspect` | everyone | inspecting sorters, pads and frames |
 | `framesort.target.create` | everyone | marking frames as targets |
@@ -42,8 +42,8 @@ The frame keeps its item and does not rotate. Empty frames are left alone, so th
 
 ## commands.yml
 
-Each section of `commands.yml` is one command feature: `help`, `tag`, `tags`, `where`, `trace`, `inspect`,
-`give` and `reload`. The key is fixed; what can change is:
+Each section of `commands.yml` is one command feature: `help`, `tag`, `tags`, `filter`, `where`, `trace`,
+`inspect`, `give` and `reload`. The key is fixed; what can change is:
 
 | Key | Meaning |
 |---|---|

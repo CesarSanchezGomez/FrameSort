@@ -18,7 +18,7 @@ help:
     - '/framesort'
     - '/fs'
 
-# Usage: [COMMAND] <tag> [page] | [COMMAND] <tag> filter (with the item in your main hand)
+# Usage: [COMMAND] <tag> [page]
 tag:
   enabled: true
   permission: 'framesort.command.tag'
@@ -33,6 +33,14 @@ tags:
   usage:
     - '/framesort tags'
     - '/fs tags'
+
+# Usage: [COMMAND] <tag> (with the item in your main hand; again to undo)
+filter:
+  enabled: true
+  permission: 'framesort.command.filter'
+  usage:
+    - '/framesort filter'
+    - '/fs filter'
 
 # Usage: [COMMAND] (with the item in your main hand)
 where:

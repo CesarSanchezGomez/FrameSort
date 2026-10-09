@@ -1,7 +1,7 @@
 package com.cesarcosmico.framesort.command;
 
+import com.cesarcosmico.framesort.config.CommandsConfig;
 import com.cesarcosmico.framesort.config.FrameSortSettings;
-import com.cesarcosmico.framesort.item.TagFilterCodec;
 import com.cesarcosmico.framesort.service.TagCatalog;
 import com.cesarcosmico.framesort.text.ChatPager;
 import com.cesarcosmico.framesort.text.Messages;
@@ -14,12 +14,10 @@ import io.papermc.paper.command.brigadier.Commands;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.event.HoverEvent;
-import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
-import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
+import org.jspecify.annotations.Nullable;
 
 import java.util.List;
 import java.util.Locale;
@@ -27,16 +25,17 @@ import java.util.function.Supplier;
 
 public final class TagCommand implements CommandFeature {
 
-    private static final MiniMessage MINI_MESSAGE = MiniMessage.miniMessage();
-
     private final TagArgument tag;
     private final Supplier<Messages> messages;
     private final Supplier<FrameSortSettings> settings;
+    private final @Nullable String filterCommand;
 
-    public TagCommand(TagCatalog tags, Supplier<Messages> messages, Supplier<FrameSortSettings> settings) {
+    public TagCommand(TagCatalog tags, Supplier<Messages> messages, Supplier<FrameSortSettings> settings,
+                      CommandsConfig commands) {
         this.tag = new TagArgument(tags, messages);
         this.messages = messages;
         this.settings = settings;
+        this.filterCommand = commands.primaryUsage("filter");
     }
 
     @Override
@@ -48,7 +47,6 @@ public final class TagCommand implements CommandFeature {
     public void attach(LiteralArgumentBuilder<CommandSourceStack> node, String path) {
         node.then(Commands.argument("tag", tag)
                 .executes(context -> showTag(context, path, 1))
-                .then(Commands.literal("filter").executes(this::toggleFilter))
                 .then(Commands.argument("page", IntegerArgumentType.integer(1))
                         .executes(context -> showTag(context, path,
                                 IntegerArgumentType.getInteger(context, "page")))));
@@ -59,39 +57,15 @@ public final class TagCommand implements CommandFeature {
         Messages text = messages.get();
         List<Component> lines = view.materials().stream().map(material -> entry(text, material)).toList();
         String name = shortName(view.key());
-        Component filter = text.get("tag.filter-button")
-                .clickEvent(ClickEvent.runCommand(path + " " + name + " filter"));
+        // The button follows commands.yml; with the filter feature off there is no button.
+        Component filter = filterCommand == null ? Component.empty()
+                : text.get("tag.filter-button").clickEvent(ClickEvent.runCommand(filterCommand + " " + name));
         Component title = text.get("tag.title",
                 Placeholder.unparsed("tag", name),
                 Placeholder.component("kind", text.get("tag.kind." + view.kind().name().toLowerCase(Locale.ROOT))),
                 Placeholder.component("filter", filter));
         ChatPager.send(context.getSource().getSender(), text, title, lines, page,
                 settings.get().inspect().pageSize(), path + " " + name + " %d");
-        return Command.SINGLE_SUCCESS;
-    }
-
-    // Turns the held item into a filter for this tag, or back into a plain item when it already is one.
-    private int toggleFilter(CommandContext<CommandSourceStack> context) {
-        if (!(context.getSource().getSender() instanceof Player player)) {
-            context.getSource().getSender().sendMessage(messages.get().get("command.players-only"));
-            return Command.SINGLE_SUCCESS;
-        }
-        ItemStack held = player.getInventory().getItemInMainHand();
-        if (held.isEmpty()) {
-            player.sendMessage(messages.get().get("filter.empty-hand"));
-            return Command.SINGLE_SUCCESS;
-        }
-        TagCatalog.TagView view = context.getArgument("tag", TagCatalog.TagView.class);
-        String name = shortName(view.key());
-        if (view.key().equals(TagFilterCodec.read(held))) {
-            TagFilterCodec.clear(held);
-            player.sendMessage(messages.get().get("filter.cleared", Placeholder.unparsed("tag", name)));
-        } else {
-            TagFilterCodec.apply(held, view.key(), MINI_MESSAGE.deserialize(settings.get().targets().filterName(),
-                    Placeholder.unparsed("tag", name)));
-            player.sendMessage(messages.get().get("filter.set", Placeholder.unparsed("tag", name)));
-        }
-        player.getInventory().setItemInMainHand(held);
         return Command.SINGLE_SUCCESS;
     }
 
