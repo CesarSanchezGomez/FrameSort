@@ -51,7 +51,7 @@ never duplicated.
 | `/framesort` (help) | `framesort.command.help` | everyone |
 | `/framesort tag <tag> [page]` | `framesort.command.tag` | everyone |
 | `/framesort tags [page]`, `/framesort tags search <text> [page]` | `framesort.command.tags` | everyone |
-| `/framesort where <item>` | `framesort.command.where` | everyone |
+| `/framesort where` | `framesort.command.where` | everyone |
 | `/framesort trace [seconds\|stop]` | `framesort.command.trace` | everyone |
 | `/framesort give sorter\|pad <type> [player] [amount]` | `framesort.command.give` | op |
 | `/framesort reload` | `framesort.command.reload` | op |

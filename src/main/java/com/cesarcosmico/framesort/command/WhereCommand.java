@@ -7,8 +7,6 @@ import com.mojang.brigadier.Command;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
-import io.papermc.paper.command.brigadier.Commands;
-import io.papermc.paper.command.brigadier.argument.ArgumentTypes;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -34,7 +32,7 @@ public final class WhereCommand implements CommandFeature {
 
     @Override
     public void attach(LiteralArgumentBuilder<CommandSourceStack> node, String path) {
-        node.then(Commands.argument("item", ArgumentTypes.itemStack()).executes(this::where));
+        node.executes(this::where);
     }
 
     private int where(CommandContext<CommandSourceStack> context) {
@@ -42,7 +40,12 @@ public final class WhereCommand implements CommandFeature {
             context.getSource().getSender().sendMessage(messages.get().get("command.players-only"));
             return Command.SINGLE_SUCCESS;
         }
-        if (!inspect.inspectNearest(player, context.getArgument("item", ItemStack.class))) {
+        ItemStack held = player.getInventory().getItemInMainHand();
+        if (held.isEmpty()) {
+            player.sendMessage(messages.get().get("where.empty-hand"));
+            return Command.SINGLE_SUCCESS;
+        }
+        if (!inspect.inspectNearest(player, held)) {
             player.sendMessage(messages.get().get("where.no-source",
                     Placeholder.unparsed("radius", String.valueOf(settings.get().delivery().maxDistance()))));
         }

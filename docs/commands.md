@@ -8,7 +8,7 @@
 | `/framesort tag <tag> [page]` | The items or blocks in a tag, 8 per page (`inspect.page-size`), in a framed list with « » buttons. Hover an entry to see its id. Vanilla tags can be written without `minecraft:`. |
 | `/framesort tags [page]` | Every item and block tag. Click a tag to list its contents. |
 | `/framesort tags search <text> [page]` | Only the tags whose name contains `<text>`. |
-| `/framesort where <item>` | Where that item would go from the nearest sorter or pad within `delivery.max-distance`, listed and highlighted like an inspection with the item in your off hand. |
+| `/framesort where` | Where the item in your main hand would go from the nearest sorter or pad within `delivery.max-distance`, listed and highlighted like an inspection with that item in your off hand. Its components count (enchantments, name, contents). |
 | `/framesort trace [seconds]` | For a while (default 60 s, at most `inspect.trace-max-seconds`), every delivery from sorters and pads near you shows in the action bar, with a trail of particles flying to its destination. |
 | `/framesort trace stop` | Stops tracing. |
 | `/framesort inspect <page>` | Another page of the last inspection list (the page buttons run it). |

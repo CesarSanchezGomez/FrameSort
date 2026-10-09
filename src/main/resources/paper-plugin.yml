@@ -64,7 +64,7 @@ permissions:
     description: 'Page through inspection results with /framesort inspect.'
     default: true
   framesort.command.where:
-    description: 'See where an item would go from the nearest sorter or pad with /framesort where.'
+    description: 'See where the held item would go from the nearest sorter or pad with /framesort where.'
     default: true
   framesort.command.give:
     description: 'Give sorter activators and pad blocks with /framesort give.'

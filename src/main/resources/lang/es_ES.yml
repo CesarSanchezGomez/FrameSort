@@ -10,7 +10,7 @@ command:
       - '<gray>• <white>Shift + clic derecho</white> a un marco con la mano vacía para marcarlo como destino; <white>shift + clic izquierdo</white> para ver qué acepta.</gray>'
     tag: '<gray>• <white><usage> \<tag> [página]</white> <dark_gray>-</dark_gray> qué contiene un tag de items o bloques.</gray>'
     tags: '<gray>• <white><usage> [página]</white> · <white><usage> search \<texto> [página]</white> <dark_gray>-</dark_gray> tags de items y bloques.</gray>'
-    where: '<gray>• <white><usage> \<item></white> <dark_gray>-</dark_gray> adónde iría un item desde el sorter o pad más cercano.</gray>'
+    where: '<gray>• <white><usage></white> <dark_gray>-</dark_gray> adónde iría el item de tu mano desde el sorter o pad más cercano.</gray>'
     trace: '<gray>• <white><usage> [segundos|stop]</white> <dark_gray>-</dark_gray> muestra las entregas a tu alrededor.</gray>'
     give: '<gray>• <white><usage> sorter|pad \<tipo> [jugador] [cantidad]</white> <dark_gray>-</dark_gray> da activadores de sorter y bloques de pad.</gray>'
     reload: '<gray>• <white><usage></white> <dark_gray>-</dark_gray> recarga la configuración.</gray>'
@@ -104,6 +104,7 @@ position:
   side: 'lateral'
 
 where:
+  empty-hand: '<prefix><gray>Sujeta el item que quieres consultar.</gray>'
   no-source: '<prefix><gray>No hay ningún sorter ni pad a menos de <radius> bloques.</gray>'
 
 trace:

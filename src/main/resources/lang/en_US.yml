@@ -10,7 +10,7 @@ command:
       - '<gray>• <white>Sneak + right-click</white> a frame with an empty hand to mark it as a target; <white>sneak + left-click</white> it to see what it accepts.</gray>'
     tag: '<gray>• <white><usage> \<tag> [page]</white> <dark_gray>-</dark_gray> what an item or block tag contains.</gray>'
     tags: '<gray>• <white><usage> [page]</white> · <white><usage> search \<text> [page]</white> <dark_gray>-</dark_gray> item and block tags.</gray>'
-    where: '<gray>• <white><usage> \<item></white> <dark_gray>-</dark_gray> where an item would go from the nearest sorter or pad.</gray>'
+    where: '<gray>• <white><usage></white> <dark_gray>-</dark_gray> where the item in your hand would go from the nearest sorter or pad.</gray>'
     trace: '<gray>• <white><usage> [seconds|stop]</white> <dark_gray>-</dark_gray> show the deliveries around you.</gray>'
     give: '<gray>• <white><usage> sorter|pad \<type> [player] [amount]</white> <dark_gray>-</dark_gray> give sorter activators and pad blocks.</gray>'
     reload: '<gray>• <white><usage></white> <dark_gray>-</dark_gray> reload the configuration.</gray>'
@@ -104,6 +104,7 @@ position:
   side: 'side'
 
 where:
+  empty-hand: '<prefix><gray>Hold the item you want to look up.</gray>'
   no-source: '<prefix><gray>There is no sorter or pad within <radius> blocks.</gray>'
 
 trace:
