@@ -61,7 +61,7 @@ public final class TraceService {
         return until.remove(player.getUniqueId()) != null;
     }
 
-    public void forget(UUID player) {
+    private void forget(UUID player) {
         until.remove(player);
         lastShown.remove(player);
     }

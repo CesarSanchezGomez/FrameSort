@@ -98,7 +98,7 @@ public final class FrameSortPlugin extends JavaPlugin {
                 padService, commands);
 
         register(new TargetListener(index), new SorterListener(sorters), new PadListener(padService, messages),
-                new InspectListener(inspect, sorters, padService, trace));
+                new InspectListener(inspect, sorters, padService));
         // Only this check loads the integration's classes, so FrameSort runs without WorldGuard installed.
         if (getServer().getPluginManager().isPluginEnabled("WorldGuard")) {
             register(new WorldGuardTargetListener());

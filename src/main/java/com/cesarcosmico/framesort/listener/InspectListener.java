@@ -3,7 +3,6 @@ package com.cesarcosmico.framesort.listener;
 import com.cesarcosmico.framesort.service.InspectService;
 import com.cesarcosmico.framesort.service.PadService;
 import com.cesarcosmico.framesort.service.SorterService;
-import com.cesarcosmico.framesort.service.TraceService;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.ItemFrame;
@@ -27,13 +26,11 @@ public final class InspectListener implements Listener {
     private final InspectService inspect;
     private final SorterService sorters;
     private final PadService pads;
-    private final TraceService trace;
 
-    public InspectListener(InspectService inspect, SorterService sorters, PadService pads, TraceService trace) {
+    public InspectListener(InspectService inspect, SorterService sorters, PadService pads) {
         this.inspect = inspect;
         this.sorters = sorters;
         this.pads = pads;
-        this.trace = trace;
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
@@ -86,7 +83,6 @@ public final class InspectListener implements Listener {
     @EventHandler
     public void onQuit(PlayerQuitEvent event) {
         inspect.forget(event.getPlayer().getUniqueId());
-        trace.forget(event.getPlayer().getUniqueId());
     }
 
     // Empty frames are left alone, so they can still be filled or broken while sneaking.
