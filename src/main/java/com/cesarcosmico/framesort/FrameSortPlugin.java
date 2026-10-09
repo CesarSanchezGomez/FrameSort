@@ -17,6 +17,7 @@ import com.cesarcosmico.framesort.config.ConfigReader;
 import com.cesarcosmico.framesort.config.ConfigValidator;
 import com.cesarcosmico.framesort.config.FrameSortSettings;
 import com.cesarcosmico.framesort.config.PadSettings;
+import com.cesarcosmico.framesort.integration.worldguard.WorldGuardTargetListener;
 import com.cesarcosmico.framesort.listener.InspectListener;
 import com.cesarcosmico.framesort.listener.PadListener;
 import com.cesarcosmico.framesort.listener.SorterListener;
@@ -94,6 +95,10 @@ public final class FrameSortPlugin extends JavaPlugin {
 
         register(new TargetListener(index), new SorterListener(sorters), new PadListener(padService, messages),
                 new InspectListener(inspect, sorters, padService, trace));
+        // Only this check loads the integration's classes, so FrameSort runs without WorldGuard installed.
+        if (getServer().getPluginManager().isPluginEnabled("WorldGuard")) {
+            register(new WorldGuardTargetListener());
+        }
         List<CommandFeature> features = List.of(
                 new HelpCommand(messages, commands, List.of("tag", "tags", "where", "trace", "give", "reload")),
                 new TagCommand(tags, messages, settings),

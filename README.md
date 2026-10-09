@@ -5,7 +5,8 @@ Item sorting without hopper chains. A **sorter** (a dispenser with an Eye of End
 chest, barrel or hopper behind the frame, or dropped in front of it when there is no container.
 
 - **Server:** Paper 26.2 or newer, Java 25.
-- **Dependencies:** none.
+- **Dependencies:** none. With [WorldGuard](https://enginehub.org/worldguard) installed, sorters and pads respect its
+  regions (see below).
 - **Storage:** none to set up. Targets, pads and items keep their data in the world (persistent data containers).
 
 ## Installation
@@ -35,6 +36,10 @@ chest, barrel or hopper behind the frame, or dropped in front of it when there i
 4. **Inspect.** Sneak + right-click a sorter or pad with an empty hand: its target frames glow (only for you, in
    configurable colours) and are listed page by page. Sneak + left-click a target frame to see what it accepts. `/framesort trace`
    shows every delivery around you live.
+
+**WorldGuard.** When it is installed, a sorter or pad only sends to containers in exactly the same regions as itself;
+both outside every region is fine. Nobody can fill a chest in a region from outside it, or from another region.
+Targets are cached, so after changing regions run `/framesort reload`.
 
 Containers are looked up the moment items go in, so a container that was moved or broken is skipped: items are
 never duplicated.

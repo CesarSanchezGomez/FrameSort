@@ -6,6 +6,13 @@ authors: [ CesarCosmico ]
 description: 'Send items to item frames from sorter dispensers and teleport pads, without hopper chains.'
 website: 'https://github.com/CesarSanchezGomez/Framesort'
 
+dependencies:
+  server:
+    WorldGuard:
+      load: BEFORE
+      required: false
+      join-classpath: true
+
 permissions:
   framesort.*:
     description: 'Full access to FrameSort.'
