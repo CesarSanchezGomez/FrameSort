@@ -30,9 +30,9 @@ public record TargetSettings(TargetRegistration registration, Set<FramePosition>
 
     // SIDES is accepted as a shortcut for LEFT and RIGHT.
     private static Set<FramePosition> positions(ConfigReader reader) {
-        Set<FramePosition> all = EnumSet.allOf(FramePosition.class);
+        Set<FramePosition> front = EnumSet.of(FramePosition.FRONT);
         if (!reader.isSet("positions")) {
-            return all;
+            return front;
         }
         Set<FramePosition> positions = EnumSet.noneOf(FramePosition.class);
         for (String name : reader.strings("positions")) {
@@ -49,8 +49,8 @@ public record TargetSettings(TargetRegistration registration, Set<FramePosition>
             }
         }
         if (positions.isEmpty()) {
-            reader.warn("positions", "no valid values, using every position");
-            return all;
+            reader.warn("positions", "no valid values, using FRONT");
+            return front;
         }
         return positions;
     }

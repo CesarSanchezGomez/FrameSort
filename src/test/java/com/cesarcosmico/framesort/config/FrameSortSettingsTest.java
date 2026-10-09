@@ -12,7 +12,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 
@@ -45,7 +44,7 @@ class FrameSortSettingsTest {
         assertEquals(20, settings.sorter().tickRate());
         assertTrue(settings.sorter().showActivity());
         assertEquals(TargetRegistration.MANUAL, settings.targets().registration());
-        assertEquals(EnumSet.allOf(FramePosition.class), settings.targets().positions());
+        assertEquals(Set.of(FramePosition.FRONT), settings.targets().positions());
         assertEquals(64, settings.delivery().maxDistance());
         assertTrue(settings.delivery().insertIntoContainers());
         assertEquals(Material.CARROT_ON_A_STICK, settings.delivery().defaultTargetItem());
@@ -64,6 +63,7 @@ class FrameSortSettingsTest {
         assertEquals(64, settings.delivery().maxDistance());
         assertEquals(Set.of(EntityType.ITEM_FRAME, EntityType.GLOW_ITEM_FRAME), settings.sorter().frameTypes());
         assertEquals(8, settings.inspect().pageSize());
+        assertEquals(Set.of(FramePosition.FRONT), settings.targets().positions());
     }
 
     @Test

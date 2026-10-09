@@ -26,7 +26,7 @@ sorter:
 
 targets:
   registration: manual   # manual | automatic
-  positions: [TOP, BOTTOM, FRONT, BACK, LEFT, RIGHT]   # left/right as seen from the front; SIDES = LEFT + RIGHT
+  positions: [FRONT]   # also TOP, BOTTOM, BACK, LEFT, RIGHT; SIDES = LEFT + RIGHT (as seen from the front)
   frame-types: [ITEM_FRAME, GLOW_ITEM_FRAME]
 
 delivery:
