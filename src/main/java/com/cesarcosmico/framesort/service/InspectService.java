@@ -4,6 +4,7 @@ import com.cesarcosmico.framesort.config.CommandsConfig;
 import com.cesarcosmico.framesort.config.FrameSortSettings;
 import com.cesarcosmico.framesort.config.InspectSettings;
 import com.cesarcosmico.framesort.config.TargetSettings;
+import com.cesarcosmico.framesort.item.TagFilterCodec;
 import com.cesarcosmico.framesort.model.BlockKey;
 import com.cesarcosmico.framesort.model.FramePosition;
 import com.cesarcosmico.framesort.model.TargetRegistration;
@@ -155,22 +156,25 @@ public final class InspectService {
         }
 
         ItemStack shown = frame.getItem();
-        TagCatalog.TagView view = resolver.tag(shown);
-        if (view != null) {
-            Component accepts = text.get("frame.accepts.tag",
-                    Placeholder.unparsed("tag", view.key().asString()),
-                    Placeholder.unparsed("count", String.valueOf(view.materials().size())));
-            lines.add(tagCommand == null ? accepts
-                    : accepts.clickEvent(ClickEvent.runCommand(tagCommand + " " + view.key().asString())));
-        }
-        lines.add(text.get("frame.accepts.exact", Placeholder.component("item", shown.effectiveName())));
-        List<ItemStack> contents = TargetResolver.contents(shown);
-        if (!contents.isEmpty()) {
-            lines.add(text.get("frame.accepts.contents",
-                    Placeholder.unparsed("count", String.valueOf(contents.size()))));
+        if (TagFilterCodec.read(shown) != null) {
+            TagCatalog.TagView view = resolver.tag(shown);
+            if (view != null) {
+                Component accepts = text.get("frame.accepts.tag",
+                        Placeholder.unparsed("tag", view.key().asString()),
+                        Placeholder.unparsed("count", String.valueOf(view.materials().size())));
+                lines.add(tagCommand == null ? accepts
+                        : accepts.clickEvent(ClickEvent.runCommand(tagCommand + " " + view.key().asString())));
+            }
         } else {
-            lines.add(text.get("frame.accepts.similar",
-                    Placeholder.component("material", Component.translatable(shown.getType()))));
+            lines.add(text.get("frame.accepts.exact", Placeholder.component("item", shown.effectiveName())));
+            List<ItemStack> contents = TargetResolver.contents(shown);
+            if (!contents.isEmpty()) {
+                lines.add(text.get("frame.accepts.contents",
+                        Placeholder.unparsed("count", String.valueOf(contents.size()))));
+            } else {
+                lines.add(text.get("frame.accepts.similar",
+                        Placeholder.component("material", Component.translatable(shown.getType()))));
+            }
         }
         if (shown.getType() == settings.get().delivery().defaultTargetItem()) {
             lines.add(text.get("frame.accepts.default"));

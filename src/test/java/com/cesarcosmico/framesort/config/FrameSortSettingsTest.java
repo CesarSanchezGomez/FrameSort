@@ -64,6 +64,7 @@ class FrameSortSettingsTest {
         assertEquals(Set.of(EntityType.ITEM_FRAME, EntityType.GLOW_ITEM_FRAME), settings.sorter().frameTypes());
         assertEquals(8, settings.inspect().pageSize());
         assertEquals(Set.of(FramePosition.FRONT), settings.targets().positions());
+        assertEquals("<gradient:#F7B733:#FC4A1A>#<tag></gradient>", settings.targets().filterName());
     }
 
     @Test

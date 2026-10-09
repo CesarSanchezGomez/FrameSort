@@ -31,6 +31,7 @@ permissions:
       framesort.command.tags: true
       framesort.command.trace: true
       framesort.command.inspect: true
+      framesort.command.filter: true
       framesort.command.where: true
   framesort.admin:
     description: 'Administrator access (give items, reload, pads in permission mode).'
@@ -62,6 +63,9 @@ permissions:
     default: true
   framesort.command.inspect:
     description: 'Page through inspection results with /framesort inspect.'
+    default: true
+  framesort.command.filter:
+    description: 'Turn the held item into a tag filter with /framesort filter.'
     default: true
   framesort.command.where:
     description: 'See where the held item would go from the nearest sorter or pad with /framesort where.'

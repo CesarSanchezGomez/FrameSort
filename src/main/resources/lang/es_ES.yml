@@ -10,6 +10,7 @@ command:
       - '<gray>• <white>Shift + clic derecho</white> a un marco con la mano vacía para marcarlo como destino; <white>shift + clic izquierdo</white> para ver qué acepta.</gray>'
     tag: '<gray>• <white><usage> \<tag> [página]</white> <dark_gray>-</dark_gray> qué contiene un tag de items o bloques.</gray>'
     tags: '<gray>• <white><usage> [página]</white> · <white><usage> search \<texto> [página]</white> <dark_gray>-</dark_gray> tags de items y bloques.</gray>'
+    filter: '<gray>• <white><usage> \<tag></white> · <white><usage> clear</white> <dark_gray>-</dark_gray> convierte el item de tu mano en un filtro de tag para marcos.</gray>'
     where: '<gray>• <white><usage></white> <dark_gray>-</dark_gray> adónde iría el item de tu mano desde el sorter o pad más cercano.</gray>'
     trace: '<gray>• <white><usage> [segundos|stop]</white> <dark_gray>-</dark_gray> muestra las entregas a tu alrededor.</gray>'
     give: '<gray>• <white><usage> sorter|pad \<tipo> [jugador] [cantidad]</white> <dark_gray>-</dark_gray> da activadores de sorter y bloques de pad.</gray>'
@@ -102,6 +103,12 @@ position:
   left: 'izquierda'
   right: 'derecha'
   side: 'lateral'
+
+filter:
+  set: '<prefix><green>El item de tu mano ahora es un filtro de <white>#<tag></white>.</green>'
+  cleared: '<prefix><gray>El item de tu mano ya no es un filtro.</gray>'
+  not-a-filter: '<prefix><gray>El item de tu mano no es un filtro.</gray>'
+  empty-hand: '<prefix><gray>Sujeta el item que quieres convertir en filtro.</gray>'
 
 where:
   empty-hand: '<prefix><gray>Sujeta el item que quieres consultar.</gray>'

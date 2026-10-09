@@ -2,14 +2,14 @@ package com.cesarcosmico.framesort.service;
 
 import com.cesarcosmico.framesort.api.TargetBindEvent;
 import com.cesarcosmico.framesort.config.FrameSortSettings;
+import com.cesarcosmico.framesort.item.TagFilterCodec;
 import com.cesarcosmico.framesort.model.BlockKey;
 import com.cesarcosmico.framesort.model.MatchTier;
 import io.papermc.paper.datacomponent.DataComponentTypes;
 import io.papermc.paper.datacomponent.item.BundleContents;
 import io.papermc.paper.datacomponent.item.ItemContainerContents;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.block.Block;
 import org.bukkit.entity.ItemFrame;
 import org.bukkit.inventory.ItemStack;
@@ -36,7 +36,6 @@ public final class TargetResolver {
     private static final int NO_MATCH = -1;
     // Bounds memory on servers with many distinct items; a full clear is cheap to rebuild from the index.
     private static final int MAX_CACHED = 4096;
-    private static final PlainTextComponentSerializer PLAIN = PlainTextComponentSerializer.plainText();
 
     private final Supplier<FrameSortSettings> settings;
     private final TargetIndex index;
@@ -91,9 +90,10 @@ public final class TargetResolver {
         return best;
     }
 
+    /** The tag a filter item stands for, or {@code null} when it is not a filter. */
     public TagCatalog.@Nullable TagView tag(ItemStack frameItem) {
-        Component name = frameItem.getData(DataComponentTypes.CUSTOM_NAME);
-        return name == null ? null : tags.resolve(PLAIN.serialize(name));
+        NamespacedKey key = TagFilterCodec.read(frameItem);
+        return key == null ? null : tags.find(key);
     }
 
     public static List<ItemStack> contents(ItemStack item) {
@@ -135,12 +135,13 @@ public final class TargetResolver {
     }
 
     private int direct(ItemStack target, ItemStack item, boolean nested) {
+        // A filter stands only for its tag, never for itself or its material.
+        if (TagFilterCodec.read(target) != null) {
+            TagCatalog.TagView tag = tag(target);
+            return tag != null && tag.lookup().contains(item.getType()) ? MatchTier.TAG.priority(nested) : NO_MATCH;
+        }
         if (target.isSimilar(item)) {
             return MatchTier.EXACT.priority(nested);
-        }
-        TagCatalog.TagView tag = tag(target);
-        if (tag != null && tag.lookup().contains(item.getType())) {
-            return MatchTier.TAG.priority(nested);
         }
         // A filled shulker box or bundle stands for its contents, not for its own material.
         if (target.getType() == item.getType() && contents(target).isEmpty()) {

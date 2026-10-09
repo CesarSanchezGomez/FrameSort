@@ -23,7 +23,7 @@ chest, barrel or hopper behind the frame, or dropped in front of it when there i
 1. **Targets.** Put an item in a frame on a container and sneak + right-click the frame with an empty hand to
    mark it as a target. A frame accepts items in this order of preference:
    1. the exact item;
-   2. a tag, when the frame item is renamed to it with a leading `#` (`#logs`, `#minecraft:logs`);
+   2. a tag, when the frame item is a tag filter made with `/framesort filter <tag>`;
    3. the same material;
    4. what a shulker box or bundle in the frame contains.
 
@@ -51,6 +51,7 @@ never duplicated.
 | `/framesort` (help) | `framesort.command.help` | everyone |
 | `/framesort tag <tag> [page]` | `framesort.command.tag` | everyone |
 | `/framesort tags [page]`, `/framesort tags search <text> [page]` | `framesort.command.tags` | everyone |
+| `/framesort filter <tag>`, `/framesort filter clear` | `framesort.command.filter` | everyone |
 | `/framesort where` | `framesort.command.where` | everyone |
 | `/framesort trace [seconds\|stop]` | `framesort.command.trace` | everyone |
 | `/framesort give sorter\|pad <type> [player] [amount]` | `framesort.command.give` | op |
@@ -64,7 +65,7 @@ Every command also runs as `/fs`. Where each command lives, its permission and w
 | Permission | Default | Grants |
 |---|---|---|
 | `framesort.*` | op | everything |
-| `framesort.use` | everyone | inspecting, marking targets and the help, tag, tags, where, trace and inspect commands |
+| `framesort.use` | everyone | inspecting, marking targets and the help, tag, tags, filter, where, trace and inspect commands |
 | `framesort.admin` | op | creating pads in `permission` mode and the give and reload commands |
 | `framesort.inspect` | everyone | inspecting sorters, pads and frames |
 | `framesort.target.create` | everyone | marking frames as targets |

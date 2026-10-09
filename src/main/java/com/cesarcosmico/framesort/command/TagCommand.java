@@ -8,11 +8,8 @@ import com.mojang.brigadier.Command;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
-import com.mojang.brigadier.suggestion.Suggestions;
-import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
 import io.papermc.paper.command.brigadier.Commands;
-import io.papermc.paper.command.brigadier.argument.ArgumentTypes;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
@@ -21,17 +18,16 @@ import org.bukkit.NamespacedKey;
 
 import java.util.List;
 import java.util.Locale;
-import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 
 public final class TagCommand implements CommandFeature {
 
-    private final TagCatalog tags;
+    private final TagArgument tag;
     private final Supplier<Messages> messages;
     private final Supplier<FrameSortSettings> settings;
 
     public TagCommand(TagCatalog tags, Supplier<Messages> messages, Supplier<FrameSortSettings> settings) {
-        this.tags = tags;
+        this.tag = new TagArgument(tags, messages);
         this.messages = messages;
         this.settings = settings;
     }
@@ -43,8 +39,7 @@ public final class TagCommand implements CommandFeature {
 
     @Override
     public void attach(LiteralArgumentBuilder<CommandSourceStack> node, String path) {
-        node.then(Commands.argument("tag", ArgumentTypes.namespacedKey())
-                .suggests(this::suggestTags)
+        node.then(Commands.argument("tag", tag)
                 .executes(context -> showTag(context, path, 1))
                 .then(Commands.argument("page", IntegerArgumentType.integer(1))
                         .executes(context -> showTag(context, path,
@@ -52,14 +47,8 @@ public final class TagCommand implements CommandFeature {
     }
 
     private int showTag(CommandContext<CommandSourceStack> context, String path, int page) {
-        NamespacedKey key = context.getArgument("tag", NamespacedKey.class);
+        TagCatalog.TagView view = context.getArgument("tag", TagCatalog.TagView.class);
         Messages text = messages.get();
-        TagCatalog.TagView view = tags.find(key);
-        if (view == null) {
-            context.getSource().getSender().sendMessage(text.get("tag.unknown",
-                    Placeholder.unparsed("tag", key.asString())));
-            return Command.SINGLE_SUCCESS;
-        }
         List<Component> lines = view.materials().stream().map(material -> entry(text, material)).toList();
         String name = shortName(view.key());
         Component title = text.get("tag.title",
@@ -68,19 +57,6 @@ public final class TagCommand implements CommandFeature {
         ChatPager.send(context.getSource().getSender(), text, title, lines, page,
                 settings.get().inspect().pageSize(), path + " " + name + " %d");
         return Command.SINGLE_SUCCESS;
-    }
-
-    private CompletableFuture<Suggestions> suggestTags(CommandContext<CommandSourceStack> context,
-                                                       SuggestionsBuilder builder) {
-        String typed = builder.getRemainingLowerCase();
-        for (NamespacedKey name : tags.names()) {
-            String full = name.asString();
-            String shortName = shortName(name);
-            if (full.startsWith(typed) || shortName.startsWith(typed)) {
-                builder.suggest(full.startsWith(typed) && !shortName.startsWith(typed) ? full : shortName);
-            }
-        }
-        return builder.buildFuture();
     }
 
     private static Component entry(Messages text, Material material) {
