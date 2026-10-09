@@ -48,8 +48,7 @@ public final class InspectService {
     private final TargetResolver resolver;
     private final SorterService sorters;
     private final PadService pads;
-    private final @Nullable String tagCommand;
-    private final @Nullable String pageCommand;
+    private final CommandsConfig commands;
     private final Map<UUID, Listing> listings = new HashMap<>();
     private final HighlightService highlights;
 
@@ -63,10 +62,7 @@ public final class InspectService {
         this.resolver = resolver;
         this.sorters = sorters;
         this.pads = pads;
-        // Links follow commands.yml; a disabled feature leaves them as plain text.
-        this.tagCommand = commands.primaryUsage("tag");
-        String inspect = commands.primaryUsage("inspect");
-        this.pageCommand = inspect == null ? null : inspect + " %d";
+        this.commands = commands;
     }
 
     /** With an item in {@code filter}, only where that item would go, chosen like a real delivery. */
@@ -97,7 +93,7 @@ public final class InspectService {
             filtered(text, source, center, filter, lines, marks);
         }
         listings.put(player.getUniqueId(), new Listing(title, List.copyOf(lines)));
-        ChatPager.send(player, text, title, lines, 1, settings.get().inspect().pageSize(), pageCommand);
+        ChatPager.send(player, text, title, lines, 1, settings.get().inspect().pageSize(), pageCommand(player));
         highlight(player, marks);
     }
 
@@ -136,7 +132,7 @@ public final class InspectService {
             return false;
         }
         ChatPager.send(player, messages.get(), listing.title(), listing.lines(), page,
-                settings.get().inspect().pageSize(), pageCommand);
+                settings.get().inspect().pageSize(), pageCommand(player));
         return true;
     }
 
@@ -159,6 +155,7 @@ public final class InspectService {
         if (TagFilterCodec.read(shown) != null) {
             TagCatalog.TagView view = resolver.tag(shown);
             if (view != null) {
+                String tagCommand = commands.usageFor("tag", player::hasPermission);
                 Component accepts = text.get("frame.accepts.tag",
                         Placeholder.unparsed("tag", view.key().asString()),
                         Placeholder.unparsed("count", String.valueOf(view.materials().size())));
@@ -323,6 +320,12 @@ public final class InspectService {
 
     private void highlight(Player player, List<HighlightService.Highlight> marks) {
         highlights.show(player, marks, settings.get().inspect().highlightSeconds());
+    }
+
+    // Links follow commands.yml and the viewer's permissions; without them the page buttons are plain text.
+    private @Nullable String pageCommand(Player player) {
+        String inspect = commands.usageFor("inspect", player::hasPermission);
+        return inspect == null ? null : inspect + " %d";
     }
 
     private static long distanceSquared(ItemFrame frame, BlockKey center) {

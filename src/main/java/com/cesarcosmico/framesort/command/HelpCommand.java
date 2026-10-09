@@ -37,12 +37,8 @@ public final class HelpCommand implements CommandFeature {
             CommandSender sender = context.getSource().getSender();
             Component help = messages.get().get("command.help.header");
             for (String id : listed) {
-                CommandsConfig.Feature feature = commands.feature(id);
-                String usage = commands.primaryUsage(id);
-                if (feature == null || usage == null) {
-                    continue;
-                }
-                if (feature.permission().isBlank() || sender.hasPermission(feature.permission())) {
+                String usage = commands.usageFor(id, sender::hasPermission);
+                if (usage != null) {
                     help = help.appendNewline().append(messages.get().get("command.help." + id,
                             Placeholder.unparsed("usage", usage)));
                 }

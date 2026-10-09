@@ -82,6 +82,22 @@ class CommandsConfigTest {
     }
 
     @Test
+    void usageIsOnlyOfferedToViewersWhoMayRunIt() throws Exception {
+        YamlConfiguration bundled = yaml("""
+                tag: {permission: 'p.tag', usage: ['/p tag']}
+                open: {permission: '', usage: ['/p open']}
+                off: {enabled: false, usage: ['/p off']}
+                """);
+        CommandsConfig config = CommandsConfig.parse(bundled, bundled, warning -> { });
+
+        assertEquals("/p tag", config.usageFor("tag", permission -> true));
+        assertNull(config.usageFor("tag", permission -> false));
+        assertEquals("/p open", config.usageFor("open", permission -> false));
+        assertNull(config.usageFor("off", permission -> true));
+        assertNull(config.usageFor("missing", permission -> true));
+    }
+
+    @Test
     void featuresTheJarDoesNotHaveAreIgnored() throws Exception {
         YamlConfiguration bundled = yaml("help:\n  usage: ['/p']\n");
         CommandsConfig config = CommandsConfig.parse(yaml("made-up:\n  usage: ['/x']\n"), bundled, warning -> { });

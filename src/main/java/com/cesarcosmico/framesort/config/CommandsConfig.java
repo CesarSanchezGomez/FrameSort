@@ -15,6 +15,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 import java.util.regex.Pattern;
 
 /**
@@ -95,6 +96,20 @@ public final class CommandsConfig {
             return null;
         }
         return "/" + String.join(" ", feature.paths().getFirst());
+    }
+
+    /**
+     * {@link #primaryUsage} when the viewer may run the feature, else {@code null}: a chat link never offers a command
+     * that would answer "Unknown command".
+     *
+     * @param hasPermission usually {@code sender::hasPermission}
+     */
+    public @Nullable String usageFor(String id, Predicate<String> hasPermission) {
+        Feature feature = features.get(id);
+        if (feature == null || !(feature.permission().isBlank() || hasPermission.test(feature.permission()))) {
+            return null;
+        }
+        return primaryUsage(id);
     }
 
     private static @Nullable List<String> path(String usage) {
