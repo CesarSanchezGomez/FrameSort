@@ -116,7 +116,7 @@ public final class PadService {
         long radiusSquared = (long) radius * radius;
         for (Map<BlockKey, String> inChunk : pads.values()) {
             for (BlockKey key : inChunk.keySet()) {
-                if (key.world().equals(center.world()) && key.distanceSquared(center) <= radiusSquared) {
+                if (key.distanceSquared(center) <= radiusSquared) {
                     found.add(world.getBlockAt(key.x(), key.y(), key.z()));
                 }
             }
