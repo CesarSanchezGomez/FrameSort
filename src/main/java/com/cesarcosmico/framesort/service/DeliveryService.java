@@ -53,15 +53,15 @@ public final class DeliveryService {
         this.observer = observer;
     }
 
-    /** Returns whether anything left the source. */
-    public boolean deliver(Block origin, Source source) {
+    /** Returns how many items left the source, whether into containers, dropped or destroyed. */
+    public int deliver(Block origin, Source source) {
         ItemStack stack = source.stack().clone();
         if (stack.isEmpty()) {
-            return false;
+            return 0;
         }
         List<TargetResolver.Match> matches = resolver.matches(origin, stack);
         if (matches.isEmpty()) {
-            return false;
+            return 0;
         }
 
         boolean insert = settings.get().delivery().insertIntoContainers();
@@ -99,15 +99,15 @@ public final class DeliveryService {
                 Location to = open.get(ThreadLocalRandom.current().nextInt(open.size())).getLocation();
                 source.moveTo(to);
                 observer.accept(new Delivered(from, stack, remaining, to, Kind.DROPPED));
-                return true;
+                return amount;
             }
             if (!best.isEmpty()) {
                 source.destroy();
                 observer.accept(new Delivered(from, stack, remaining, best.getFirst().getLocation(), Kind.DESTROYED));
-                return true;
+                return amount;
             }
         }
-        return remaining < amount;
+        return amount - remaining;
     }
 
     public static @Nullable Inventory inventory(Block block) {

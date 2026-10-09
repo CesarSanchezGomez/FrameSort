@@ -41,8 +41,9 @@ inspect:
   source:
     sorter: 'sorter'
     pad: 'teleport pad'
-  title: 'Targets of this <source> (<x>, <y>, <z>)'
-  title-item: 'Where <item> goes from this <source>'
+  title: 'Targets of this <source> (<x>, <y>, <z>)<sorted>'
+  title-item: 'Where <item> goes from this <source><sorted>'
+  sorted: ' <dark_gray>· <count> sorted</dark_gray>'
   section:
     containers: '<green>Into containers:</green>'
     dropped: '<yellow>Dropped at:</yellow>'

@@ -75,9 +75,12 @@ public final class InspectService {
         BlockKey center = FrameGeometry.key(source);
         List<Component> lines = new ArrayList<>();
         List<HighlightService.Highlight> marks = new ArrayList<>();
+        TagResolver sorted = Placeholder.component("sorted", pad ? Component.empty()
+                : text.get("inspect.sorted", Placeholder.unparsed("count", String.valueOf(sorters.sorted(source)))));
         Component title;
         if (filter.isEmpty()) {
-            title = text.get("inspect.title", Placeholder.component("source", kind), coordinates(source.getLocation()));
+            title = text.get("inspect.title", Placeholder.component("source", kind), coordinates(source.getLocation()),
+                    sorted);
             List<ItemFrame> frames = new ArrayList<>(index.near(center, settings.get().delivery().maxDistance()));
             frames.sort(Comparator.comparingLong(frame -> distanceSquared(frame, center)));
             for (ItemFrame frame : frames) {
@@ -89,7 +92,7 @@ public final class InspectService {
             }
         } else {
             title = text.get("inspect.title-item", Placeholder.component("source", kind),
-                    Placeholder.component("item", filter.effectiveName()), coordinates(source.getLocation()));
+                    Placeholder.component("item", filter.effectiveName()), coordinates(source.getLocation()), sorted);
             filtered(text, source, center, filter, lines, marks);
         }
         listings.put(player.getUniqueId(), new Listing(title, List.copyOf(lines)));

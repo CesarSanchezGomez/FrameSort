@@ -41,8 +41,9 @@ inspect:
   source:
     sorter: 'sorter'
     pad: 'teleport pad'
-  title: 'Destinos de este <source> (<x>, <y>, <z>)'
-  title-item: 'Adónde va <item> desde este <source>'
+  title: 'Destinos de este <source> (<x>, <y>, <z>)<sorted>'
+  title-item: 'Adónde va <item> desde este <source><sorted>'
+  sorted: ' <dark_gray>· <count> enviados</dark_gray>'
   section:
     containers: '<green>A contenedores:</green>'
     dropped: '<yellow>Se suelta en:</yellow>'

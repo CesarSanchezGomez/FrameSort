@@ -17,6 +17,8 @@ import org.bukkit.block.Dispenser;
 import org.bukkit.entity.ItemFrame;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.persistence.PersistentDataContainer;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.util.Vector;
 import org.jspecify.annotations.Nullable;
@@ -186,9 +188,23 @@ public final class SorterService {
             return;
         }
         Location location = sorter.block.getLocation().toCenterLocation();
-        if (delivery.deliver(sorter.block, new SlotSource(slot, location)) && settings.get().sorter().showActivity()) {
+        int sent = delivery.deliver(sorter.block, new SlotSource(slot, location));
+        if (sent == 0) {
+            return;
+        }
+        PersistentDataContainer data = dispenser.getPersistentDataContainer();
+        long total = data.getOrDefault(Keys.SORTED, PersistentDataType.LONG, 0L) + sent;
+        data.set(Keys.SORTED, PersistentDataType.LONG, total);
+        if (settings.get().sorter().showActivity()) {
             sorter.frame.setRotation(sorter.frame.getRotation().rotateClockwise());
         }
+    }
+
+    /** How many items this sorter's dispenser has sent; the count stays with the block. */
+    public long sorted(Block block) {
+        return block.getState(false) instanceof Dispenser dispenser
+                ? dispenser.getPersistentDataContainer().getOrDefault(Keys.SORTED, PersistentDataType.LONG, 0L)
+                : 0;
     }
 
     private void applyLook(ItemFrame frame, Block block, boolean active) {
