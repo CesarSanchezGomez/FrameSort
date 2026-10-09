@@ -36,7 +36,7 @@ or bundle with contents, it sends a stack from inside instead.
 | `registration` | `manual` | `manual`: only frames marked by sneak + right-clicking them with an empty hand. `automatic`: every frame of `frame-types`. |
 | `positions` | `[FRONT]` | Where a target frame may hang on its block: `TOP`, `BOTTOM`, `FRONT`, `BACK`, `LEFT`, `RIGHT` (`SIDES` = `LEFT` + `RIGHT`). `FRONT`, `BACK`, `LEFT` and `RIGHT` follow the way the block faces (chests, barrels, furnaces…); left and right are as seen standing in front of it. On blocks without a horizontal facing (hoppers, upright barrels, composters) a side face counts as any of the four. |
 | `frame-types` | `[ITEM_FRAME, GLOW_ITEM_FRAME]` | Frames that can be targets. |
-| `filter-name` | `'<gradient:#F7B733:#FC4A1A>#<tag></gradient>'` | Name `/framesort filter` gives the item (MiniMessage); `<tag>` is the tag, without `minecraft:` for vanilla tags. |
+| `filter-name` | `'<gradient:#F7B733:#FC4A1A>#<tag></gradient>'` | Name a tag filter gets (MiniMessage); `<tag>` is the tag, without `minecraft:` for vanilla tags. |
 
 Only the front counts by default, so decorative frames on the top or sides of a chest are never used. Add positions
 only where frames are meant to be targets, especially with `automatic`.
@@ -59,11 +59,11 @@ How a destination is chosen:
 4. Whatever is left is dropped at one random frame without a container.
 5. If those frames are all on lava cauldrons, the rest is destroyed. If there is nowhere to go, the item stays.
 
-**Tag filters.** `/framesort filter <tag>` turns the item in your hand into a filter: the tag is stored inside the item
-and its name is set from `targets.filter-name`. In a frame, a filter accepts everything in its tag and nothing else,
+**Tag filters.** The [Filter] button in `/framesort tag <tag>` (or `/framesort tag <tag> filter`) turns the item in
+your hand into a filter: the tag is stored inside the item and its name is set from `targets.filter-name`. In a frame, a filter accepts everything in its tag and nothing else,
 not even its own material; inside a shulker box or bundle in the frame it adds its tag to what the frame accepts.
 Renaming the item in an anvil never changes its tag, and a plain renamed item is never a filter.
-`/framesort filter clear` turns it back into a normal item.
+Running it again for the same tag turns it back into a normal item.
 
 **Lava cauldrons are trash cans.** A target frame on a lava cauldron holds the item to destroy and is chosen like
 any other frame (exact item, tag, material); with `registration: manual` it must be marked too. If a container
