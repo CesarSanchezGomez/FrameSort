@@ -6,8 +6,8 @@ command:
   help:
     header:
       - '<prefix><gray>Sort items into item frames.</gray>'
-      - '<gray>• <white>Right-click</white> a sorter or pad with a <white>stick</white> to see its targets (hold an item in your off hand to see only its targets).</gray>'
-      - '<gray>• <white>Sneak + right-click</white> a frame with the stick to mark it as a target; <white>right-click</white> it to see what it accepts.</gray>'
+      - '<gray>• <white>Sneak + right-click</white> a sorter or pad with an empty hand to see its targets (hold an item in your off hand to see only its targets).</gray>'
+      - '<gray>• <white>Sneak + right-click</white> a frame with an empty hand to mark it as a target; <white>sneak + left-click</white> it to see what it accepts.</gray>'
     tag: '<gray>• <white><usage> \<tag> [page]</white> <dark_gray>-</dark_gray> what an item or block tag contains.</gray>'
     tags: '<gray>• <white><usage> [page]</white> · <white><usage> search \<text> [page]</white> <dark_gray>-</dark_gray> item and block tags.</gray>'
     trace: '<gray>• <white><usage> [seconds|stop]</white> <dark_gray>-</dark_gray> show the deliveries around you.</gray>'
@@ -53,13 +53,13 @@ inspect:
     dropped: '<yellow>dropped here</yellow>'
     lava: '<red>lava</red>'
   line: '<gray>  • <white><item></white> <dark_gray>→</dark_gray> <target> <dark_gray>(<x>, <y>, <z>) · <distance> m</dark_gray></gray>'
-  no-listing: '<prefix><gray>Right-click a sorter or pad with the tool first.</gray>'
+  no-listing: '<prefix><gray>Sneak + right-click a sorter or pad with an empty hand first.</gray>'
 
 frame:
   header: '<prefix><white>Target frame</white> <dark_gray>(<x>, <y>, <z>)</dark_gray>'
   status:
     target: '<green>  This frame is a target</green> <gray>(on the <position> of its block).</gray>'
-    unmarked: '<yellow>  Not a target yet: sneak + right-click it with the tool to mark it.</yellow>'
+    unmarked: '<yellow>  Not a target yet: sneak + right-click it with an empty hand to mark it.</yellow>'
     not-allowed: '<red>  Not a target: frames can''t be used on the <position> of a block here.</red>'
     wrong-type: '<red>  Not a target: this kind of frame is not used for targets.</red>'
   into:

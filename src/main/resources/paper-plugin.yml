@@ -14,7 +14,7 @@ permissions:
       framesort.use: true
       framesort.admin: true
   framesort.use:
-    description: 'Player access (tool, target marking, tags, tracing).'
+    description: 'Player access (inspecting, target marking, tags, tracing).'
     default: true
     children:
       framesort.inspect: true
@@ -32,7 +32,7 @@ permissions:
       framesort.command.give: true
       framesort.command.reload: true
   framesort.inspect:
-    description: 'Use the tool to inspect sorters, pads and target frames.'
+    description: 'Inspect sorters, pads and target frames by sneaking with an empty hand.'
     default: true
   framesort.target.create:
     description: 'Mark item frames as targets (targets.registration manual).'

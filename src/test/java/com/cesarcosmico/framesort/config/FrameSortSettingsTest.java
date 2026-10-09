@@ -49,7 +49,6 @@ class FrameSortSettingsTest {
         assertEquals(64, settings.delivery().maxDistance());
         assertTrue(settings.delivery().insertIntoContainers());
         assertEquals(Material.CARROT_ON_A_STICK, settings.delivery().defaultTargetItem());
-        assertEquals(Material.STICK, settings.inspect().tool());
         assertNull(settings.sorter().activator().itemModel());
         assertEquals(5, settings.inspect().highlightSeconds());
         assertEquals(Color.fromRGB(0x55FF55), settings.inspect().colors().container());
@@ -83,7 +82,6 @@ class FrameSortSettingsTest {
                   max-distance: lots
                   default-target-item: ""
                 inspect:
-                  tool: ""
                   colors: { dropped: "#ABC", lava: "#00ff7f" }
                 """);
         List<String> warnings = new ArrayList<>();
@@ -98,11 +96,10 @@ class FrameSortSettingsTest {
                 settings.targets().positions());
         assertEquals(64, settings.delivery().maxDistance());
         assertNull(settings.delivery().defaultTargetItem());
-        assertEquals(Material.STICK, settings.inspect().tool());
         assertEquals(Color.fromRGB(0xFFFF55), settings.inspect().colors().dropped());
         assertEquals(Color.fromRGB(0x00FF7F), settings.inspect().colors().lava());
         // default-target-item "" is a valid "off", so it does not warn.
-        assertEquals(9, warnings.size(), warnings::toString);
+        assertEquals(8, warnings.size(), warnings::toString);
         assertTrue(warnings.stream().allMatch(w -> w.startsWith("config.yml > ")), warnings::toString);
     }
 }

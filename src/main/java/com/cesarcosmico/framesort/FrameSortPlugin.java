@@ -16,10 +16,10 @@ import com.cesarcosmico.framesort.config.ConfigReader;
 import com.cesarcosmico.framesort.config.ConfigValidator;
 import com.cesarcosmico.framesort.config.FrameSortSettings;
 import com.cesarcosmico.framesort.config.PadSettings;
+import com.cesarcosmico.framesort.listener.InspectListener;
 import com.cesarcosmico.framesort.listener.PadListener;
 import com.cesarcosmico.framesort.listener.SorterListener;
 import com.cesarcosmico.framesort.listener.TargetListener;
-import com.cesarcosmico.framesort.listener.ToolListener;
 import com.cesarcosmico.framesort.service.DeliveryService;
 import com.cesarcosmico.framesort.service.HighlightService;
 import com.cesarcosmico.framesort.service.InspectService;
@@ -92,7 +92,7 @@ public final class FrameSortPlugin extends JavaPlugin {
                 padService, commands);
 
         register(new TargetListener(index), new SorterListener(sorters), new PadListener(padService, messages),
-                new ToolListener(settings, inspect, sorters, padService, trace));
+                new InspectListener(inspect, sorters, padService, trace));
         List<CommandFeature> features = List.of(
                 new HelpCommand(messages, commands, List.of("tag", "tags", "trace", "give", "reload")),
                 new TagCommand(tags, messages, settings),

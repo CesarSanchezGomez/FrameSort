@@ -33,7 +33,7 @@ or bundle with contents, it sends a stack from inside instead.
 
 | Key | Default | Meaning |
 |---|---|---|
-| `registration` | `manual` | `manual`: only frames marked with the tool. `automatic`: every frame of `frame-types`. |
+| `registration` | `manual` | `manual`: only frames marked by sneak + right-clicking them with an empty hand. `automatic`: every frame of `frame-types`. |
 | `positions` | all | Where a target frame may hang on its block: `TOP`, `BOTTOM`, `FRONT`, `BACK`, `LEFT`, `RIGHT` (`SIDES` = `LEFT` + `RIGHT`). `FRONT`, `BACK`, `LEFT` and `RIGHT` follow the way the block faces (chests, barrels, furnaces…); left and right are as seen standing in front of it. On blocks without a horizontal facing (hoppers, upright barrels, composters) a side face counts as any of the four. |
 | `frame-types` | `[ITEM_FRAME, GLOW_ITEM_FRAME]` | Frames that can be targets. |
 
@@ -67,7 +67,6 @@ no other target. An empty frame does nothing.
 
 | Key | Default | Meaning |
 |---|---|---|
-| `tool` | `STICK` | The inspection and marking tool. |
 | `highlight-seconds` | `5` | How long targets glow for the player who inspected them. Nobody else sees the glow. |
 | `colors.container`, `colors.dropped`, `colors.lava` | `#55FF55`, `#FFFF55`, `#FF5555` | Glow and trace colours (`#RRGGBB`) for targets that put items into a container, drop them, or destroy them in lava. |
 | `page-size` | `8` | Entries per page in lists. |

@@ -6,8 +6,8 @@ command:
   help:
     header:
       - '<prefix><gray>Ordena items en marcos.</gray>'
-      - '<gray>• <white>Clic derecho</white> a un sorter o pad con un <white>palo</white> para ver sus destinos (con un item en la otra mano, solo los de ese item).</gray>'
-      - '<gray>• <white>Shift + clic derecho</white> a un marco con el palo para marcarlo como destino; <white>clic derecho</white> para ver qué acepta.</gray>'
+      - '<gray>• <white>Shift + clic derecho</white> a un sorter o pad con la mano vacía para ver sus destinos (con un item en la otra mano, solo los de ese item).</gray>'
+      - '<gray>• <white>Shift + clic derecho</white> a un marco con la mano vacía para marcarlo como destino; <white>shift + clic izquierdo</white> para ver qué acepta.</gray>'
     tag: '<gray>• <white><usage> \<tag> [página]</white> <dark_gray>-</dark_gray> qué contiene un tag de items o bloques.</gray>'
     tags: '<gray>• <white><usage> [página]</white> · <white><usage> search \<texto> [página]</white> <dark_gray>-</dark_gray> tags de items y bloques.</gray>'
     trace: '<gray>• <white><usage> [segundos|stop]</white> <dark_gray>-</dark_gray> muestra las entregas a tu alrededor.</gray>'
@@ -53,13 +53,13 @@ inspect:
     dropped: '<yellow>se suelta aquí</yellow>'
     lava: '<red>lava</red>'
   line: '<gray>  • <white><item></white> <dark_gray>→</dark_gray> <target> <dark_gray>(<x>, <y>, <z>) · <distance> m</dark_gray></gray>'
-  no-listing: '<prefix><gray>Primero haz clic derecho a un sorter o pad con la herramienta.</gray>'
+  no-listing: '<prefix><gray>Primero haz shift + clic derecho a un sorter o pad con la mano vacía.</gray>'
 
 frame:
   header: '<prefix><white>Marco destino</white> <dark_gray>(<x>, <y>, <z>)</dark_gray>'
   status:
     target: '<green>  Este marco es un destino</green> <gray>(en la cara <position> de su bloque).</gray>'
-    unmarked: '<yellow>  Aún no es destino: haz shift + clic derecho con la herramienta para marcarlo.</yellow>'
+    unmarked: '<yellow>  Aún no es destino: haz shift + clic derecho con la mano vacía para marcarlo.</yellow>'
     not-allowed: '<red>  No es destino: aquí no se permiten marcos en la cara <position> de un bloque.</red>'
     wrong-type: '<red>  No es destino: este tipo de marco no se usa como destino.</red>'
   into:

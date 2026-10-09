@@ -35,7 +35,6 @@ delivery:
   default-target-item: CARROT_ON_A_STICK   # '' = off
 
 inspect:
-  tool: STICK
   highlight-seconds: 5
   colors:
     container: '#55FF55'

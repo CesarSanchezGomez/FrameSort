@@ -19,8 +19,8 @@ chest, barrel or hopper behind the frame, or dropped in front of it when there i
 
 ## How it works
 
-1. **Targets.** Put an item in a frame on a container and sneak + right-click the frame with a stick to mark it
-   as a target. A frame accepts items in this order of preference:
+1. **Targets.** Put an item in a frame on a container and sneak + right-click the frame with an empty hand to
+   mark it as a target. A frame accepts items in this order of preference:
    1. the exact item;
    2. a tag, when the frame item is renamed to it (`logs`, `#minecraft:logs`);
    3. the same material;
@@ -32,8 +32,8 @@ chest, barrel or hopper behind the frame, or dropped in front of it when there i
    random stack from its inventory every second, opening shulker boxes and bundles inside it.
 3. **Teleport pads.** Place crying obsidian on gilded blackstone. Items resting on top are sent to targets. Who
    can create pads is configurable: anyone, players with a permission, or only with a special pad block.
-4. **Inspect.** Right-click a sorter or pad with the stick: its targets' items glow (only for you, in configurable
-   colours) and are listed page by page. Right-click a target frame to see what it accepts. `/framesort trace`
+4. **Inspect.** Sneak + right-click a sorter or pad with an empty hand: its targets' items glow (only for you, in
+   configurable colours) and are listed page by page. Sneak + left-click a target frame to see what it accepts. `/framesort trace`
    shows every delivery around you live.
 
 Containers are looked up the moment items go in, so a container that was moved or broken is skipped: items are
@@ -58,16 +58,16 @@ Every command also runs as `/fs`. Where each command lives, its permission and w
 | Permission | Default | Grants |
 |---|---|---|
 | `framesort.*` | op | everything |
-| `framesort.use` | everyone | using the tool, marking targets and the help, tag, tags, trace and inspect commands |
+| `framesort.use` | everyone | inspecting, marking targets and the help, tag, tags, trace and inspect commands |
 | `framesort.admin` | op | creating pads in `permission` mode and the give and reload commands |
-| `framesort.inspect` | everyone | using the tool (a stick by default) |
+| `framesort.inspect` | everyone | inspecting sorters, pads and frames |
 | `framesort.target.create` | everyone | marking frames as targets |
 | `framesort.pad.create` | op | creating pads when `pads.yml` has `creation: permission` |
 | `framesort.command.<command>` | as in the table above | each command |
 
 ## Configuration
 
-`config.yml` (sorters, targets, delivery, the tool), `pads.yml` (pad types and who can create them) and
+`config.yml` (sorters, targets, delivery, inspection), `pads.yml` (pad types and who can create them) and
 `lang/`. See [docs/configuration.md](docs/configuration.md).
 
 ## Build
