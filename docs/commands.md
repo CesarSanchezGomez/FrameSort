@@ -8,7 +8,7 @@
 | `/framesort tag <tag> [page]` | The items or blocks in a tag, 8 per page (`inspect.page-size`), in a framed list with « » buttons. Hover an entry to see its id. Vanilla tags can be written without `minecraft:`. |
 | `/framesort tags [page]` | Every item and block tag. Click a tag to list its contents. |
 | `/framesort tags search <text> [page]` | Only the tags whose name contains `<text>`. |
-| `/framesort trace [seconds]` | For a while (default 60 s, at most `inspect.trace-max-seconds`), every delivery from sorters and pads near you shows in the action bar with a particle line to its destination. |
+| `/framesort trace [seconds]` | For a while (default 60 s, at most `inspect.trace-max-seconds`), every delivery from sorters and pads near you shows in the action bar, with a trail of particles flying to its destination. |
 | `/framesort trace stop` | Stops tracing. |
 | `/framesort inspect <page>` | Another page of the last list the tool showed you (the page buttons run it). |
 | `/framesort give sorter [player] [amount]` | The sorter activator from `config.yml`. Needed when `sorter.activator.require-marked` is true. |

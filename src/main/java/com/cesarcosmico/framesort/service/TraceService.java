@@ -10,7 +10,6 @@ import org.bukkit.Particle;
 import org.bukkit.Server;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
-import org.bukkit.util.Vector;
 
 import java.util.HashMap;
 import java.util.Iterator;
@@ -24,7 +23,10 @@ public final class TraceService {
 
     // At most one action bar per player this often, so a busy sorter does not flood it.
     private static final long MIN_INTERVAL_MILLIS = 150;
-    private static final int MAX_LINE_POINTS = 64;
+    // A trail particle flies to its target, so a few of them draw the whole path; the travel time grows with distance.
+    private static final int TRAIL_PARTICLES = 6;
+    private static final int MIN_TRAIL_TICKS = 10;
+    private static final int MAX_TRAIL_TICKS = 40;
 
     private final Plugin plugin;
     private final Server server;
@@ -113,18 +115,12 @@ public final class TraceService {
             case DROPPED -> colors.dropped();
             case DESTROYED -> colors.lava();
         };
-        drawLine(player, delivered.from(), to, new Particle.DustOptions(color, 1.0f));
+        drawTrail(player, delivered.from(), to, color);
     }
 
-    private static void drawLine(Player player, Location from, Location to, Particle.DustOptions dust) {
-        Vector step = to.toVector().subtract(from.toVector());
-        double length = step.length();
-        int points = (int) Math.min(MAX_LINE_POINTS, Math.max(2, length / 0.5));
-        step.multiply(1.0 / points);
-        Location point = from.clone();
-        for (int i = 0; i <= points; i++) {
-            player.spawnParticle(Particle.DUST, point, 1, 0, 0, 0, 0, dust);
-            point.add(step);
-        }
+    private static void drawTrail(Player player, Location from, Location to, Color color) {
+        int ticks = Math.clamp(Math.round(from.distance(to)), MIN_TRAIL_TICKS, MAX_TRAIL_TICKS);
+        player.spawnParticle(Particle.TRAIL, from, TRAIL_PARTICLES, 0.1, 0.1, 0.1, 0,
+                new Particle.Trail(to, color, ticks));
     }
 }
