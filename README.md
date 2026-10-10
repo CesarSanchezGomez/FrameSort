@@ -92,5 +92,5 @@ Every command also runs as `/fs`. Where each command lives, its permission and w
 ```
 
 Needs nothing installed beyond a JDK: Gradle downloads Java 25 if it is missing. The jar is written to
-`build/libs/`, and `./gradlew runServer` starts a Paper 26.2 test server with it. See
-[docs/development.md](docs/development.md).
+`build/libs/`, and `./gradlew runServer` starts a Paper 26.2 test server with it. How the plugin is put together
+(packages, stored data, threads) is in [docs/development.md](docs/development.md).

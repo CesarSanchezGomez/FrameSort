@@ -1,18 +1,5 @@
 # Development
 
-## Build
-
-```bash
-./gradlew build
-```
-
-Gradle 9.8 with a Java 25 toolchain; the foojay resolver downloads the JDK when it is missing. The jar is
-`build/libs/FrameSort-<version>.jar`. Versions live in `gradle.properties`, with `paper-api` pinned to an exact
-build. `./gradlew runServer` starts a Paper 26.2 test server in `run/`.
-
-Tests use JUnit 6 and the Paper API types, but no server. Listeners and commands are checked by hand on a test
-server.
-
 ## Layout
 
 ```
@@ -98,35 +85,3 @@ Tracing ends on a timer per player, so the "tracing ended" message arrives on ti
 (`@ApiStatus.Experimental`), through which `TagCatalog` reads item and block tags, and the data components
 (`@MinecraftVersionDependent`) behind item templates, tagged items and shulker box and bundle contents. Check them
 again whenever Paper or Minecraft changes.
-
-## Manual checks
-
-Listeners, commands and anything that needs a world are checked by hand on a test server (`./gradlew runServer`)
-before each release:
-
-- **Commands and permissions** (`commands.yml`):
-  - a player with only one feature's permission sees the root command but can't run the help;
-  - a feature with `enabled: false` disappears from every path;
-  - a path of its own (`/fstrace`) works after a restart;
-  - `/framesort inspect 1` from the console answers that it is for players.
-- **Targets:** sneak + right-click marks and unmarks a frame without rotating its item; sneak + left-click shows the
-  frame card and leaves the item in the frame.
-- **Sorters:** a dispenser with the activator sends up to 64 items every `tick-rate`, from inside shulker boxes and
-  bundles too; an item with nowhere to go doesn't stall it; a bundle whose contents have nowhere to go goes whole
-  to its own targets; breaking the dispenser ends the sorter without errors;
-  with `disable-when-powered`, redstone stops it.
-- **Pads:** a pad exists only once its top block sits on its base; pistons and explosions leave it in place;
-  in `item` mode, breaking it gives the special item back.
-- **Overflow:** with the preferred chest full, items go on to the next targets, down to the default target; an
-  exact lava frame wins over a default-target chest.
-- **Filled container in a frame:** a pad sends an identical filled bundle to a frame with an empty bundle, not to
-  the frame holding it; its card says only what it holds. With a tag applied, it accepts its tag and what it holds,
-  and its card shows both.
-- **`/framesort where`:** highlights where the held item would go from the nearest sorter or pad, level by level;
-  from a sorter, a filled bundle comes with a note that the sorter opens it first, then where it goes whole; from a
-  pad, only where the whole bundle goes.
-- **WorldGuard:** a sorter never sends to a frame in a different set of regions, and its inspection does not list it.
-- **Tracing:** a busy sorter draws one streak per target frame per turn, not one per item.
-- **Leaving:** a player who quits while tracing or with highlights showing leaves nothing behind (no errors, no
-  glowing copies).
-- **No duplication:** break a target chest while a sorter is filling it and count the items before and after.
