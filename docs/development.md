@@ -113,7 +113,7 @@ before each release:
   frame card and leaves the item in the frame.
 - **Sorters:** a dispenser with the activator sends a stack every `tick-rate`; breaking the dispenser ends the sorter
   without errors; with `disable-when-powered`, redstone stops it.
-- **Pads:** a pad exists only once its top block completes the column; pistons and explosions leave it in place;
+- **Pads:** a pad exists only once its top block sits on its base; pistons and explosions leave it in place;
   in `item` mode, breaking it gives the special item back.
 - **`/framesort where`:** highlights where the held item would go from the nearest sorter or pad.
 - **WorldGuard:** a sorter never sends to a frame in a different set of regions, and its inspection does not list it.

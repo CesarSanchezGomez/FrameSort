@@ -55,21 +55,20 @@ public record PadSettings(PadMode creation, int sweepInterval, Map<String, PadTy
             return null;
         }
         List<Material> structure = reader.materials("structure");
-        if (structure.isEmpty()) {
-            reader.warn("structure", "no valid blocks; pad type '" + id + "' is skipped");
+        if (structure.size() != 2) {
+            reader.warn("structure", "needs exactly two blocks, top then base; pad type '" + id + "' is skipped");
             return null;
         }
-        if (!structure.stream().allMatch(isBlock)) {
-            reader.warn("structure", "every entry must be a block; pad type '" + id + "' is skipped");
-            return null;
+        // Players build a pad by hand, and /framesort give pad hands out its top block.
+        for (Material block : structure) {
+            if (!isBlock.test(block) || !isItem.test(block)) {
+                reader.warn("structure", block + " is not a block a player can place; pad type '" + id
+                        + "' is skipped");
+                return null;
+            }
         }
-        // The top block is placed by hand and handed out by /framesort give pad.
-        if (!isItem.test(structure.getFirst())) {
-            reader.warn("structure", structure.getFirst() + " is not an item, so it can't be placed; pad type '"
-                    + id + "' is skipped");
-            return null;
-        }
-        ItemTemplate item = SorterSettings.itemTemplate(reader.sectionOrEmpty("item"), structure.getFirst(), null);
-        return new PadType(id.toLowerCase(Locale.ROOT), structure, item);
+        Material top = structure.getFirst();
+        ItemTemplate item = SorterSettings.itemTemplate(reader.sectionOrEmpty("item"), top, null);
+        return new PadType(id.toLowerCase(Locale.ROOT), top, structure.get(1), item);
     }
 }

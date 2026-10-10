@@ -1,7 +1,7 @@
 # FrameSort
 
 Item sorting without hopper chains. A **sorter** (a dispenser with an Eye of Ender in an item frame on it) and
-**teleport pads** (a column of blocks) send items straight to the **target frames** that ask for them: into the
+**teleport pads** (a block on a base block) send items straight to the **target frames** that ask for them: into the
 chest, barrel or hopper behind the frame, composted by a composter, or dropped in front of the frame when there is no
 container.
 

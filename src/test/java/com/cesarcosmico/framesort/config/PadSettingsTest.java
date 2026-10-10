@@ -16,8 +16,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class PadSettingsTest {
 
-    // Material::isBlock needs a running server; diamond is the only non-block these tests use.
-    private static final Predicate<Material> IS_BLOCK = material -> material != Material.DIAMOND;
+    // Material::isBlock needs a running server; stick is the only non-block these tests use.
+    private static final Predicate<Material> IS_BLOCK = material -> material != Material.STICK;
 
     private static PadSettings parse(YamlConfiguration yaml, List<String> warnings) {
         return PadSettings.parse(new ConfigReader(yaml, "pads.yml", warnings::add), IS_BLOCK,
@@ -34,8 +34,8 @@ class PadSettingsTest {
         assertEquals(10, settings.sweepInterval());
         PadType magma = settings.type("MAGMA");
         assertNotNull(magma);
-        assertEquals(List.of(Material.MAGMA_BLOCK, Material.CRYING_OBSIDIAN, Material.GILDED_BLACKSTONE),
-                magma.structure());
+        assertEquals(Material.MAGMA_BLOCK, magma.top());
+        assertEquals(Material.GILDED_BLACKSTONE, magma.base());
         assertEquals(Material.MAGMA_BLOCK, magma.item().material());
     }
 
@@ -63,11 +63,17 @@ class PadSettingsTest {
                   glass:
                     structure: [GLASS, BEDROCK]
                   broken:
-                    structure: [NOT_A_BLOCK]
-                  notablock:
-                    structure: [DIAMOND]
-                  notanitem:
+                    structure: [NOT_A_BLOCK, STONE]
+                  single:
+                    structure: [STONE]
+                  tall:
+                    structure: [STONE, STONE, STONE]
+                  stick:
+                    structure: [GRASS_BLOCK, STICK]
+                  watertop:
                     structure: [WATER, STONE]
+                  waterbase:
+                    structure: [STONE, WATER]
                   flat: 3
                 """);
         List<String> warnings = new ArrayList<>();
@@ -75,9 +81,8 @@ class PadSettingsTest {
 
         assertEquals(PadMode.ITEM, settings.creation());
         assertEquals(List.of("glass"), List.copyOf(settings.types().keySet()));
-        assertNull(settings.type("broken"));
-        assertNull(settings.type("notanitem"));
-        assertTrue(warnings.size() >= 4, warnings::toString);
+        // broken warns twice: the unknown material, then a structure left with one block.
+        assertEquals(8, warnings.size(), warnings::toString);
     }
 
     @Test

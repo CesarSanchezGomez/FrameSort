@@ -1,4 +1,4 @@
-# FrameSort: teleport pads. A pad is created when its top block is placed on the rest of the column.
+# FrameSort: teleport pads. A pad is created when its top block is placed on its base block.
 
 config-version: 1
 
@@ -7,7 +7,7 @@ sweep-interval: 10   # ticks
 
 types:
   simple:
-    structure: [CRYING_OBSIDIAN, GILDED_BLACKSTONE]   # top to bottom
+    structure: [CRYING_OBSIDIAN, GILDED_BLACKSTONE]   # top, base: two blocks a player can place
     item:
       name: '<gradient:#F7B733:#FC4A1A>Teleport Pad</gradient>'
       lore:
@@ -17,12 +17,12 @@ types:
         - ''
       glint: true
   magma:
-    structure: [MAGMA_BLOCK, CRYING_OBSIDIAN, GILDED_BLACKSTONE]
+    structure: [MAGMA_BLOCK, GILDED_BLACKSTONE]
     item:
       name: '<gradient:#F7B733:#FC4A1A>Magma Teleport Pad</gradient>'
       lore:
         - ''
-        - ' <gray>Place it on crying obsidian</gray> '
-        - ' <gray>over gilded blackstone.</gray> '
+        - ' <gray>Place it on top of</gray> '
+        - ' <gray>gilded blackstone.</gray> '
         - ''
       glint: true

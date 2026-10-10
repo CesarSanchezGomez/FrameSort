@@ -13,6 +13,7 @@ import org.bukkit.Location;
 import org.bukkit.Server;
 import org.bukkit.World;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -71,7 +72,7 @@ public final class PadService {
         String marker = ItemTemplate.marker(hand, Keys.PAD_ITEM);
         boolean blocked = false;
         for (PadType type : current.types().values()) {
-            if (type.top() != block.getType() || !matches(block, type)) {
+            if (!matches(block, type)) {
                 continue;
             }
             boolean allowed = switch (current.creation()) {
@@ -161,12 +162,7 @@ public final class PadService {
     }
 
     private static boolean matches(Block top, PadType type) {
-        for (int depth = 0; depth < type.structure().size(); depth++) {
-            if (top.getRelative(0, -depth, 0).getType() != type.structure().get(depth)) {
-                return false;
-            }
-        }
-        return true;
+        return top.getType() == type.top() && top.getRelative(BlockFace.DOWN).getType() == type.base();
     }
 
     private void register(Block block, PadType type) {

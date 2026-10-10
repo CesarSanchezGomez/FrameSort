@@ -92,13 +92,13 @@ it destroys whatever has no other target. An empty frame does nothing.
 
 | Key | Default | Meaning |
 |---|---|---|
-| `creation` | `anyone` | `anyone`: any player who places the top block on a complete column. `permission`: only players with `framesort.pad.create`. `item`: only by placing the pad's special item (from `/framesort give pad`) as the top block. |
+| `creation` | `anyone` | `anyone`: any player who places the top block on its base. `permission`: only players with `framesort.pad.create`. `item`: only by placing the pad's special item (from `/framesort give pad`) as the top block. |
 | `sweep-interval` | `10` | Ticks between checks for items resting on pads. Items that arrive by water or fall onto a pad are picked up then. |
-| `types.<id>.structure` | | Blocks from top to bottom. Items rest on the first one, which players place by hand, so it must also be an item; otherwise the type is skipped. |
-| `types.<id>.item` | | `name`, `lore` and `glint` of the special top block (its material is the first block of the structure). |
+| `types.<id>.structure` | | Exactly two blocks: the top, where items rest, then its base. Players build pads by hand, so both must be blocks a player can place (not `STICK`, `WATER` or `AIR`); otherwise the type is skipped with a warning. |
+| `types.<id>.item` | | `name`, `lore` and `glint` of the special top block (its material is the top block of the structure). |
 
-A pad is created when its top block is placed on the rest of the column, so build it bottom up. It counts as long
-as the column stays complete; breaking the top block removes it. In `item` mode, breaking it gives the special item
+A pad is created when its top block is placed on its base, so place the base first. It counts as long as both
+blocks stay; breaking the top block removes it. In `item` mode, breaking it gives the special item
 back. The top block of a registered pad can't be pushed by pistons or blown up.
 
 Items resting up to one block above the top block count, so carpets or slabs on the pad are fine.
