@@ -23,7 +23,17 @@ import java.util.function.Supplier;
 /** With nobody tracing, a delivery costs one empty-map check. */
 public final class TraceService {
 
-    private record Shown(long millis, int tick, Location from, Set<Location> to) {
+    private static final class Turn {
+        private final long millis;
+        private final int tick;
+        private final Location from;
+        private final Set<Location> drawn = new HashSet<>();
+
+        private Turn(long millis, int tick, Location from) {
+            this.millis = millis;
+            this.tick = tick;
+            this.from = from;
+        }
     }
 
     // At most one sorter turn or pad item per player this often, so a busy sorter does not flood the screen. Every
@@ -46,7 +56,7 @@ public final class TraceService {
     private final Supplier<Messages> messages;
     // Keyed by the player, not the UUID: the retired callback of start() drops them when they leave.
     private final Map<Player, Long> until = new HashMap<>();
-    private final Map<Player, Shown> lastShown = new HashMap<>();
+    private final Map<Player, Turn> lastShown = new HashMap<>();
 
     public TraceService(Plugin plugin, Supplier<FrameSortSettings> settings, Supplier<Messages> messages) {
         this.plugin = plugin;
@@ -85,6 +95,7 @@ public final class TraceService {
             Player player = entry.getKey();
             if (entry.getValue() < now) {
                 it.remove();
+                lastShown.remove(player);
                 player.sendMessage(messages.get().get("trace.ended"));
                 continue;
             }
@@ -93,20 +104,18 @@ public final class TraceService {
                     || player.getLocation().distanceSquared(from) > (double) radius * radius) {
                 continue;
             }
-            Shown last = lastShown.get(player);
+            Turn last = lastShown.get(player);
             int tick = server.getCurrentTick();
-            boolean sameTurn = last != null && last.tick() == tick && last.from().equals(from);
-            if (sameTurn) {
-                if (!last.to().add(delivered.to())) {
+            if (last == null || last.tick != tick || !last.from.equals(from)) {
+                if (last != null && now - last.millis < MIN_INTERVAL_MILLIS) {
                     continue;
                 }
-            } else {
-                if (last != null && now - last.millis() < MIN_INTERVAL_MILLIS) {
-                    continue;
-                }
-                lastShown.put(player, new Shown(now, tick, from, new HashSet<>(Set.of(delivered.to()))));
+                last = new Turn(now, tick, from);
+                lastShown.put(player, last);
             }
-            show(player, delivered);
+            if (last.drawn.add(delivered.to())) {
+                show(player, delivered);
+            }
         }
     }
 
