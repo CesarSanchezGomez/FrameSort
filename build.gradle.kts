@@ -19,11 +19,17 @@ repositories {
             includeGroupAndSubgroups("org.enginehub")
         }
     }
+    maven("https://repo.momirealms.net/releases/") {
+        name = "momirealms"
+        content { includeGroup("net.momirealms") }
+    }
 }
 
 dependencies {
     compileOnly("io.papermc.paper:paper-api:${v("paper_api_version")}")
     compileOnly("com.sk89q.worldguard:worldguard-bukkit:${v("worldguard_version")}")
+    compileOnly("net.momirealms:craft-engine-core:${v("craftengine_version")}")
+    compileOnly("net.momirealms:craft-engine-bukkit:${v("craftengine_version")}")
 
     // Tests use the Paper API types (YAML, Adventure) without a running server.
     testImplementation("io.papermc.paper:paper-api:${v("paper_api_version")}")
