@@ -64,7 +64,8 @@ class ConfigReaderTest {
 
     @Test
     void materialsAcceptNamespacedNamesAndBlankMeansNone() throws Exception {
-        ConfigReader reader = reader("tool: 'minecraft:stick'\nnone: ''\nbad: 'not_a_block'\nlist: ['stone', 'nope']\n");
+        ConfigReader reader = reader(
+                "tool: 'minecraft:stick'\nnone: ''\nbad: 'not_a_block'\nlist: ['stone', 'nope']\n");
         assertEquals(Material.STICK, reader.material("tool", null));
         assertNull(reader.material("none", Material.STONE));
         assertEquals(Material.STONE, reader.requiredMaterial("bad", Material.STONE));

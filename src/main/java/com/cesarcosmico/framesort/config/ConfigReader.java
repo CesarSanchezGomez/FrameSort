@@ -15,7 +15,10 @@ import java.util.Set;
 import java.util.function.Consumer;
 import java.util.regex.Pattern;
 
-/** Invalid values are reported as {@code file > path: problem} and replaced by the default, so a typo never stops loading. */
+/**
+ * Invalid values are reported as {@code file > path: problem} and replaced by the default, so a typo never stops
+ * loading.
+ */
 public final class ConfigReader {
 
     private static final Pattern HEX_COLOR = Pattern.compile("#?[0-9a-fA-F]{6}");
