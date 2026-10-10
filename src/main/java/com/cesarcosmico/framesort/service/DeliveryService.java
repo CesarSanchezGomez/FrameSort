@@ -1,13 +1,18 @@
 package com.cesarcosmico.framesort.service;
 
 import com.cesarcosmico.framesort.config.InspectSettings;
+import com.cesarcosmico.framesort.model.Composting;
 import com.cesarcosmico.framesort.model.Delivery;
 import org.bukkit.Color;
+import org.bukkit.Effect;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.block.Block;
+import org.bukkit.block.data.Levelled;
 import org.bukkit.entity.ItemFrame;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.plugin.Plugin;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -50,10 +55,15 @@ public final class DeliveryService {
     public record Delivered(Location from, ItemStack item, int amount, Location to, Kind kind) {
     }
 
+    // The delay vanilla gives a full composter before it turns ready.
+    private static final long READY_DELAY_TICKS = 20;
+
+    private final Plugin plugin;
     private final TargetResolver resolver;
     private final Consumer<Delivered> observer;
 
-    public DeliveryService(TargetResolver resolver, Consumer<Delivered> observer) {
+    public DeliveryService(Plugin plugin, TargetResolver resolver, Consumer<Delivered> observer) {
+        this.plugin = plugin;
         this.resolver = resolver;
         this.observer = observer;
     }
@@ -95,16 +105,54 @@ public final class DeliveryService {
     }
 
     private int offer(ItemFrame frame, ItemStack stack, int amount, Location from) {
-        Inventory inventory = frame.isValid() && FrameGeometry.attachedLoaded(frame)
-                ? FrameGeometry.inventory(FrameGeometry.attachedBlock(frame)) : null;
-        if (inventory == null) {
+        if (!frame.isValid() || !FrameGeometry.attachedLoaded(frame)) {
             return Delivery.GONE;
         }
-        Map<Integer, ItemStack> left = inventory.addItem(stack.asQuantity(amount));
-        int notAccepted = left.values().stream().mapToInt(ItemStack::getAmount).sum();
+        Block block = FrameGeometry.attachedBlock(frame);
+        int notAccepted;
+        if (block.getType() == Material.COMPOSTER) {
+            notAccepted = compost(block, stack, amount);
+        } else {
+            Inventory inventory = FrameGeometry.inventory(block);
+            if (inventory == null) {
+                return Delivery.GONE;
+            }
+            Map<Integer, ItemStack> left = inventory.addItem(stack.asQuantity(amount));
+            notAccepted = left.values().stream().mapToInt(ItemStack::getAmount).sum();
+        }
         if (notAccepted < amount) {
             observer.accept(new Delivered(from, stack, amount - notAccepted, frame.getLocation(), Kind.CONTAINER));
         }
         return notAccepted;
+    }
+
+    /** Composts like a hopper feeding the composter; returns how many items it did not take. */
+    private int compost(Block composter, ItemStack stack, int amount) {
+        Material material = stack.getType();
+        if (!(composter.getBlockData() instanceof Levelled data) || !material.isCompostable()) {
+            return amount;
+        }
+        int before = data.getLevel();
+        Composting.Fill fill = Composting.fill(before, material.getCompostChance(), amount,
+                ThreadLocalRandom.current()::nextDouble);
+        if (fill.consumed() > 0) {
+            if (fill.level() != before) {
+                data.setLevel(fill.level());
+                composter.setBlockData(data);
+            }
+            composter.getWorld().playEffect(composter.getLocation(), Effect.COMPOSTER_FILL_ATTEMPT,
+                    fill.level() != before);
+        }
+        if (fill.level() == Composting.FULL) {
+            // Vanilla turns a full composter ready on a tick it schedules itself; a level set through the API
+            // schedules none, so FrameSort asks for that tick. Extra ticks on a ready composter do nothing.
+            plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
+                if (composter.getWorld().isChunkLoaded(composter.getX() >> 4, composter.getZ() >> 4)
+                        && composter.getType() == Material.COMPOSTER) {
+                    composter.tick();
+                }
+            }, READY_DELAY_TICKS);
+        }
+        return amount - fill.consumed();
     }
 }

@@ -48,7 +48,7 @@ only where frames are meant to be targets, especially with `automatic`.
 | Key | Default | Meaning |
 |---|---|---|
 | `max-distance` | `64` | Targets are searched within this many blocks of the sorter or pad. |
-| `insert-into-containers` | `true` | `true`: items go into the container behind the frame. `false`: items are always dropped in front of the frame. |
+| `insert-into-containers` | `true` | `true`: items go into the container behind the frame, or are composted by a composter. `false`: items are always dropped in front of the frame. |
 | `default-target-item` | `CARROT_ON_A_STICK` | Frames holding it take whatever matches no other frame. `''` = off. |
 
 How a destination is chosen:
@@ -66,6 +66,11 @@ to the item in your hand: the tag is stored inside the item, and its name and gl
 In a frame, a tagged item accepts everything in its tag and nothing else, not even its own material; inside a shulker
 box or bundle in the frame it adds its tag to what the frame accepts. Renaming the item in an anvil never changes its
 tag, and a plain renamed item never has one. `/framesort tag remove` takes the tag off.
+
+**Composters compost.** A target frame on a composter takes only compostable items and composts them as a hopper
+feeding it would: every item is used up, the level rises with that item's vanilla chance, and a full composter turns
+ready a second later and takes nothing more until it is emptied. A hopper under it collects the bone meal, as in
+vanilla. Items it doesn't take go on to the other targets as usual.
 
 **Lava cauldrons are trash cans.** A target frame on a lava cauldron holds the item to destroy and is chosen like
 any other frame (exact item, tag, material); with `registration: manual` it must be marked too. If a container

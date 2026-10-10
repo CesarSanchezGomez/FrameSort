@@ -42,13 +42,14 @@ public final class FrameGeometry {
         return FramePosition.of(attached.getOppositeFace(), facing);
     }
 
+    // Not a snapshot: items must go into the live block entity, never into a copy written back later.
     public static @Nullable Inventory inventory(Block block) {
-        // A composter has no inventory, so a frame on it feeds the hopper underneath, as in a composter farm.
-        if (block.getType() == Material.COMPOSTER) {
-            Block below = block.getRelative(BlockFace.DOWN);
-            return below.getType() == Material.HOPPER ? containerInventory(below) : null;
-        }
-        return containerInventory(block);
+        return block.getState(false) instanceof Container container ? container.getInventory() : null;
+    }
+
+    /** Whether items sent to a frame on this block go into it: a container, or a composter that composts them. */
+    public static boolean isContainer(Block block) {
+        return block.getType() == Material.COMPOSTER || inventory(block) != null;
     }
 
     // The frame sits flush against its block; an item spawned there overlaps the block and gets pushed out of it.
@@ -66,10 +67,5 @@ public final class FrameGeometry {
 
     public static ChunkKey key(Chunk chunk) {
         return new ChunkKey(chunk.getWorld().getUID(), chunk.getX(), chunk.getZ());
-    }
-
-    // Not a snapshot: items must go into the live block entity, never into a copy written back later.
-    private static @Nullable Inventory containerInventory(Block block) {
-        return block.getState(false) instanceof Container container ? container.getInventory() : null;
     }
 }

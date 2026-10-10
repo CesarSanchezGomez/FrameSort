@@ -287,7 +287,7 @@ public final class InspectService {
             return DeliveryService.Kind.DESTROYED;
         }
         return settings.get().delivery().insertIntoContainers()
-                && FrameGeometry.inventory(FrameGeometry.attachedBlock(frame)) != null
+                && FrameGeometry.isContainer(FrameGeometry.attachedBlock(frame))
                 ? DeliveryService.Kind.CONTAINER : DeliveryService.Kind.DROPPED;
     }
 

@@ -2,7 +2,8 @@
 
 Item sorting without hopper chains. A **sorter** (a dispenser with an Eye of Ender in an item frame on it) and
 **teleport pads** (a column of blocks) send items straight to the **target frames** that ask for them: into the
-chest, barrel or hopper behind the frame, or dropped in front of it when there is no container.
+chest, barrel or hopper behind the frame, composted by a composter, or dropped in front of the frame when there is no
+container.
 
 - **Server:** Paper 26.2 or newer, Java 25.
 - **Dependencies:** none. With [WorldGuard](https://enginehub.org/worldguard) installed, sorters and pads respect its

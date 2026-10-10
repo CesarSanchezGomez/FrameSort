@@ -70,7 +70,11 @@ public final class TargetResolver {
                 stale = true;
                 continue;
             }
-            if (insert && FrameGeometry.inventory(FrameGeometry.attachedBlock(frame)) != null) {
+            Block attached = FrameGeometry.attachedBlock(frame);
+            if (attached.getType() == Material.COMPOSTER && !item.getType().isCompostable()) {
+                continue;
+            }
+            if (insert && FrameGeometry.isContainer(attached)) {
                 containers.add(match.priority(), frame);
             } else {
                 drops.add(match.priority(), frame);
