@@ -80,7 +80,7 @@ public final class DeliveryService {
             List<ItemFrame> best = plan.drops();
             List<ItemFrame> open = best.stream().filter(frame -> !FrameGeometry.isLava(frame)).toList();
             if (!open.isEmpty()) {
-                Location to = open.get(ThreadLocalRandom.current().nextInt(open.size())).getLocation();
+                Location to = FrameGeometry.dropPoint(open.get(ThreadLocalRandom.current().nextInt(open.size())));
                 source.moveTo(to);
                 observer.accept(new Delivered(from, stack, remaining, to, Kind.DROPPED));
                 return amount;

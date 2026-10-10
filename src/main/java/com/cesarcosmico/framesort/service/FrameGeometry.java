@@ -4,6 +4,7 @@ import com.cesarcosmico.framesort.model.BlockKey;
 import com.cesarcosmico.framesort.model.ChunkKey;
 import com.cesarcosmico.framesort.model.FramePosition;
 import org.bukkit.Chunk;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
@@ -48,6 +49,11 @@ public final class FrameGeometry {
             return below.getType() == Material.HOPPER ? containerInventory(below) : null;
         }
         return containerInventory(block);
+    }
+
+    // The frame sits flush against its block; an item spawned there overlaps the block and gets pushed out of it.
+    public static Location dropPoint(ItemFrame frame) {
+        return frame.getLocation().getBlock().getLocation().toCenterLocation();
     }
 
     public static boolean isLava(ItemFrame frame) {
