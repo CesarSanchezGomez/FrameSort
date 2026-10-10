@@ -17,7 +17,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-/** A per-player copy of the frame item glows instead of the frame: frame glowing is global and its colour team-based. */
+/**
+ * A per-player copy of the frame item glows instead of the frame: frame glowing is global and its colour
+ * team-based.
+ */
 public final class HighlightService {
 
     public record Highlight(ItemFrame frame, Color color) {
@@ -53,7 +56,7 @@ public final class HighlightService {
         }, () -> clear(id), seconds * 20L);
     }
 
-    public void clear(UUID player) {
+    private void clear(UUID player) {
         List<ItemDisplay> displays = shown.remove(player);
         if (displays != null) {
             displays.forEach(Entity::remove);
@@ -106,7 +109,7 @@ public final class HighlightService {
                 .rotateY((float) -Math.PI);
     }
 
-    // Minecraft's Direction#toYRot.
+    // The angles of Minecraft's Direction#toYRot, so the copy turns like the real item.
     private static float yRot(BlockFace facing) {
         return switch (facing) {
             case WEST -> 90f;

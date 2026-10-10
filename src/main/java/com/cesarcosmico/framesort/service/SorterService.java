@@ -7,6 +7,7 @@ import com.cesarcosmico.framesort.model.BlockKey;
 import io.papermc.paper.datacomponent.DataComponentTypes;
 import io.papermc.paper.datacomponent.item.BundleContents;
 import io.papermc.paper.datacomponent.item.ItemContainerContents;
+import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Location;
@@ -16,16 +17,22 @@ import org.bukkit.block.Dispenser;
 import org.bukkit.entity.ItemFrame;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.persistence.PersistentDataContainer;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.util.Vector;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Supplier;
 
@@ -37,6 +44,9 @@ public final class SorterService {
     private static final int MAX_DEPTH = 8;
     // A sorter frame whose dispenser sits in an unloaded chunk looks again this often.
     private static final long RETRY_TICKS = 100;
+    // A turn sends a stack's worth however the items are packed, so bundles of single items don't crawl; the same
+    // bound caps the tries when items have nowhere to go, so one that doesn't fit never stalls the rest.
+    private static final int PER_TURN = 64;
 
     private static final class Sorter {
         private final ItemFrame frame;
@@ -54,6 +64,8 @@ public final class SorterService {
     private final Supplier<FrameSortSettings> settings;
     private final DeliveryService delivery;
     private final Map<BlockKey, Sorter> sorters = new HashMap<>();
+    // Frames with a retry pending; every load, reload or frame change would otherwise start another retry chain.
+    private final Set<UUID> waiting = new HashSet<>();
     private long tick;
     private int nextPhase;
 
@@ -67,8 +79,15 @@ public final class SorterService {
         boolean holdsActivator = holdsActivator(frame);
         if (!FrameGeometry.attachedLoaded(frame)) {
             // Only frames that could make a sorter wait for the neighbouring chunk; the rest are never sorters.
-            if (holdsActivator) {
-                frame.getScheduler().runDelayed(plugin, task -> consider(frame), null, RETRY_TICKS);
+            if (holdsActivator && waiting.add(frame.getUniqueId())) {
+                Runnable done = () -> waiting.remove(frame.getUniqueId());
+                ScheduledTask retry = frame.getScheduler().runDelayed(plugin, task -> {
+                    done.run();
+                    consider(frame);
+                }, done, RETRY_TICKS);
+                if (retry == null) {
+                    done.run();
+                }
             }
             return;
         }
@@ -121,10 +140,6 @@ public final class SorterService {
         return sorters.values().stream().map(sorter -> sorter.block).toList();
     }
 
-    public void clear() {
-        sorters.clear();
-    }
-
     public ItemStack createActivator(int amount) {
         return settings.get().sorter().activator().create(Keys.ACTIVATOR, "sorter", amount);
     }
@@ -135,10 +150,6 @@ public final class SorterService {
         for (Map.Entry<BlockKey, Sorter> entry : List.copyOf(sorters.entrySet())) {
             Sorter current = entry.getValue();
             if (current.due > tick) {
-                continue;
-            }
-            if (!current.frame.isValid()) {
-                sorters.remove(entry.getKey());
                 continue;
             }
             if (!FrameGeometry.attachedLoaded(current.frame)) {
@@ -161,7 +172,7 @@ public final class SorterService {
 
     private boolean holdsActivator(ItemFrame frame) {
         SorterSettings sorter = settings.get().sorter();
-        return frame.isValid() && sorter.frameTypes().contains(frame.getType()) && sorter.isActivator(frame.getItem());
+        return sorter.frameTypes().contains(frame.getType()) && sorter.isActivator(frame.getItem());
     }
 
     private boolean makesSorter(ItemFrame frame, Block block) {
@@ -169,27 +180,53 @@ public final class SorterService {
     }
 
     private void dispense(Sorter sorter) {
-        if (!(sorter.block.getState(false) instanceof Dispenser dispenser)) {
-            return;
-        }
-        Slot slot = pick(dispenser.getInventory());
-        if (slot == null) {
-            return;
-        }
         Location location = sorter.block.getLocation().toCenterLocation();
-        if (delivery.deliver(sorter.block, new SlotSource(slot, location)) && settings.get().sorter().showActivity()) {
+        int sent = 0;
+        // What found nowhere to go this turn is not tried again.
+        List<ItemStack> missed = new ArrayList<>();
+        for (int tries = 0; tries < PER_TURN && sent < PER_TURN; tries++) {
+            // Other plugins' handlers run during a delivery and may break the dispenser.
+            if (!(sorter.block.getState(false) instanceof Dispenser dispenser)) {
+                return;
+            }
+            Slot slot = pick(dispenser.getInventory(), missed);
+            if (slot == null) {
+                break;
+            }
+            ItemStack tried = slot.get();
+            int moved = delivery.deliver(sorter.block, new SlotSource(slot, location));
+            if (moved == 0) {
+                missed.add(tried);
+            }
+            sent += moved;
+        }
+        if (sent == 0 || !(sorter.block.getState(false) instanceof Dispenser dispenser)) {
+            return;
+        }
+        PersistentDataContainer data = dispenser.getPersistentDataContainer();
+        long total = data.getOrDefault(Keys.SORTED, PersistentDataType.LONG, 0L) + sent;
+        data.set(Keys.SORTED, PersistentDataType.LONG, total);
+        if (settings.get().sorter().showActivity()) {
             sorter.frame.setRotation(sorter.frame.getRotation().rotateClockwise());
         }
     }
 
+    /** How many items this sorter's dispenser has sent; the count stays with the block. */
+    public long sorted(Block block) {
+        return block.getState(false) instanceof Dispenser dispenser
+                ? dispenser.getPersistentDataContainer().getOrDefault(Keys.SORTED, PersistentDataType.LONG, 0L)
+                : 0;
+    }
+
     private void applyLook(ItemFrame frame, Block block, boolean active) {
         SorterSettings sorter = settings.get().sorter();
-        if (sorter.hideFrame() && frame.isValid()) {
+        if (sorter.hideFrame()) {
             frame.setVisible(!active);
         }
         // A fresh snapshot, written back at once: it cannot carry stale items.
         if (block.getState() instanceof Dispenser dispenser) {
-            Component name = active && sorter.customName() != null ? MINI_MESSAGE.deserialize(sorter.customName()) : null;
+            String customName = sorter.customName();
+            Component name = active && customName != null ? MINI_MESSAGE.deserialize(customName) : null;
             if (!Objects.equals(dispenser.customName(), name)) {
                 dispenser.customName(name);
                 dispenser.update(true, false);
@@ -197,44 +234,48 @@ public final class SorterService {
         }
     }
 
-    private static @Nullable Slot pick(Inventory inventory) {
-        List<Integer> filled = new ArrayList<>();
-        for (int i = 0; i < inventory.getSize(); i++) {
-            ItemStack item = inventory.getItem(i);
-            if (item != null && !item.isEmpty()) {
-                filled.add(i);
-            }
-        }
-        if (filled.isEmpty()) {
-            return null;
-        }
-        Slot slot = new InventorySlot(inventory, filled.get(ThreadLocalRandom.current().nextInt(filled.size())));
-        for (int depth = 0; depth < MAX_DEPTH; depth++) {
-            Slot inner = innerSlot(slot);
-            if (inner == null) {
-                break;
-            }
-            slot = inner;
-        }
-        return slot;
+    /** A sorter opens a shulker box or bundle with contents first; it goes whole once nothing inside can go. */
+    public static boolean opens(ItemStack item) {
+        return !TargetResolver.contents(item).isEmpty();
     }
 
-    private static @Nullable Slot innerSlot(Slot parent) {
-        ItemStack holder = parent.get();
-        ItemContainerContents container = holder.getData(DataComponentTypes.CONTAINER);
-        if (container != null) {
-            Integer index = randomFilled(container.contents());
-            return index == null ? null : new ContainerSlot(parent, index);
-        }
-        BundleContents bundle = holder.getData(DataComponentTypes.BUNDLE_CONTENTS);
-        if (bundle != null) {
-            Integer index = randomFilled(bundle.contents());
-            return index == null ? null : new BundleSlot(parent, index);
+    private static @Nullable Slot pick(Inventory inventory, List<ItemStack> missed) {
+        List<ItemStack> contents = Arrays.stream(inventory.getContents())
+                .map(item -> item == null ? ItemStack.empty() : item).toList();
+        for (int index : shuffledFilled(contents)) {
+            Slot found = pick(new InventorySlot(inventory, index), contents.get(index), missed, 0);
+            if (found != null) {
+                return found;
+            }
         }
         return null;
     }
 
-    private static @Nullable Integer randomFilled(List<ItemStack> items) {
+    /**
+     * Something in {@code slot} that has not missed this turn: a stack inside it first, or else the slot itself, so a
+     * shulker box or bundle goes whole once nothing inside it can go. {@code item} is what the slot holds, read once.
+     */
+    private static @Nullable Slot pick(Slot slot, ItemStack item, List<ItemStack> missed, int depth) {
+        if (missed.stream().anyMatch(item::isSimilar)) {
+            return null;
+        }
+        if (depth < MAX_DEPTH) {
+            ItemContainerContents container = item.getData(DataComponentTypes.CONTAINER);
+            BundleContents bundle = item.getData(DataComponentTypes.BUNDLE_CONTENTS);
+            List<ItemStack> inside = container != null ? container.contents()
+                    : bundle != null ? bundle.contents() : List.of();
+            for (int index : shuffledFilled(inside)) {
+                Slot child = container != null ? new ContainerSlot(slot, index) : new BundleSlot(slot, index);
+                Slot found = pick(child, inside.get(index), missed, depth + 1);
+                if (found != null) {
+                    return found;
+                }
+            }
+        }
+        return slot;
+    }
+
+    private static List<Integer> shuffledFilled(List<ItemStack> items) {
         List<Integer> filled = new ArrayList<>();
         for (int i = 0; i < items.size(); i++) {
             if (!items.get(i).isEmpty()) {
@@ -242,7 +283,7 @@ public final class SorterService {
             }
         }
         Collections.shuffle(filled, ThreadLocalRandom.current());
-        return filled.isEmpty() ? null : filled.getFirst();
+        return filled;
     }
 
     private sealed interface Slot permits InventorySlot, ContainerSlot, BundleSlot {

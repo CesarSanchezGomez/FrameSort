@@ -12,9 +12,9 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Predicate;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -23,16 +23,23 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class FrameSortSettingsTest {
 
+    // Material::isItem needs a running server; water is the only non-item these tests use.
+    static final Predicate<Material> IS_ITEM = material -> material != Material.WATER;
+
     static YamlConfiguration bundled(String resource) throws Exception {
         try (InputStream in = FrameSortSettingsTest.class.getResourceAsStream("/" + resource)) {
             return YamlConfiguration.loadConfiguration(new InputStreamReader(in, StandardCharsets.UTF_8));
         }
     }
 
+    private static FrameSortSettings parse(YamlConfiguration yaml, List<String> warnings) {
+        return FrameSortSettings.parse(new ConfigReader(yaml, "config.yml", warnings::add), IS_ITEM);
+    }
+
     @Test
     void bundledConfigParsesWithoutWarnings() throws Exception {
         List<String> warnings = new ArrayList<>();
-        FrameSortSettings settings = FrameSortSettings.parse(bundled("config.yml"), warnings::add);
+        FrameSortSettings settings = parse(bundled("config.yml"), warnings);
 
         assertEquals(List.of(), warnings);
         assertEquals("en_US", settings.language());
@@ -41,12 +48,12 @@ class FrameSortSettingsTest {
         assertEquals(20, settings.sorter().tickRate());
         assertTrue(settings.sorter().showActivity());
         assertEquals(TargetRegistration.MANUAL, settings.targets().registration());
-        assertEquals(EnumSet.allOf(FramePosition.class), settings.targets().positions());
+        assertEquals(Set.of(FramePosition.FRONT), settings.targets().positions());
         assertEquals(64, settings.delivery().maxDistance());
         assertTrue(settings.delivery().insertIntoContainers());
         assertEquals(Material.CARROT_ON_A_STICK, settings.delivery().defaultTargetItem());
-        assertEquals(Material.STICK, settings.inspect().tool());
         assertNull(settings.sorter().activator().itemModel());
+        assertEquals(5, settings.inspect().highlightSeconds());
         assertEquals(Color.fromRGB(0x55FF55), settings.inspect().colors().container());
         assertEquals(Color.fromRGB(0xFF5555), settings.inspect().colors().lava());
     }
@@ -54,18 +61,22 @@ class FrameSortSettingsTest {
     @Test
     void emptyConfigUsesDefaults() {
         List<String> warnings = new ArrayList<>();
-        FrameSortSettings settings = FrameSortSettings.parse(new YamlConfiguration(), warnings::add);
+        FrameSortSettings settings = parse(new YamlConfiguration(), warnings);
 
         assertEquals(List.of(), warnings);
         assertEquals(64, settings.delivery().maxDistance());
         assertEquals(Set.of(EntityType.ITEM_FRAME, EntityType.GLOW_ITEM_FRAME), settings.sorter().frameTypes());
         assertEquals(8, settings.inspect().pageSize());
+        assertEquals(Set.of(FramePosition.FRONT), settings.targets().positions());
+        assertEquals("<gradient:#F7B733:#FC4A1A>#<tag></gradient>", settings.targets().taggedName());
+        assertTrue(settings.targets().taggedGlint());
     }
 
     @Test
     void invalidValuesFallBackWithAWarningEach() throws Exception {
         YamlConfiguration yaml = new YamlConfiguration();
         yaml.loadFromString("""
+                language: ""
                 sorter:
                   activator: { material: NOT_A_THING }
                   tick-rate: 0
@@ -77,12 +88,12 @@ class FrameSortSettingsTest {
                   max-distance: lots
                   default-target-item: ""
                 inspect:
-                  tool: ""
                   colors: { dropped: "#ABC", lava: "#00ff7f" }
                 """);
         List<String> warnings = new ArrayList<>();
-        FrameSortSettings settings = FrameSortSettings.parse(yaml, warnings::add);
+        FrameSortSettings settings = parse(yaml, warnings);
 
+        assertEquals("en_US", settings.language());
         assertEquals(Material.ENDER_EYE, settings.sorter().activator().material());
         assertEquals(20, settings.sorter().tickRate());
         assertEquals(Set.of(EntityType.ITEM_FRAME), settings.sorter().frameTypes());
@@ -91,11 +102,43 @@ class FrameSortSettingsTest {
                 settings.targets().positions());
         assertEquals(64, settings.delivery().maxDistance());
         assertNull(settings.delivery().defaultTargetItem());
-        assertEquals(Material.STICK, settings.inspect().tool());
         assertEquals(Color.fromRGB(0xFFFF55), settings.inspect().colors().dropped());
         assertEquals(Color.fromRGB(0x00FF7F), settings.inspect().colors().lava());
         // default-target-item "" is a valid "off", so it does not warn.
         assertEquals(8, warnings.size(), warnings::toString);
         assertTrue(warnings.stream().allMatch(w -> w.startsWith("config.yml > ")), warnings::toString);
+    }
+
+    @Test
+    void aTraceDefaultAboveTheMaximumIsLoweredWithAWarning() throws Exception {
+        YamlConfiguration yaml = new YamlConfiguration();
+        yaml.loadFromString("""
+                inspect:
+                  trace-max-seconds: 30
+                  trace-default-seconds: 60
+                """);
+        List<String> warnings = new ArrayList<>();
+        FrameSortSettings settings = parse(yaml, warnings);
+
+        assertEquals(30, settings.inspect().traceDefaultSeconds());
+        assertEquals(30, settings.inspect().traceMaxSeconds());
+        assertEquals(1, warnings.size(), warnings::toString);
+    }
+
+    @Test
+    void materialsThatAreNotItemsFallBack() throws Exception {
+        YamlConfiguration yaml = new YamlConfiguration();
+        yaml.loadFromString("""
+                sorter:
+                  activator: { material: WATER }
+                delivery:
+                  default-target-item: WATER
+                """);
+        List<String> warnings = new ArrayList<>();
+        FrameSortSettings settings = parse(yaml, warnings);
+
+        assertEquals(Material.ENDER_EYE, settings.sorter().activator().material());
+        assertEquals(Material.CARROT_ON_A_STICK, settings.delivery().defaultTargetItem());
+        assertEquals(2, warnings.size(), warnings::toString);
     }
 }

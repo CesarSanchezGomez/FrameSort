@@ -13,6 +13,7 @@ import org.bukkit.Location;
 import org.bukkit.Server;
 import org.bukkit.World;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -29,11 +30,17 @@ import java.util.function.Supplier;
 /** Pads live in their chunk's data, so only loaded pads are swept; sweeping also catches items that arrive late. */
 public final class PadService {
 
-    public static final String CREATE_PERMISSION = "framesort.pad.create";
+    private static final String CREATE_PERMISSION = "framesort.pad.create";
 
-    public enum Placement { CREATED, NOT_ALLOWED, NOT_A_PAD }
+    public sealed interface Placement {
+        record Created(PadType type) implements Placement {
+        }
 
-    public record PlaceResult(Placement placement, @Nullable PadType type) {
+        record NotAllowed() implements Placement {
+        }
+
+        record NotAPad() implements Placement {
+        }
     }
 
     private final Server server;
@@ -59,17 +66,13 @@ public final class PadService {
         pads.remove(FrameGeometry.key(chunk));
     }
 
-    public void clear() {
-        pads.clear();
-    }
-
     /** Registers a pad when {@code block}, just placed by {@code player} from {@code hand}, completes one. */
-    public PlaceResult placed(Player player, Block block, ItemStack hand) {
+    public Placement placed(Player player, Block block, ItemStack hand) {
         PadSettings current = settings.get();
         String marker = ItemTemplate.marker(hand, Keys.PAD_ITEM);
         boolean blocked = false;
         for (PadType type : current.types().values()) {
-            if (type.top() != block.getType() || !matches(block, type)) {
+            if (!matches(block, type)) {
                 continue;
             }
             boolean allowed = switch (current.creation()) {
@@ -79,13 +82,13 @@ public final class PadService {
             };
             if (allowed) {
                 register(block, type);
-                return new PlaceResult(Placement.CREATED, type);
+                return new Placement.Created(type);
             }
             blocked = true;
         }
         // In item mode a plain block is just a block: building with it is not an error worth a message.
         boolean silent = current.creation() == PadMode.ITEM && marker == null;
-        return new PlaceResult(blocked && !silent ? Placement.NOT_ALLOWED : Placement.NOT_A_PAD, null);
+        return blocked && !silent ? new Placement.NotAllowed() : new Placement.NotAPad();
     }
 
     /** Returns the special item to drop instead of the block when pads are made from items, or {@code null}. */
@@ -111,21 +114,19 @@ public final class PadService {
         return type != null && matches(top, type) ? type : null;
     }
 
-    public List<Block> near(BlockKey center, int radius) {
-        List<Block> found = new ArrayList<>();
-        World world = server.getWorld(center.world());
-        if (world == null) {
-            return found;
-        }
+    /** The top blocks of the registered pads within {@code radius} of {@code center}, in its world. */
+    public List<Block> near(Block center, int radius) {
+        BlockKey here = FrameGeometry.key(center);
         long radiusSquared = (long) radius * radius;
+        List<Block> found = new ArrayList<>();
         for (Map<BlockKey, String> inChunk : pads.values()) {
             for (BlockKey key : inChunk.keySet()) {
-                if (key.world().equals(center.world()) && key.distanceSquared(center) <= radiusSquared) {
-                    found.add(world.getBlockAt(key.x(), key.y(), key.z()));
+                if (key.distanceSquared(here) <= radiusSquared) {
+                    found.add(center.getWorld().getBlockAt(key.x(), key.y(), key.z()));
                 }
             }
         }
-        return found;
+        return List.copyOf(found);
     }
 
     public ItemStack createItem(PadType type, int amount) {
@@ -161,12 +162,7 @@ public final class PadService {
     }
 
     private static boolean matches(Block top, PadType type) {
-        for (int depth = 0; depth < type.structure().size(); depth++) {
-            if (top.getRelative(0, -depth, 0).getType() != type.structure().get(depth)) {
-                return false;
-            }
-        }
-        return true;
+        return top.getType() == type.top() && top.getRelative(BlockFace.DOWN).getType() == type.base();
     }
 
     private void register(Block block, PadType type) {

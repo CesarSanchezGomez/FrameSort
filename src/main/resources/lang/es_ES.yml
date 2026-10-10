@@ -1,14 +1,26 @@
+config-version: 1
+
 prefix: '<white>[</white><gradient:#F7B733:#FC4A1A>FrameSort</gradient><white>]</white> '
 
 command:
   help:
-    - '<prefix><gray>Ordena items en marcos.</gray>'
-    - '<gray>• <white>Clic derecho</white> a un sorter o pad con un <white>palo</white> para ver sus destinos (con un item en la otra mano, solo los de ese item).</gray>'
-    - '<gray>• <white>Shift + clic derecho</white> a un marco con el palo para marcarlo como destino; <white>clic derecho</white> para ver qué acepta.</gray>'
-    - '<gray>• <white>/framesort trace [segundos|stop]</white> · <white>/framesort tag logs</white> · <white>/framesort tags [search texto]</white></gray>'
+    header:
+      - '<prefix><gray>Ordena items en marcos.</gray>'
+      - '<gray>• <white>Shift + clic derecho</white> a un sorter o pad con la mano vacía para ver sus destinos (con un item en la otra mano, solo los de ese item).</gray>'
+      - '<gray>• <white>Shift + clic derecho</white> a un marco con la mano vacía para marcarlo como destino; <white>shift + clic izquierdo</white> para ver qué acepta.</gray>'
+    tag-list: '<gray>• <white><usage> [página]</white> <dark_gray>-</dark_gray> todos los tags de items y bloques.</gray>'
+    tag-search: '<gray>• <white><usage> \<texto> [página]</white> <dark_gray>-</dark_gray> tags cuyo nombre contiene un texto.</gray>'
+    tag-show: '<gray>• <white><usage> \<tag> [página]</white> <dark_gray>-</dark_gray> qué contiene un tag.</gray>'
+    tag-apply: '<gray>• <white><usage> \<tag></white> <dark_gray>-</dark_gray> aplica un tag al item de tu mano.</gray>'
+    tag-remove: '<gray>• <white><usage></white> <dark_gray>-</dark_gray> quita el tag del item de tu mano.</gray>'
+    where: '<gray>• <white><usage></white> <dark_gray>-</dark_gray> adónde iría el item de tu mano desde el sorter o pad más cercano.</gray>'
+    trace: '<gray>• <white><usage> [segundos|stop]</white> <dark_gray>-</dark_gray> muestra las entregas a tu alrededor.</gray>'
+    give: '<gray>• <white><usage> sorter|pad \<tipo> [jugador] [cantidad]</white> <dark_gray>-</dark_gray> da activadores de sorter y bloques de pad.</gray>'
+    reload: '<gray>• <white><usage></white> <dark_gray>-</dark_gray> recarga la configuración.</gray>'
   reloaded: '<prefix><green>Configuración recargada.</green>'
+  reloaded-with-warnings: '<prefix><yellow>Configuración recargada con <count> aviso(s): esos ajustes usan su valor por defecto. Mira la consola.</yellow>'
   reload-failed: '<prefix><red>La recarga falló: <error>. Sigue activa la configuración anterior; mira la consola.</red>'
-  version: '<prefix><white>FrameSort <green><version></green></white>'
+  players-only: '<prefix><red>Solo los jugadores pueden usar este comando.</red>'
 
 pager:
   layout:
@@ -33,38 +45,54 @@ inspect:
   source:
     sorter: 'sorter'
     pad: 'teleport pad'
-  title: 'Destinos de este <source> (<x>, <y>, <z>)'
-  title-item: 'Adónde va <item> desde este <source>'
-  section:
-    containers: '<green>A contenedores:</green>'
-    dropped: '<yellow>Se suelta en:</yellow>'
+  title: 'Destinos de este <source> (<x>, <y>, <z>)<sorted>'
+  title-item: 'Adónde va <item> desde este <source><sorted>'
+  sorted: ' <dark_gray>· <count> enviados</dark_gray>'
+  level:
+    first: '  <color:#F7B733><number>.</color> <white>Primera opción</white>'
+    next: '  <color:#F7B733><number>.</color> <white>Cuando se llenen</white>'
+  branch:
+    middle: '     <dark_gray>├</dark_gray> <entry>'
+    last: '     <dark_gray>└</dark_gray> <entry>'
   excess:
-    lava: '<red>Lo que sobre se destruye en la lava.</red>'
-    stay: '<gray>Lo que sobre se queda hasta que haya sitio.</gray>'
+    lava: '  <red>Lo que sobre se destruye en la lava.</red>'
+    stay: '  <gray>Lo que sobre se queda hasta que haya sitio.</gray>'
   target:
     dropped: '<yellow>se suelta aquí</yellow>'
     lava: '<red>lava</red>'
-  line: '<gray>  • <white><item></white> <dark_gray>→</dark_gray> <target> <dark_gray>(<x>, <y>, <z>) · <distance> m</dark_gray></gray>'
-  no-listing: '<prefix><gray>Primero haz clic derecho a un sorter o pad con la herramienta.</gray>'
+  line: '  <color:#F7B733>•</color> <entry>'
+  entry: '<white><item></white> <dark_gray>→</dark_gray> <hover:show_text:"<gray><x>, <y>, <z></gray>"><target></hover> <dark_gray><distance> m</dark_gray>'
+  no-listing: '<prefix><gray>Primero haz shift + clic derecho a un sorter o pad con la mano vacía.</gray>'
+  opens: '<prefix><gray>Un sorter abre <white><item></white> primero y envía lo de dentro; cuando nada de dentro puede ir a ningún sitio, va entero, como se lista abajo.</gray>'
 
 frame:
-  header: '<prefix><white>Marco destino</white> <dark_gray>(<x>, <y>, <z>)</dark_gray>'
+  layout:
+    - ''
+    - '<gradient:#F7B733:#FC4A1A>◤<st>                          </st></gradient> <white>[</white><gradient:#F7B733:#FC4A1A>FrameSort</gradient><white>]</white> <gradient:#FC4A1A:#F7B733><st>                          </st>◥</gradient>'
+    - ''
+    - '  <title>'
+    - ''
+    - '<lines>'
+    - ''
+    - '<gradient:#F7B733:#FC4A1A>◣<st>                                   </st></gradient><gradient:#FC4A1A:#F7B733><st>                                   </st>◢</gradient>'
+    - ''
+  title: '<white>Marco destino</white> <dark_gray>(<x>, <y>, <z>)</dark_gray>'
   status:
-    target: '<green>  Este marco es un destino</green> <gray>(en la cara <position> de su bloque).</gray>'
-    unmarked: '<yellow>  Aún no es destino: haz shift + clic derecho con la herramienta para marcarlo.</yellow>'
-    not-allowed: '<red>  No es destino: aquí no se permiten marcos en la cara <position> de un bloque.</red>'
-    wrong-type: '<red>  No es destino: este tipo de marco no se usa como destino.</red>'
+    target: '  <green>✔</green> <gray>Es un destino, en la cara <position> de su bloque</gray>'
+    unmarked: '  <yellow>✘</yellow> <gray>Aún no es destino: shift + clic derecho con la mano vacía</gray>'
+    not-allowed: '  <red>✘</red> <gray>Aquí no se permiten destinos en la cara <position> de un bloque</gray>'
+    wrong-type: '  <red>✘</red> <gray>Este tipo de marco no puede ser destino</gray>'
   into:
-    container: '<gray>  Los items van a: <white><block></white></gray>'
-    dropped: '<gray>  Los items se sueltan delante del marco.</gray>'
-    lava: '<gray>  Los items se <red>destruyen en la lava</red>.</gray>'
+    container: '  <color:#F7B733>•</color> <gray>Los items van a</gray> <white><block></white>'
+    dropped: '  <color:#F7B733>•</color> <gray>Los items</gray> <yellow>se sueltan delante</yellow>'
+    lava: '  <color:#F7B733>•</color> <gray>Los items se</gray> <red>destruyen en la lava</red>'
   accepts:
-    exact: '<gray>  Acepta <white><item></white> (primero coincidencia exacta).</gray>'
-    tag: '<gray>  Acepta todo lo de <white>#<tag></white> (<count> items) <dark_gray>[clic para ver]</dark_gray></gray>'
-    contents: '<gray>  Acepta lo que hay en su contenido (<count> stacks).</gray>'
-    similar: '<gray>  Acepta cualquier <white><material></white> si nada coincide mejor.</gray>'
-    default: '<gray>  Destino por defecto: recibe lo que no encaja en ningún otro marco.</gray>'
-  sources: '<gray>  Sorters y pads al alcance: <white><count></white></gray>'
+    exact: '  <color:#F7B733>•</color> <gray>Acepta</gray> <white><item></white> <dark_gray>primero la coincidencia exacta</dark_gray>'
+    tag: '  <color:#F7B733>•</color> <gray>Acepta</gray> <white>#<tag></white> <dark_gray>· <count> items · [clic para ver]</dark_gray>'
+    contents: '  <color:#F7B733>•</color> <gray>Acepta lo que contiene</gray> <dark_gray>· <count> stacks</dark_gray>'
+    similar: '  <color:#F7B733>•</color> <gray>Acepta cualquier</gray> <white><material></white> <dark_gray>si nada coincide mejor</dark_gray>'
+    default: '  <color:#F7B733>•</color> <gray>Destino por defecto:</gray> <white>lo que no encaja en ningún otro marco o ya no cabe en ellos</white>'
+  sources: '  <color:#F7B733>•</color> <gray>Sorters y pads al alcance:</gray> <white><count></white>'
 
 mark:
   marked: '<prefix><green>Este marco ahora es un destino.</green>'
@@ -83,6 +111,16 @@ position:
   right: 'derecha'
   side: 'lateral'
 
+tag-item:
+  applied: '<prefix><green>El item de tu mano ahora representa <white>#<tag></white> en los marcos.</green>'
+  removed: '<prefix><gray>El item de tu mano ya no tiene tag.</gray>'
+  not-tagged: '<prefix><gray>El item de tu mano no tiene tag.</gray>'
+  empty-hand: '<prefix><gray>Sujeta el item al que quieres aplicar el tag.</gray>'
+
+where:
+  empty-hand: '<prefix><gray>Sujeta el item que quieres consultar.</gray>'
+  no-source: '<prefix><gray>No hay ningún sorter ni pad a menos de <radius> bloques.</gray>'
+
 trace:
   started: '<prefix><green>Rastreando entregas a menos de <radius> bloques durante <seconds> segundos.</green> <gray>Para con /framesort trace stop.</gray>'
   stopped: '<prefix><gray>Rastreo detenido.</gray>'
@@ -95,18 +133,18 @@ trace:
     destroyed: '<red>lava</red>'
 
 tag:
-  title: '#<tag> <dark_gray>(<kind>)</dark_gray>'
+  title: '#<tag> <dark_gray>(<kind>)</dark_gray><apply>'
+  apply-button: ' <hover:show_text:"<gray>Aplica este tag al item de tu mano</gray>"><gradient:#F7B733:#FC4A1A>[Aplicar]</gradient></hover>'
   kind:
     item: 'tag de items'
     block: 'tag de bloques'
-  entry: '<gray>  • <white><item></white></gray>'
-  unknown: '<prefix><red>No existe ningún tag de items o bloques llamado <white>#<tag></white>. Prueba /framesort tags.</red>'
-
-tags:
-  title: 'Tags'
-  title-search: 'Tags que contienen "<text>"'
-  entry: '<gray>  • <white>#<tag></white></gray>'
-  hover: '<gray>Clic para ver qué contiene este tag</gray>'
+  entry: '  <color:#F7B733>•</color> <white><item></white>'
+  unknown: '<prefix><red>No existe ningún tag de items o bloques llamado <white>#<tag></white>. Prueba /framesort tag list.</red>'
+  list:
+    title: 'Tags'
+    title-search: 'Tags que contienen "<text>"'
+    entry: '  <color:#F7B733>•</color> <white>#<tag></white>'
+    hover: '<gray>Clic para ver qué contiene este tag</gray>'
 
 give:
   done: '<prefix><green>Entregado <white><amount>× <item></white> a <white><player></white>.</green>'

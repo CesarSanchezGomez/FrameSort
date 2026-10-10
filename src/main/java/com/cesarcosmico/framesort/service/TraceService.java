@@ -1,7 +1,6 @@
 package com.cesarcosmico.framesort.service;
 
 import com.cesarcosmico.framesort.config.FrameSortSettings;
-import com.cesarcosmico.framesort.config.InspectSettings;
 import com.cesarcosmico.framesort.text.Messages;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import org.bukkit.Color;
@@ -13,25 +12,51 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.util.Vector;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Locale;
 import java.util.Map;
-import java.util.UUID;
+import java.util.Set;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Supplier;
 
 /** With nobody tracing, a delivery costs one empty-map check. */
 public final class TraceService {
 
-    // At most one action bar per player this often, so a busy sorter does not flood it.
+    private static final class Turn {
+        private final long millis;
+        private final int tick;
+        private final Location from;
+        private final Set<Location> drawn = new HashSet<>();
+
+        private Turn(long millis, int tick, Location from) {
+            this.millis = millis;
+            this.tick = tick;
+            this.from = from;
+        }
+    }
+
+    // At most one sorter turn or pad item per player this often, so a busy sorter does not flood the screen. Every
+    // target of the turn that is shown still shows once: a turn is the same source in the same tick.
     private static final long MIN_INTERVAL_MILLIS = 150;
-    private static final int MAX_LINE_POINTS = 64;
+    // The trail runs straight from the source to the frame, so it stays readable in tunnels.
+    private static final int STREAK = 6;
+    private static final double RING_RADIUS = 0.2;
+    private static final double BLOCKS_PER_TICK = 1.0;
+    private static final int MIN_TICKS = 8;
+    private static final int MAX_TICKS = 40;
+    private static final int STAGGER_TICKS = 2;
+    private static final int SPLASH = 5;
+    private static final double SPLASH_RADIUS = 0.5;
+    private static final int SPLASH_TICKS = 6;
 
     private final Plugin plugin;
     private final Server server;
     private final Supplier<FrameSortSettings> settings;
     private final Supplier<Messages> messages;
-    private final Map<UUID, Long> until = new HashMap<>();
-    private final Map<UUID, Long> lastShown = new HashMap<>();
+    // Keyed by the player, not the UUID: the retired callback of start() drops them when they leave.
+    private final Map<Player, Long> until = new HashMap<>();
+    private final Map<Player, Turn> lastShown = new HashMap<>();
 
     public TraceService(Plugin plugin, Supplier<FrameSortSettings> settings, Supplier<Messages> messages) {
         this.plugin = plugin;
@@ -42,27 +67,21 @@ public final class TraceService {
 
     public int start(Player player, int seconds) {
         int granted = Math.clamp(seconds, 1, settings.get().inspect().traceMaxSeconds());
-        UUID id = player.getUniqueId();
         long deadline = System.currentTimeMillis() + granted * 1000L;
-        until.put(id, deadline);
+        until.put(player, deadline);
         // A restart or stop changes the deadline, so a stale run does nothing.
         player.getScheduler().runDelayed(plugin, task -> {
-            if (until.remove(id, deadline)) {
-                lastShown.remove(id);
+            if (until.remove(player, deadline)) {
+                lastShown.remove(player);
                 player.sendMessage(messages.get().get("trace.ended"));
             }
-        }, () -> forget(id), granted * 20L);
+        }, () -> stop(player), granted * 20L);
         return granted;
     }
 
     public boolean stop(Player player) {
-        lastShown.remove(player.getUniqueId());
-        return until.remove(player.getUniqueId()) != null;
-    }
-
-    public void forget(UUID player) {
-        until.remove(player);
         lastShown.remove(player);
+        return until.remove(player) != null;
     }
 
     public void report(DeliveryService.Delivered delivered) {
@@ -71,15 +90,12 @@ public final class TraceService {
         }
         long now = System.currentTimeMillis();
         int radius = settings.get().inspect().traceRadius();
-        for (Iterator<Map.Entry<UUID, Long>> it = until.entrySet().iterator(); it.hasNext(); ) {
-            Map.Entry<UUID, Long> entry = it.next();
-            Player player = server.getPlayer(entry.getKey());
-            if (player == null) {
-                it.remove();
-                continue;
-            }
+        for (Iterator<Map.Entry<Player, Long>> it = until.entrySet().iterator(); it.hasNext(); ) {
+            Map.Entry<Player, Long> entry = it.next();
+            Player player = entry.getKey();
             if (entry.getValue() < now) {
                 it.remove();
+                lastShown.remove(player);
                 player.sendMessage(messages.get().get("trace.ended"));
                 continue;
             }
@@ -88,12 +104,18 @@ public final class TraceService {
                     || player.getLocation().distanceSquared(from) > (double) radius * radius) {
                 continue;
             }
-            Long last = lastShown.get(entry.getKey());
-            if (last != null && now - last < MIN_INTERVAL_MILLIS) {
-                continue;
+            Turn last = lastShown.get(player);
+            int tick = server.getCurrentTick();
+            if (last == null || last.tick != tick || !last.from.equals(from)) {
+                if (last != null && now - last.millis < MIN_INTERVAL_MILLIS) {
+                    continue;
+                }
+                last = new Turn(now, tick, from);
+                lastShown.put(player, last);
             }
-            lastShown.put(entry.getKey(), now);
-            show(player, delivered);
+            if (last.drawn.add(delivered.to())) {
+                show(player, delivered);
+            }
         }
     }
 
@@ -103,28 +125,57 @@ public final class TraceService {
                 Placeholder.component("item", delivered.item().effectiveName()),
                 Placeholder.unparsed("amount", String.valueOf(delivered.amount())),
                 Placeholder.component("kind", messages.get().get("trace.kind."
-                        + delivered.kind().name().toLowerCase(Locale.ROOT))),
+                        + delivered.destination().name().toLowerCase(Locale.ROOT))),
                 Placeholder.unparsed("x", String.valueOf(to.getBlockX())),
                 Placeholder.unparsed("y", String.valueOf(to.getBlockY())),
                 Placeholder.unparsed("z", String.valueOf(to.getBlockZ()))));
-        InspectSettings.Colors colors = settings.get().inspect().colors();
-        Color color = switch (delivered.kind()) {
-            case CONTAINER -> colors.container();
-            case DROPPED -> colors.dropped();
-            case DESTROYED -> colors.lava();
-        };
-        drawLine(player, delivered.from(), to, new Particle.DustOptions(color, 1.0f));
+        drawTrail(player, delivered.from(), to, delivered.destination().color(settings.get().inspect().colors()));
     }
 
-    private static void drawLine(Player player, Location from, Location to, Particle.DustOptions dust) {
-        Vector step = to.toVector().subtract(from.toVector());
-        double length = step.length();
-        int points = (int) Math.min(MAX_LINE_POINTS, Math.max(2, length / 0.5));
-        step.multiply(1.0 / points);
-        Location point = from.clone();
-        for (int i = 0; i <= points; i++) {
-            player.spawnParticle(Particle.DUST, point, 1, 0, 0, 0, 0, dust);
-            point.add(step);
+    private void drawTrail(Player player, Location from, Location to, Color color) {
+        Vector path = to.toVector().subtract(from.toVector());
+        double length = path.length();
+        if (length < 1e-3) {
+            return;
         }
+        Vector axis = path.multiply(1 / length);
+        // Any vector not parallel to the path gives the plane of the ring.
+        Vector side = Math.abs(axis.getY()) < 0.9 ? new Vector(0, 1, 0) : new Vector(1, 0, 0);
+        Vector u = axis.getCrossProduct(side).normalize();
+        Vector v = axis.getCrossProduct(u);
+        // From the source's face towards the frame: inside the block nobody would see the start.
+        Location start = from.clone().add(axis.clone().multiply(Math.min(0.55, length / 2)));
+        Color light = lighter(color);
+        int ticks = (int) Math.clamp(Math.round(length / BLOCKS_PER_TICK), MIN_TICKS, MAX_TICKS);
+        for (int i = 0; i < STREAK; i++) {
+            double angle = 2 * Math.PI * i / STREAK;
+            Location origin = start.clone()
+                    .add(u.clone().multiply(RING_RADIUS * Math.cos(angle)))
+                    .add(v.clone().multiply(RING_RADIUS * Math.sin(angle)));
+            spawnTrail(player, origin, to, i == 0 ? light : color, ticks + i * STAGGER_TICKS);
+        }
+        player.getScheduler().runDelayed(plugin, task -> splash(player, to, light), null, ticks);
+    }
+
+    private static void splash(Player player, Location at, Color color) {
+        if (!player.getWorld().equals(at.getWorld())) {
+            return;
+        }
+        ThreadLocalRandom random = ThreadLocalRandom.current();
+        for (int i = 0; i < SPLASH; i++) {
+            Vector out = new Vector(random.nextGaussian(), random.nextGaussian(), random.nextGaussian());
+            if (out.lengthSquared() > 0) {
+                spawnTrail(player, at, at.clone().add(out.normalize().multiply(SPLASH_RADIUS)), color, SPLASH_TICKS);
+            }
+        }
+    }
+
+    private static void spawnTrail(Player player, Location from, Location to, Color color, int ticks) {
+        player.spawnParticle(Particle.TRAIL, from, 1, 0, 0, 0, 0, new Particle.Trail(to, color, ticks));
+    }
+
+    // Halfway to white; Color#mixColors is documented as dyeing, not as a mix.
+    private static Color lighter(Color color) {
+        return Color.fromRGB((color.getRed() + 255) / 2, (color.getGreen() + 255) / 2, (color.getBlue() + 255) / 2);
     }
 }

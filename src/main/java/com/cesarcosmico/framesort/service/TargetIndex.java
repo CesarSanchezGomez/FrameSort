@@ -59,15 +59,14 @@ public final class TargetIndex {
         return frame.getPersistentDataContainer().has(Keys.TARGET);
     }
 
-    public void setMarked(ItemFrame frame, UUID by, boolean marked) {
+    public void setMarked(ItemFrame frame, boolean marked) {
         if (marked) {
-            frame.getPersistentDataContainer().set(Keys.TARGET, PersistentDataType.STRING, by.toString());
+            frame.getPersistentDataContainer().set(Keys.TARGET, PersistentDataType.BOOLEAN, true);
         } else {
             frame.getPersistentDataContainer().remove(Keys.TARGET);
         }
         remove(frame);
         add(frame);
-        changed(frame.getWorld());
     }
 
     public boolean isTarget(ItemFrame frame) {
@@ -85,14 +84,13 @@ public final class TargetIndex {
                     continue;
                 }
                 for (ItemFrame frame : inChunk) {
-                    if (frame.isValid()
-                            && FrameGeometry.key(frame.getLocation().getBlock()).distanceSquared(center) <= radiusSquared) {
+                    if (FrameGeometry.key(frame.getLocation().getBlock()).distanceSquared(center) <= radiusSquared) {
                         found.add(frame);
                     }
                 }
             }
         }
-        return found;
+        return List.copyOf(found);
     }
 
     public void clear() {

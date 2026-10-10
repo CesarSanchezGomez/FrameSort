@@ -2,7 +2,8 @@
 
 config-version: 1
 
-language: en_US   # en_US | es_ES
+# File in lang/ that player messages come from: en_US, es_ES or a copy of your own.
+language: 'en_US'
 
 sorter:
   activator:
@@ -24,9 +25,12 @@ sorter:
   show-activity: true
 
 targets:
-  registration: manual   # manual | automatic
-  positions: [TOP, BOTTOM, FRONT, BACK, LEFT, RIGHT]   # left/right as seen from the front; SIDES = LEFT + RIGHT
+  registration: manual   # manual | automatic (automatic: only frames on containers and composters)
+  positions: [FRONT]   # also TOP, BOTTOM, BACK, LEFT, RIGHT; SIDES = LEFT + RIGHT (as seen from the front)
   frame-types: [ITEM_FRAME, GLOW_ITEM_FRAME]
+  tagged-item:   # what /framesort tag apply <tag> does to the item in your hand
+    name: '<gradient:#F7B733:#FC4A1A>#<tag></gradient>'   # <tag> is the tag
+    glint: true
 
 delivery:
   max-distance: 64   # blocks
@@ -34,8 +38,7 @@ delivery:
   default-target-item: CARROT_ON_A_STICK   # '' = off
 
 inspect:
-  tool: STICK
-  highlight-seconds: 10
+  highlight-seconds: 5
   colors:
     container: '#55FF55'
     dropped: '#FFFF55'

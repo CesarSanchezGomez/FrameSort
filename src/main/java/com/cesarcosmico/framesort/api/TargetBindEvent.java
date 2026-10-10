@@ -15,7 +15,7 @@ import org.bukkit.event.entity.EntityEvent;
  */
 public final class TargetBindEvent extends EntityEvent implements Cancellable {
 
-    private static final HandlerList HANDLERS = new HandlerList();
+    private static final HandlerList HANDLER_LIST = new HandlerList();
 
     private final Block source;
     private boolean cancelled;
@@ -47,10 +47,10 @@ public final class TargetBindEvent extends EntityEvent implements Cancellable {
 
     @Override
     public HandlerList getHandlers() {
-        return HANDLERS;
+        return HANDLER_LIST;
     }
 
     public static HandlerList getHandlerList() {
-        return HANDLERS;
+        return HANDLER_LIST;
     }
 }

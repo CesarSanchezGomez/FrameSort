@@ -26,7 +26,7 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-public final class GiveCommand implements Subcommand {
+public final class GiveCommand implements CommandFeature {
 
     private interface ItemSource {
         ItemStack create(CommandContext<CommandSourceStack> context, int amount) throws CommandSyntaxException;
@@ -51,12 +51,10 @@ public final class GiveCommand implements Subcommand {
     }
 
     @Override
-    public LiteralArgumentBuilder<CommandSourceStack> node(String root, @Nullable String permission) {
+    public void attach(LiteralArgumentBuilder<CommandSourceStack> node, String path) {
         ItemSource sorter = (context, amount) -> sorters.createActivator(amount);
         ItemSource pad = (context, amount) -> pads.createItem(context.getArgument("type", PadType.class), amount);
-        return Commands.literal("give")
-                .requires(source -> FrameSortCommand.allowed(source.getSender(), permission))
-                .then(targets(Commands.literal("sorter"), sorter))
+        node.then(targets(Commands.literal("sorter"), sorter))
                 .then(Commands.literal("pad")
                         .then(targets(Commands.argument("type", padType), pad)));
     }
@@ -70,7 +68,8 @@ public final class GiveCommand implements Subcommand {
                 .executes(context -> give(context, self(context), item, 1))
                 .then(Commands.argument("player", ArgumentTypes.player())
                         .executes(context -> give(context, named(context), item, 1))
-                        .then(amount.executes(context -> give(context, named(context), item, amountOf.apply(context)))));
+                        .then(amount.executes(
+                                context -> give(context, named(context), item, amountOf.apply(context)))));
     }
 
     private int give(CommandContext<CommandSourceStack> context, @Nullable Player target, ItemSource item, int amount)

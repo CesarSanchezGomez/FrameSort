@@ -1,17 +1,99 @@
-# FrameSort: commands. Top-level keys are fixed ids; changes need a restart.
+# FrameSort: commands. Changes need a restart.
+#
+# Each section is one feature; its key is a fixed id, don't change it.
+#   enabled     false removes the feature from every path.
+#   permission  needed to see and run it. Empty means everyone. A permission FrameSort doesn't declare is
+#               granted to ops only, unless a permissions plugin gives it.
+#   usage       every full path that runs it. The first word is the root command, so a feature can also live
+#               under its own command ('/fstrace'). The arguments follow the path, as in the comment above each one.
+# Help lines in lang/ show the first path of each feature. inspect has none: only the inspection page buttons use it.
 
 config-version: 1
 
-framesort:
+# Usage: [COMMAND]
+help:
   enabled: true
-  name: framesort
-  aliases: [fs]
-  permission: framesort.command.help
-  subcommands:
-    tag:     { permission: framesort.command.tag }
-    tags:    { permission: framesort.command.tags }
-    trace:   { permission: framesort.command.trace }
-    inspect: { permission: framesort.command.inspect }
-    give:    { permission: framesort.command.give }
-    reload:  { permission: framesort.command.reload }
-    version: { permission: framesort.command.version }
+  permission: 'framesort.command.help'
+  usage:
+    - '/framesort'
+    - '/fs'
+
+# Usage: [COMMAND] [page]
+tag-list:
+  enabled: true
+  permission: 'framesort.command.tag-list'
+  usage:
+    - '/framesort tag list'
+    - '/fs tag list'
+
+# Usage: [COMMAND] <text> [page]
+tag-search:
+  enabled: true
+  permission: 'framesort.command.tag-search'
+  usage:
+    - '/framesort tag search'
+    - '/fs tag search'
+
+# Usage: [COMMAND] <tag> [page]
+tag-show:
+  enabled: true
+  permission: 'framesort.command.tag-show'
+  usage:
+    - '/framesort tag show'
+    - '/fs tag show'
+
+# Usage: [COMMAND] <tag>   (with the item in your main hand)
+tag-apply:
+  enabled: true
+  permission: 'framesort.command.tag-apply'
+  usage:
+    - '/framesort tag apply'
+    - '/fs tag apply'
+
+# Usage: [COMMAND]   (with the item in your main hand)
+tag-remove:
+  enabled: true
+  permission: 'framesort.command.tag-remove'
+  usage:
+    - '/framesort tag remove'
+    - '/fs tag remove'
+
+# Usage: [COMMAND] (with the item in your main hand)
+where:
+  enabled: true
+  permission: 'framesort.command.where'
+  usage:
+    - '/framesort where'
+    - '/fs where'
+
+# Usage: [COMMAND] [seconds] | [COMMAND] stop
+trace:
+  enabled: true
+  permission: 'framesort.command.trace'
+  usage:
+    - '/framesort trace'
+    - '/fs trace'
+
+# Usage: [COMMAND] <page>
+inspect:
+  enabled: true
+  permission: 'framesort.command.inspect'
+  usage:
+    - '/framesort inspect'
+    - '/fs inspect'
+
+# Usage: [COMMAND] sorter [player] [amount] | [COMMAND] pad <type> [player] [amount]
+give:
+  enabled: true
+  permission: 'framesort.command.give'
+  usage:
+    - '/framesort give'
+    - '/fs give'
+
+# Usage: [COMMAND]
+reload:
+  enabled: true
+  permission: 'framesort.command.reload'
+  usage:
+    - '/framesort reload'
+    - '/fs reload'

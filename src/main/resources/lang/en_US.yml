@@ -1,14 +1,26 @@
+config-version: 1
+
 prefix: '<white>[</white><gradient:#F7B733:#FC4A1A>FrameSort</gradient><white>]</white> '
 
 command:
   help:
-    - '<prefix><gray>Sort items into item frames.</gray>'
-    - '<gray>• <white>Right-click</white> a sorter or pad with a <white>stick</white> to see its targets (hold an item in your off hand to see only its targets).</gray>'
-    - '<gray>• <white>Sneak + right-click</white> a frame with the stick to mark it as a target; <white>right-click</white> it to see what it accepts.</gray>'
-    - '<gray>• <white>/framesort trace [seconds|stop]</white> · <white>/framesort tag logs</white> · <white>/framesort tags [search text]</white></gray>'
+    header:
+      - '<prefix><gray>Sort items into item frames.</gray>'
+      - '<gray>• <white>Sneak + right-click</white> a sorter or pad with an empty hand to see its targets (hold an item in your off hand to see only its targets).</gray>'
+      - '<gray>• <white>Sneak + right-click</white> a frame with an empty hand to mark it as a target; <white>sneak + left-click</white> it to see what it accepts.</gray>'
+    tag-list: '<gray>• <white><usage> [page]</white> <dark_gray>-</dark_gray> every item and block tag.</gray>'
+    tag-search: '<gray>• <white><usage> \<text> [page]</white> <dark_gray>-</dark_gray> tags whose name contains a text.</gray>'
+    tag-show: '<gray>• <white><usage> \<tag> [page]</white> <dark_gray>-</dark_gray> what a tag contains.</gray>'
+    tag-apply: '<gray>• <white><usage> \<tag></white> <dark_gray>-</dark_gray> apply a tag to the item in your hand.</gray>'
+    tag-remove: '<gray>• <white><usage></white> <dark_gray>-</dark_gray> take the tag off the item in your hand.</gray>'
+    where: '<gray>• <white><usage></white> <dark_gray>-</dark_gray> where the item in your hand would go from the nearest sorter or pad.</gray>'
+    trace: '<gray>• <white><usage> [seconds|stop]</white> <dark_gray>-</dark_gray> show the deliveries around you.</gray>'
+    give: '<gray>• <white><usage> sorter|pad \<type> [player] [amount]</white> <dark_gray>-</dark_gray> give sorter activators and pad blocks.</gray>'
+    reload: '<gray>• <white><usage></white> <dark_gray>-</dark_gray> reload the configuration.</gray>'
   reloaded: '<prefix><green>Configuration reloaded.</green>'
+  reloaded-with-warnings: '<prefix><yellow>Configuration reloaded with <count> warning(s): those settings use their defaults. See the console.</yellow>'
   reload-failed: '<prefix><red>Reload failed: <error>. The previous configuration is still active; see the console.</red>'
-  version: '<prefix><white>FrameSort <green><version></green></white>'
+  players-only: '<prefix><red>Only players can use this command.</red>'
 
 pager:
   layout:
@@ -33,38 +45,54 @@ inspect:
   source:
     sorter: 'sorter'
     pad: 'teleport pad'
-  title: 'Targets of this <source> (<x>, <y>, <z>)'
-  title-item: 'Where <item> goes from this <source>'
-  section:
-    containers: '<green>Into containers:</green>'
-    dropped: '<yellow>Dropped at:</yellow>'
+  title: 'Targets of this <source> (<x>, <y>, <z>)<sorted>'
+  title-item: 'Where <item> goes from this <source><sorted>'
+  sorted: ' <dark_gray>· <count> sorted</dark_gray>'
+  level:
+    first: '  <color:#F7B733><number>.</color> <white>First choice</white>'
+    next: '  <color:#F7B733><number>.</color> <white>When those are full</white>'
+  branch:
+    middle: '     <dark_gray>├</dark_gray> <entry>'
+    last: '     <dark_gray>└</dark_gray> <entry>'
   excess:
-    lava: '<red>Anything left over is destroyed by lava.</red>'
-    stay: '<gray>Anything left over stays until there is room.</gray>'
+    lava: '  <red>Anything left over is destroyed by lava.</red>'
+    stay: '  <gray>Anything left over stays until there is room.</gray>'
   target:
     dropped: '<yellow>dropped here</yellow>'
     lava: '<red>lava</red>'
-  line: '<gray>  • <white><item></white> <dark_gray>→</dark_gray> <target> <dark_gray>(<x>, <y>, <z>) · <distance> m</dark_gray></gray>'
-  no-listing: '<prefix><gray>Right-click a sorter or pad with the tool first.</gray>'
+  line: '  <color:#F7B733>•</color> <entry>'
+  entry: '<white><item></white> <dark_gray>→</dark_gray> <hover:show_text:"<gray><x>, <y>, <z></gray>"><target></hover> <dark_gray><distance> m</dark_gray>'
+  no-listing: '<prefix><gray>Sneak + right-click a sorter or pad with an empty hand first.</gray>'
+  opens: '<prefix><gray>A sorter opens <white><item></white> first and sends what is inside; once nothing inside can go anywhere, it goes whole, as listed below.</gray>'
 
 frame:
-  header: '<prefix><white>Target frame</white> <dark_gray>(<x>, <y>, <z>)</dark_gray>'
+  layout:
+    - ''
+    - '<gradient:#F7B733:#FC4A1A>◤<st>                          </st></gradient> <white>[</white><gradient:#F7B733:#FC4A1A>FrameSort</gradient><white>]</white> <gradient:#FC4A1A:#F7B733><st>                          </st>◥</gradient>'
+    - ''
+    - '  <title>'
+    - ''
+    - '<lines>'
+    - ''
+    - '<gradient:#F7B733:#FC4A1A>◣<st>                                   </st></gradient><gradient:#FC4A1A:#F7B733><st>                                   </st>◢</gradient>'
+    - ''
+  title: '<white>Target frame</white> <dark_gray>(<x>, <y>, <z>)</dark_gray>'
   status:
-    target: '<green>  This frame is a target</green> <gray>(on the <position> of its block).</gray>'
-    unmarked: '<yellow>  Not a target yet: sneak + right-click it with the tool to mark it.</yellow>'
-    not-allowed: '<red>  Not a target: frames can''t be used on the <position> of a block here.</red>'
-    wrong-type: '<red>  Not a target: this kind of frame is not used for targets.</red>'
+    target: '  <green>✔</green> <gray>A target, on the <position> of its block</gray>'
+    unmarked: '  <yellow>✘</yellow> <gray>Not a target yet: sneak + right-click it with an empty hand</gray>'
+    not-allowed: '  <red>✘</red> <gray>Frames can''t be targets on the <position> of a block here</gray>'
+    wrong-type: '  <red>✘</red> <gray>This kind of frame can''t be a target</gray>'
   into:
-    container: '<gray>  Items go into: <white><block></white></gray>'
-    dropped: '<gray>  Items are dropped in front of it.</gray>'
-    lava: '<gray>  Items are <red>destroyed by lava</red>.</gray>'
+    container: '  <color:#F7B733>•</color> <gray>Items go into</gray> <white><block></white>'
+    dropped: '  <color:#F7B733>•</color> <gray>Items are</gray> <yellow>dropped in front of it</yellow>'
+    lava: '  <color:#F7B733>•</color> <gray>Items are</gray> <red>destroyed by lava</red>'
   accepts:
-    exact: '<gray>  Accepts <white><item></white> (exact match first).</gray>'
-    tag: '<gray>  Accepts everything in <white>#<tag></white> (<count> items) <dark_gray>[click to list]</dark_gray></gray>'
-    contents: '<gray>  Accepts what its contents hold (<count> stacks).</gray>'
-    similar: '<gray>  Accepts any <white><material></white> when nothing matches better.</gray>'
-    default: '<gray>  Default target: takes whatever matches no other frame.</gray>'
-  sources: '<gray>  Sorters and pads in range: <white><count></white></gray>'
+    exact: '  <color:#F7B733>•</color> <gray>Accepts</gray> <white><item></white> <dark_gray>exact match first</dark_gray>'
+    tag: '  <color:#F7B733>•</color> <gray>Accepts</gray> <white>#<tag></white> <dark_gray>· <count> items · [click to list]</dark_gray>'
+    contents: '  <color:#F7B733>•</color> <gray>Accepts what it holds</gray> <dark_gray>· <count> stacks</dark_gray>'
+    similar: '  <color:#F7B733>•</color> <gray>Accepts any</gray> <white><material></white> <dark_gray>when nothing matches better</dark_gray>'
+    default: '  <color:#F7B733>•</color> <gray>Default target:</gray> <white>whatever matches no other frame, or has no room left in one</white>'
+  sources: '  <color:#F7B733>•</color> <gray>Sorters and pads in range:</gray> <white><count></white>'
 
 mark:
   marked: '<prefix><green>This frame is now a target.</green>'
@@ -83,6 +111,16 @@ position:
   right: 'right'
   side: 'side'
 
+tag-item:
+  applied: '<prefix><green>The item in your hand now stands for <white>#<tag></white> in frames.</green>'
+  removed: '<prefix><gray>The item in your hand no longer has a tag.</gray>'
+  not-tagged: '<prefix><gray>The item in your hand has no tag.</gray>'
+  empty-hand: '<prefix><gray>Hold the item you want to apply the tag to.</gray>'
+
+where:
+  empty-hand: '<prefix><gray>Hold the item you want to look up.</gray>'
+  no-source: '<prefix><gray>There is no sorter or pad within <radius> blocks.</gray>'
+
 trace:
   started: '<prefix><green>Tracing deliveries within <radius> blocks for <seconds> seconds.</green> <gray>Stop with /framesort trace stop.</gray>'
   stopped: '<prefix><gray>Tracing stopped.</gray>'
@@ -95,18 +133,18 @@ trace:
     destroyed: '<red>lava</red>'
 
 tag:
-  title: '#<tag> <dark_gray>(<kind>)</dark_gray>'
+  title: '#<tag> <dark_gray>(<kind>)</dark_gray><apply>'
+  apply-button: ' <hover:show_text:"<gray>Apply this tag to the item in your hand</gray>"><gradient:#F7B733:#FC4A1A>[Apply]</gradient></hover>'
   kind:
     item: 'item tag'
     block: 'block tag'
-  entry: '<gray>  • <white><item></white></gray>'
-  unknown: '<prefix><red>There is no item or block tag called <white>#<tag></white>. Try /framesort tags.</red>'
-
-tags:
-  title: 'Tags'
-  title-search: 'Tags containing "<text>"'
-  entry: '<gray>  • <white>#<tag></white></gray>'
-  hover: '<gray>Click to see what this tag contains</gray>'
+  entry: '  <color:#F7B733>•</color> <white><item></white>'
+  unknown: '<prefix><red>There is no item or block tag called <white>#<tag></white>. Try /framesort tag list.</red>'
+  list:
+    title: 'Tags'
+    title-search: 'Tags containing "<text>"'
+    entry: '  <color:#F7B733>•</color> <white>#<tag></white>'
+    hover: '<gray>Click to see what this tag contains</gray>'
 
 give:
   done: '<prefix><green>Gave <white><amount>× <item></white> to <white><player></white>.</green>'

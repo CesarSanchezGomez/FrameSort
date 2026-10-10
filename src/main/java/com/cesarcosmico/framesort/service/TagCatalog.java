@@ -15,7 +15,6 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -37,7 +36,7 @@ public final class TagCatalog {
     private final Set<NamespacedKey> missing = new HashSet<>();
     private @Nullable List<NamespacedKey> names;
 
-    /** Item tags win over block tags with the same name. */
+    /** An item tag wins over a block tag with the same name: frames sort items. */
     public @Nullable TagView find(NamespacedKey key) {
         TagView cached = found.get(key);
         if (cached != null || missing.contains(key)) {
@@ -55,11 +54,6 @@ public final class TagCatalog {
         return view;
     }
 
-    public boolean contains(NamespacedKey tag, Material material) {
-        TagView view = find(tag);
-        return view != null && view.lookup().contains(material);
-    }
-
     public List<NamespacedKey> names() {
         if (names == null) {
             Set<NamespacedKey> all = new TreeSet<>(Comparator.comparing(NamespacedKey::asString));
@@ -74,15 +68,6 @@ public final class TagCatalog {
         found.clear();
         missing.clear();
         names = null;
-    }
-
-    /** A frame item's name as a tag: {@code logs}, {@code #logs} and {@code minecraft:logs} are the same tag. */
-    public static @Nullable NamespacedKey parseName(String name) {
-        String trimmed = name.trim().toLowerCase(Locale.ROOT);
-        if (trimmed.startsWith("#")) {
-            trimmed = trimmed.substring(1);
-        }
-        return trimmed.isEmpty() ? null : NamespacedKey.fromString(trimmed);
     }
 
     private static <T extends Keyed> @Nullable TagView load(RegistryKey<T> registryKey, NamespacedKey key, Kind kind) {

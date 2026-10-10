@@ -11,8 +11,8 @@ import java.util.Set;
 import java.util.TreeSet;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 
+// BundledYamlTest checks that every language has the same keys; this checks that every message parses.
 class LangFilesTest {
 
     private static YamlConfiguration lang(String locale) throws Exception {
@@ -29,11 +29,6 @@ class LangFilesTest {
             }
         }
         return keys;
-    }
-
-    @Test
-    void translationsHaveTheSameKeys() throws Exception {
-        assertEquals(leaves(lang("en_US")), leaves(lang("es_ES")));
     }
 
     @Test

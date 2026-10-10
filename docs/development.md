@@ -1,34 +1,35 @@
 # Development
 
-## Build
-
-```bash
-./gradlew build
-```
-
-Requires a JDK 25 or newer (the build targets Java 25 bytecode). The jar is
-`build/libs/FrameSort-<version>.jar`. The Paper API version lives in `gradle.properties`.
-
-Tests use JUnit 5 and the Paper API types, but no server. Listeners and commands are checked by hand on a test
-server.
-
 ## Layout
 
 ```
 com.cesarcosmico.framesort
 ├── FrameSortPlugin   composition root: wires everything, one tick task, reload
-├── model/            plain rules: priorities, best-priority set, delivery, frame positions, paging
+├── model/            plain rules: priorities, ranking by priority, delivery, composting, frame positions, paging
 ├── service/          target index and resolver, delivery, sorters, pads, inspection, tracing, tags
-├── config/           typed settings, pads.yml, commands.yml, validation, reload holder
+├── config/           typed settings, pads.yml, commands.yml, strict YAML loading, validation, reload holder
 ├── item/             persistent data keys, item templates, the pad codec for chunks
 ├── text/             messages and the chat pager
-├── command/          Brigadier commands, one class per subcommand
+├── command/          one class per command feature; CommandTree builds the roots from commands.yml
 ├── listener/         Bukkit listeners, one per feature
+├── integration/      worldguard/: the only code that imports WorldGuard, loaded only when it is enabled
 └── api/              TargetBindEvent, for other plugins
 ```
 
-Dependencies are wired by constructor in `FrameSortPlugin`; there are no static instances. `DeliveryService.Source`
-(a sorter slot or a pad item entity) and `Subcommand` are the only interfaces.
+Packages depend on each other without cycles: `model` ← `item` ← `config` ← `text` ← `service` ← `command`,
+`listener` and `integration`. `api` is used only by `service` and `integration`, and only `FrameSortPlugin` creates
+the integration. Dependencies are wired by constructor in `FrameSortPlugin`; there are no static instances.
+
+Interfaces exist only with several implementations or as closed sets:
+- `DeliveryService.Source`: a sorter slot or a pad item entity;
+- `CommandFeature`: one per command feature;
+- `GiveCommand.ItemSource`: a sorter activator or a pad block;
+- sealed `PadService.Placement`: what placing a pad block did;
+- sealed `SorterService.Slot`: an inventory slot, or one inside a shulker box or bundle.
+
+`commands.yml` only places features: `CommandTree` joins every enabled path into Brigadier literals, makes a literal
+visible to anyone allowed to run something below it, and checks each feature's own permission on its command and
+arguments.
 
 ## Data
 
@@ -36,8 +37,10 @@ Nothing is stored outside the world:
 
 | Where | Key | Content |
 |---|---|---|
-| Item frame entity | `framesort:target` | The frame is a target (manual registration); the value is the UUID of the player who marked it. |
+| Item frame entity | `framesort:target` | Present while the frame is a target (manual registration). |
 | Chunk | `framesort:pads` | The pads registered in the chunk, as `"x,y,z,type"`. |
+| Item | `framesort:item-tag` | The tag a tagged item stands for, such as `minecraft:logs` (`/framesort tag apply <tag>`). |
+| Sorter dispenser | `framesort:sorted` | How many items the sorter has sent (a `long`); it goes away with the block. |
 | Item | `framesort:activator` | The sorter activator handed out by FrameSort. |
 | Item | `framesort:pad-item` | The pad type of a special pad block. |
 
@@ -48,6 +51,9 @@ Nothing is stored outside the world:
   the world.
 - **Cache.** Matches are cached per source and item (amount ignored) and invalidated by a per-world epoch that
   changes with any target change. A cached frame is checked again before use.
+- **One plan.** `TargetResolver.plan` ranks the targets into levels of preference, each split into containers,
+  drop spots and lava. Deliveries and inspections (`/framesort where`, inspecting with an item in the off hand) both
+  use it, so an inspection shows exactly what a delivery would do.
 - **No duplication.** Containers are looked up the moment items go in, and the source is updated after each
   container (`model.Delivery`). A container that vanished in between is skipped. `DeliveryTest` covers the case
   where a vanished container used to duplicate items.
@@ -73,5 +79,9 @@ packets.
 
 Tracing ends on a timer per player, so the "tracing ended" message arrives on time even when nothing is delivered.
 
-Architecture conventions shared with the other CesarCosmico plugins are described in the workspace's
-`ARCHITECTURE-STANDARD.md`.
+## Paper API to recheck
+
+[`api-status.txt`](../api-status.txt) lists the Paper API FrameSort uses that may change: the registry tag API
+(`@ApiStatus.Experimental`), through which `TagCatalog` reads item and block tags, and the data components
+(`@MinecraftVersionDependent`) behind item templates, tagged items and shulker box and bundle contents. Check them
+again whenever Paper or Minecraft changes.

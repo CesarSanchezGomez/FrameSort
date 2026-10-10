@@ -4,12 +4,17 @@ import com.cesarcosmico.framesort.model.BlockKey;
 import com.cesarcosmico.framesort.model.ChunkKey;
 import com.cesarcosmico.framesort.model.FramePosition;
 import org.bukkit.Chunk;
+import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
+import org.bukkit.block.Container;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.Directional;
 import org.bukkit.block.data.type.Hopper;
 import org.bukkit.entity.ItemFrame;
+import org.bukkit.inventory.Inventory;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Set;
 
@@ -35,6 +40,25 @@ public final class FrameGeometry {
         BlockFace facing = data instanceof Directional directional && !(data instanceof Hopper)
                 ? directional.getFacing() : null;
         return FramePosition.of(attached.getOppositeFace(), facing);
+    }
+
+    // Not a snapshot: items must go into the live block entity, never into a copy written back later.
+    public static @Nullable Inventory inventory(Block block) {
+        return block.getState(false) instanceof Container container ? container.getInventory() : null;
+    }
+
+    /** Whether items sent to a frame on this block go into it: a container, or a composter that composts them. */
+    public static boolean isContainer(Block block) {
+        return block.getType() == Material.COMPOSTER || inventory(block) != null;
+    }
+
+    // The frame sits flush against its block; an item spawned there overlaps the block and gets pushed out of it.
+    public static Location dropPoint(ItemFrame frame) {
+        return frame.getLocation().getBlock().getLocation().toCenterLocation();
+    }
+
+    public static boolean isLava(ItemFrame frame) {
+        return attachedBlock(frame).getType() == Material.LAVA_CAULDRON;
     }
 
     public static BlockKey key(Block block) {

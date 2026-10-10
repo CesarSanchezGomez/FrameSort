@@ -1,5 +1,6 @@
 package com.cesarcosmico.framesort.listener;
 
+import com.cesarcosmico.framesort.config.PadType;
 import com.cesarcosmico.framesort.service.PadService;
 import com.cesarcosmico.framesort.text.Messages;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
@@ -41,14 +42,15 @@ public final class PadListener implements Listener {
         pads.unload(event.getChunk());
     }
 
+    // MONITOR: the pad is registered only once no plugin can still cancel the placement; the event is left alone.
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onPlace(BlockPlaceEvent event) {
-        PadService.PlaceResult result = pads.placed(event.getPlayer(), event.getBlockPlaced(), event.getItemInHand());
-        switch (result.placement()) {
-            case CREATED -> event.getPlayer().sendMessage(messages.get().get("pad.created",
-                    Placeholder.unparsed("type", result.type() == null ? "" : result.type().id())));
-            case NOT_ALLOWED -> event.getPlayer().sendMessage(messages.get().get("pad.not-allowed"));
-            case NOT_A_PAD -> {
+        switch (pads.placed(event.getPlayer(), event.getBlockPlaced(), event.getItemInHand())) {
+            case PadService.Placement.Created(PadType type) -> event.getPlayer().sendMessage(
+                    messages.get().get("pad.created", Placeholder.unparsed("type", type.id())));
+            case PadService.Placement.NotAllowed() -> event.getPlayer().sendMessage(
+                    messages.get().get("pad.not-allowed"));
+            case PadService.Placement.NotAPad() -> {
             }
         }
     }
@@ -67,26 +69,26 @@ public final class PadListener implements Listener {
         }
     }
 
-    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onPistonExtend(BlockPistonExtendEvent event) {
         if (movesPad(event.getBlocks())) {
             event.setCancelled(true);
         }
     }
 
-    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onPistonRetract(BlockPistonRetractEvent event) {
         if (movesPad(event.getBlocks())) {
             event.setCancelled(true);
         }
     }
 
-    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onEntityExplode(EntityExplodeEvent event) {
         event.blockList().removeIf(pads::isRegistered);
     }
 
-    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onBlockExplode(BlockExplodeEvent event) {
         event.blockList().removeIf(pads::isRegistered);
     }

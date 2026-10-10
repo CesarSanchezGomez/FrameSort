@@ -11,11 +11,10 @@ import io.papermc.paper.command.brigadier.CommandSourceStack;
 import io.papermc.paper.command.brigadier.Commands;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import org.bukkit.entity.Player;
-import org.jspecify.annotations.Nullable;
 
 import java.util.function.Supplier;
 
-public final class TraceCommand implements Subcommand {
+public final class TraceCommand implements CommandFeature {
 
     private final TraceService trace;
     private final Supplier<Messages> messages;
@@ -33,18 +32,18 @@ public final class TraceCommand implements Subcommand {
     }
 
     @Override
-    public LiteralArgumentBuilder<CommandSourceStack> node(String root, @Nullable String permission) {
-        return Commands.literal("trace")
-                .requires(source -> source.getSender() instanceof Player
-                        && FrameSortCommand.allowed(source.getSender(), permission))
-                .executes(context -> start(context, settings.get().inspect().traceDefaultSeconds()))
+    public void attach(LiteralArgumentBuilder<CommandSourceStack> node, String path) {
+        node.executes(context -> start(context, settings.get().inspect().traceDefaultSeconds()))
                 .then(Commands.literal("stop").executes(this::stop))
                 .then(Commands.argument("seconds", IntegerArgumentType.integer(1))
                         .executes(context -> start(context, IntegerArgumentType.getInteger(context, "seconds"))));
     }
 
     private int start(CommandContext<CommandSourceStack> context, int seconds) {
-        Player player = (Player) context.getSource().getSender();
+        if (!(context.getSource().getSender() instanceof Player player)) {
+            context.getSource().getSender().sendMessage(messages.get().get("command.players-only"));
+            return Command.SINGLE_SUCCESS;
+        }
         int granted = trace.start(player, seconds);
         player.sendMessage(messages.get().get("trace.started",
                 Placeholder.unparsed("seconds", String.valueOf(granted)),
@@ -53,7 +52,10 @@ public final class TraceCommand implements Subcommand {
     }
 
     private int stop(CommandContext<CommandSourceStack> context) {
-        Player player = (Player) context.getSource().getSender();
+        if (!(context.getSource().getSender() instanceof Player player)) {
+            context.getSource().getSender().sendMessage(messages.get().get("command.players-only"));
+            return Command.SINGLE_SUCCESS;
+        }
         player.sendMessage(messages.get().get(trace.stop(player) ? "trace.stopped" : "trace.not-running"));
         return Command.SINGLE_SUCCESS;
     }

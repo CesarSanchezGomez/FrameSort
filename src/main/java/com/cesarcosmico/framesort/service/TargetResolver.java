@@ -2,13 +2,16 @@ package com.cesarcosmico.framesort.service;
 
 import com.cesarcosmico.framesort.api.TargetBindEvent;
 import com.cesarcosmico.framesort.config.FrameSortSettings;
+import com.cesarcosmico.framesort.config.InspectSettings;
+import com.cesarcosmico.framesort.item.ItemTagCodec;
 import com.cesarcosmico.framesort.model.BlockKey;
 import com.cesarcosmico.framesort.model.MatchTier;
+import com.cesarcosmico.framesort.model.Ranking;
+import com.cesarcosmico.framesort.model.TargetRegistration;
 import io.papermc.paper.datacomponent.DataComponentTypes;
 import io.papermc.paper.datacomponent.item.BundleContents;
 import io.papermc.paper.datacomponent.item.ItemContainerContents;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
+import org.bukkit.Color;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.block.Block;
@@ -17,6 +20,7 @@ import org.bukkit.inventory.ItemStack;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -25,7 +29,38 @@ import java.util.function.Supplier;
 /** Cached until the world's targets change; callers recheck each frame, which may have changed since. */
 public final class TargetResolver {
 
-    public record Match(ItemFrame frame, int priority, ItemStack frameItem) {
+    /** Where a delivery leaves the items sent to a frame. */
+    public enum Destination {
+        CONTAINER,
+        DROPPED,
+        DESTROYED;
+
+        public Color color(InspectSettings.Colors colors) {
+            return switch (this) {
+                case CONTAINER -> colors.container();
+                case DROPPED -> colors.dropped();
+                case DESTROYED -> colors.lava();
+            };
+        }
+    }
+
+    /** Frames tied at one priority, split by where the items end up. */
+    public record Level(List<ItemFrame> containers, List<ItemFrame> drops, List<ItemFrame> lava) {
+        public Level {
+            containers = List.copyOf(containers);
+            drops = List.copyOf(drops);
+            lava = List.copyOf(lava);
+        }
+    }
+
+    /** The frames a delivery would use, best level first; {@code stale} if a cached frame changed. */
+    public record Plan(List<Level> levels, boolean stale) {
+        public Plan {
+            levels = List.copyOf(levels);
+        }
+    }
+
+    private record Match(ItemFrame frame, int priority, ItemStack frameItem) {
     }
 
     private record CacheKey(BlockKey source, ItemStack item) {
@@ -37,7 +72,6 @@ public final class TargetResolver {
     private static final int NO_MATCH = -1;
     // Bounds memory on servers with many distinct items; a full clear is cheap to rebuild from the index.
     private static final int MAX_CACHED = 4096;
-    private static final PlainTextComponentSerializer PLAIN = PlainTextComponentSerializer.plainText();
 
     private final Supplier<FrameSortSettings> settings;
     private final TargetIndex index;
@@ -50,7 +84,45 @@ public final class TargetResolver {
         this.tags = tags;
     }
 
-    public List<Match> matches(Block source, ItemStack item) {
+    // Deliveries and inspections both plan here, so an inspection always shows what a delivery would do.
+    public Plan plan(Block source, ItemStack item) {
+        Ranking<ItemFrame> ranking = new Ranking<>();
+        boolean stale = false;
+        for (Match match : matches(source, item)) {
+            ItemFrame frame = match.frame();
+            if (!frame.isValid() || !FrameGeometry.attachedLoaded(frame)
+                    || !frame.getItem().equals(match.frameItem())) {
+                stale = true;
+                continue;
+            }
+            if (FrameGeometry.attachedBlock(frame).getType() == Material.COMPOSTER && !item.getType().isCompostable()) {
+                continue;
+            }
+            ranking.add(match.priority(), frame);
+        }
+        List<Level> levels = new ArrayList<>();
+        for (List<ItemFrame> tied : ranking.levels()) {
+            Map<Destination, List<ItemFrame>> split = new EnumMap<>(Destination.class);
+            for (ItemFrame frame : tied) {
+                split.computeIfAbsent(destination(frame), key -> new ArrayList<>()).add(frame);
+            }
+            levels.add(new Level(split.getOrDefault(Destination.CONTAINER, List.of()),
+                    split.getOrDefault(Destination.DROPPED, List.of()),
+                    split.getOrDefault(Destination.DESTROYED, List.of())));
+        }
+        return new Plan(levels, stale);
+    }
+
+    public Destination destination(ItemFrame frame) {
+        if (FrameGeometry.isLava(frame)) {
+            return Destination.DESTROYED;
+        }
+        return settings.get().delivery().insertIntoContainers()
+                && FrameGeometry.isContainer(FrameGeometry.attachedBlock(frame))
+                ? Destination.CONTAINER : Destination.DROPPED;
+    }
+
+    private List<Match> matches(Block source, ItemStack item) {
         BlockKey key = FrameGeometry.key(source);
         CacheKey cacheKey = new CacheKey(key, item.asOne());
         long epoch = index.epoch(key.world());
@@ -75,7 +147,7 @@ public final class TargetResolver {
     }
 
     /** The best priority this frame item accepts {@code item} at, or {@code -1}. */
-    public int priority(ItemStack frameItem, ItemStack item) {
+    private int priority(ItemStack frameItem, ItemStack item) {
         int best = direct(frameItem, item, false);
         if (best != MatchTier.EXACT.priority(false)) {
             for (ItemStack content : contents(frameItem)) {
@@ -92,14 +164,10 @@ public final class TargetResolver {
         return best;
     }
 
+    /** The tag a tagged item stands for, or {@code null} when the item has none. */
     public TagCatalog.@Nullable TagView tag(ItemStack frameItem) {
-        NamespacedKey key = tagOf(frameItem);
+        NamespacedKey key = ItemTagCodec.read(frameItem);
         return key == null ? null : tags.find(key);
-    }
-
-    public static @Nullable NamespacedKey tagOf(ItemStack frameItem) {
-        Component name = frameItem.getData(DataComponentTypes.CUSTOM_NAME);
-        return name == null ? null : TagCatalog.parseName(PLAIN.serialize(name));
     }
 
     public static List<ItemStack> contents(ItemStack item) {
@@ -113,25 +181,35 @@ public final class TargetResolver {
             contents.addAll(bundle.contents());
         }
         contents.removeIf(ItemStack::isEmpty);
-        return contents;
+        return List.copyOf(contents);
+    }
+
+    /** Whether {@code source} may send to {@code frame} at all, whatever the item; the caller checks the distance. */
+    public boolean reaches(Block source, ItemFrame frame) {
+        return eligible(settings.get(), source, frame) && new TargetBindEvent(source, frame).callEvent();
+    }
+
+    /** The frames in range that {@code source} may send to, whatever the item. */
+    public List<ItemFrame> targets(Block source) {
+        List<ItemFrame> found = new ArrayList<>();
+        for (ItemFrame frame : index.near(FrameGeometry.key(source), settings.get().delivery().maxDistance())) {
+            if (reaches(source, frame)) {
+                found.add(frame);
+            }
+        }
+        return List.copyOf(found);
     }
 
     private List<Match> compute(Block source, BlockKey key, ItemStack item) {
         FrameSortSettings current = settings.get();
         List<Match> matches = new ArrayList<>();
         for (ItemFrame frame : index.near(key, current.delivery().maxDistance())) {
+            if (!eligible(current, source, frame)) {
+                continue;
+            }
             ItemStack shown = frame.getItem();
-            if (shown.isEmpty() || !FrameGeometry.attachedLoaded(frame)
-                    || !current.targets().allows(FrameGeometry.positions(frame))) {
-                continue;
-            }
-            Block attached = FrameGeometry.attachedBlock(frame);
-            // Never send a source's items back into itself, and never treat a sorter's own frame as a target.
-            if (attached.equals(source)
-                    || (current.sorter().isActivator(shown) && attached.getType() == Material.DISPENSER)) {
-                continue;
-            }
             int priority = priority(shown, item);
+            // The event goes last: other plugins' handlers cost more than matching the item.
             if (priority == NO_MATCH || !new TargetBindEvent(source, frame).callEvent()) {
                 continue;
             }
@@ -140,18 +218,36 @@ public final class TargetResolver {
         return List.copyOf(matches);
     }
 
+    private static boolean eligible(FrameSortSettings current, Block source, ItemFrame frame) {
+        ItemStack shown = frame.getItem();
+        if (shown.isEmpty() || !FrameGeometry.attachedLoaded(frame)
+                || !current.targets().allows(FrameGeometry.positions(frame))) {
+            return false;
+        }
+        Block attached = FrameGeometry.attachedBlock(frame);
+        // Unmarked frames only count on containers, so a decorative frame never becomes a drop spot or trash can.
+        if (current.targets().registration() == TargetRegistration.AUTOMATIC && !FrameGeometry.isContainer(attached)) {
+            return false;
+        }
+        // Never send a source's items back into itself, and never treat a sorter's own frame as a target.
+        return !attached.equals(source)
+                && !(current.sorter().isActivator(shown) && attached.getType() == Material.DISPENSER);
+    }
+
     private int direct(ItemStack target, ItemStack item, boolean nested) {
+        // A tagged item stands only for its tag, never for itself or its material.
+        if (ItemTagCodec.read(target) != null) {
+            TagCatalog.TagView tag = tag(target);
+            return tag != null && tag.lookup().contains(item.getType()) ? MatchTier.TAG.priority(nested) : NO_MATCH;
+        }
+        // A filled shulker box or bundle in the frame stands only for what it holds; inside it, only for itself.
+        boolean filled = !contents(target).isEmpty();
+        if (filled && !nested) {
+            return NO_MATCH;
+        }
         if (target.isSimilar(item)) {
             return MatchTier.EXACT.priority(nested);
         }
-        NamespacedKey tag = tagOf(target);
-        if (tag != null && tags.contains(tag, item.getType())) {
-            return MatchTier.TAG.priority(nested);
-        }
-        // A filled shulker box or bundle stands for its contents, not for its own material.
-        if (target.getType() == item.getType() && contents(target).isEmpty()) {
-            return MatchTier.SIMILAR.priority(nested);
-        }
-        return NO_MATCH;
+        return target.getType() == item.getType() && !filled ? MatchTier.SIMILAR.priority(nested) : NO_MATCH;
     }
 }

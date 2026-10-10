@@ -9,11 +9,10 @@ import com.mojang.brigadier.context.CommandContext;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
 import io.papermc.paper.command.brigadier.Commands;
 import org.bukkit.entity.Player;
-import org.jspecify.annotations.Nullable;
 
 import java.util.function.Supplier;
 
-public final class InspectCommand implements Subcommand {
+public final class InspectCommand implements CommandFeature {
 
     private final InspectService inspect;
     private final Supplier<Messages> messages;
@@ -29,15 +28,15 @@ public final class InspectCommand implements Subcommand {
     }
 
     @Override
-    public LiteralArgumentBuilder<CommandSourceStack> node(String root, @Nullable String permission) {
-        return Commands.literal("inspect")
-                .requires(source -> source.getSender() instanceof Player
-                        && FrameSortCommand.allowed(source.getSender(), permission))
-                .then(Commands.argument("page", IntegerArgumentType.integer(1)).executes(this::page));
+    public void attach(LiteralArgumentBuilder<CommandSourceStack> node, String path) {
+        node.then(Commands.argument("page", IntegerArgumentType.integer(1)).executes(this::page));
     }
 
     private int page(CommandContext<CommandSourceStack> context) {
-        Player player = (Player) context.getSource().getSender();
+        if (!(context.getSource().getSender() instanceof Player player)) {
+            context.getSource().getSender().sendMessage(messages.get().get("command.players-only"));
+            return Command.SINGLE_SUCCESS;
+        }
         if (!inspect.showPage(player, IntegerArgumentType.getInteger(context, "page"))) {
             player.sendMessage(messages.get().get("inspect.no-listing"));
         }

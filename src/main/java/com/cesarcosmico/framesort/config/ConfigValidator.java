@@ -3,18 +3,12 @@ package com.cesarcosmico.framesort.config;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.Plugin;
-import org.jspecify.annotations.Nullable;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.function.Consumer;
 
 /**
  * Compares a YAML file with the copy bundled in the jar and warns about an outdated {@code config-version},
@@ -27,24 +21,28 @@ public final class ConfigValidator {
     private ConfigValidator() {
     }
 
-    public static void check(Plugin plugin, ConfigurationSection live, String resource) {
-        check(plugin, live, resource, Set.of());
+    public static void check(Plugin plugin, ConfigurationSection live, String resource, Consumer<String> warn) {
+        check(plugin, live, resource, Set.of(), warn);
     }
 
     /**
-     * Same as {@link #check(Plugin, ConfigurationSection, String)}, but keys under the {@code open} sections are
-     * user-defined (pad types, for example) and are neither missing nor unknown.
+     * Same as {@link #check(Plugin, ConfigurationSection, String, Consumer)}, but keys under the {@code open}
+     * sections are user-defined (pad types, for example) and are neither missing nor unknown.
      */
-    public static void check(Plugin plugin, ConfigurationSection live, String resource, Set<String> open) {
-        Logger log = plugin.getLogger();
-        YamlConfiguration bundled = bundled(plugin, resource);
-        if (bundled == null) {
-            return;
+    public static void check(Plugin plugin, ConfigurationSection live, String resource, Set<String> open,
+                             Consumer<String> warn) {
+        YamlConfiguration bundled = ConfigFiles.bundled(plugin, resource);
+        if (bundled != null) {
+            compare(live, bundled, resource, open, warn);
         }
+    }
+
+    static void compare(ConfigurationSection live, ConfigurationSection bundled, String resource, Set<String> open,
+                        Consumer<String> warn) {
         int expected = bundled.getInt(VERSION_KEY, 0);
         int current = live.getInt(VERSION_KEY, 0);
         if (current < expected) {
-            log.warning(resource + " is outdated (config-version " + current + ", expected " + expected
+            warn.accept(resource + " is outdated (config-version " + current + ", expected " + expected
                     + "); compare it with the default file.");
         }
 
@@ -64,19 +62,10 @@ public final class ConfigValidator {
         unknown.removeIf(key -> hasUnknownParent(key, unknown));
 
         if (!missing.isEmpty()) {
-            log.warning(resource + " is missing " + missing.size() + " key(s), defaults are used: " + missing);
+            warn.accept(resource + " is missing " + missing.size() + " key(s), defaults are used: " + missing);
         }
         if (!unknown.isEmpty()) {
-            log.warning(resource + " has unknown key(s), typo or removed setting: " + unknown);
-        }
-    }
-
-    private static @Nullable YamlConfiguration bundled(Plugin plugin, String resource) {
-        try (InputStream in = plugin.getResource(resource)) {
-            return in == null ? null : YamlConfiguration.loadConfiguration(new InputStreamReader(in, StandardCharsets.UTF_8));
-        } catch (IOException e) {
-            plugin.getLogger().log(Level.WARNING, "Could not read the bundled " + resource, e);
-            return null;
+            warn.accept(resource + " has unknown key(s), typo or removed setting: " + unknown);
         }
     }
 

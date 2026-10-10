@@ -1,12 +1,14 @@
 package com.cesarcosmico.framesort.service;
 
+import com.cesarcosmico.framesort.config.CommandsConfig;
 import com.cesarcosmico.framesort.config.FrameSortSettings;
 import com.cesarcosmico.framesort.config.InspectSettings;
 import com.cesarcosmico.framesort.config.TargetSettings;
+import com.cesarcosmico.framesort.item.ItemTagCodec;
 import com.cesarcosmico.framesort.model.BlockKey;
 import com.cesarcosmico.framesort.model.FramePosition;
 import com.cesarcosmico.framesort.model.TargetRegistration;
-import com.cesarcosmico.framesort.model.TargetSet;
+import com.cesarcosmico.framesort.service.TargetResolver.Destination;
 import com.cesarcosmico.framesort.text.ChatPager;
 import com.cesarcosmico.framesort.text.Messages;
 import net.kyori.adventure.text.Component;
@@ -14,13 +16,12 @@ import net.kyori.adventure.text.JoinConfiguration;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
-import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.entity.ItemFrame;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -31,13 +32,16 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 public final class InspectService {
 
-    public static final String MARK_PERMISSION = "framesort.target.create";
-
+    private static final String MARK_PERMISSION = "framesort.target.create";
 
     private record Listing(Component title, List<Component> lines) {
+    }
+
+    private record Target(ItemFrame frame, Destination destination) {
     }
 
     private final Supplier<FrameSortSettings> settings;
@@ -46,14 +50,13 @@ public final class InspectService {
     private final TargetResolver resolver;
     private final SorterService sorters;
     private final PadService pads;
-    private final String commandName;
-    private final String pageCommand;
+    private final CommandsConfig commands;
     private final Map<UUID, Listing> listings = new HashMap<>();
     private final HighlightService highlights;
 
-    public InspectService(HighlightService highlights, Supplier<FrameSortSettings> settings, Supplier<Messages> messages,
-                          TargetIndex index, TargetResolver resolver, SorterService sorters,
-                          PadService pads, String commandName) {
+    public InspectService(HighlightService highlights, Supplier<FrameSortSettings> settings,
+                          Supplier<Messages> messages, TargetIndex index, TargetResolver resolver,
+                          SorterService sorters, PadService pads, CommandsConfig commands) {
         this.highlights = highlights;
         this.settings = settings;
         this.messages = messages;
@@ -61,37 +64,61 @@ public final class InspectService {
         this.resolver = resolver;
         this.sorters = sorters;
         this.pads = pads;
-        this.commandName = commandName;
-        this.pageCommand = "/" + commandName + " inspect %d";
+        this.commands = commands;
     }
 
     /** With an item in {@code filter}, only where that item would go, chosen like a real delivery. */
     public void inspectSource(Player player, Block source, boolean pad, ItemStack filter) {
         Messages text = messages.get();
+        if (!pad && SorterService.opens(filter)) {
+            player.sendMessage(text.get("inspect.opens", Placeholder.component("item", filter.effectiveName())));
+        }
         Component kind = text.get(pad ? "inspect.source.pad" : "inspect.source.sorter");
         BlockKey center = FrameGeometry.key(source);
         List<Component> lines = new ArrayList<>();
         List<HighlightService.Highlight> marks = new ArrayList<>();
+        TagResolver sorted = Placeholder.component("sorted", pad ? Component.empty()
+                : text.get("inspect.sorted", Placeholder.unparsed("count", String.valueOf(sorters.sorted(source)))));
         Component title;
         if (filter.isEmpty()) {
-            title = text.get("inspect.title", Placeholder.component("source", kind), coordinates(source.getLocation()));
-            List<ItemFrame> frames = new ArrayList<>(index.near(center, settings.get().delivery().maxDistance()));
+            title = text.get("inspect.title", Placeholder.component("source", kind), coordinates(source.getLocation()),
+                    sorted);
+            List<ItemFrame> frames = new ArrayList<>(resolver.targets(source));
             frames.sort(Comparator.comparingLong(frame -> distanceSquared(frame, center)));
             for (ItemFrame frame : frames) {
-                if (frame.getItem().isEmpty() || !FrameGeometry.attachedLoaded(frame) || !allowed(frame)) {
-                    continue;
-                }
-                lines.add(line(text, frame, center));
-                marks.add(highlight(frame));
+                Destination destination = resolver.destination(frame);
+                lines.add(text.get("inspect.line",
+                        Placeholder.component("entry", entry(text, frame, destination, center))));
+                marks.add(highlight(frame, destination));
             }
         } else {
             title = text.get("inspect.title-item", Placeholder.component("source", kind),
-                    Placeholder.component("item", filter.effectiveName()), coordinates(source.getLocation()));
+                    Placeholder.component("item", filter.effectiveName()), coordinates(source.getLocation()), sorted);
             filtered(text, source, center, filter, lines, marks);
         }
         listings.put(player.getUniqueId(), new Listing(title, List.copyOf(lines)));
-        ChatPager.send(player, text, title, lines, 1, settings.get().inspect().pageSize(), pageCommand);
+        ChatPager.send(player, text, title, lines, 1, settings.get().inspect().pageSize(), pageCommand(player));
         highlight(player, marks);
+    }
+
+    /** Inspects the nearest sorter or pad in delivery range as if {@code item} were in the off hand; false if none. */
+    public boolean inspectNearest(Player player, ItemStack item) {
+        Block here = player.getLocation().getBlock();
+        BlockKey key = FrameGeometry.key(here);
+        long best = Long.MAX_VALUE;
+        Block nearest = null;
+        for (Block source : sourcesNear(here)) {
+            long distance = FrameGeometry.key(source).distanceSquared(key);
+            if (distance <= best) {
+                best = distance;
+                nearest = source;
+            }
+        }
+        if (nearest == null) {
+            return false;
+        }
+        inspectSource(player, nearest, !sorters.isSorter(nearest), item);
+        return true;
     }
 
     public boolean showPage(Player player, int page) {
@@ -100,53 +127,56 @@ public final class InspectService {
             return false;
         }
         ChatPager.send(player, messages.get(), listing.title(), listing.lines(), page,
-                settings.get().inspect().pageSize(), pageCommand);
+                settings.get().inspect().pageSize(), pageCommand(player));
         return true;
     }
 
     public void inspectFrame(Player player, ItemFrame frame) {
         Messages text = messages.get();
-        player.sendMessage(text.get("frame.header", coordinates(frame.getLocation())));
-        player.sendMessage(status(text, frame));
+        List<Component> lines = new ArrayList<>();
+        lines.add(status(text, frame));
 
-        Block attached = FrameGeometry.attachedBlock(frame);
-        Inventory inventory = DeliveryService.inventory(attached);
-        if (DeliveryService.isLava(frame)) {
-            player.sendMessage(text.get("frame.into.lava"));
-        } else if (inventory != null && settings.get().delivery().insertIntoContainers()) {
-            player.sendMessage(text.get("frame.into.container", Placeholder.component("block", blockName(attached))));
-        } else {
-            player.sendMessage(text.get("frame.into.dropped"));
-        }
+        lines.add(switch (resolver.destination(frame)) {
+            case CONTAINER -> text.get("frame.into.container",
+                    Placeholder.component("block", blockName(FrameGeometry.attachedBlock(frame))));
+            case DROPPED -> text.get("frame.into.dropped");
+            case DESTROYED -> text.get("frame.into.lava");
+        });
 
         ItemStack shown = frame.getItem();
-        TagCatalog.TagView view = resolver.tag(shown);
-        if (view != null) {
-            player.sendMessage(text.get("frame.accepts.tag",
-                    Placeholder.unparsed("tag", view.key().asString()),
-                    Placeholder.unparsed("count", String.valueOf(view.materials().size())))
-                    .clickEvent(ClickEvent.runCommand("/" + commandName + " tag " + view.key().asString())));
-        }
-        player.sendMessage(text.get("frame.accepts.exact", Placeholder.component("item", shown.effectiveName())));
         List<ItemStack> contents = TargetResolver.contents(shown);
-        if (!contents.isEmpty()) {
-            player.sendMessage(text.get("frame.accepts.contents",
-                    Placeholder.unparsed("count", String.valueOf(contents.size()))));
-        } else {
-            player.sendMessage(text.get("frame.accepts.similar",
+        if (ItemTagCodec.read(shown) != null) {
+            TagCatalog.TagView view = resolver.tag(shown);
+            if (view != null) {
+                String tagCommand = commands.usageFor("tag-show", player::hasPermission);
+                Component accepts = text.get("frame.accepts.tag",
+                        Placeholder.unparsed("tag", view.key().asString()),
+                        Placeholder.unparsed("count", String.valueOf(view.materials().size())));
+                lines.add(tagCommand == null ? accepts
+                        : accepts.clickEvent(ClickEvent.runCommand(tagCommand + " " + view.key().asString())));
+            }
+        } else if (contents.isEmpty()) {
+            lines.add(text.get("frame.accepts.exact", Placeholder.component("item", shown.effectiveName())));
+            lines.add(text.get("frame.accepts.similar",
                     Placeholder.component("material", Component.translatable(shown.getType()))));
         }
+        if (!contents.isEmpty()) {
+            lines.add(text.get("frame.accepts.contents",
+                    Placeholder.unparsed("count", String.valueOf(contents.size()))));
+        }
         if (shown.getType() == settings.get().delivery().defaultTargetItem()) {
-            player.sendMessage(text.get("frame.accepts.default"));
+            lines.add(text.get("frame.accepts.default"));
         }
 
-        BlockKey key = FrameGeometry.key(frame.getLocation().getBlock());
-        int radius = settings.get().delivery().maxDistance();
-        long sources = sorters.blocks().stream()
-                .filter(block -> FrameGeometry.key(block).distanceSquared(key) <= (long) radius * radius)
-                .count() + pads.near(key, radius).size();
-        player.sendMessage(text.get("frame.sources", Placeholder.unparsed("count", String.valueOf(sources))));
-        highlight(player, List.of(highlight(frame)));
+        long sources = sourcesNear(frame.getLocation().getBlock()).stream()
+                .filter(source -> resolver.reaches(source, frame))
+                .count();
+        lines.add(text.get("frame.sources", Placeholder.unparsed("count", String.valueOf(sources))));
+        // One message, like a page of a list, so the card stays together in chat.
+        player.sendMessage(text.get("frame.layout",
+                Placeholder.component("title", text.get("frame.title", coordinates(frame.getLocation()))),
+                Placeholder.component("lines", Component.join(JoinConfiguration.newlines(), lines))));
+        highlight(player, List.of(highlight(frame, resolver.destination(frame))));
     }
 
     public void toggleMark(Player player, ItemFrame frame) {
@@ -173,7 +203,7 @@ public final class InspectService {
             return;
         }
         boolean mark = !index.isMarked(frame);
-        index.setMarked(frame, player.getUniqueId(), mark);
+        index.setMarked(frame, mark);
         player.sendMessage(text.get(mark ? "mark.marked" : "mark.unmarked"));
         InspectSettings.Colors colors = settings.get().inspect().colors();
         highlight(player, List.of(new HighlightService.Highlight(frame, mark ? colors.container() : colors.lava())));
@@ -181,7 +211,6 @@ public final class InspectService {
 
     public void forget(UUID player) {
         listings.remove(player);
-        highlights.clear(player);
     }
 
     public void stopAll() {
@@ -191,54 +220,51 @@ public final class InspectService {
 
     private void filtered(Messages text, Block source, BlockKey center, ItemStack filter,
                           List<Component> lines, List<HighlightService.Highlight> marks) {
-        boolean insert = settings.get().delivery().insertIntoContainers();
-        TargetSet<ItemFrame> containers = new TargetSet<>();
-        TargetSet<ItemFrame> drops = new TargetSet<>();
-        for (TargetResolver.Match match : resolver.matches(source, filter)) {
-            ItemFrame frame = match.frame();
-            if (!frame.isValid() || !FrameGeometry.attachedLoaded(frame)) {
-                continue;
+        List<TargetResolver.Level> levels = resolver.plan(source, filter).levels();
+        for (int i = 0; i < levels.size(); i++) {
+            TargetResolver.Level level = levels.get(i);
+            // In the order a delivery uses them: containers, then a drop spot or lava takes the rest.
+            List<Target> targets = Stream.of(
+                            level.containers().stream().map(frame -> new Target(frame, Destination.CONTAINER)),
+                            level.drops().stream().map(frame -> new Target(frame, Destination.DROPPED)),
+                            level.lava().stream().map(frame -> new Target(frame, Destination.DESTROYED)))
+                    .flatMap(stream -> stream).toList();
+            Component header = text.get(i == 0 ? "inspect.level.first" : "inspect.level.next",
+                    Placeholder.unparsed("number", String.valueOf(i + 1)));
+            for (int j = 0; j < targets.size(); j++) {
+                Target target = targets.get(j);
+                Component branch = text.get(j < targets.size() - 1 ? "inspect.branch.middle" : "inspect.branch.last",
+                        Placeholder.component("entry", entry(text, target.frame(), target.destination(), center)));
+                // A header shares the pager line of its first target, so the total and the page size count targets.
+                lines.add(j == 0 ? Component.join(JoinConfiguration.newlines(), header, branch) : branch);
+                marks.add(highlight(target.frame(), target.destination()));
             }
-            if (insert && DeliveryService.inventory(FrameGeometry.attachedBlock(frame)) != null) {
-                containers.add(match.priority(), frame);
-            } else {
-                drops.add(match.priority(), frame);
+            // A drop spot takes everything left, and lava destroys it: the levels after it never get anything.
+            if (!level.drops().isEmpty()) {
+                return;
+            }
+            if (!level.lava().isEmpty()) {
+                endWith(lines, text.get("inspect.excess.lava"));
+                return;
             }
         }
-        List<ItemFrame> into = containers.targets();
-        List<ItemFrame> overflow = drops.targets().stream().filter(frame -> !DeliveryService.isLava(frame)).toList();
-        boolean lava = drops.targets().stream().anyMatch(DeliveryService::isLava);
-        if (!into.isEmpty()) {
-            lines.add(text.get("inspect.section.containers"));
-            into.forEach(frame -> {
-                lines.add(line(text, frame, center));
-                marks.add(highlight(frame));
-            });
-        }
-        if (!overflow.isEmpty()) {
-            lines.add(text.get("inspect.section.dropped"));
-            overflow.forEach(frame -> {
-                lines.add(line(text, frame, center));
-                marks.add(highlight(frame));
-            });
-        }
-        if (!into.isEmpty() || !overflow.isEmpty() || lava) {
-            lines.add(text.get(overflow.isEmpty() && lava ? "inspect.excess.lava" : "inspect.excess.stay"));
+        if (!lines.isEmpty()) {
+            endWith(lines, text.get("inspect.excess.stay"));
         }
     }
 
-    private Component line(Messages text, ItemFrame frame, BlockKey center) {
-        Block attached = FrameGeometry.attachedBlock(frame);
-        Component target;
-        if (DeliveryService.isLava(frame)) {
-            target = text.get("inspect.target.lava");
-        } else if (settings.get().delivery().insertIntoContainers() && DeliveryService.inventory(attached) != null) {
-            target = blockName(attached);
-        } else {
-            target = text.get("inspect.target.dropped");
-        }
+    private static void endWith(List<Component> lines, Component closing) {
+        lines.set(lines.size() - 1, Component.join(JoinConfiguration.newlines(), lines.getLast(), closing));
+    }
+
+    private Component entry(Messages text, ItemFrame frame, Destination destination, BlockKey center) {
+        Component target = switch (destination) {
+            case CONTAINER -> blockName(FrameGeometry.attachedBlock(frame));
+            case DROPPED -> text.get("inspect.target.dropped");
+            case DESTROYED -> text.get("inspect.target.lava");
+        };
         Location location = frame.getLocation();
-        return text.get("inspect.line",
+        return text.get("inspect.entry",
                 Placeholder.component("item", frame.getItem().effectiveName()),
                 Placeholder.component("target", target),
                 coordinates(location),
@@ -259,26 +285,29 @@ public final class InspectService {
         return index.isTarget(frame) ? text.get("frame.status.target", where) : text.get("frame.status.unmarked");
     }
 
-    private boolean allowed(ItemFrame frame) {
-        return settings.get().targets().allows(FrameGeometry.positions(frame));
+    private HighlightService.Highlight highlight(ItemFrame frame, Destination destination) {
+        return new HighlightService.Highlight(frame, destination.color(settings.get().inspect().colors()));
     }
 
-    private HighlightService.Highlight highlight(ItemFrame frame) {
-        InspectSettings.Colors colors = settings.get().inspect().colors();
-        Color color;
-        if (DeliveryService.isLava(frame)) {
-            color = colors.lava();
-        } else if (settings.get().delivery().insertIntoContainers()
-                && DeliveryService.inventory(FrameGeometry.attachedBlock(frame)) != null) {
-            color = colors.container();
-        } else {
-            color = colors.dropped();
-        }
-        return new HighlightService.Highlight(frame, color);
+    /** The sorters and pads within delivery range of {@code center}. */
+    private List<Block> sourcesNear(Block center) {
+        int radius = settings.get().delivery().maxDistance();
+        long radiusSquared = (long) radius * radius;
+        BlockKey key = FrameGeometry.key(center);
+        return Stream.concat(
+                sorters.blocks().stream()
+                        .filter(sorter -> FrameGeometry.key(sorter).distanceSquared(key) <= radiusSquared),
+                pads.near(center, radius).stream()).toList();
     }
 
     private void highlight(Player player, List<HighlightService.Highlight> marks) {
         highlights.show(player, marks, settings.get().inspect().highlightSeconds());
+    }
+
+    // Links follow commands.yml and the viewer's permissions; without them the page buttons are plain text.
+    private @Nullable String pageCommand(Player player) {
+        String inspect = commands.usageFor("inspect", player::hasPermission);
+        return inspect == null ? null : inspect + " %d";
     }
 
     private static long distanceSquared(ItemFrame frame, BlockKey center) {

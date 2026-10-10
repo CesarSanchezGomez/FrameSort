@@ -4,13 +4,18 @@ import com.cesarcosmico.framesort.model.BlockKey;
 import org.bukkit.Chunk;
 import org.bukkit.persistence.PersistentDataType;
 
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public final class PadCodec {
+
+    // Nine digits always fit an int and cover every block coordinate (at most 30 million).
+    private static final Pattern ENTRY = Pattern.compile("(-?\\d{1,9}),(-?\\d{1,9}),(-?\\d{1,9}),(.+)");
 
     private PadCodec() {
     }
@@ -29,26 +34,24 @@ public final class PadCodec {
     }
 
     static List<String> encode(Map<BlockKey, String> pads) {
-        List<String> entries = new ArrayList<>();
-        pads.forEach((key, type) -> entries.add(key.x() + "," + key.y() + "," + key.z() + "," + type));
-        return entries;
+        return pads.entrySet().stream()
+                .map(entry -> {
+                    BlockKey key = entry.getKey();
+                    return key.x() + "," + key.y() + "," + key.z() + "," + entry.getValue();
+                })
+                .toList();
     }
 
     /** Malformed entries are dropped: a hand-edited chunk must not stop the others from loading. */
     static Map<BlockKey, String> decode(UUID world, List<String> entries) {
         Map<BlockKey, String> pads = new LinkedHashMap<>();
         for (String entry : entries) {
-            String[] parts = entry.split(",", 4);
-            if (parts.length != 4 || parts[3].isBlank()) {
-                continue;
-            }
-            try {
-                pads.put(new BlockKey(world, Integer.parseInt(parts[0]), Integer.parseInt(parts[1]),
-                        Integer.parseInt(parts[2])), parts[3]);
-            } catch (NumberFormatException ignored) {
-                // Skipped on purpose, see above.
+            Matcher parts = ENTRY.matcher(entry);
+            if (parts.matches() && !parts.group(4).isBlank()) {
+                pads.put(new BlockKey(world, Integer.parseInt(parts.group(1)), Integer.parseInt(parts.group(2)),
+                        Integer.parseInt(parts.group(3))), parts.group(4));
             }
         }
-        return pads;
+        return Collections.unmodifiableMap(pads);
     }
 }

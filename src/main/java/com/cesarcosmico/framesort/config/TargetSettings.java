@@ -10,7 +10,7 @@ import java.util.Locale;
 import java.util.Set;
 
 public record TargetSettings(TargetRegistration registration, Set<FramePosition> positions,
-                             Set<EntityType> frameTypes) {
+                             Set<EntityType> frameTypes, String taggedName, boolean taggedGlint) {
 
     public TargetSettings {
         positions = Set.copyOf(positions);
@@ -18,21 +18,23 @@ public record TargetSettings(TargetRegistration registration, Set<FramePosition>
     }
 
     static TargetSettings parse(ConfigReader reader) {
+        ConfigReader tagged = reader.sectionOrEmpty("tagged-item");
         return new TargetSettings(
                 reader.enumValue("registration", TargetRegistration.class, TargetRegistration.MANUAL),
                 positions(reader),
-                SorterSettings.frameTypes(reader, "frame-types"));
+                SorterSettings.frameTypes(reader),
+                tagged.string("name", "<gradient:#F7B733:#FC4A1A>#<tag></gradient>"),
+                tagged.bool("glint", true));
     }
 
     public boolean allows(Set<FramePosition> frame) {
         return !Collections.disjoint(positions, frame);
     }
 
-    // SIDES is accepted as a shortcut for LEFT and RIGHT.
     private static Set<FramePosition> positions(ConfigReader reader) {
-        Set<FramePosition> all = EnumSet.allOf(FramePosition.class);
+        Set<FramePosition> front = EnumSet.of(FramePosition.FRONT);
         if (!reader.isSet("positions")) {
-            return all;
+            return front;
         }
         Set<FramePosition> positions = EnumSet.noneOf(FramePosition.class);
         for (String name : reader.strings("positions")) {
@@ -49,8 +51,8 @@ public record TargetSettings(TargetRegistration registration, Set<FramePosition>
             }
         }
         if (positions.isEmpty()) {
-            reader.warn("positions", "no valid values, using every position");
-            return all;
+            reader.warn("positions", "no valid values, using FRONT");
+            return front;
         }
         return positions;
     }
