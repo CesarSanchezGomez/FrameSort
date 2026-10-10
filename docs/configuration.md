@@ -34,7 +34,7 @@ or bundle with contents, it sends a stack from inside instead.
 
 | Key | Default | Meaning |
 |---|---|---|
-| `registration` | `manual` | `manual`: only frames marked by sneak + right-clicking them with an empty hand. `automatic`: every frame of `frame-types`. |
+| `registration` | `manual` | `manual`: only frames marked by sneak + right-clicking them with an empty hand. `automatic`: every frame of `frame-types` on a container or composter; frames anywhere else (walls, lava cauldrons) are never targets, so marking is the only way to make a drop spot or a trash can. |
 | `positions` | `[FRONT]` | Where a target frame may hang on its block: `TOP`, `BOTTOM`, `FRONT`, `BACK`, `LEFT`, `RIGHT` (`SIDES` = `LEFT` + `RIGHT`). `FRONT`, `BACK`, `LEFT` and `RIGHT` follow the way the block faces (chests, barrels, furnaces…); left and right are as seen standing in front of it. On blocks without a horizontal facing (hoppers, upright barrels, composters) a side face counts as any of the four. |
 | `frame-types` | `[ITEM_FRAME, GLOW_ITEM_FRAME]` | Frames that can be targets. |
 | `tagged-item.name` | `'<gradient:#F7B733:#FC4A1A>#<tag></gradient>'` | Name a tagged item gets (MiniMessage); `<tag>` is the tag, without `minecraft:` for vanilla tags. |
@@ -73,7 +73,8 @@ ready a second later and takes nothing more until it is emptied. A hopper under 
 vanilla. Items it doesn't take go on to the other targets as usual.
 
 **Lava cauldrons are trash cans.** A target frame on a lava cauldron holds the item to destroy and is chosen like
-any other frame (exact item, tag, material); with `registration: manual` it must be marked too. If a container
+any other frame (exact item, tag, material); it must be marked, because `registration: automatic` only uses frames on
+containers. If a container
 also takes that item, the lava only gets what doesn't fit; if the lava frame is the only match, everything that
 arrives is destroyed. With the default target item (a carrot on a stick) in the frame, it destroys whatever has
 no other target. An empty frame does nothing.

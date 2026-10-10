@@ -25,7 +25,7 @@ sorter:
   show-activity: true
 
 targets:
-  registration: manual   # manual | automatic
+  registration: manual   # manual | automatic (automatic: only frames on containers and composters)
   positions: [FRONT]   # also TOP, BOTTOM, BACK, LEFT, RIGHT; SIDES = LEFT + RIGHT (as seen from the front)
   frame-types: [ITEM_FRAME, GLOW_ITEM_FRAME]
   tagged-item:   # what /framesort tag apply <tag> does to the item in your hand

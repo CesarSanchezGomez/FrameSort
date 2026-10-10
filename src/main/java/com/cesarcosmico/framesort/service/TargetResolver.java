@@ -5,6 +5,7 @@ import com.cesarcosmico.framesort.config.FrameSortSettings;
 import com.cesarcosmico.framesort.item.ItemTagCodec;
 import com.cesarcosmico.framesort.model.BlockKey;
 import com.cesarcosmico.framesort.model.MatchTier;
+import com.cesarcosmico.framesort.model.TargetRegistration;
 import com.cesarcosmico.framesort.model.TargetSet;
 import io.papermc.paper.datacomponent.DataComponentTypes;
 import io.papermc.paper.datacomponent.item.BundleContents;
@@ -186,6 +187,10 @@ public final class TargetResolver {
             return false;
         }
         Block attached = FrameGeometry.attachedBlock(frame);
+        // Unmarked frames only count on containers, so a decorative frame never becomes a drop spot or trash can.
+        if (current.targets().registration() == TargetRegistration.AUTOMATIC && !FrameGeometry.isContainer(attached)) {
+            return false;
+        }
         // Never send a source's items back into itself, and never treat a sorter's own frame as a target.
         return !attached.equals(source)
                 && !(current.sorter().isActivator(shown) && attached.getType() == Material.DISPENSER);
