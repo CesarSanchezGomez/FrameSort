@@ -12,7 +12,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
-import org.bukkit.event.player.PlayerInteractEntityEvent;
+import org.bukkit.event.player.PlayerInteractAtEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.EquipmentSlot;
@@ -54,7 +54,7 @@ public final class InspectListener implements Listener {
 
     // Cancelled for both hands, so the frame never rotates its item.
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
-    public void onMark(PlayerInteractEntityEvent event) {
+    public void onMark(PlayerInteractAtEntityEvent event) {
         ItemFrame frame = inspectedFrame(event.getPlayer(), event.getRightClicked());
         if (frame == null) {
             return;
