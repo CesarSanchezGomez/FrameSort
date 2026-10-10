@@ -27,9 +27,7 @@ public final class TraceService {
     // At most one delivery per player this often, so a busy sorter does not flood the screen. Every part of the one
     // that is shown (the containers, then the drop) still shows: a part is the same source in the same tick.
     private static final long MIN_INTERVAL_MILLIS = 150;
-    // A streak of trail particles leaves a small ring on the source's face and converges on the frame; staggered travel
-    // times string it out like a comet, and a short splash marks the arrival. The path is straight, so it reads in
-    // tunnels too.
+    // The trail runs straight from the source to the frame, so it stays readable in tunnels.
     private static final int STREAK = 6;
     private static final double RING_RADIUS = 0.2;
     private static final double BLOCKS_PER_TICK = 1.0;

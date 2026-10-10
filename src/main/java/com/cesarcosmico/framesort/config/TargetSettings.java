@@ -31,7 +31,6 @@ public record TargetSettings(TargetRegistration registration, Set<FramePosition>
         return !Collections.disjoint(positions, frame);
     }
 
-    // SIDES is accepted as a shortcut for LEFT and RIGHT.
     private static Set<FramePosition> positions(ConfigReader reader) {
         Set<FramePosition> front = EnumSet.of(FramePosition.FRONT);
         if (!reader.isSet("positions")) {

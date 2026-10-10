@@ -10,7 +10,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 
-// A source only sends to containers in exactly its own set of regions, so nobody can fill a chest in a region from
+// A source only sends to targets in exactly its own set of regions, so nobody can fill a chest in a region from
 // outside it, or from another region.
 public final class WorldGuardTargetListener implements Listener {
 
