@@ -25,23 +25,23 @@ container.
    mark it as a target. A frame accepts items in this order of preference:
    1. the exact item;
    2. a tag, when the frame item has one applied (`/framesort tag apply <tag>`);
-   3. the same material;
-   4. what a shulker box or bundle in the frame contains.
+   3. the same material.
 
-   A frame holding a carrot on a stick takes whatever matches nothing else. A frame on a lava cauldron destroys
-   leftovers.
+   A shulker box or bundle in the frame stands for what it holds, and each of those matches ranks just below the
+   same match made directly. A frame holding a carrot on a stick takes whatever matches nothing else. A frame on a
+   lava cauldron destroys leftovers.
 2. **Sorters.** Put an Eye of Ender in a frame on a dispenser. The frame disappears and the dispenser sends one
    random stack from its inventory every second, opening shulker boxes and bundles inside it.
 3. **Teleport pads.** Place crying obsidian on gilded blackstone. Items resting on top are sent to targets. Who
    can create pads is configurable: anyone, players with a permission, or only with a special pad block.
 4. **Inspect.** Sneak + right-click a sorter or pad with an empty hand: its targets' items glow (only for you, in
-   configurable colours) and are listed page by page. Sneak + left-click a target frame to see what it accepts. `/framesort trace`
-   shows every delivery around you live.
+   configurable colours) and are listed page by page. Sneak + left-click a target frame to see what it accepts.
+   `/framesort trace` shows every delivery around you live.
 
-**WorldGuard.** When it is installed, a sorter or pad only sends to containers in exactly the same regions as itself;
-both outside every region is fine. Nobody can fill a chest in a region from outside it, or from another region.
-Inspecting a sorter or pad lists only the targets it can reach. Targets are cached, so after changing regions run
-`/framesort reload`.
+**WorldGuard.** When it is installed, a sorter or pad only sends to target frames on blocks in exactly the same
+regions as itself, whether they hold a container, a drop spot or lava; both outside every region is fine. Nobody can
+fill a chest in a region from outside it, or from another region. Inspecting a sorter or pad lists only the targets
+it can reach. Targets are cached, so after changing regions run `/framesort reload`.
 
 Containers are looked up the moment items go in, so a container that was moved or broken is skipped: items are
 never duplicated.

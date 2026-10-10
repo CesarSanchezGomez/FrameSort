@@ -73,11 +73,10 @@ ready a second later and takes nothing more until it is emptied. A hopper under 
 vanilla. Items it doesn't take go on to the other targets as usual.
 
 **Lava cauldrons are trash cans.** A target frame on a lava cauldron holds the item to destroy and is chosen like
-any other frame (exact item, tag, material); it must be marked, because `registration: automatic` only uses frames on
-containers. If a container
-also takes that item, the lava only gets what doesn't fit; if the lava frame is the only match, everything that
-arrives is destroyed. With the default target item (a carrot on a stick) in the frame, it destroys whatever has
-no other target. An empty frame does nothing.
+any other frame (exact item, tag, material); it must be marked, because `registration: automatic` only uses frames
+on containers. If a container also takes that item, the lava only gets what doesn't fit; if the lava frame is the
+only match, everything that arrives is destroyed. With the default target item (a carrot on a stick) in the frame,
+it destroys whatever has no other target. An empty frame does nothing.
 
 ### inspect
 
@@ -108,8 +107,8 @@ Items resting up to one block above the top block count, so carpets or slabs on 
 
 `language` in `config.yml` picks `lang/<language>.yml` (`en_US`, `es_ES`). A key missing from your file comes from
 the bundled copy of that language, then from the bundled `en_US`; a key missing everywhere shows as the key and is
-reported once in the console. Messages use [MiniMessage](https://docs.advntr.dev/minimessage/format.html); `<prefix>` is
-the `prefix` key.
+reported once in the console. Messages use [MiniMessage](https://docs.papermc.io/adventure/minimessage/format/);
+`<prefix>` is the `prefix` key.
 
 ### Help
 

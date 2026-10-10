@@ -18,7 +18,7 @@ server.
 ```
 com.cesarcosmico.framesort
 ├── FrameSortPlugin   composition root: wires everything, one tick task, reload
-├── model/            plain rules: priorities, best-priority set, delivery, frame positions, paging
+├── model/            plain rules: priorities, best-priority set, delivery, composting, frame positions, paging
 ├── service/          target index and resolver, delivery, sorters, pads, inspection, tracing, tags
 ├── config/           typed settings, pads.yml, commands.yml, strict YAML loading, validation, reload holder
 ├── item/             persistent data keys, item templates, the pad codec for chunks
@@ -31,10 +31,14 @@ com.cesarcosmico.framesort
 
 Packages depend on each other without cycles: `model` ← `item` ← `config` ← `text` ← `service` ← `command`,
 `listener` and `integration`. `api` is used only by `service` and `integration`, and only `FrameSortPlugin` creates
-the integration. Dependencies are wired by constructor in `FrameSortPlugin`; there are no static instances. The
-interfaces are `DeliveryService.Source` (a sorter slot or a pad item entity), `Delivery.Offer` (what
-`model.Delivery` needs from a container), `CommandFeature` (one per command feature) and the sealed
-`PadService.Placement` (what placing a pad block did).
+the integration. Dependencies are wired by constructor in `FrameSortPlugin`; there are no static instances.
+
+Interfaces exist only with several implementations or as closed sets:
+- `DeliveryService.Source`: a sorter slot or a pad item entity;
+- `CommandFeature`: one per command feature;
+- `GiveCommand.ItemSource`: a sorter activator or a pad block;
+- sealed `PadService.Placement`: what placing a pad block did;
+- sealed `SorterService.Slot`: an inventory slot, or one inside a shulker box or bundle.
 
 `commands.yml` only places features: `CommandTree` joins every enabled path into Brigadier literals, makes a literal
 visible to anyone allowed to run something below it, and checks each feature's own permission on its command and
@@ -94,6 +98,3 @@ Tracing ends on a timer per player, so the "tracing ended" message arrives on ti
 (`@ApiStatus.Experimental`), through which `TagCatalog` reads item and block tags, and the data components
 (`@MinecraftVersionDependent`) behind item templates, tagged items and shulker box and bundle contents. Check them
 again whenever Paper or Minecraft changes.
-
-Architecture conventions shared with the other CesarCosmico plugins are described in the workspace's
-`ARCHITECTURE-STANDARD.md`.

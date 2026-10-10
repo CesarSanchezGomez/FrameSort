@@ -11,7 +11,7 @@
 | `/framesort tag apply <tag>` | Applies the tag to the item in your main hand (its name and glint come from `targets.tagged-item`). The [Apply] button in `/framesort tag show <tag>` runs it. In a frame a tagged item accepts only its tag. |
 | `/framesort tag remove` | Takes the tag off the item in your main hand. |
 | `/framesort where` | Where the item in your main hand would go from the nearest sorter or pad within `delivery.max-distance`, listed and highlighted like an inspection with that item in your off hand. Its components count (enchantments, name, contents). |
-| `/framesort trace [seconds]` | For a while (default 60 s, at most `inspect.trace-max-seconds`), every delivery from sorters and pads near you shows in the action bar, with a streak of particles converging on its destination and a small splash when it arrives. |
+| `/framesort trace [seconds]` | For a while (`inspect.trace-default-seconds`, at most `inspect.trace-max-seconds`), every delivery from sorters and pads near you shows in the action bar, with a streak of particles converging on its destination and a small splash when it arrives. |
 | `/framesort trace stop` | Stops tracing. |
 | `/framesort inspect <page>` | Another page of the last inspection list (the page buttons run it). |
 | `/framesort give sorter [player] [amount]` | The sorter activator from `config.yml`. Needed when `sorter.activator.require-marked` is true. |
@@ -54,7 +54,9 @@ own paths, permission and switch. The key is fixed; what can change is:
 | `usage` | Every full path that runs it. The first word is the root command; the arguments follow the path. |
 
 Paths that start with the same words share them, so a feature can move under another root or get a command of its
-own. Clickable links in chat (pages, tags) use the first path of their feature. Changes need a server restart.
+own. Page buttons repeat the path you typed. Links to another command (a tag's contents, the [Apply] button, the
+pages of an inspection) use that command's first path and only show to players who may run it. Changes need a
+server restart.
 
 ```yaml
 trace:
