@@ -15,6 +15,7 @@ import java.util.Iterator;
 import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Supplier;
 
 /** With nobody tracing, a delivery costs one empty-map check. */
@@ -22,10 +23,11 @@ public final class TraceService {
 
     // At most one action bar per player this often, so a busy sorter does not flood it.
     private static final long MIN_INTERVAL_MILLIS = 150;
-    // A trail particle flies to its target, so a few of them draw the whole path; the travel time grows with distance.
-    private static final int TRAIL_PARTICLES = 6;
+    // As in the creaking heart, each trail particle gets its own start, end and travel time; the different speeds
+    // spread them along the path instead of flying as one clump.
+    private static final int TRAIL_PARTICLES = 12;
     private static final int MIN_TRAIL_TICKS = 10;
-    private static final int MAX_TRAIL_TICKS = 40;
+    private static final int MAX_TRAIL_TICKS = 49;
 
     private final Plugin plugin;
     private final Server server;
@@ -112,8 +114,17 @@ public final class TraceService {
     }
 
     private static void drawTrail(Player player, Location from, Location to, Color color) {
-        int ticks = Math.clamp(Math.round(from.distance(to)), MIN_TRAIL_TICKS, MAX_TRAIL_TICKS);
-        player.spawnParticle(Particle.TRAIL, from, TRAIL_PARTICLES, 0.1, 0.1, 0.1, 0,
-                new Particle.Trail(to, color, ticks));
+        ThreadLocalRandom random = ThreadLocalRandom.current();
+        for (int i = 0; i < TRAIL_PARTICLES; i++) {
+            Location start = jitter(from, 0.5, random);
+            Particle.Trail trail = new Particle.Trail(jitter(to, 0.25, random), color,
+                    random.nextInt(MIN_TRAIL_TICKS, MAX_TRAIL_TICKS + 1));
+            player.spawnParticle(Particle.TRAIL, start, 1, 0, 0, 0, 0, trail);
+        }
+    }
+
+    private static Location jitter(Location center, double spread, ThreadLocalRandom random) {
+        return center.clone().add(random.nextDouble(-spread, spread), random.nextDouble(-spread, spread),
+                random.nextDouble(-spread, spread));
     }
 }
