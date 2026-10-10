@@ -17,16 +17,10 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 class BundledYamlTest {
 
     private static final Path RESOURCES = Path.of("src/main/resources");
-    private static final Path OPTIONAL = Path.of("optional");
 
-    // Only the skeleton has optional/; a plugin keeps the pieces it copied under src/main/resources.
     private static List<Path> yamlFiles() throws IOException {
-        try (Stream<Path> core = Files.walk(RESOURCES);
-             Stream<Path> optional = Files.isDirectory(OPTIONAL) ? Files.walk(OPTIONAL) : Stream.empty()) {
-            return Stream.concat(core, optional)
-                    .filter(file -> file.toString().endsWith(".yml"))
-                    .filter(file -> !file.toString().contains("src" + java.io.File.separator + "test"))
-                    .toList();
+        try (Stream<Path> files = Files.walk(RESOURCES)) {
+            return files.filter(file -> file.toString().endsWith(".yml")).toList();
         }
     }
 

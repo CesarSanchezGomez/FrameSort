@@ -15,7 +15,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
-// Structure only. Who may see and run each node is checked by hand on a server (§13.2).
+// Structure only: who may see and run each node needs a real command sender, so it is checked by hand on a server.
 class CommandTreeTest {
 
     private record Feature(String id) implements CommandFeature {
