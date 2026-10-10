@@ -9,6 +9,7 @@ import org.bukkit.inventory.ItemStack;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 public record SorterSettings(ItemTemplate activator, boolean requireMarked, Set<EntityType> frameTypes,
@@ -21,9 +22,13 @@ public record SorterSettings(ItemTemplate activator, boolean requireMarked, Set<
         frameTypes = Set.copyOf(frameTypes);
     }
 
-    static SorterSettings parse(ConfigReader reader) {
+    static SorterSettings parse(ConfigReader reader, Predicate<Material> isItem) {
         ConfigReader activator = reader.sectionOrEmpty("activator");
         Material material = activator.requiredMaterial("material", Material.ENDER_EYE);
+        if (!isItem.test(material)) {
+            activator.warn("material", material + " is not an item, using ENDER_EYE");
+            material = Material.ENDER_EYE;
+        }
         String customName = reader.string("custom-name", "<gradient:#F7B733:#FC4A1A>Item Sorter</gradient>");
         return new SorterSettings(
                 itemTemplate(activator, material, activator.key("item-model")),

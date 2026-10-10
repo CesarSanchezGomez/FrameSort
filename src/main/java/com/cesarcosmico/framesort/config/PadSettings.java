@@ -19,13 +19,16 @@ public record PadSettings(PadMode creation, int sweepInterval, Map<String, PadTy
         types = Collections.unmodifiableMap(new LinkedHashMap<>(types));
     }
 
-    /** {@code isBlock} is {@code Material::isBlock} on a server; it needs the registries, so tests pass their own. */
-    public static PadSettings parse(ConfigReader reader, Predicate<Material> isBlock) {
+    /**
+     * {@code isBlock} and {@code isItem} need the registries on a server, so tests pass their own; {@code isItem}
+     * leaves out air.
+     */
+    public static PadSettings parse(ConfigReader reader, Predicate<Material> isBlock, Predicate<Material> isItem) {
         Map<String, PadType> types = new LinkedHashMap<>();
         ConfigReader section = reader.section("types");
         if (section != null) {
             for (String id : section.childKeys()) {
-                PadType type = parseType(section, id, isBlock);
+                PadType type = parseType(section, id, isBlock, isItem);
                 if (type != null) {
                     types.put(type.id(), type);
                 }
@@ -44,7 +47,8 @@ public record PadSettings(PadMode creation, int sweepInterval, Map<String, PadTy
         return types.get(id.toLowerCase(Locale.ROOT));
     }
 
-    private static @Nullable PadType parseType(ConfigReader types, String id, Predicate<Material> isBlock) {
+    private static @Nullable PadType parseType(ConfigReader types, String id, Predicate<Material> isBlock,
+                                               Predicate<Material> isItem) {
         ConfigReader reader = types.section(id);
         if (reader == null) {
             types.warn(id, "expected a section with a 'structure' list");
@@ -57,6 +61,12 @@ public record PadSettings(PadMode creation, int sweepInterval, Map<String, PadTy
         }
         if (!structure.stream().allMatch(isBlock)) {
             reader.warn("structure", "every entry must be a block; pad type '" + id + "' is skipped");
+            return null;
+        }
+        // The top block is placed by hand and handed out by /framesort give pad.
+        if (!isItem.test(structure.getFirst())) {
+            reader.warn("structure", structure.getFirst() + " is not an item, so it can't be placed; pad type '"
+                    + id + "' is skipped");
             return null;
         }
         ItemTemplate item = SorterSettings.itemTemplate(reader.sectionOrEmpty("item"), structure.getFirst(), null);

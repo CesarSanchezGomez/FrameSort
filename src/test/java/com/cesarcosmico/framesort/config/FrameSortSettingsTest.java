@@ -14,6 +14,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Predicate;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -22,6 +23,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class FrameSortSettingsTest {
 
+    // Material::isItem needs a running server; water is the only non-item these tests use.
+    static final Predicate<Material> IS_ITEM = material -> material != Material.WATER;
+
     static YamlConfiguration bundled(String resource) throws Exception {
         try (InputStream in = FrameSortSettingsTest.class.getResourceAsStream("/" + resource)) {
             return YamlConfiguration.loadConfiguration(new InputStreamReader(in, StandardCharsets.UTF_8));
@@ -29,7 +33,7 @@ class FrameSortSettingsTest {
     }
 
     private static FrameSortSettings parse(YamlConfiguration yaml, List<String> warnings) {
-        return FrameSortSettings.parse(new ConfigReader(yaml, "config.yml", warnings::add));
+        return FrameSortSettings.parse(new ConfigReader(yaml, "config.yml", warnings::add), IS_ITEM);
     }
 
     @Test
@@ -103,5 +107,22 @@ class FrameSortSettingsTest {
         // default-target-item "" is a valid "off", so it does not warn.
         assertEquals(8, warnings.size(), warnings::toString);
         assertTrue(warnings.stream().allMatch(w -> w.startsWith("config.yml > ")), warnings::toString);
+    }
+
+    @Test
+    void materialsThatAreNotItemsFallBack() throws Exception {
+        YamlConfiguration yaml = new YamlConfiguration();
+        yaml.loadFromString("""
+                sorter:
+                  activator: { material: WATER }
+                delivery:
+                  default-target-item: WATER
+                """);
+        List<String> warnings = new ArrayList<>();
+        FrameSortSettings settings = parse(yaml, warnings);
+
+        assertEquals(Material.ENDER_EYE, settings.sorter().activator().material());
+        assertEquals(Material.CARROT_ON_A_STICK, settings.delivery().defaultTargetItem());
+        assertEquals(2, warnings.size(), warnings::toString);
     }
 }

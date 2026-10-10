@@ -17,7 +17,7 @@ empty line (`''`) and keeps each line short.
 
 | Key | Default | Meaning |
 |---|---|---|
-| `activator.material` | `ENDER_EYE` | Item that turns a dispenser into a sorter when placed in a frame on it. |
+| `activator.material` | `ENDER_EYE` | Item that turns a dispenser into a sorter when placed in a frame on it. A material that is not an item (`WATER`, `AIR`) falls back to the default. |
 | `activator.require-marked` | `false` | `true`: only the activator from `/framesort give sorter` works, not any item of that material. |
 | `activator.name`, `lore`, `glint`, `item-model` | | Look of the activator FrameSort hands out (MiniMessage). |
 | `frame-types` | `[ITEM_FRAME, GLOW_ITEM_FRAME]` | Frames that can hold the activator. |
@@ -49,7 +49,7 @@ only where frames are meant to be targets, especially with `automatic`.
 |---|---|---|
 | `max-distance` | `64` | Targets are searched within this many blocks of the sorter or pad. |
 | `insert-into-containers` | `true` | `true`: items go into the container behind the frame, or are composted by a composter. `false`: items are always dropped in front of the frame. |
-| `default-target-item` | `CARROT_ON_A_STICK` | Frames holding it take whatever matches no other frame. `''` = off. |
+| `default-target-item` | `CARROT_ON_A_STICK` | Frames holding it take whatever matches no other frame. `''` = off. A material that is not an item falls back to the default. |
 
 How a destination is chosen:
 
@@ -95,7 +95,7 @@ no other target. An empty frame does nothing.
 |---|---|---|
 | `creation` | `anyone` | `anyone`: any player who places the top block on a complete column. `permission`: only players with `framesort.pad.create`. `item`: only by placing the pad's special item (from `/framesort give pad`) as the top block. |
 | `sweep-interval` | `10` | Ticks between checks for items resting on pads. Items that arrive by water or fall onto a pad are picked up then. |
-| `types.<id>.structure` | | Blocks from top to bottom. Items rest on the first one. |
+| `types.<id>.structure` | | Blocks from top to bottom. Items rest on the first one, which players place by hand, so it must also be an item; otherwise the type is skipped. |
 | `types.<id>.item` | | `name`, `lore` and `glint` of the special top block (its material is the first block of the structure). |
 
 A pad is created when its top block is placed on the rest of the column, so build it bottom up. It counts as long

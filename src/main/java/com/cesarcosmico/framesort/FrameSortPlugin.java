@@ -189,13 +189,18 @@ public final class FrameSortPlugin extends JavaPlugin {
     private FrameSortSettings loadSettings(Consumer<String> warn) throws IOException, InvalidConfigurationException {
         YamlConfiguration yaml = ConfigFiles.load(this, "config.yml");
         ConfigValidator.check(this, yaml, "config.yml", warn);
-        return FrameSortSettings.parse(new ConfigReader(yaml, "config.yml", warn));
+        return FrameSortSettings.parse(new ConfigReader(yaml, "config.yml", warn), FrameSortPlugin::isItem);
     }
 
     private PadSettings loadPads(Consumer<String> warn) throws IOException, InvalidConfigurationException {
         YamlConfiguration yaml = ConfigFiles.load(this, "pads.yml");
         ConfigValidator.check(this, yaml, "pads.yml", Set.of("types"), warn);
-        return PadSettings.parse(new ConfigReader(yaml, "pads.yml", warn), Material::isBlock);
+        return PadSettings.parse(new ConfigReader(yaml, "pads.yml", warn), Material::isBlock, FrameSortPlugin::isItem);
+    }
+
+    // Air is an item type too (ItemType.AIR), but no stack can hold it.
+    private static boolean isItem(Material material) {
+        return material.isItem() && !material.isAir();
     }
 
     private void register(Listener... listeners) {

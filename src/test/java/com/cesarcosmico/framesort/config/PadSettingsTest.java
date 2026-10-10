@@ -20,7 +20,8 @@ class PadSettingsTest {
     private static final Predicate<Material> IS_BLOCK = material -> material != Material.DIAMOND;
 
     private static PadSettings parse(YamlConfiguration yaml, List<String> warnings) {
-        return PadSettings.parse(new ConfigReader(yaml, "pads.yml", warnings::add), IS_BLOCK);
+        return PadSettings.parse(new ConfigReader(yaml, "pads.yml", warnings::add), IS_BLOCK,
+                FrameSortSettingsTest.IS_ITEM);
     }
 
     @Test
@@ -65,6 +66,8 @@ class PadSettingsTest {
                     structure: [NOT_A_BLOCK]
                   notablock:
                     structure: [DIAMOND]
+                  notanitem:
+                    structure: [WATER, STONE]
                   flat: 3
                 """);
         List<String> warnings = new ArrayList<>();
@@ -73,7 +76,8 @@ class PadSettingsTest {
         assertEquals(PadMode.ITEM, settings.creation());
         assertEquals(List.of("glass"), List.copyOf(settings.types().keySet()));
         assertNull(settings.type("broken"));
-        assertTrue(warnings.size() >= 3, warnings::toString);
+        assertNull(settings.type("notanitem"));
+        assertTrue(warnings.size() >= 4, warnings::toString);
     }
 
     @Test
