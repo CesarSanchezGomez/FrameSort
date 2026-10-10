@@ -136,7 +136,7 @@ public final class InspectService {
         List<Component> lines = new ArrayList<>();
         lines.add(status(text, frame));
 
-        lines.add(switch (kind(frame)) {
+        lines.add(switch (resolver.destination(frame)) {
             case CONTAINER -> text.get("frame.into.container",
                     Placeholder.component("block", blockName(FrameGeometry.attachedBlock(frame))));
             case DROPPED -> text.get("frame.into.dropped");
@@ -250,7 +250,7 @@ public final class InspectService {
     }
 
     private Component line(Messages text, ItemFrame frame, BlockKey center) {
-        Component target = switch (kind(frame)) {
+        Component target = switch (resolver.destination(frame)) {
             case CONTAINER -> blockName(FrameGeometry.attachedBlock(frame));
             case DROPPED -> text.get("inspect.target.dropped");
             case DESTROYED -> text.get("inspect.target.lava");
@@ -278,17 +278,8 @@ public final class InspectService {
     }
 
     private HighlightService.Highlight highlight(ItemFrame frame) {
-        return new HighlightService.Highlight(frame, kind(frame).color(settings.get().inspect().colors()));
-    }
-
-    // Where a delivery would leave items sent to this frame.
-    private DeliveryService.Kind kind(ItemFrame frame) {
-        if (FrameGeometry.isLava(frame)) {
-            return DeliveryService.Kind.DESTROYED;
-        }
-        return settings.get().delivery().insertIntoContainers()
-                && FrameGeometry.isContainer(FrameGeometry.attachedBlock(frame))
-                ? DeliveryService.Kind.CONTAINER : DeliveryService.Kind.DROPPED;
+        return new HighlightService.Highlight(frame,
+                resolver.destination(frame).color(settings.get().inspect().colors()));
     }
 
     private void highlight(Player player, List<HighlightService.Highlight> marks) {

@@ -122,11 +122,11 @@ public final class TraceService {
                 Placeholder.component("item", delivered.item().effectiveName()),
                 Placeholder.unparsed("amount", String.valueOf(delivered.amount())),
                 Placeholder.component("kind", messages.get().get("trace.kind."
-                        + delivered.kind().name().toLowerCase(Locale.ROOT))),
+                        + delivered.destination().name().toLowerCase(Locale.ROOT))),
                 Placeholder.unparsed("x", String.valueOf(to.getBlockX())),
                 Placeholder.unparsed("y", String.valueOf(to.getBlockY())),
                 Placeholder.unparsed("z", String.valueOf(to.getBlockZ()))));
-        drawTrail(player, delivered.from(), to, delivered.kind().color(settings.get().inspect().colors()));
+        drawTrail(player, delivered.from(), to, delivered.destination().color(settings.get().inspect().colors()));
     }
 
     private void drawTrail(Player player, Location from, Location to, Color color) {

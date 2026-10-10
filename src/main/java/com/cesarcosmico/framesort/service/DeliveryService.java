@@ -1,9 +1,8 @@
 package com.cesarcosmico.framesort.service;
 
-import com.cesarcosmico.framesort.config.InspectSettings;
 import com.cesarcosmico.framesort.model.Composting;
 import com.cesarcosmico.framesort.model.Delivery;
-import org.bukkit.Color;
+import com.cesarcosmico.framesort.service.TargetResolver.Destination;
 import org.bukkit.Effect;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -38,21 +37,7 @@ public final class DeliveryService {
         void destroy();
     }
 
-    public enum Kind {
-        CONTAINER,
-        DROPPED,
-        DESTROYED;
-
-        public Color color(InspectSettings.Colors colors) {
-            return switch (this) {
-                case CONTAINER -> colors.container();
-                case DROPPED -> colors.dropped();
-                case DESTROYED -> colors.lava();
-            };
-        }
-    }
-
-    public record Delivered(Location from, ItemStack item, int amount, Location to, Kind kind) {
+    public record Delivered(Location from, ItemStack item, int amount, Location to, Destination destination) {
     }
 
     // The delay vanilla gives a full composter before it turns ready.
@@ -92,12 +77,13 @@ public final class DeliveryService {
             if (!open.isEmpty()) {
                 Location to = FrameGeometry.dropPoint(open.get(ThreadLocalRandom.current().nextInt(open.size())));
                 source.moveTo(to);
-                observer.accept(new Delivered(from, stack, remaining, to, Kind.DROPPED));
+                observer.accept(new Delivered(from, stack, remaining, to, Destination.DROPPED));
                 return amount;
             }
             if (!best.isEmpty()) {
                 source.destroy();
-                observer.accept(new Delivered(from, stack, remaining, best.getFirst().getLocation(), Kind.DESTROYED));
+                Location to = best.getFirst().getLocation();
+                observer.accept(new Delivered(from, stack, remaining, to, Destination.DESTROYED));
                 return amount;
             }
         }
@@ -121,7 +107,8 @@ public final class DeliveryService {
             notAccepted = left.values().stream().mapToInt(ItemStack::getAmount).sum();
         }
         if (notAccepted < amount) {
-            observer.accept(new Delivered(from, stack, amount - notAccepted, frame.getLocation(), Kind.CONTAINER));
+            int accepted = amount - notAccepted;
+            observer.accept(new Delivered(from, stack, accepted, frame.getLocation(), Destination.CONTAINER));
         }
         return notAccepted;
     }

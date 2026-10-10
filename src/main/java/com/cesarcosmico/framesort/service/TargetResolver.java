@@ -2,6 +2,7 @@ package com.cesarcosmico.framesort.service;
 
 import com.cesarcosmico.framesort.api.TargetBindEvent;
 import com.cesarcosmico.framesort.config.FrameSortSettings;
+import com.cesarcosmico.framesort.config.InspectSettings;
 import com.cesarcosmico.framesort.item.ItemTagCodec;
 import com.cesarcosmico.framesort.model.BlockKey;
 import com.cesarcosmico.framesort.model.MatchTier;
@@ -10,6 +11,7 @@ import com.cesarcosmico.framesort.model.TargetSet;
 import io.papermc.paper.datacomponent.DataComponentTypes;
 import io.papermc.paper.datacomponent.item.BundleContents;
 import io.papermc.paper.datacomponent.item.ItemContainerContents;
+import org.bukkit.Color;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.block.Block;
@@ -25,6 +27,21 @@ import java.util.function.Supplier;
 
 /** Cached until the world's targets change; callers recheck each frame, which may have changed since. */
 public final class TargetResolver {
+
+    /** Where a delivery leaves the items sent to a frame. */
+    public enum Destination {
+        CONTAINER,
+        DROPPED,
+        DESTROYED;
+
+        public Color color(InspectSettings.Colors colors) {
+            return switch (this) {
+                case CONTAINER -> colors.container();
+                case DROPPED -> colors.dropped();
+                case DESTROYED -> colors.lava();
+            };
+        }
+    }
 
     /** The frames a delivery would use, split by where the items end up; {@code stale} if a cached frame changed. */
     public record Plan(List<ItemFrame> containers, List<ItemFrame> drops, boolean stale) {
@@ -60,7 +77,6 @@ public final class TargetResolver {
 
     // Deliveries and inspections both plan here, so an inspection always shows what a delivery would do.
     public Plan plan(Block source, ItemStack item) {
-        boolean insert = settings.get().delivery().insertIntoContainers();
         TargetSet<ItemFrame> containers = new TargetSet<>();
         TargetSet<ItemFrame> drops = new TargetSet<>();
         boolean stale = false;
@@ -71,17 +87,25 @@ public final class TargetResolver {
                 stale = true;
                 continue;
             }
-            Block attached = FrameGeometry.attachedBlock(frame);
-            if (attached.getType() == Material.COMPOSTER && !item.getType().isCompostable()) {
+            if (FrameGeometry.attachedBlock(frame).getType() == Material.COMPOSTER && !item.getType().isCompostable()) {
                 continue;
             }
-            if (insert && FrameGeometry.isContainer(attached)) {
+            if (destination(frame) == Destination.CONTAINER) {
                 containers.add(match.priority(), frame);
             } else {
                 drops.add(match.priority(), frame);
             }
         }
         return new Plan(containers.targets(), drops.targets(), stale);
+    }
+
+    public Destination destination(ItemFrame frame) {
+        if (FrameGeometry.isLava(frame)) {
+            return Destination.DESTROYED;
+        }
+        return settings.get().delivery().insertIntoContainers()
+                && FrameGeometry.isContainer(FrameGeometry.attachedBlock(frame))
+                ? Destination.CONTAINER : Destination.DROPPED;
     }
 
     private List<Match> matches(Block source, ItemStack item) {
