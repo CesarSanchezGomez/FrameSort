@@ -48,17 +48,20 @@ inspect:
   title: 'Destinos de este <source> (<x>, <y>, <z>)<sorted>'
   title-item: 'Adónde va <item> desde este <source><sorted>'
   sorted: ' <dark_gray>· <count> enviados</dark_gray>'
-  section:
-    containers: '  <green>A contenedores:</green>'
-    dropped: '  <yellow>Se suelta en:</yellow>'
-    then: '  <gray>Cuando se llenen:</gray>'
+  level:
+    first: '  <color:#F7B733><number>.</color> <white>Primera opción</white>'
+    next: '  <color:#F7B733><number>.</color> <white>Cuando se llenen</white>'
+  branch:
+    middle: '     <dark_gray>├</dark_gray> <entry>'
+    last: '     <dark_gray>└</dark_gray> <entry>'
   excess:
     lava: '  <red>Lo que sobre se destruye en la lava.</red>'
     stay: '  <gray>Lo que sobre se queda hasta que haya sitio.</gray>'
   target:
     dropped: '<yellow>se suelta aquí</yellow>'
     lava: '<red>lava</red>'
-  line: '  <color:#F7B733>•</color> <white><item></white> <dark_gray>→</dark_gray> <hover:show_text:"<gray><x>, <y>, <z></gray>"><target></hover> <dark_gray><distance> m</dark_gray>'
+  line: '  <color:#F7B733>•</color> <entry>'
+  entry: '<white><item></white> <dark_gray>→</dark_gray> <hover:show_text:"<gray><x>, <y>, <z></gray>"><target></hover> <dark_gray><distance> m</dark_gray>'
   no-listing: '<prefix><gray>Primero haz shift + clic derecho a un sorter o pad con la mano vacía.</gray>'
 
 frame:

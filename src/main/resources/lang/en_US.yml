@@ -48,17 +48,20 @@ inspect:
   title: 'Targets of this <source> (<x>, <y>, <z>)<sorted>'
   title-item: 'Where <item> goes from this <source><sorted>'
   sorted: ' <dark_gray>· <count> sorted</dark_gray>'
-  section:
-    containers: '  <green>Into containers:</green>'
-    dropped: '  <yellow>Dropped at:</yellow>'
-    then: '  <gray>When those are full:</gray>'
+  level:
+    first: '  <color:#F7B733><number>.</color> <white>First choice</white>'
+    next: '  <color:#F7B733><number>.</color> <white>When those are full</white>'
+  branch:
+    middle: '     <dark_gray>├</dark_gray> <entry>'
+    last: '     <dark_gray>└</dark_gray> <entry>'
   excess:
     lava: '  <red>Anything left over is destroyed by lava.</red>'
     stay: '  <gray>Anything left over stays until there is room.</gray>'
   target:
     dropped: '<yellow>dropped here</yellow>'
     lava: '<red>lava</red>'
-  line: '  <color:#F7B733>•</color> <white><item></white> <dark_gray>→</dark_gray> <hover:show_text:"<gray><x>, <y>, <z></gray>"><target></hover> <dark_gray><distance> m</dark_gray>'
+  line: '  <color:#F7B733>•</color> <entry>'
+  entry: '<white><item></white> <dark_gray>→</dark_gray> <hover:show_text:"<gray><x>, <y>, <z></gray>"><target></hover> <dark_gray><distance> m</dark_gray>'
   no-listing: '<prefix><gray>Sneak + right-click a sorter or pad with an empty hand first.</gray>'
 
 frame:

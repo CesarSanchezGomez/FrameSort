@@ -8,6 +8,7 @@ import com.cesarcosmico.framesort.item.ItemTagCodec;
 import com.cesarcosmico.framesort.model.BlockKey;
 import com.cesarcosmico.framesort.model.FramePosition;
 import com.cesarcosmico.framesort.model.TargetRegistration;
+import com.cesarcosmico.framesort.service.TargetResolver.Destination;
 import com.cesarcosmico.framesort.text.ChatPager;
 import com.cesarcosmico.framesort.text.Messages;
 import net.kyori.adventure.text.Component;
@@ -38,6 +39,9 @@ public final class InspectService {
     private static final String MARK_PERMISSION = "framesort.target.create";
 
     private record Listing(Component title, List<Component> lines) {
+    }
+
+    private record Target(ItemFrame frame, Destination destination) {
     }
 
     private final Supplier<FrameSortSettings> settings;
@@ -79,8 +83,10 @@ public final class InspectService {
             List<ItemFrame> frames = new ArrayList<>(resolver.targets(source));
             frames.sort(Comparator.comparingLong(frame -> distanceSquared(frame, center)));
             for (ItemFrame frame : frames) {
-                lines.add(line(text, frame, center));
-                marks.add(highlight(frame));
+                Destination destination = resolver.destination(frame);
+                lines.add(text.get("inspect.line",
+                        Placeholder.component("entry", entry(text, frame, destination, center))));
+                marks.add(highlight(frame, destination));
             }
         } else {
             title = text.get("inspect.title-item", Placeholder.component("source", kind),
@@ -168,7 +174,7 @@ public final class InspectService {
         player.sendMessage(text.get("frame.layout",
                 Placeholder.component("title", text.get("frame.title", coordinates(frame.getLocation()))),
                 Placeholder.component("lines", Component.join(JoinConfiguration.newlines(), lines))));
-        highlight(player, List.of(highlight(frame)));
+        highlight(player, List.of(highlight(frame, resolver.destination(frame))));
     }
 
     public void toggleMark(Player player, ItemFrame frame) {
@@ -215,45 +221,48 @@ public final class InspectService {
         List<TargetResolver.Level> levels = resolver.plan(source, filter).levels();
         for (int i = 0; i < levels.size(); i++) {
             TargetResolver.Level level = levels.get(i);
-            if (i > 0) {
-                lines.add(text.get("inspect.section.then"));
+            // In the order a delivery uses them: containers, then a drop spot or lava takes the rest.
+            List<Target> targets = Stream.of(
+                            level.containers().stream().map(frame -> new Target(frame, Destination.CONTAINER)),
+                            level.drops().stream().map(frame -> new Target(frame, Destination.DROPPED)),
+                            level.lava().stream().map(frame -> new Target(frame, Destination.DESTROYED)))
+                    .flatMap(stream -> stream).toList();
+            Component header = text.get(i == 0 ? "inspect.level.first" : "inspect.level.next",
+                    Placeholder.unparsed("number", String.valueOf(i + 1)));
+            for (int j = 0; j < targets.size(); j++) {
+                Target target = targets.get(j);
+                Component branch = text.get(j < targets.size() - 1 ? "inspect.branch.middle" : "inspect.branch.last",
+                        Placeholder.component("entry", entry(text, target.frame(), target.destination(), center)));
+                // A header shares the pager line of its first target, so the total and the page size count targets.
+                lines.add(j == 0 ? Component.join(JoinConfiguration.newlines(), header, branch) : branch);
+                marks.add(highlight(target.frame(), target.destination()));
             }
-            section(text, "inspect.section.containers", level.containers(), center, lines, marks);
-            section(text, "inspect.section.dropped", level.drops(), center, lines, marks);
             // A drop spot takes everything left, and lava destroys it: the levels after it never get anything.
             if (!level.drops().isEmpty()) {
                 return;
             }
             if (!level.lava().isEmpty()) {
-                lines.add(text.get("inspect.excess.lava"));
+                endWith(lines, text.get("inspect.excess.lava"));
                 return;
             }
         }
-        if (!levels.isEmpty()) {
-            lines.add(text.get("inspect.excess.stay"));
+        if (!lines.isEmpty()) {
+            endWith(lines, text.get("inspect.excess.stay"));
         }
     }
 
-    private void section(Messages text, String header, List<ItemFrame> frames, BlockKey center,
-                         List<Component> lines, List<HighlightService.Highlight> marks) {
-        if (frames.isEmpty()) {
-            return;
-        }
-        lines.add(text.get(header));
-        for (ItemFrame frame : frames) {
-            lines.add(line(text, frame, center));
-            marks.add(highlight(frame));
-        }
+    private static void endWith(List<Component> lines, Component closing) {
+        lines.set(lines.size() - 1, Component.join(JoinConfiguration.newlines(), lines.getLast(), closing));
     }
 
-    private Component line(Messages text, ItemFrame frame, BlockKey center) {
-        Component target = switch (resolver.destination(frame)) {
+    private Component entry(Messages text, ItemFrame frame, Destination destination, BlockKey center) {
+        Component target = switch (destination) {
             case CONTAINER -> blockName(FrameGeometry.attachedBlock(frame));
             case DROPPED -> text.get("inspect.target.dropped");
             case DESTROYED -> text.get("inspect.target.lava");
         };
         Location location = frame.getLocation();
-        return text.get("inspect.line",
+        return text.get("inspect.entry",
                 Placeholder.component("item", frame.getItem().effectiveName()),
                 Placeholder.component("target", target),
                 coordinates(location),
@@ -274,9 +283,8 @@ public final class InspectService {
         return index.isTarget(frame) ? text.get("frame.status.target", where) : text.get("frame.status.unmarked");
     }
 
-    private HighlightService.Highlight highlight(ItemFrame frame) {
-        return new HighlightService.Highlight(frame,
-                resolver.destination(frame).color(settings.get().inspect().colors()));
+    private HighlightService.Highlight highlight(ItemFrame frame, Destination destination) {
+        return new HighlightService.Highlight(frame, destination.color(settings.get().inspect().colors()));
     }
 
     /** The sorters and pads within delivery range of {@code center}. */
