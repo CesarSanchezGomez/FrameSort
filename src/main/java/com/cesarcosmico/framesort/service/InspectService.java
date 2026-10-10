@@ -195,7 +195,7 @@ public final class InspectService {
             return;
         }
         boolean mark = !index.isMarked(frame);
-        index.setMarked(frame, player.getUniqueId(), mark);
+        index.setMarked(frame, mark);
         player.sendMessage(text.get(mark ? "mark.marked" : "mark.unmarked"));
         InspectSettings.Colors colors = settings.get().inspect().colors();
         highlight(player, List.of(new HighlightService.Highlight(frame, mark ? colors.container() : colors.lava())));

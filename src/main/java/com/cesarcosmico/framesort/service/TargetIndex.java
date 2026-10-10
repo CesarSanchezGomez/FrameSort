@@ -59,9 +59,9 @@ public final class TargetIndex {
         return frame.getPersistentDataContainer().has(Keys.TARGET);
     }
 
-    public void setMarked(ItemFrame frame, UUID by, boolean marked) {
+    public void setMarked(ItemFrame frame, boolean marked) {
         if (marked) {
-            frame.getPersistentDataContainer().set(Keys.TARGET, PersistentDataType.STRING, by.toString());
+            frame.getPersistentDataContainer().set(Keys.TARGET, PersistentDataType.BOOLEAN, true);
         } else {
             frame.getPersistentDataContainer().remove(Keys.TARGET);
         }

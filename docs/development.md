@@ -46,7 +46,7 @@ Nothing is stored outside the world:
 
 | Where | Key | Content |
 |---|---|---|
-| Item frame entity | `framesort:target` | The frame is a target (manual registration); the value is the UUID of the player who marked it. |
+| Item frame entity | `framesort:target` | Present while the frame is a target (manual registration). |
 | Chunk | `framesort:pads` | The pads registered in the chunk, as `"x,y,z,type"`. |
 | Item | `framesort:item-tag` | The tag a tagged item stands for, such as `minecraft:logs` (`/framesort tag apply <tag>`). |
 | Sorter dispenser | `framesort:sorted` | How many items the sorter has sent (a `long`); it goes away with the block. |
