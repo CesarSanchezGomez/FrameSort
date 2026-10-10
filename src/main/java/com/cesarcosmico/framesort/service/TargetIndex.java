@@ -84,8 +84,7 @@ public final class TargetIndex {
                     continue;
                 }
                 for (ItemFrame frame : inChunk) {
-                    long distance = FrameGeometry.key(frame.getLocation().getBlock()).distanceSquared(center);
-                    if (frame.isValid() && distance <= radiusSquared) {
+                    if (FrameGeometry.key(frame.getLocation().getBlock()).distanceSquared(center) <= radiusSquared) {
                         found.add(frame);
                     }
                 }

@@ -14,12 +14,15 @@ public final class Composting {
     private Composting() {
     }
 
-    /** Every item offered is consumed, raised or not; an empty composter always rises if the item composts at all. */
+    /**
+     * Every item offered is consumed, raised or not, and an empty composter always rises. {@code chance} is a
+     * compostable item's, so it is above 0.
+     */
     public static Fill fill(int level, float chance, int amount, DoubleSupplier roll) {
         int consumed = 0;
         while (consumed < amount && level < FULL) {
             consumed++;
-            if ((level == 0 && chance > 0) || roll.getAsDouble() < chance) {
+            if (level == 0 || roll.getAsDouble() < chance) {
                 level++;
             }
         }

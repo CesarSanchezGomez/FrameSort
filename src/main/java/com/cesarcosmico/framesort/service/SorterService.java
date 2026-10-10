@@ -148,10 +148,6 @@ public final class SorterService {
             if (current.due > tick) {
                 continue;
             }
-            if (!current.frame.isValid()) {
-                sorters.remove(entry.getKey());
-                continue;
-            }
             if (!FrameGeometry.attachedLoaded(current.frame)) {
                 current.due = tick + sorter.tickRate();
                 continue;
@@ -172,17 +168,16 @@ public final class SorterService {
 
     private boolean holdsActivator(ItemFrame frame) {
         SorterSettings sorter = settings.get().sorter();
-        return frame.isValid() && sorter.frameTypes().contains(frame.getType()) && sorter.isActivator(frame.getItem());
+        return sorter.frameTypes().contains(frame.getType()) && sorter.isActivator(frame.getItem());
     }
 
     private boolean makesSorter(ItemFrame frame, Block block) {
         return holdsActivator(frame) && block.getType() == Material.DISPENSER;
     }
 
+    // tick() checked makesSorter just before, so the block is a dispenser.
     private void dispense(Sorter sorter) {
-        if (!(sorter.block.getState(false) instanceof Dispenser dispenser)) {
-            return;
-        }
+        Dispenser dispenser = (Dispenser) sorter.block.getState(false);
         Slot slot = pick(dispenser.getInventory());
         if (slot == null) {
             return;
@@ -209,7 +204,7 @@ public final class SorterService {
 
     private void applyLook(ItemFrame frame, Block block, boolean active) {
         SorterSettings sorter = settings.get().sorter();
-        if (sorter.hideFrame() && frame.isValid()) {
+        if (sorter.hideFrame()) {
             frame.setVisible(!active);
         }
         // A fresh snapshot, written back at once: it cannot carry stale items.

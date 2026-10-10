@@ -40,8 +40,8 @@ public record ItemTemplate(Material material, @Nullable String name, List<String
         return item;
     }
 
-    public static @Nullable String marker(@Nullable ItemStack item, NamespacedKey marker) {
-        if (item == null || item.isEmpty()) {
+    public static @Nullable String marker(ItemStack item, NamespacedKey marker) {
+        if (item.isEmpty()) {
             return null;
         }
         return item.getPersistentDataContainer().get(marker, PersistentDataType.STRING);

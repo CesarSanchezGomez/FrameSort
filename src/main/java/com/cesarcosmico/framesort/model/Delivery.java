@@ -21,8 +21,9 @@ public final class Delivery {
     }
 
     /**
-     * Offers what is left to each sink in turn. {@code offer} returns how much the sink did <em>not</em> accept, or
-     * {@link #GONE}; {@code commit} receives the new remainder after every sink that took something.
+     * Offers what is left to each sink in turn. {@code offer} returns how much the sink did <em>not</em> accept
+     * (from 0 to the amount offered), or {@link #GONE}; {@code commit} receives the new remainder after every sink
+     * that took something.
      */
     public static <S> Outcome<S> deliver(int amount, List<S> sinks, ToIntBiFunction<S, Integer> offer,
                                          IntConsumer commit) {
@@ -37,7 +38,6 @@ public final class Delivery {
                 gone.add(sink);
                 continue;
             }
-            left = Math.clamp(left, 0, remaining);
             if (left != remaining) {
                 remaining = left;
                 commit.accept(remaining);

@@ -95,15 +95,4 @@ class DeliveryTest {
         assertEquals(1, source[0]);
         assertEquals(1, outcome.remaining());
     }
-
-    @Test
-    void ignoresOutOfRangeAnswers() {
-        int[] source = {10};
-
-        Delivery.Outcome<String> outcome = Delivery.deliver(10, List.of("liar"), (sink, amount) -> 99,
-                left -> source[0] = left);
-
-        assertEquals(10, outcome.remaining());
-        assertEquals(10, source[0]);
-    }
 }

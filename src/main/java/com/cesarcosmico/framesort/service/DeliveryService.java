@@ -113,14 +113,14 @@ public final class DeliveryService {
         return notAccepted;
     }
 
-    /** Composts like a hopper feeding the composter; returns how many items it did not take. */
+    /**
+     * Composts like a hopper feeding the composter; returns how many items it did not take. The plan only sends
+     * compostable items to a composter.
+     */
     private int compost(Block composter, ItemStack stack, int amount) {
-        Material material = stack.getType();
-        if (!(composter.getBlockData() instanceof Levelled data) || !material.isCompostable()) {
-            return amount;
-        }
+        Levelled data = (Levelled) composter.getBlockData();
         int before = data.getLevel();
-        Composting.Fill fill = Composting.fill(before, material.getCompostChance(), amount,
+        Composting.Fill fill = Composting.fill(before, stack.getType().getCompostChance(), amount,
                 ThreadLocalRandom.current()::nextDouble);
         if (fill.consumed() > 0) {
             if (fill.level() != before) {

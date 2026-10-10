@@ -36,8 +36,8 @@ public record SorterSettings(ItemTemplate activator, boolean requireMarked, Set<
                 reader.bool("show-activity", true));
     }
 
-    public boolean isActivator(@Nullable ItemStack item) {
-        if (item == null || item.getType() != activator.material()) {
+    public boolean isActivator(ItemStack item) {
+        if (item.getType() != activator.material()) {
             return false;
         }
         return !requireMarked || ItemTemplate.marker(item, Keys.ACTIVATOR) != null;
