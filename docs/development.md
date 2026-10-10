@@ -120,6 +120,7 @@ before each release:
   exact lava frame wins over a default-target chest.
 - **`/framesort where`:** highlights where the held item would go from the nearest sorter or pad, level by level.
 - **WorldGuard:** a sorter never sends to a frame in a different set of regions, and its inspection does not list it.
+- **Tracing:** a busy sorter draws one streak per target frame per turn, not one per item.
 - **Leaving:** a player who quits while tracing or with highlights showing leaves nothing behind (no errors, no
   glowing copies).
 - **No duplication:** break a target chest while a sorter is filling it and count the items before and after.

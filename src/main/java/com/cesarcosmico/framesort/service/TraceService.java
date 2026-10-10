@@ -12,20 +12,22 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.util.Vector;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Supplier;
 
 /** With nobody tracing, a delivery costs one empty-map check. */
 public final class TraceService {
 
-    private record Shown(long millis, int tick, Location from) {
+    private record Shown(long millis, int tick, Location from, Set<Location> to) {
     }
 
-    // At most one delivery per player this often, so a busy sorter does not flood the screen. Every part of the one
-    // that is shown (the containers, then the drop) still shows: a part is the same source in the same tick.
+    // At most one sorter turn or pad item per player this often, so a busy sorter does not flood the screen. Every
+    // target of the turn that is shown still shows once: a turn is the same source in the same tick.
     private static final long MIN_INTERVAL_MILLIS = 150;
     // The trail runs straight from the source to the frame, so it stays readable in tunnels.
     private static final int STREAK = 6;
@@ -93,12 +95,16 @@ public final class TraceService {
             }
             Shown last = lastShown.get(player);
             int tick = server.getCurrentTick();
-            boolean sameDelivery = last != null && last.tick() == tick && last.from().equals(from);
-            if (!sameDelivery) {
+            boolean sameTurn = last != null && last.tick() == tick && last.from().equals(from);
+            if (sameTurn) {
+                if (!last.to().add(delivered.to())) {
+                    continue;
+                }
+            } else {
                 if (last != null && now - last.millis() < MIN_INTERVAL_MILLIS) {
                     continue;
                 }
-                lastShown.put(player, new Shown(now, tick, from));
+                lastShown.put(player, new Shown(now, tick, from, new HashSet<>(Set.of(delivered.to()))));
             }
             show(player, delivered);
         }

@@ -37,7 +37,7 @@ container.
    can create pads is configurable: anyone, players with a permission, or only with a special pad block.
 4. **Inspect.** Sneak + right-click a sorter or pad with an empty hand: its targets' items glow (only for you, in
    configurable colours) and are listed page by page. Sneak + left-click a target frame to see what it accepts.
-   `/framesort trace` shows every delivery around you live.
+   `/framesort trace` shows the deliveries around you live.
 
 **WorldGuard.** When it is installed, a sorter or pad only sends to target frames on blocks in exactly the same
 regions as itself, whether they hold a container, a drop spot or lava; both outside every region is fine. Nobody can
