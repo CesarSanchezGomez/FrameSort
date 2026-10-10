@@ -94,30 +94,21 @@ public final class InspectService {
 
     /** Inspects the nearest sorter or pad in delivery range as if {@code item} were in the off hand; false if none. */
     public boolean inspectNearest(Player player, ItemStack item) {
-        BlockKey here = FrameGeometry.key(player.getLocation().getBlock());
-        int radius = settings.get().delivery().maxDistance();
-        long best = (long) radius * radius;
+        Block here = player.getLocation().getBlock();
+        BlockKey key = FrameGeometry.key(here);
+        long best = Long.MAX_VALUE;
         Block nearest = null;
-        boolean pad = false;
-        for (Block sorter : sorters.blocks()) {
-            long distance = FrameGeometry.key(sorter).distanceSquared(here);
+        for (Block source : sourcesNear(here)) {
+            long distance = FrameGeometry.key(source).distanceSquared(key);
             if (distance <= best) {
                 best = distance;
-                nearest = sorter;
-            }
-        }
-        for (Block top : pads.near(here, radius)) {
-            long distance = FrameGeometry.key(top).distanceSquared(here);
-            if (distance <= best) {
-                best = distance;
-                nearest = top;
-                pad = true;
+                nearest = source;
             }
         }
         if (nearest == null) {
             return false;
         }
-        inspectSource(player, nearest, pad, item);
+        inspectSource(player, nearest, !sorters.isSorter(nearest), item);
         return true;
     }
 
@@ -169,13 +160,9 @@ public final class InspectService {
             lines.add(text.get("frame.accepts.default"));
         }
 
-        BlockKey key = FrameGeometry.key(frame.getLocation().getBlock());
-        int radius = settings.get().delivery().maxDistance();
-        Stream<Block> inRange = Stream.concat(
-                sorters.blocks().stream()
-                        .filter(block -> FrameGeometry.key(block).distanceSquared(key) <= (long) radius * radius),
-                pads.near(key, radius).stream());
-        long sources = inRange.filter(source -> resolver.reaches(source, frame)).count();
+        long sources = sourcesNear(frame.getLocation().getBlock()).stream()
+                .filter(source -> resolver.reaches(source, frame))
+                .count();
         lines.add(text.get("frame.sources", Placeholder.unparsed("count", String.valueOf(sources))));
         // One message, like a page of a list, so the card stays together in chat.
         player.sendMessage(text.get("frame.layout",
@@ -280,6 +267,17 @@ public final class InspectService {
     private HighlightService.Highlight highlight(ItemFrame frame) {
         return new HighlightService.Highlight(frame,
                 resolver.destination(frame).color(settings.get().inspect().colors()));
+    }
+
+    /** The sorters and pads within delivery range of {@code center}. */
+    private List<Block> sourcesNear(Block center) {
+        int radius = settings.get().delivery().maxDistance();
+        long radiusSquared = (long) radius * radius;
+        BlockKey key = FrameGeometry.key(center);
+        return Stream.concat(
+                sorters.blocks().stream()
+                        .filter(sorter -> FrameGeometry.key(sorter).distanceSquared(key) <= radiusSquared),
+                pads.near(center, radius).stream()).toList();
     }
 
     private void highlight(Player player, List<HighlightService.Highlight> marks) {

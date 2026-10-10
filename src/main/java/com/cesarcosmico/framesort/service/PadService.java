@@ -113,17 +113,15 @@ public final class PadService {
         return type != null && matches(top, type) ? type : null;
     }
 
-    public List<Block> near(BlockKey center, int radius) {
-        List<Block> found = new ArrayList<>();
-        World world = server.getWorld(center.world());
-        if (world == null) {
-            return List.of();
-        }
+    /** The top blocks of the registered pads within {@code radius} of {@code center}, in its world. */
+    public List<Block> near(Block center, int radius) {
+        BlockKey here = FrameGeometry.key(center);
         long radiusSquared = (long) radius * radius;
+        List<Block> found = new ArrayList<>();
         for (Map<BlockKey, String> inChunk : pads.values()) {
             for (BlockKey key : inChunk.keySet()) {
-                if (key.distanceSquared(center) <= radiusSquared) {
-                    found.add(world.getBlockAt(key.x(), key.y(), key.z()));
+                if (key.distanceSquared(here) <= radiusSquared) {
+                    found.add(center.getWorld().getBlockAt(key.x(), key.y(), key.z()));
                 }
             }
         }
