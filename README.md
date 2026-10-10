@@ -28,8 +28,9 @@ container.
    3. the same material.
 
    A shulker box or bundle in the frame stands for what it holds, and each of those matches ranks just below the
-   same match made directly. A frame holding a carrot on a stick takes whatever matches nothing else. A frame on a
-   lava cauldron destroys leftovers.
+   same match made directly. When the preferred targets are full, the rest goes to the next ones. A frame holding
+   a carrot on a stick comes last: it takes whatever matches nothing else, and whatever the other targets have no
+   room for. A frame on a lava cauldron destroys leftovers.
 2. **Sorters.** Put an Eye of Ender in a frame on a dispenser. The frame disappears and every second the dispenser
    sends up to 64 items from its inventory, at random, taking them from inside shulker boxes and bundles too.
 3. **Teleport pads.** Place crying obsidian on gilded blackstone. Items resting on top are sent to targets. Who

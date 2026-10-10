@@ -51,6 +51,7 @@ inspect:
   section:
     containers: '  <green>Into containers:</green>'
     dropped: '  <yellow>Dropped at:</yellow>'
+    then: '  <gray>When those are full:</gray>'
   excess:
     lava: '  <red>Anything left over is destroyed by lava.</red>'
     stay: '  <gray>Anything left over stays until there is room.</gray>'

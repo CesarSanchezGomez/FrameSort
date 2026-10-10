@@ -212,26 +212,37 @@ public final class InspectService {
 
     private void filtered(Messages text, Block source, BlockKey center, ItemStack filter,
                           List<Component> lines, List<HighlightService.Highlight> marks) {
-        TargetResolver.Plan plan = resolver.plan(source, filter);
-        List<ItemFrame> into = plan.containers();
-        List<ItemFrame> overflow = plan.drops().stream().filter(frame -> !FrameGeometry.isLava(frame)).toList();
-        boolean lava = plan.drops().stream().anyMatch(FrameGeometry::isLava);
-        if (!into.isEmpty()) {
-            lines.add(text.get("inspect.section.containers"));
-            into.forEach(frame -> {
-                lines.add(line(text, frame, center));
-                marks.add(highlight(frame));
-            });
+        List<TargetResolver.Level> levels = resolver.plan(source, filter).levels();
+        for (int i = 0; i < levels.size(); i++) {
+            TargetResolver.Level level = levels.get(i);
+            if (i > 0) {
+                lines.add(text.get("inspect.section.then"));
+            }
+            section(text, "inspect.section.containers", level.containers(), center, lines, marks);
+            section(text, "inspect.section.dropped", level.drops(), center, lines, marks);
+            // A drop spot takes everything left, and lava destroys it: the levels after it never get anything.
+            if (!level.drops().isEmpty()) {
+                return;
+            }
+            if (!level.lava().isEmpty()) {
+                lines.add(text.get("inspect.excess.lava"));
+                return;
+            }
         }
-        if (!overflow.isEmpty()) {
-            lines.add(text.get("inspect.section.dropped"));
-            overflow.forEach(frame -> {
-                lines.add(line(text, frame, center));
-                marks.add(highlight(frame));
-            });
+        if (!levels.isEmpty()) {
+            lines.add(text.get("inspect.excess.stay"));
         }
-        if (!into.isEmpty() || !overflow.isEmpty() || lava) {
-            lines.add(text.get(overflow.isEmpty() && lava ? "inspect.excess.lava" : "inspect.excess.stay"));
+    }
+
+    private void section(Messages text, String header, List<ItemFrame> frames, BlockKey center,
+                         List<Component> lines, List<HighlightService.Highlight> marks) {
+        if (frames.isEmpty()) {
+            return;
+        }
+        lines.add(text.get(header));
+        for (ItemFrame frame : frames) {
+            lines.add(line(text, frame, center));
+            marks.add(highlight(frame));
         }
     }
 

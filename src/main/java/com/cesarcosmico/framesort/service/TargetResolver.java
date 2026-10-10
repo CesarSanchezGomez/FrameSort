@@ -6,8 +6,8 @@ import com.cesarcosmico.framesort.config.InspectSettings;
 import com.cesarcosmico.framesort.item.ItemTagCodec;
 import com.cesarcosmico.framesort.model.BlockKey;
 import com.cesarcosmico.framesort.model.MatchTier;
+import com.cesarcosmico.framesort.model.Ranking;
 import com.cesarcosmico.framesort.model.TargetRegistration;
-import com.cesarcosmico.framesort.model.TargetSet;
 import io.papermc.paper.datacomponent.DataComponentTypes;
 import io.papermc.paper.datacomponent.item.BundleContents;
 import io.papermc.paper.datacomponent.item.ItemContainerContents;
@@ -20,6 +20,7 @@ import org.bukkit.inventory.ItemStack;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -43,11 +44,19 @@ public final class TargetResolver {
         }
     }
 
-    /** The frames a delivery would use, split by where the items end up; {@code stale} if a cached frame changed. */
-    public record Plan(List<ItemFrame> containers, List<ItemFrame> drops, boolean stale) {
-        public Plan {
+    /** Frames tied at one priority, split by where the items end up. */
+    public record Level(List<ItemFrame> containers, List<ItemFrame> drops, List<ItemFrame> lava) {
+        public Level {
             containers = List.copyOf(containers);
             drops = List.copyOf(drops);
+            lava = List.copyOf(lava);
+        }
+    }
+
+    /** The frames a delivery would use, best level first; {@code stale} if a cached frame changed. */
+    public record Plan(List<Level> levels, boolean stale) {
+        public Plan {
+            levels = List.copyOf(levels);
         }
     }
 
@@ -77,8 +86,7 @@ public final class TargetResolver {
 
     // Deliveries and inspections both plan here, so an inspection always shows what a delivery would do.
     public Plan plan(Block source, ItemStack item) {
-        TargetSet<ItemFrame> containers = new TargetSet<>();
-        TargetSet<ItemFrame> drops = new TargetSet<>();
+        Ranking<ItemFrame> ranking = new Ranking<>();
         boolean stale = false;
         for (Match match : matches(source, item)) {
             ItemFrame frame = match.frame();
@@ -90,13 +98,19 @@ public final class TargetResolver {
             if (FrameGeometry.attachedBlock(frame).getType() == Material.COMPOSTER && !item.getType().isCompostable()) {
                 continue;
             }
-            if (destination(frame) == Destination.CONTAINER) {
-                containers.add(match.priority(), frame);
-            } else {
-                drops.add(match.priority(), frame);
-            }
+            ranking.add(match.priority(), frame);
         }
-        return new Plan(containers.targets(), drops.targets(), stale);
+        List<Level> levels = new ArrayList<>();
+        for (List<ItemFrame> tied : ranking.levels()) {
+            Map<Destination, List<ItemFrame>> split = new EnumMap<>(Destination.class);
+            for (ItemFrame frame : tied) {
+                split.computeIfAbsent(destination(frame), key -> new ArrayList<>()).add(frame);
+            }
+            levels.add(new Level(split.getOrDefault(Destination.CONTAINER, List.of()),
+                    split.getOrDefault(Destination.DROPPED, List.of()),
+                    split.getOrDefault(Destination.DESTROYED, List.of())));
+        }
+        return new Plan(levels, stale);
     }
 
     public Destination destination(ItemFrame frame) {

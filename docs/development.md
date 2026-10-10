@@ -18,7 +18,7 @@ server.
 ```
 com.cesarcosmico.framesort
 ├── FrameSortPlugin   composition root: wires everything, one tick task, reload
-├── model/            plain rules: priorities, best-priority set, delivery, composting, frame positions, paging
+├── model/            plain rules: priorities, ranking by priority, delivery, composting, frame positions, paging
 ├── service/          target index and resolver, delivery, sorters, pads, inspection, tracing, tags
 ├── config/           typed settings, pads.yml, commands.yml, strict YAML loading, validation, reload holder
 ├── item/             persistent data keys, item templates, the pad codec for chunks
@@ -64,9 +64,9 @@ Nothing is stored outside the world:
   the world.
 - **Cache.** Matches are cached per source and item (amount ignored) and invalidated by a per-world epoch that
   changes with any target change. A cached frame is checked again before use.
-- **One plan.** `TargetResolver.plan` splits the best targets into containers and drop spots. Deliveries and
-  inspections (`/framesort where`, inspecting with an item in the off hand) both use it, so an inspection shows
-  exactly what a delivery would do.
+- **One plan.** `TargetResolver.plan` ranks the targets into levels of preference, each split into containers,
+  drop spots and lava. Deliveries and inspections (`/framesort where`, inspecting with an item in the off hand) both
+  use it, so an inspection shows exactly what a delivery would do.
 - **No duplication.** Containers are looked up the moment items go in, and the source is updated after each
   container (`model.Delivery`). A container that vanished in between is skipped. `DeliveryTest` covers the case
   where a vanished container used to duplicate items.
@@ -116,7 +116,9 @@ before each release:
   with `disable-when-powered`, redstone stops it.
 - **Pads:** a pad exists only once its top block sits on its base; pistons and explosions leave it in place;
   in `item` mode, breaking it gives the special item back.
-- **`/framesort where`:** highlights where the held item would go from the nearest sorter or pad.
+- **Overflow:** with the preferred chest full, items go on to the next targets, down to the default target; an
+  exact lava frame wins over a default-target chest.
+- **`/framesort where`:** highlights where the held item would go from the nearest sorter or pad, level by level.
 - **WorldGuard:** a sorter never sends to a frame in a different set of regions, and its inspection does not list it.
 - **Leaving:** a player who quits while tracing or with highlights showing leaves nothing behind (no errors, no
   glowing copies).

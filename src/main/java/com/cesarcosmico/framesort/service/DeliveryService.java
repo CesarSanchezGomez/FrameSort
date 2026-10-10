@@ -61,33 +61,42 @@ public final class DeliveryService {
         }
         TargetResolver.Plan plan = resolver.plan(origin, stack);
         int amount = stack.getAmount();
-        List<ItemFrame> order = new ArrayList<>(plan.containers());
-        Collections.shuffle(order, ThreadLocalRandom.current());
+        List<Delivery.Level<ItemFrame, End>> levels = plan.levels().stream().map(DeliveryService::level).toList();
         Location from = source.location();
-        Delivery.Outcome<ItemFrame> outcome = Delivery.deliver(amount, order,
+        Delivery.Outcome<ItemFrame, End> outcome = Delivery.deliver(amount, levels,
                 (frame, offered) -> offer(frame, stack, offered, from), source::commit);
         if (plan.stale() || !outcome.gone().isEmpty()) {
             resolver.forget(origin, stack);
         }
 
         int remaining = outcome.remaining();
-        if (remaining > 0) {
-            List<ItemFrame> best = plan.drops();
-            List<ItemFrame> open = best.stream().filter(frame -> !FrameGeometry.isLava(frame)).toList();
-            if (!open.isEmpty()) {
-                Location to = FrameGeometry.dropPoint(open.get(ThreadLocalRandom.current().nextInt(open.size())));
-                source.moveTo(to);
-                observer.accept(new Delivered(from, stack, remaining, to, Destination.DROPPED));
-                return amount;
-            }
-            if (!best.isEmpty()) {
-                source.destroy();
-                Location to = best.getFirst().getLocation();
-                observer.accept(new Delivered(from, stack, remaining, to, Destination.DESTROYED));
-                return amount;
-            }
+        End end = outcome.end();
+        if (end == null) {
+            return amount - remaining;
         }
-        return amount - remaining;
+        if (end.destination() == Destination.DESTROYED) {
+            source.destroy();
+            observer.accept(new Delivered(from, stack, remaining, end.frame().getLocation(), Destination.DESTROYED));
+        } else {
+            Location to = FrameGeometry.dropPoint(end.frame());
+            source.moveTo(to);
+            observer.accept(new Delivered(from, stack, remaining, to, Destination.DROPPED));
+        }
+        return amount;
+    }
+
+    /** Containers in random order; then one random drop spot takes the rest, or else the lava destroys it. */
+    private static Delivery.Level<ItemFrame, End> level(TargetResolver.Level level) {
+        List<ItemFrame> containers = new ArrayList<>(level.containers());
+        Collections.shuffle(containers, ThreadLocalRandom.current());
+        List<ItemFrame> drops = level.drops();
+        End end = !drops.isEmpty()
+                ? new End(drops.get(ThreadLocalRandom.current().nextInt(drops.size())), Destination.DROPPED)
+                : level.lava().isEmpty() ? null : new End(level.lava().getFirst(), Destination.DESTROYED);
+        return new Delivery.Level<>(containers, end);
+    }
+
+    private record End(ItemFrame frame, Destination destination) {
     }
 
     private int offer(ItemFrame frame, ItemStack stack, int amount, Location from) {

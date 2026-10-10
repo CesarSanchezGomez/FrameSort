@@ -50,17 +50,18 @@ only where frames are meant to be targets, especially with `automatic`.
 |---|---|---|
 | `max-distance` | `64` | Targets are searched within this many blocks of the sorter or pad. |
 | `insert-into-containers` | `true` | `true`: items go into the container behind the frame, or are composted by a composter. `false`: items are always dropped in front of the frame. |
-| `default-target-item` | `CARROT_ON_A_STICK` | Frames holding it take whatever matches no other frame. `''` = off. A material that is not an item falls back to the default. |
+| `default-target-item` | `CARROT_ON_A_STICK` | Frames holding it take whatever matches no other frame, and whatever the other targets have no room for. `''` = off. A material that is not an item falls back to the default. |
 
 How a destination is chosen:
 
 1. Every target in range that accepts the item gets a priority: exact item, then tag, then material. A match
    through a shulker box or bundle in the frame ranks just below the same direct match, and the default target
-   comes last.
-2. Only the best priority is used, separately for frames with a container and frames without one.
-3. The item goes into the containers in random order until it is all in.
-4. Whatever is left is dropped at one random frame without a container.
-5. If those frames are all on lava cauldrons, the rest is destroyed. If there is nowhere to go, the item stays.
+   comes last. Targets with the same priority form a level.
+2. Levels are used in order, best first. In each level, the item goes into the containers in random order until it
+   is all in.
+3. Whatever is left is dropped at one random frame of that level without a container. If that level's frames
+   without a container are all on lava cauldrons, the rest is destroyed. Either way the delivery ends there.
+4. Otherwise, what is left goes on to the next level. If no level has room, it stays.
 
 **Tagged items.** `/framesort tag apply <tag>` (or the [Apply] button in `/framesort tag show <tag>`) applies a tag
 to the item in your hand: the tag is stored inside the item, and its name and glint come from `targets.tagged-item`.
@@ -75,9 +76,9 @@ vanilla. Items it doesn't take go on to the other targets as usual.
 
 **Lava cauldrons are trash cans.** A target frame on a lava cauldron holds the item to destroy and is chosen like
 any other frame (exact item, tag, material); it must be marked, because `registration: automatic` only uses frames
-on containers. If a container also takes that item, the lava only gets what doesn't fit; if the lava frame is the
-only match, everything that arrives is destroyed. With the default target item (a carrot on a stick) in the frame,
-it destroys whatever has no other target. An empty frame does nothing.
+on containers. If a container with the same or a better priority also takes that item, the lava only gets what
+doesn't fit; containers with a worse priority get nothing. With the default target item (a carrot on a stick) in the
+frame, it destroys whatever has no other target or no room left in one. An empty frame does nothing.
 
 ### inspect
 

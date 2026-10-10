@@ -51,6 +51,7 @@ inspect:
   section:
     containers: '  <green>A contenedores:</green>'
     dropped: '  <yellow>Se suelta en:</yellow>'
+    then: '  <gray>Cuando se llenen:</gray>'
   excess:
     lava: '  <red>Lo que sobre se destruye en la lava.</red>'
     stay: '  <gray>Lo que sobre se queda hasta que haya sitio.</gray>'
