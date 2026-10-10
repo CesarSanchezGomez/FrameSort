@@ -22,13 +22,14 @@ empty line (`''`) and keeps each line short.
 | `activator.name`, `lore`, `glint`, `item-model` | | Look of the activator FrameSort hands out (MiniMessage). |
 | `frame-types` | `[ITEM_FRAME, GLOW_ITEM_FRAME]` | Frames that can hold the activator. |
 | `custom-name` | `<gradient:#F7B733:#FC4A1A>Item Sorter</gradient>` | Name shown in the sorter's inventory. `''` = none. |
-| `tick-rate` | `20` | Ticks between two sends of the same sorter. |
+| `tick-rate` | `20` | Ticks between two turns of the same sorter. |
 | `disable-when-powered` | `false` | A powered sorter stops sending. |
 | `hide-frame` | `true` | Hides the activator's frame while the sorter works. |
-| `show-activity` | `true` | Rotates the activator every time the sorter sends something. |
+| `show-activity` | `true` | Rotates the activator after every turn that sends something. |
 
-A sorter never dispenses like a plain dispenser. It sends one random stack per turn; when the stack is a shulker box
-or bundle with contents, it sends a stack from inside instead.
+A sorter never dispenses like a plain dispenser. Each turn it sends random stacks until 64 items have gone, taking
+them from inside shulker boxes and bundles, so packed items go as fast as loose ones. Items with nowhere to go stay
+in the sorter without holding up the rest; a turn gives up after 64 tries.
 
 ### targets
 

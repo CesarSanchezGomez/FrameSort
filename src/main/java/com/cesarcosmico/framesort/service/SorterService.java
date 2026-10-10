@@ -43,6 +43,9 @@ public final class SorterService {
     private static final int MAX_DEPTH = 8;
     // A sorter frame whose dispenser sits in an unloaded chunk looks again this often.
     private static final long RETRY_TICKS = 100;
+    // A turn sends a stack's worth however the items are packed, so bundles of single items don't crawl; the same
+    // bound caps the tries when items have nowhere to go, so one that doesn't fit never stalls the rest.
+    private static final int PER_TURN = 64;
 
     private static final class Sorter {
         private final ItemFrame frame;
@@ -175,16 +178,21 @@ public final class SorterService {
         return holdsActivator(frame) && block.getType() == Material.DISPENSER;
     }
 
-    // tick() checked makesSorter just before, so the block is a dispenser.
     private void dispense(Sorter sorter) {
-        Dispenser dispenser = (Dispenser) sorter.block.getState(false);
-        Slot slot = pick(dispenser.getInventory());
-        if (slot == null) {
-            return;
-        }
         Location location = sorter.block.getLocation().toCenterLocation();
-        int sent = delivery.deliver(sorter.block, new SlotSource(slot, location));
-        if (sent == 0) {
+        int sent = 0;
+        for (int tries = 0; tries < PER_TURN && sent < PER_TURN; tries++) {
+            // Other plugins' handlers run during a delivery and may break the dispenser.
+            if (!(sorter.block.getState(false) instanceof Dispenser dispenser)) {
+                return;
+            }
+            Slot slot = pick(dispenser.getInventory());
+            if (slot == null) {
+                break;
+            }
+            sent += delivery.deliver(sorter.block, new SlotSource(slot, location));
+        }
+        if (sent == 0 || !(sorter.block.getState(false) instanceof Dispenser dispenser)) {
             return;
         }
         PersistentDataContainer data = dispenser.getPersistentDataContainer();

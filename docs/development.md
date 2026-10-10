@@ -111,8 +111,9 @@ before each release:
   - `/framesort inspect 1` from the console answers that it is for players.
 - **Targets:** sneak + right-click marks and unmarks a frame without rotating its item; sneak + left-click shows the
   frame card and leaves the item in the frame.
-- **Sorters:** a dispenser with the activator sends a stack every `tick-rate`; breaking the dispenser ends the sorter
-  without errors; with `disable-when-powered`, redstone stops it.
+- **Sorters:** a dispenser with the activator sends up to 64 items every `tick-rate`, from inside shulker boxes and
+  bundles too; an item with nowhere to go doesn't stall it; breaking the dispenser ends the sorter without errors;
+  with `disable-when-powered`, redstone stops it.
 - **Pads:** a pad exists only once its top block sits on its base; pistons and explosions leave it in place;
   in `item` mode, breaking it gives the special item back.
 - **`/framesort where`:** highlights where the held item would go from the nearest sorter or pad.
