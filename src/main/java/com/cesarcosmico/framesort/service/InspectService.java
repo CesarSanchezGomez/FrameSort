@@ -203,7 +203,6 @@ public final class InspectService {
 
     public void forget(UUID player) {
         listings.remove(player);
-        highlights.clear(player);
     }
 
     public void stopAll() {

@@ -56,7 +56,7 @@ public final class HighlightService {
         }, () -> clear(id), seconds * 20L);
     }
 
-    public void clear(UUID player) {
+    private void clear(UUID player) {
         List<ItemDisplay> displays = shown.remove(player);
         if (displays != null) {
             displays.forEach(Entity::remove);
