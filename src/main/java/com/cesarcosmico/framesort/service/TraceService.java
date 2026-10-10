@@ -15,7 +15,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Locale;
 import java.util.Map;
-import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Supplier;
 
@@ -45,8 +44,9 @@ public final class TraceService {
     private final Server server;
     private final Supplier<FrameSortSettings> settings;
     private final Supplier<Messages> messages;
-    private final Map<UUID, Long> until = new HashMap<>();
-    private final Map<UUID, Shown> lastShown = new HashMap<>();
+    // Keyed by the player, not the UUID: the retired callback of start() drops them when they leave.
+    private final Map<Player, Long> until = new HashMap<>();
+    private final Map<Player, Shown> lastShown = new HashMap<>();
 
     public TraceService(Plugin plugin, Supplier<FrameSortSettings> settings, Supplier<Messages> messages) {
         this.plugin = plugin;
@@ -57,27 +57,21 @@ public final class TraceService {
 
     public int start(Player player, int seconds) {
         int granted = Math.clamp(seconds, 1, settings.get().inspect().traceMaxSeconds());
-        UUID id = player.getUniqueId();
         long deadline = System.currentTimeMillis() + granted * 1000L;
-        until.put(id, deadline);
+        until.put(player, deadline);
         // A restart or stop changes the deadline, so a stale run does nothing.
         player.getScheduler().runDelayed(plugin, task -> {
-            if (until.remove(id, deadline)) {
-                lastShown.remove(id);
+            if (until.remove(player, deadline)) {
+                lastShown.remove(player);
                 player.sendMessage(messages.get().get("trace.ended"));
             }
-        }, () -> forget(id), granted * 20L);
+        }, () -> stop(player), granted * 20L);
         return granted;
     }
 
     public boolean stop(Player player) {
-        lastShown.remove(player.getUniqueId());
-        return until.remove(player.getUniqueId()) != null;
-    }
-
-    private void forget(UUID player) {
-        until.remove(player);
         lastShown.remove(player);
+        return until.remove(player) != null;
     }
 
     public void report(DeliveryService.Delivered delivered) {
@@ -86,13 +80,9 @@ public final class TraceService {
         }
         long now = System.currentTimeMillis();
         int radius = settings.get().inspect().traceRadius();
-        for (Iterator<Map.Entry<UUID, Long>> it = until.entrySet().iterator(); it.hasNext(); ) {
-            Map.Entry<UUID, Long> entry = it.next();
-            Player player = server.getPlayer(entry.getKey());
-            if (player == null) {
-                it.remove();
-                continue;
-            }
+        for (Iterator<Map.Entry<Player, Long>> it = until.entrySet().iterator(); it.hasNext(); ) {
+            Map.Entry<Player, Long> entry = it.next();
+            Player player = entry.getKey();
             if (entry.getValue() < now) {
                 it.remove();
                 player.sendMessage(messages.get().get("trace.ended"));
@@ -103,14 +93,14 @@ public final class TraceService {
                     || player.getLocation().distanceSquared(from) > (double) radius * radius) {
                 continue;
             }
-            Shown last = lastShown.get(entry.getKey());
+            Shown last = lastShown.get(player);
             int tick = server.getCurrentTick();
             boolean sameDelivery = last != null && last.tick() == tick && last.from().equals(from);
             if (!sameDelivery) {
                 if (last != null && now - last.millis() < MIN_INTERVAL_MILLIS) {
                     continue;
                 }
-                lastShown.put(entry.getKey(), new Shown(now, tick, from));
+                lastShown.put(player, new Shown(now, tick, from));
             }
             show(player, delivered);
         }
