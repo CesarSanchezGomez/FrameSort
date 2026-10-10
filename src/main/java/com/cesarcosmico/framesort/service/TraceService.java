@@ -16,6 +16,7 @@ import java.util.Iterator;
 import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Supplier;
 
 /** With nobody tracing, a delivery costs one empty-map check. */
@@ -23,11 +24,18 @@ public final class TraceService {
 
     // At most one action bar per player this often, so a busy sorter does not flood it.
     private static final long MIN_INTERVAL_MILLIS = 150;
-    // A straight dotted line drawn at once: it reads in tunnels, and long paths spread the points out instead of
-    // adding more.
-    private static final double POINT_SPACING = 0.35;
-    private static final int MAX_POINTS = 60;
-    private static final float DUST_SIZE = 0.6f;
+    // A streak of trail particles leaves a small ring on the source's face and converges on the frame; staggered travel
+    // times string it out like a comet, and a short splash marks the arrival. The path is straight, so it reads in
+    // tunnels too.
+    private static final int STREAK = 6;
+    private static final double RING_RADIUS = 0.2;
+    private static final double BLOCKS_PER_TICK = 1.0;
+    private static final int MIN_TICKS = 8;
+    private static final int MAX_TICKS = 40;
+    private static final int STAGGER_TICKS = 2;
+    private static final int SPLASH = 5;
+    private static final double SPLASH_RADIUS = 0.5;
+    private static final int SPLASH_TICKS = 6;
 
     private final Plugin plugin;
     private final Server server;
@@ -110,19 +118,49 @@ public final class TraceService {
                 Placeholder.unparsed("x", String.valueOf(to.getBlockX())),
                 Placeholder.unparsed("y", String.valueOf(to.getBlockY())),
                 Placeholder.unparsed("z", String.valueOf(to.getBlockZ()))));
-        drawLine(player, delivered.from(), to, delivered.kind().color(settings.get().inspect().colors()));
+        drawTrail(player, delivered.from(), to, delivered.kind().color(settings.get().inspect().colors()));
     }
 
-    private static void drawLine(Player player, Location from, Location to, Color color) {
-        Particle.DustOptions[] tones = {new Particle.DustOptions(color, DUST_SIZE),
-                new Particle.DustOptions(lighter(color), DUST_SIZE)};
-        int points = Math.clamp((long) Math.ceil(from.distance(to) / POINT_SPACING) + 1, 2, MAX_POINTS);
-        Vector step = to.toVector().subtract(from.toVector()).multiply(1.0 / (points - 1));
-        Location point = from.clone();
-        for (int i = 0; i < points; i++) {
-            player.spawnParticle(Particle.DUST, point, 1, 0, 0, 0, 0, tones[i % 2]);
-            point.add(step);
+    private void drawTrail(Player player, Location from, Location to, Color color) {
+        Vector path = to.toVector().subtract(from.toVector());
+        double length = path.length();
+        if (length < 1e-3) {
+            return;
         }
+        Vector axis = path.multiply(1 / length);
+        // Any vector not parallel to the path gives the plane of the ring.
+        Vector side = Math.abs(axis.getY()) < 0.9 ? new Vector(0, 1, 0) : new Vector(1, 0, 0);
+        Vector u = axis.getCrossProduct(side).normalize();
+        Vector v = axis.getCrossProduct(u);
+        // From the source's face towards the frame: inside the block nobody would see the start.
+        Location start = from.clone().add(axis.clone().multiply(Math.min(0.55, length / 2)));
+        Color light = lighter(color);
+        int ticks = (int) Math.clamp(Math.round(length / BLOCKS_PER_TICK), MIN_TICKS, MAX_TICKS);
+        for (int i = 0; i < STREAK; i++) {
+            double angle = 2 * Math.PI * i / STREAK;
+            Location origin = start.clone()
+                    .add(u.clone().multiply(RING_RADIUS * Math.cos(angle)))
+                    .add(v.clone().multiply(RING_RADIUS * Math.sin(angle)));
+            spawnTrail(player, origin, to, i == 0 ? light : color, ticks + i * STAGGER_TICKS);
+        }
+        player.getScheduler().runDelayed(plugin, task -> splash(player, to, light), null, ticks);
+    }
+
+    private static void splash(Player player, Location at, Color color) {
+        if (!player.getWorld().equals(at.getWorld())) {
+            return;
+        }
+        ThreadLocalRandom random = ThreadLocalRandom.current();
+        for (int i = 0; i < SPLASH; i++) {
+            Vector out = new Vector(random.nextGaussian(), random.nextGaussian(), random.nextGaussian());
+            if (out.lengthSquared() > 0) {
+                spawnTrail(player, at, at.clone().add(out.normalize().multiply(SPLASH_RADIUS)), color, SPLASH_TICKS);
+            }
+        }
+    }
+
+    private static void spawnTrail(Player player, Location from, Location to, Color color, int ticks) {
+        player.spawnParticle(Particle.TRAIL, from, 1, 0, 0, 0, 0, new Particle.Trail(to, color, ticks));
     }
 
     // Halfway to white; Color#mixColors is documented as dyeing, not as a mix.
