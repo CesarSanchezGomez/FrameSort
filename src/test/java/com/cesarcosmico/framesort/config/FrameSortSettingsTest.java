@@ -110,6 +110,22 @@ class FrameSortSettingsTest {
     }
 
     @Test
+    void aTraceDefaultAboveTheMaximumIsLoweredWithAWarning() throws Exception {
+        YamlConfiguration yaml = new YamlConfiguration();
+        yaml.loadFromString("""
+                inspect:
+                  trace-max-seconds: 30
+                  trace-default-seconds: 60
+                """);
+        List<String> warnings = new ArrayList<>();
+        FrameSortSettings settings = parse(yaml, warnings);
+
+        assertEquals(30, settings.inspect().traceDefaultSeconds());
+        assertEquals(30, settings.inspect().traceMaxSeconds());
+        assertEquals(1, warnings.size(), warnings::toString);
+    }
+
+    @Test
     void materialsThatAreNotItemsFallBack() throws Exception {
         YamlConfiguration yaml = new YamlConfiguration();
         yaml.loadFromString("""

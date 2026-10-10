@@ -87,7 +87,7 @@ no other target. An empty frame does nothing.
 | `colors.container`, `colors.dropped`, `colors.lava` | `#55FF55`, `#FFFF55`, `#FF5555` | Glow and trace colours (`#RRGGBB`) for targets that put items into a container, drop them, or destroy them in lava. |
 | `page-size` | `8` | Entries per page in lists. |
 | `trace-radius` | `32` | `/framesort trace` shows deliveries from sorters and pads within this radius. |
-| `trace-default-seconds`, `trace-max-seconds` | `60`, `600` | Tracing duration. |
+| `trace-default-seconds`, `trace-max-seconds` | `60`, `600` | Tracing duration. A default above the maximum is lowered to it, with a warning. |
 
 ## pads.yml
 
