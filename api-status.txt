@@ -1,0 +1,5 @@
+# Paper API this plugin uses that is experimental or depends on the Minecraft version.
+# Check it again on every Paper update. The compliance check keeps this list in sync with the code.
+Experimental io.papermc.paper.registry.tag.Tag
+MinecraftVersionDependent io.papermc.paper.datacomponent.DataComponentTypes
+MinecraftVersionDependent io.papermc.paper.datacomponent.item

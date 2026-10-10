@@ -88,11 +88,12 @@ packets.
 
 Tracing ends on a timer per player, so the "tracing ended" message arrives on time even when nothing is delivered.
 
-## Experimental Paper API
+## Paper API to recheck
 
-`TagCatalog` reads item and block tags through Paper's registry tag API (`Registry#getTag`, `Registry#getTags`,
-`io.papermc.paper.registry.tag.Tag`), marked `@ApiStatus.Experimental`. Check it again whenever the Paper version
-changes.
+[`api-status.txt`](../api-status.txt) lists the Paper API FrameSort uses that may change: the registry tag API
+(`@ApiStatus.Experimental`), through which `TagCatalog` reads item and block tags, and the data components
+(`@MinecraftVersionDependent`) behind item templates, tagged items and shulker box and bundle contents. Check them
+again whenever Paper or Minecraft changes.
 
 Architecture conventions shared with the other CesarCosmico plugins are described in the workspace's
 `ARCHITECTURE-STANDARD.md`.
