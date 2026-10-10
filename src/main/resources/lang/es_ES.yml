@@ -63,7 +63,7 @@ inspect:
   line: '  <color:#F7B733>•</color> <entry>'
   entry: '<white><item></white> <dark_gray>→</dark_gray> <hover:show_text:"<gray><x>, <y>, <z></gray>"><target></hover> <dark_gray><distance> m</dark_gray>'
   no-listing: '<prefix><gray>Primero haz shift + clic derecho a un sorter o pad con la mano vacía.</gray>'
-  opens: '<prefix><gray>Un sorter abre las shulkers y los bundles y envía lo que llevan dentro. Sujeta uno de esos items para ver adónde va.</gray>'
+  opens: '<prefix><gray>Un sorter abre <white><item></white> primero y envía lo de dentro; cuando nada de dentro puede ir a ningún sitio, va entero, como se lista abajo.</gray>'
 
 frame:
   layout:

@@ -71,8 +71,7 @@ public final class InspectService {
     public void inspectSource(Player player, Block source, boolean pad, ItemStack filter) {
         Messages text = messages.get();
         if (!pad && SorterService.opens(filter)) {
-            player.sendMessage(text.get("inspect.opens"));
-            return;
+            player.sendMessage(text.get("inspect.opens", Placeholder.component("item", filter.effectiveName())));
         }
         Component kind = text.get(pad ? "inspect.source.pad" : "inspect.source.sorter");
         BlockKey center = FrameGeometry.key(source);

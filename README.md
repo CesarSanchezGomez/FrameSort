@@ -32,7 +32,8 @@ container.
    a carrot on a stick comes last: it takes whatever matches nothing else, and whatever the other targets have no
    room for. A frame on a lava cauldron destroys leftovers.
 2. **Sorters.** Put an Eye of Ender in a frame on a dispenser. The frame disappears and every second the dispenser
-   sends up to 64 items from its inventory, at random, taking them from inside shulker boxes and bundles too.
+   sends up to 64 items from its inventory, at random, taking them from inside shulker boxes and bundles too. A
+   shulker box or bundle goes whole once nothing inside it can go anywhere.
 3. **Teleport pads.** Place crying obsidian on gilded blackstone. Items resting on top are sent to targets. Who
    can create pads is configurable: anyone, players with a permission, or only with a special pad block.
 4. **Inspect.** Sneak + right-click a sorter or pad with an empty hand: its targets' items glow (only for you, in

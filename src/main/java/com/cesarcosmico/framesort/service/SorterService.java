@@ -24,6 +24,7 @@ import org.bukkit.util.Vector;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -181,16 +182,23 @@ public final class SorterService {
     private void dispense(Sorter sorter) {
         Location location = sorter.block.getLocation().toCenterLocation();
         int sent = 0;
+        // What found nowhere to go this turn is not tried again.
+        List<ItemStack> missed = new ArrayList<>();
         for (int tries = 0; tries < PER_TURN && sent < PER_TURN; tries++) {
             // Other plugins' handlers run during a delivery and may break the dispenser.
             if (!(sorter.block.getState(false) instanceof Dispenser dispenser)) {
                 return;
             }
-            Slot slot = pick(dispenser.getInventory());
+            Slot slot = pick(dispenser.getInventory(), missed);
             if (slot == null) {
                 break;
             }
-            sent += delivery.deliver(sorter.block, new SlotSource(slot, location));
+            ItemStack tried = slot.get();
+            int moved = delivery.deliver(sorter.block, new SlotSource(slot, location));
+            if (moved == 0) {
+                missed.add(tried);
+            }
+            sent += moved;
         }
         if (sent == 0 || !(sorter.block.getState(false) instanceof Dispenser dispenser)) {
             return;
@@ -226,49 +234,48 @@ public final class SorterService {
         }
     }
 
-    /** A sorter never sends a shulker box or bundle with contents, only what is inside it. */
+    /** A sorter opens a shulker box or bundle with contents first; it goes whole once nothing inside can go. */
     public static boolean opens(ItemStack item) {
         return !TargetResolver.contents(item).isEmpty();
     }
 
-    private static @Nullable Slot pick(Inventory inventory) {
-        List<Integer> filled = new ArrayList<>();
-        for (int i = 0; i < inventory.getSize(); i++) {
-            ItemStack item = inventory.getItem(i);
-            if (item != null && !item.isEmpty()) {
-                filled.add(i);
+    private static @Nullable Slot pick(Inventory inventory, List<ItemStack> missed) {
+        List<ItemStack> contents = Arrays.stream(inventory.getContents())
+                .map(item -> item == null ? ItemStack.empty() : item).toList();
+        for (int index : shuffledFilled(contents)) {
+            Slot found = pick(new InventorySlot(inventory, index), contents.get(index), missed, 0);
+            if (found != null) {
+                return found;
             }
-        }
-        if (filled.isEmpty()) {
-            return null;
-        }
-        Slot slot = new InventorySlot(inventory, filled.get(ThreadLocalRandom.current().nextInt(filled.size())));
-        for (int depth = 0; depth < MAX_DEPTH; depth++) {
-            Slot inner = innerSlot(slot);
-            if (inner == null) {
-                break;
-            }
-            slot = inner;
-        }
-        return slot;
-    }
-
-    private static @Nullable Slot innerSlot(Slot parent) {
-        ItemStack holder = parent.get();
-        ItemContainerContents container = holder.getData(DataComponentTypes.CONTAINER);
-        if (container != null) {
-            Integer index = randomFilled(container.contents());
-            return index == null ? null : new ContainerSlot(parent, index);
-        }
-        BundleContents bundle = holder.getData(DataComponentTypes.BUNDLE_CONTENTS);
-        if (bundle != null) {
-            Integer index = randomFilled(bundle.contents());
-            return index == null ? null : new BundleSlot(parent, index);
         }
         return null;
     }
 
-    private static @Nullable Integer randomFilled(List<ItemStack> items) {
+    /**
+     * Something in {@code slot} that has not missed this turn: a stack inside it first, or else the slot itself, so a
+     * shulker box or bundle goes whole once nothing inside it can go. {@code item} is what the slot holds, read once.
+     */
+    private static @Nullable Slot pick(Slot slot, ItemStack item, List<ItemStack> missed, int depth) {
+        if (missed.stream().anyMatch(item::isSimilar)) {
+            return null;
+        }
+        if (depth < MAX_DEPTH) {
+            ItemContainerContents container = item.getData(DataComponentTypes.CONTAINER);
+            BundleContents bundle = item.getData(DataComponentTypes.BUNDLE_CONTENTS);
+            List<ItemStack> inside = container != null ? container.contents()
+                    : bundle != null ? bundle.contents() : List.of();
+            for (int index : shuffledFilled(inside)) {
+                Slot child = container != null ? new ContainerSlot(slot, index) : new BundleSlot(slot, index);
+                Slot found = pick(child, inside.get(index), missed, depth + 1);
+                if (found != null) {
+                    return found;
+                }
+            }
+        }
+        return slot;
+    }
+
+    private static List<Integer> shuffledFilled(List<ItemStack> items) {
         List<Integer> filled = new ArrayList<>();
         for (int i = 0; i < items.size(); i++) {
             if (!items.get(i).isEmpty()) {
@@ -276,7 +283,7 @@ public final class SorterService {
             }
         }
         Collections.shuffle(filled, ThreadLocalRandom.current());
-        return filled.isEmpty() ? null : filled.getFirst();
+        return filled;
     }
 
     private sealed interface Slot permits InventorySlot, ContainerSlot, BundleSlot {

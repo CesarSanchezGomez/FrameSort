@@ -112,14 +112,16 @@ before each release:
 - **Targets:** sneak + right-click marks and unmarks a frame without rotating its item; sneak + left-click shows the
   frame card and leaves the item in the frame.
 - **Sorters:** a dispenser with the activator sends up to 64 items every `tick-rate`, from inside shulker boxes and
-  bundles too; an item with nowhere to go doesn't stall it; breaking the dispenser ends the sorter without errors;
+  bundles too; an item with nowhere to go doesn't stall it; a bundle whose contents have nowhere to go goes whole
+  to its own targets; breaking the dispenser ends the sorter without errors;
   with `disable-when-powered`, redstone stops it.
 - **Pads:** a pad exists only once its top block sits on its base; pistons and explosions leave it in place;
   in `item` mode, breaking it gives the special item back.
 - **Overflow:** with the preferred chest full, items go on to the next targets, down to the default target; an
   exact lava frame wins over a default-target chest.
 - **`/framesort where`:** highlights where the held item would go from the nearest sorter or pad, level by level;
-  from a sorter, a filled bundle says the sorter opens it; from a pad, it lists where the whole bundle goes.
+  from a sorter, a filled bundle comes with a note that the sorter opens it first, then where it goes whole; from a
+  pad, only where the whole bundle goes.
 - **WorldGuard:** a sorter never sends to a frame in a different set of regions, and its inspection does not list it.
 - **Tracing:** a busy sorter draws one streak per target frame per turn, not one per item.
 - **Leaving:** a player who quits while tracing or with highlights showing leaves nothing behind (no errors, no

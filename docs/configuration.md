@@ -29,7 +29,9 @@ empty line (`''`) and keeps each line short.
 
 A sorter never dispenses like a plain dispenser. Each turn it sends random stacks until 64 items have gone, taking
 them from inside shulker boxes and bundles, so packed items go as fast as loose ones. Items with nowhere to go stay
-in the sorter without holding up the rest; a turn gives up after 64 tries.
+in the sorter without holding up the rest, and are not tried again in the same turn; a turn gives up after 64
+tries. Once nothing inside a shulker box or bundle can go anywhere, the box or bundle itself is sent whole to the
+targets that accept it.
 
 ### targets
 
