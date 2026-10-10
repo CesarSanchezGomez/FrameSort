@@ -31,6 +31,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 public final class InspectService {
 
@@ -75,12 +76,9 @@ public final class InspectService {
         if (filter.isEmpty()) {
             title = text.get("inspect.title", Placeholder.component("source", kind), coordinates(source.getLocation()),
                     sorted);
-            List<ItemFrame> frames = new ArrayList<>(index.near(center, settings.get().delivery().maxDistance()));
+            List<ItemFrame> frames = new ArrayList<>(resolver.targets(source));
             frames.sort(Comparator.comparingLong(frame -> distanceSquared(frame, center)));
             for (ItemFrame frame : frames) {
-                if (frame.getItem().isEmpty() || !FrameGeometry.attachedLoaded(frame) || !allowed(frame)) {
-                    continue;
-                }
                 lines.add(line(text, frame, center));
                 marks.add(highlight(frame));
             }
@@ -173,9 +171,11 @@ public final class InspectService {
 
         BlockKey key = FrameGeometry.key(frame.getLocation().getBlock());
         int radius = settings.get().delivery().maxDistance();
-        long sources = sorters.blocks().stream()
-                .filter(block -> FrameGeometry.key(block).distanceSquared(key) <= (long) radius * radius)
-                .count() + pads.near(key, radius).size();
+        Stream<Block> inRange = Stream.concat(
+                sorters.blocks().stream()
+                        .filter(block -> FrameGeometry.key(block).distanceSquared(key) <= (long) radius * radius),
+                pads.near(key, radius).stream());
+        long sources = inRange.filter(source -> resolver.reaches(source, frame)).count();
         lines.add(text.get("frame.sources", Placeholder.unparsed("count", String.valueOf(sources))));
         // One message, like a page of a list, so the card stays together in chat.
         player.sendMessage(text.get("frame.layout",
@@ -275,10 +275,6 @@ public final class InspectService {
             return text.get("frame.status.not-allowed", where);
         }
         return index.isTarget(frame) ? text.get("frame.status.target", where) : text.get("frame.status.unmarked");
-    }
-
-    private boolean allowed(ItemFrame frame) {
-        return settings.get().targets().allows(FrameGeometry.positions(frame));
     }
 
     private HighlightService.Highlight highlight(ItemFrame frame) {

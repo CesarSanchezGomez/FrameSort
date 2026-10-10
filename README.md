@@ -39,7 +39,8 @@ chest, barrel or hopper behind the frame, or dropped in front of it when there i
 
 **WorldGuard.** When it is installed, a sorter or pad only sends to containers in exactly the same regions as itself;
 both outside every region is fine. Nobody can fill a chest in a region from outside it, or from another region.
-Targets are cached, so after changing regions run `/framesort reload`.
+Inspecting a sorter or pad lists only the targets it can reach. Targets are cached, so after changing regions run
+`/framesort reload`.
 
 Containers are looked up the moment items go in, so a container that was moved or broken is skipped: items are
 never duplicated.

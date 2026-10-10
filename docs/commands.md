@@ -24,7 +24,7 @@ Sneak with an empty main hand; this needs `framesort.inspect`. Standing up, ever
 
 | Action | Result |
 |---|---|
-| Sneak + right-click a sorter or the top block of a pad | The items in its target frames glow for you only (green: into a container, yellow: dropped, red: lava; see `inspect.colors`) and the targets are listed, nearest first; a sorter's list also shows how many items it has sent. With an item in your off hand, only where that item would go: containers first, then drop spots. |
+| Sneak + right-click a sorter or the top block of a pad | The items in the target frames it can send to glow for you only (green: into a container, yellow: dropped, red: lava; see `inspect.colors`) and those targets are listed, nearest first. Frames that WorldGuard regions (or another plugin cancelling `TargetBindEvent`) keep it from reaching are left out; a sorter's list also shows how many items it has sent. With an item in your off hand, only where that item would go: containers first, then drop spots. |
 | Sneak + left-click a frame with an item | Whether it is a target, where its items go, what it accepts, and how many sorters and pads reach it. |
 | Sneak + right-click a frame with an item | Marks or unmarks it as a target (`targets.registration: manual`, needs `framesort.target.create`). The item does not rotate. |
 

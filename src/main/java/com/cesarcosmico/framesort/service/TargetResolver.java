@@ -141,28 +141,50 @@ public final class TargetResolver {
         return List.copyOf(contents);
     }
 
+    /** Whether {@code source} may send to {@code frame} at all, whatever the item; the caller checks the distance. */
+    public boolean reaches(Block source, ItemFrame frame) {
+        return eligible(settings.get(), source, frame) && new TargetBindEvent(source, frame).callEvent();
+    }
+
+    /** The frames in range that {@code source} may send to, whatever the item. */
+    public List<ItemFrame> targets(Block source) {
+        List<ItemFrame> found = new ArrayList<>();
+        for (ItemFrame frame : index.near(FrameGeometry.key(source), settings.get().delivery().maxDistance())) {
+            if (reaches(source, frame)) {
+                found.add(frame);
+            }
+        }
+        return List.copyOf(found);
+    }
+
     private List<Match> compute(Block source, BlockKey key, ItemStack item) {
         FrameSortSettings current = settings.get();
         List<Match> matches = new ArrayList<>();
         for (ItemFrame frame : index.near(key, current.delivery().maxDistance())) {
+            if (!eligible(current, source, frame)) {
+                continue;
+            }
             ItemStack shown = frame.getItem();
-            if (shown.isEmpty() || !FrameGeometry.attachedLoaded(frame)
-                    || !current.targets().allows(FrameGeometry.positions(frame))) {
-                continue;
-            }
-            Block attached = FrameGeometry.attachedBlock(frame);
-            // Never send a source's items back into itself, and never treat a sorter's own frame as a target.
-            if (attached.equals(source)
-                    || (current.sorter().isActivator(shown) && attached.getType() == Material.DISPENSER)) {
-                continue;
-            }
             int priority = priority(shown, item);
+            // The event goes last: other plugins' handlers cost more than matching the item.
             if (priority == NO_MATCH || !new TargetBindEvent(source, frame).callEvent()) {
                 continue;
             }
             matches.add(new Match(frame, priority, shown.clone()));
         }
         return List.copyOf(matches);
+    }
+
+    private static boolean eligible(FrameSortSettings current, Block source, ItemFrame frame) {
+        ItemStack shown = frame.getItem();
+        if (shown.isEmpty() || !FrameGeometry.attachedLoaded(frame)
+                || !current.targets().allows(FrameGeometry.positions(frame))) {
+            return false;
+        }
+        Block attached = FrameGeometry.attachedBlock(frame);
+        // Never send a source's items back into itself, and never treat a sorter's own frame as a target.
+        return !attached.equals(source)
+                && !(current.sorter().isActivator(shown) && attached.getType() == Material.DISPENSER);
     }
 
     private int direct(ItemStack target, ItemStack item, boolean nested) {
