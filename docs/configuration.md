@@ -68,8 +68,9 @@ How a destination is chosen:
 
 **Tagged items.** `/framesort tag apply <tag>` (or the [Apply] button in `/framesort tag show <tag>`) applies a tag
 to the item in your hand: the tag is stored inside the item, and its name and glint come from `targets.tagged-item`.
-In a frame, a tagged item accepts everything in its tag and nothing else, not even its own material; inside a shulker
-box or bundle in the frame it adds its tag to what the frame accepts. Renaming the item in an anvil never changes its
+In a frame, a tagged item accepts everything in its tag, never itself or its own material; a tagged shulker box or
+bundle with contents also accepts what it holds. Inside a shulker box or bundle in the frame, a tagged item adds its
+tag to what the frame accepts. Renaming the item in an anvil never changes its
 tag, and a plain renamed item never has one. `/framesort tag remove` takes the tag off.
 
 **Composters compost.** A target frame on a composter takes only compostable items and composts them as a hopper

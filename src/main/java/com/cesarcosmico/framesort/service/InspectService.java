@@ -144,6 +144,7 @@ public final class InspectService {
         });
 
         ItemStack shown = frame.getItem();
+        List<ItemStack> contents = TargetResolver.contents(shown);
         if (ItemTagCodec.read(shown) != null) {
             TagCatalog.TagView view = resolver.tag(shown);
             if (view != null) {
@@ -154,16 +155,14 @@ public final class InspectService {
                 lines.add(tagCommand == null ? accepts
                         : accepts.clickEvent(ClickEvent.runCommand(tagCommand + " " + view.key().asString())));
             }
-        } else {
-            List<ItemStack> contents = TargetResolver.contents(shown);
-            if (!contents.isEmpty()) {
-                lines.add(text.get("frame.accepts.contents",
-                        Placeholder.unparsed("count", String.valueOf(contents.size()))));
-            } else {
-                lines.add(text.get("frame.accepts.exact", Placeholder.component("item", shown.effectiveName())));
-                lines.add(text.get("frame.accepts.similar",
-                        Placeholder.component("material", Component.translatable(shown.getType()))));
-            }
+        } else if (contents.isEmpty()) {
+            lines.add(text.get("frame.accepts.exact", Placeholder.component("item", shown.effectiveName())));
+            lines.add(text.get("frame.accepts.similar",
+                    Placeholder.component("material", Component.translatable(shown.getType()))));
+        }
+        if (!contents.isEmpty()) {
+            lines.add(text.get("frame.accepts.contents",
+                    Placeholder.unparsed("count", String.valueOf(contents.size()))));
         }
         if (shown.getType() == settings.get().delivery().defaultTargetItem()) {
             lines.add(text.get("frame.accepts.default"));
