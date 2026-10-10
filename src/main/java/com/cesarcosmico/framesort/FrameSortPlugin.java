@@ -49,6 +49,7 @@ import org.bukkit.entity.ItemFrame;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitTask;
+import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -69,8 +70,9 @@ public final class FrameSortPlugin extends JavaPlugin {
     private TargetResolver resolver;
     private SorterService sorters;
     private PadService padService;
-    private InspectService inspect;
-    private BukkitTask ticker;
+    // Null in onDisable when the plugin failed to start.
+    private @Nullable InspectService inspect;
+    private @Nullable BukkitTask ticker;
 
     @Override
     public void onEnable() {
