@@ -3,18 +3,13 @@ package com.cesarcosmico.framesort.model;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.IntConsumer;
+import java.util.function.ToIntBiFunction;
 
 /** Commits the remainder to the source after every sink, so a failing sink can never duplicate items. */
 public final class Delivery {
 
-    /** Returned by {@link Offer#offer} when the sink no longer exists (a container moved by a piston, broken…). */
+    /** Returned by the offer when the sink no longer exists (a container moved by a piston, broken…). */
     public static final int GONE = -1;
-
-    @FunctionalInterface
-    public interface Offer<S> {
-        /** Offers {@code amount}; returns how much was <em>not</em> accepted, or {@link #GONE}. */
-        int offer(S sink, int amount);
-    }
 
     public record Outcome<S>(int remaining, List<S> gone) {
         public Outcome {
@@ -25,14 +20,19 @@ public final class Delivery {
     private Delivery() {
     }
 
-    public static <S> Outcome<S> deliver(int amount, List<S> sinks, Offer<S> offer, IntConsumer commit) {
+    /**
+     * Offers what is left to each sink in turn. {@code offer} returns how much the sink did <em>not</em> accept, or
+     * {@link #GONE}; {@code commit} receives the new remainder after every sink that took something.
+     */
+    public static <S> Outcome<S> deliver(int amount, List<S> sinks, ToIntBiFunction<S, Integer> offer,
+                                         IntConsumer commit) {
         int remaining = amount;
         List<S> gone = new ArrayList<>();
         for (S sink : sinks) {
             if (remaining <= 0) {
                 break;
             }
-            int left = offer.offer(sink, remaining);
+            int left = offer.applyAsInt(sink, remaining);
             if (left == GONE) {
                 gone.add(sink);
                 continue;
