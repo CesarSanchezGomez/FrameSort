@@ -118,7 +118,8 @@ before each release:
   in `item` mode, breaking it gives the special item back.
 - **Overflow:** with the preferred chest full, items go on to the next targets, down to the default target; an
   exact lava frame wins over a default-target chest.
-- **`/framesort where`:** highlights where the held item would go from the nearest sorter or pad, level by level.
+- **`/framesort where`:** highlights where the held item would go from the nearest sorter or pad, level by level;
+  from a sorter, a filled bundle says the sorter opens it; from a pad, it lists where the whole bundle goes.
 - **WorldGuard:** a sorter never sends to a frame in a different set of regions, and its inspection does not list it.
 - **Tracing:** a busy sorter draws one streak per target frame per turn, not one per item.
 - **Leaving:** a player who quits while tracing or with highlights showing leaves nothing behind (no errors, no

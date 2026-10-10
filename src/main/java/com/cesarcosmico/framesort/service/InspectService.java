@@ -70,6 +70,10 @@ public final class InspectService {
     /** With an item in {@code filter}, only where that item would go, chosen like a real delivery. */
     public void inspectSource(Player player, Block source, boolean pad, ItemStack filter) {
         Messages text = messages.get();
+        if (!pad && SorterService.opens(filter)) {
+            player.sendMessage(text.get("inspect.opens"));
+            return;
+        }
         Component kind = text.get(pad ? "inspect.source.pad" : "inspect.source.sorter");
         BlockKey center = FrameGeometry.key(source);
         List<Component> lines = new ArrayList<>();

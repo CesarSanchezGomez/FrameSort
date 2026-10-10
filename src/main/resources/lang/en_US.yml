@@ -63,6 +63,7 @@ inspect:
   line: '  <color:#F7B733>•</color> <entry>'
   entry: '<white><item></white> <dark_gray>→</dark_gray> <hover:show_text:"<gray><x>, <y>, <z></gray>"><target></hover> <dark_gray><distance> m</dark_gray>'
   no-listing: '<prefix><gray>Sneak + right-click a sorter or pad with an empty hand first.</gray>'
+  opens: '<prefix><gray>A sorter opens shulker boxes and bundles and sends what is inside. Hold one of those items to see where it goes.</gray>'
 
 frame:
   layout:

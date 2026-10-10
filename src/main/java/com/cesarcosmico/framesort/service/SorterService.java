@@ -226,6 +226,11 @@ public final class SorterService {
         }
     }
 
+    /** A sorter never sends a shulker box or bundle with contents, only what is inside it. */
+    public static boolean opens(ItemStack item) {
+        return !TargetResolver.contents(item).isEmpty();
+    }
+
     private static @Nullable Slot pick(Inventory inventory) {
         List<Integer> filled = new ArrayList<>();
         for (int i = 0; i < inventory.getSize(); i++) {
