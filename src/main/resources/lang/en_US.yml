@@ -87,7 +87,7 @@ frame:
     tag: '  <color:#F7B733>•</color> <gray>Accepts</gray> <white>#<tag></white> <dark_gray>· <count> items · [click to list]</dark_gray>'
     contents: '  <color:#F7B733>•</color> <gray>Accepts what it holds</gray> <dark_gray>· <count> stacks</dark_gray>'
     similar: '  <color:#F7B733>•</color> <gray>Accepts any</gray> <white><material></white> <dark_gray>when nothing matches better</dark_gray>'
-    default: '  <color:#F7B733>•</color> <gray>Default target:</gray> <white>whatever matches no other frame</white>'
+    default: '  <color:#F7B733>•</color> <gray>Default target:</gray> <white>whatever matches no other frame, or has no room left in one</white>'
   sources: '  <color:#F7B733>•</color> <gray>Sorters and pads in range:</gray> <white><count></white>'
 
 mark:

@@ -87,7 +87,7 @@ frame:
     tag: '  <color:#F7B733>•</color> <gray>Acepta</gray> <white>#<tag></white> <dark_gray>· <count> items · [clic para ver]</dark_gray>'
     contents: '  <color:#F7B733>•</color> <gray>Acepta lo que contiene</gray> <dark_gray>· <count> stacks</dark_gray>'
     similar: '  <color:#F7B733>•</color> <gray>Acepta cualquier</gray> <white><material></white> <dark_gray>si nada coincide mejor</dark_gray>'
-    default: '  <color:#F7B733>•</color> <gray>Destino por defecto:</gray> <white>lo que no encaja en ningún otro marco</white>'
+    default: '  <color:#F7B733>•</color> <gray>Destino por defecto:</gray> <white>lo que no encaja en ningún otro marco o ya no cabe en ellos</white>'
   sources: '  <color:#F7B733>•</color> <gray>Sorters y pads al alcance:</gray> <white><count></white>'
 
 mark:
