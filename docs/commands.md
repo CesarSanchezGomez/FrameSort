@@ -11,7 +11,7 @@
 | `/framesort tag apply <tag>` | Applies the tag to the item in your main hand (its name and glint come from `targets.tagged-item`). The [Apply] button in `/framesort tag show <tag>` runs it. In a frame a tagged item accepts only its tag. |
 | `/framesort tag remove` | Takes the tag off the item in your main hand. |
 | `/framesort where` | Where the item in your main hand would go from the nearest sorter or pad within `delivery.max-distance`, listed and highlighted like an inspection with that item in your off hand. Its components count (enchantments, name, contents). |
-| `/framesort trace [seconds]` | For a while (default 60 s, at most `inspect.trace-max-seconds`), every delivery from sorters and pads near you shows in the action bar, with a trail of particles flying to its destination. |
+| `/framesort trace [seconds]` | For a while (default 60 s, at most `inspect.trace-max-seconds`), every delivery from sorters and pads near you shows in the action bar, with a two-strand spiral of particles running to its destination. |
 | `/framesort trace stop` | Stops tracing. |
 | `/framesort inspect <page>` | Another page of the last inspection list (the page buttons run it). |
 | `/framesort give sorter [player] [amount]` | The sorter activator from `config.yml`. Needed when `sorter.activator.require-marked` is true. |
