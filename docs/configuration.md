@@ -52,14 +52,16 @@ only where frames are meant to be targets, especially with `automatic`.
 |---|---|---|
 | `max-distance` | `64` | Targets are searched within this many blocks of the sorter or pad. |
 | `insert-into-containers` | `true` | `true`: items go into the container behind the frame, or are composted by a composter. `false`: items are always dropped in front of the frame. |
-| `default-target-item` | `CARROT_ON_A_STICK` | Frames holding it take whatever matches no other frame, and whatever the other targets have no room for. `''` = off. A material that is not an item falls back to the default. |
+| `default-target-item` | `CARROT_ON_A_STICK` | Frames holding it (but not a CraftEngine custom item made from it) take whatever matches no other frame, and whatever the other targets have no room for. `''` = off. A material that is not an item falls back to the default. |
 
 How a destination is chosen:
 
 1. Every target in range that accepts the item gets a priority: exact item, then tag, then material. A match
    through a shulker box or bundle in the frame ranks just below the same direct match, and the default target
    comes last. Targets with the same priority form a level. A filled shulker box or bundle in the frame stands only
-   for what it holds; an empty one takes any shulker box or bundle of its kind, filled or not.
+   for what it holds; an empty one takes any shulker box or bundle of its kind, filled or not. With CraftEngine
+   installed, a custom item's material is its ID: the material step takes the same custom item, never a vanilla item
+   or another custom item of the same base material, and no tag takes a custom item.
 2. Levels are used in order, best first. In each level, the item goes into the containers in random order until it
    is all in.
 3. Whatever is left is dropped at one random frame of that level without a container. If that level's frames

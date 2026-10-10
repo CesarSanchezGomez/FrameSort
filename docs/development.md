@@ -12,15 +12,17 @@ com.cesarcosmico.framesort
 ├── text/             messages and the chat pager
 ├── command/          one class per command feature; CommandTree builds the roots from commands.yml
 ├── listener/         Bukkit listeners, one per feature
-├── integration/      worldguard/: the only code that imports WorldGuard, loaded only when it is enabled
+├── integration/      worldguard/, craftengine/: the only code that imports those plugins, each loaded only when enabled
 └── api/              TargetBindEvent, for other plugins
 ```
 
 Packages depend on each other without cycles: `model` ← `item` ← `config` ← `text` ← `service` ← `command`,
 `listener` and `integration`. `api` is used only by `service` and `integration`, and only `FrameSortPlugin` creates
-the integration. Dependencies are wired by constructor in `FrameSortPlugin`; there are no static instances.
+the integrations. Dependencies are wired by constructor in `FrameSortPlugin`; there are no static instances.
 
-Interfaces exist only with several implementations or as closed sets:
+Interfaces exist only with several implementations, as closed sets, or to keep an optional plugin out:
+- `CustomItemResolver`: the CraftEngine ID of an item, or `NONE` without CraftEngine, so `TargetResolver` never
+  loads CraftEngine's classes;
 - `DeliveryService.Source`: a sorter slot or a pad item entity;
 - `CommandFeature`: one per command feature;
 - `GiveCommand.ItemSource`: a sorter activator or a pad block;

@@ -157,14 +157,18 @@ public final class InspectService {
             }
         } else if (contents.isEmpty()) {
             lines.add(text.get("frame.accepts.exact", Placeholder.component("item", shown.effectiveName())));
-            lines.add(text.get("frame.accepts.similar",
-                    Placeholder.component("material", Component.translatable(shown.getType()))));
+            String customId = resolver.customId(shown);
+            // The ID, not the name: an anvil renames an item, and two custom items can share a name.
+            lines.add(customId != null
+                    ? text.get("frame.accepts.custom", Placeholder.unparsed("id", customId))
+                    : text.get("frame.accepts.similar",
+                            Placeholder.component("material", Component.translatable(shown.getType()))));
         }
         if (!contents.isEmpty()) {
             lines.add(text.get("frame.accepts.contents",
                     Placeholder.unparsed("count", String.valueOf(contents.size()))));
         }
-        if (shown.getType() == settings.get().delivery().defaultTargetItem()) {
+        if (resolver.isDefaultTarget(shown)) {
             lines.add(text.get("frame.accepts.default"));
         }
 
