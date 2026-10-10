@@ -22,7 +22,11 @@ import java.util.function.Supplier;
 /** With nobody tracing, a delivery costs one empty-map check. */
 public final class TraceService {
 
-    // At most one action bar per player this often, so a busy sorter does not flood it.
+    private record Shown(long millis, int tick, Location from) {
+    }
+
+    // At most one delivery per player this often, so a busy sorter does not flood the screen. Every part of the one
+    // that is shown (the containers, then the drop) still shows: a part is the same source in the same tick.
     private static final long MIN_INTERVAL_MILLIS = 150;
     // A streak of trail particles leaves a small ring on the source's face and converges on the frame; staggered travel
     // times string it out like a comet, and a short splash marks the arrival. The path is straight, so it reads in
@@ -42,7 +46,7 @@ public final class TraceService {
     private final Supplier<FrameSortSettings> settings;
     private final Supplier<Messages> messages;
     private final Map<UUID, Long> until = new HashMap<>();
-    private final Map<UUID, Long> lastShown = new HashMap<>();
+    private final Map<UUID, Shown> lastShown = new HashMap<>();
 
     public TraceService(Plugin plugin, Supplier<FrameSortSettings> settings, Supplier<Messages> messages) {
         this.plugin = plugin;
@@ -99,11 +103,15 @@ public final class TraceService {
                     || player.getLocation().distanceSquared(from) > (double) radius * radius) {
                 continue;
             }
-            Long last = lastShown.get(entry.getKey());
-            if (last != null && now - last < MIN_INTERVAL_MILLIS) {
-                continue;
+            Shown last = lastShown.get(entry.getKey());
+            int tick = server.getCurrentTick();
+            boolean sameDelivery = last != null && last.tick() == tick && last.from().equals(from);
+            if (!sameDelivery) {
+                if (last != null && now - last.millis() < MIN_INTERVAL_MILLIS) {
+                    continue;
+                }
+                lastShown.put(entry.getKey(), new Shown(now, tick, from));
             }
-            lastShown.put(entry.getKey(), now);
             show(player, delivered);
         }
     }
