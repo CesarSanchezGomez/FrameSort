@@ -240,13 +240,14 @@ public final class TargetResolver {
             TagCatalog.TagView tag = tag(target);
             return tag != null && tag.lookup().contains(item.getType()) ? MatchTier.TAG.priority(nested) : NO_MATCH;
         }
+        // A filled shulker box or bundle in the frame stands only for what it holds; inside it, only for itself.
+        boolean filled = !contents(target).isEmpty();
+        if (filled && !nested) {
+            return NO_MATCH;
+        }
         if (target.isSimilar(item)) {
             return MatchTier.EXACT.priority(nested);
         }
-        // A filled shulker box or bundle stands for its contents, not for its own material.
-        if (target.getType() == item.getType() && contents(target).isEmpty()) {
-            return MatchTier.SIMILAR.priority(nested);
-        }
-        return NO_MATCH;
+        return target.getType() == item.getType() && !filled ? MatchTier.SIMILAR.priority(nested) : NO_MATCH;
     }
 }

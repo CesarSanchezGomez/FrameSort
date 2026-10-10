@@ -27,8 +27,9 @@ container.
    2. a tag, when the frame item has one applied (`/framesort tag apply <tag>`);
    3. the same material.
 
-   A shulker box or bundle in the frame stands for what it holds, and each of those matches ranks just below the
-   same match made directly. When the preferred targets are full, the rest goes to the next ones. A frame holding
+   A shulker box or bundle in the frame stands for what it holds, never for itself, and each of those matches
+   ranks just below the same match made directly; to keep shulker boxes or bundles whole, put an empty one in the
+   frame: it takes any of its kind. When the preferred targets are full, the rest goes to the next ones. A frame holding
    a carrot on a stick comes last: it takes whatever matches nothing else, and whatever the other targets have no
    room for. A frame on a lava cauldron destroys leftovers.
 2. **Sorters.** Put an Eye of Ender in a frame on a dispenser. The frame disappears and every second the dispenser

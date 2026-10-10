@@ -119,6 +119,8 @@ before each release:
   in `item` mode, breaking it gives the special item back.
 - **Overflow:** with the preferred chest full, items go on to the next targets, down to the default target; an
   exact lava frame wins over a default-target chest.
+- **Filled container in a frame:** a pad sends an identical filled bundle to a frame with an empty bundle, not to
+  the frame holding it; its card says only what it holds.
 - **`/framesort where`:** highlights where the held item would go from the nearest sorter or pad, level by level;
   from a sorter, a filled bundle comes with a note that the sorter opens it first, then where it goes whole; from a
   pad, only where the whole bundle goes.

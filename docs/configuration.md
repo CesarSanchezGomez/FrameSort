@@ -58,7 +58,8 @@ How a destination is chosen:
 
 1. Every target in range that accepts the item gets a priority: exact item, then tag, then material. A match
    through a shulker box or bundle in the frame ranks just below the same direct match, and the default target
-   comes last. Targets with the same priority form a level.
+   comes last. Targets with the same priority form a level. A filled shulker box or bundle in the frame stands only
+   for what it holds; an empty one takes any shulker box or bundle of its kind, filled or not.
 2. Levels are used in order, best first. In each level, the item goes into the containers in random order until it
    is all in.
 3. Whatever is left is dropped at one random frame of that level without a container. If that level's frames

@@ -155,12 +155,12 @@ public final class InspectService {
                         : accepts.clickEvent(ClickEvent.runCommand(tagCommand + " " + view.key().asString())));
             }
         } else {
-            lines.add(text.get("frame.accepts.exact", Placeholder.component("item", shown.effectiveName())));
             List<ItemStack> contents = TargetResolver.contents(shown);
             if (!contents.isEmpty()) {
                 lines.add(text.get("frame.accepts.contents",
                         Placeholder.unparsed("count", String.valueOf(contents.size()))));
             } else {
+                lines.add(text.get("frame.accepts.exact", Placeholder.component("item", shown.effectiveName())));
                 lines.add(text.get("frame.accepts.similar",
                         Placeholder.component("material", Component.translatable(shown.getType()))));
             }
