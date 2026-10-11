@@ -129,14 +129,24 @@ public final class SorterService {
 
     /** @return whether the frame made a sorter */
     public boolean broken(ItemFrame frame) {
-        Block block = FrameGeometry.attachedBlock(frame);
-        Sorter sorter = sorters.get(FrameGeometry.key(block));
-        if (sorter == null || !sorter.frame.equals(frame)) {
+        Sorter sorter = sorterOf(frame);
+        if (sorter == null) {
             return false;
         }
-        sorters.remove(FrameGeometry.key(block));
-        applyLook(frame, block, false);
+        sorters.remove(FrameGeometry.key(sorter.block));
+        applyLook(frame, sorter.block, false);
         return true;
+    }
+
+    /** The dispenser {@code frame} makes a sorter, or {@code null} when it makes none. */
+    public @Nullable Block blockOf(ItemFrame frame) {
+        Sorter sorter = sorterOf(frame);
+        return sorter == null ? null : sorter.block;
+    }
+
+    private @Nullable Sorter sorterOf(ItemFrame frame) {
+        Sorter sorter = sorters.get(FrameGeometry.key(FrameGeometry.attachedBlock(frame)));
+        return sorter != null && sorter.frame.equals(frame) ? sorter : null;
     }
 
     /** Gives every loaded sorter its plain frame and dispenser back, so nothing stays hidden while FrameSort is off. */

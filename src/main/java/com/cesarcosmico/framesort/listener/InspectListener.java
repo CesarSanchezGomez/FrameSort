@@ -60,7 +60,7 @@ public final class InspectListener implements Listener {
             return;
         }
         event.setCancelled(true);
-        if (event.getHand() == EquipmentSlot.HAND) {
+        if (event.getHand() == EquipmentSlot.HAND && !inspectSorterOf(event.getPlayer(), frame)) {
             inspect.toggleMark(event.getPlayer(), frame);
         }
     }
@@ -77,12 +77,23 @@ public final class InspectListener implements Listener {
             return;
         }
         event.setCancelled(true);
-        inspect.inspectFrame(player, frame);
+        if (!inspectSorterOf(player, frame)) {
+            inspect.inspectFrame(player, frame);
+        }
     }
 
     @EventHandler
     public void onQuit(PlayerQuitEvent event) {
         inspect.forget(event.getPlayer().getUniqueId());
+    }
+
+    // A sorter's frame covers a face of its dispenser, so clicking it inspects the sorter: it is never a target.
+    private boolean inspectSorterOf(Player player, ItemFrame frame) {
+        Block sorter = sorters.blockOf(frame);
+        if (sorter != null) {
+            inspect.inspectSource(player, sorter, false, player.getInventory().getItemInOffHand());
+        }
+        return sorter != null;
     }
 
     // Empty frames are left alone, so they can still be filled or broken while sneaking.
