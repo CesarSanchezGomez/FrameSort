@@ -27,7 +27,6 @@ public final class TagCatalog {
 
     public enum Kind { ITEM, BLOCK, CUSTOM }
 
-    /** {@code customItems} are the custom item references a tags.yml tag lists; a game tag has none. */
     public record TagView(NamespacedKey key, Kind kind, List<Material> materials, Set<Material> lookup,
                           List<String> customItems) {
         public TagView {

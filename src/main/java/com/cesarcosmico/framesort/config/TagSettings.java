@@ -25,7 +25,6 @@ public record TagSettings(Map<NamespacedKey, CustomTag> tags) {
         }
     }
 
-    // The only item plugin FrameSort reads; its items are written 'craftengine:' and their ID.
     private static final String CRAFT_ENGINE = "craftengine";
 
     public TagSettings {
