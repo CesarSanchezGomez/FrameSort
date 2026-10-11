@@ -21,11 +21,13 @@ import com.cesarcosmico.framesort.config.ConfigReader;
 import com.cesarcosmico.framesort.config.ConfigValidator;
 import com.cesarcosmico.framesort.config.FrameSortSettings;
 import com.cesarcosmico.framesort.config.PadSettings;
+import com.cesarcosmico.framesort.integration.craftengine.CraftEngineItemResolver;
 import com.cesarcosmico.framesort.integration.worldguard.WorldGuardTargetListener;
 import com.cesarcosmico.framesort.listener.InspectListener;
 import com.cesarcosmico.framesort.listener.PadListener;
 import com.cesarcosmico.framesort.listener.SorterListener;
 import com.cesarcosmico.framesort.listener.TargetListener;
+import com.cesarcosmico.framesort.service.CustomItemResolver;
 import com.cesarcosmico.framesort.service.DeliveryService;
 import com.cesarcosmico.framesort.service.HighlightService;
 import com.cesarcosmico.framesort.service.InspectService;
@@ -91,7 +93,11 @@ public final class FrameSortPlugin extends JavaPlugin {
 
         tags = new TagCatalog();
         index = new TargetIndex(settings);
-        resolver = new TargetResolver(settings, index, tags);
+        // Only this check loads the integration's classes, so FrameSort runs without CraftEngine installed.
+        CustomItemResolver customItems = getServer().getPluginManager().isPluginEnabled("CraftEngine")
+                ? new CraftEngineItemResolver()
+                : CustomItemResolver.NONE;
+        resolver = new TargetResolver(settings, index, tags, customItems);
         TraceService trace = new TraceService(this, settings, messages);
         DeliveryService delivery = new DeliveryService(this, resolver, trace::report);
         sorters = new SorterService(this, settings, delivery);

@@ -7,7 +7,8 @@ container.
 
 - **Server:** Paper 26.2 or newer, Java 25.
 - **Dependencies:** none. With [WorldGuard](https://enginehub.org/worldguard) installed, sorters and pads respect its
-  regions (see below).
+  regions; with [CraftEngine](https://github.com/Xiao-MoMi/craft-engine) installed, its custom items are sorted by
+  their ID (see below).
 - **Storage:** none to set up. Targets, pads and items keep their data in the world (persistent data containers).
 
 ## Installation
@@ -45,6 +46,13 @@ container.
 regions as itself, whether they hold a container, a drop spot or lava; both outside every region is fine. Nobody can
 fill a chest in a region from outside it, or from another region. Inspecting a sorter or pad lists only the targets
 it can reach. Targets are cached, so after changing regions run `/framesort reload`.
+
+**CraftEngine.** When it is installed, a custom item counts as itself, never as the vanilla material it is made of
+(many custom items share one). Where a frame would take the same material, a custom item in it takes the same
+custom item instead, whatever its durability, name or random values; vanilla items of that material don't go there,
+and a custom item never goes to a frame for its material. No tag takes a custom item, and a custom item in a frame
+is never the default target, even one made from a carrot on a stick. The ID is read from each item, so `/ce reload`
+changes nothing.
 
 Containers are looked up the moment items go in, so a container that was moved or broken is skipped: items are
 never duplicated.

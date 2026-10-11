@@ -76,12 +76,15 @@ public final class TargetResolver {
     private final Supplier<FrameSortSettings> settings;
     private final TargetIndex index;
     private final TagCatalog tags;
+    private final CustomItemResolver customItems;
     private final Map<CacheKey, Entry> cache = new HashMap<>();
 
-    public TargetResolver(Supplier<FrameSortSettings> settings, TargetIndex index, TagCatalog tags) {
+    public TargetResolver(Supplier<FrameSortSettings> settings, TargetIndex index, TagCatalog tags,
+                          CustomItemResolver customItems) {
         this.settings = settings;
         this.index = index;
         this.tags = tags;
+        this.customItems = customItems;
     }
 
     // Deliveries and inspections both plan here, so an inspection always shows what a delivery would do.
@@ -147,27 +150,37 @@ public final class TargetResolver {
     }
 
     /** The best priority this frame item accepts {@code item} at, or {@code -1}. */
-    private int priority(ItemStack frameItem, ItemStack item) {
-        int best = direct(frameItem, item, false);
+    private int priority(ItemStack frameItem, ItemStack item, @Nullable String itemId) {
+        int best = direct(frameItem, item, itemId, false);
         if (best != MatchTier.EXACT.priority(false)) {
             for (ItemStack content : contents(frameItem)) {
-                int nested = direct(content, item, true);
+                int nested = direct(content, item, itemId, true);
                 if (nested != NO_MATCH && (best == NO_MATCH || nested < best)) {
                     best = nested;
                 }
             }
         }
-        Material fallback = settings.get().delivery().defaultTargetItem();
-        if (best == NO_MATCH && fallback != null && frameItem.getType() == fallback) {
+        if (best == NO_MATCH && isDefaultTarget(frameItem)) {
             best = MatchTier.DEFAULT_PRIORITY;
         }
         return best;
+    }
+
+    /** Whether a frame holding {@code frameItem} takes whatever matches no other frame. */
+    public boolean isDefaultTarget(ItemStack frameItem) {
+        return frameItem.getType() == settings.get().delivery().defaultTargetItem()
+                && customItems.id(frameItem) == null;
     }
 
     /** The tag a tagged item stands for, or {@code null} when the item has none. */
     public TagCatalog.@Nullable TagView tag(ItemStack frameItem) {
         NamespacedKey key = ItemTagCodec.read(frameItem);
         return key == null ? null : tags.find(key);
+    }
+
+    /** The ID a custom item plugin gave {@code item}, or {@code null} for a vanilla item. */
+    public @Nullable String customId(ItemStack item) {
+        return customItems.id(item);
     }
 
     public static List<ItemStack> contents(ItemStack item) {
@@ -202,13 +215,14 @@ public final class TargetResolver {
 
     private List<Match> compute(Block source, BlockKey key, ItemStack item) {
         FrameSortSettings current = settings.get();
+        String itemId = customItems.id(item);
         List<Match> matches = new ArrayList<>();
         for (ItemFrame frame : index.near(key, current.delivery().maxDistance())) {
             if (!eligible(current, source, frame)) {
                 continue;
             }
             ItemStack shown = frame.getItem();
-            int priority = priority(shown, item);
+            int priority = priority(shown, item, itemId);
             // The event goes last: other plugins' handlers cost more than matching the item.
             if (priority == NO_MATCH || !new TargetBindEvent(source, frame).callEvent()) {
                 continue;
@@ -234,11 +248,13 @@ public final class TargetResolver {
                 && !(current.sorter().isActivator(shown) && attached.getType() == Material.DISPENSER);
     }
 
-    private int direct(ItemStack target, ItemStack item, boolean nested) {
+    private int direct(ItemStack target, ItemStack item, @Nullable String itemId, boolean nested) {
         // A tagged item stands only for its tag, never for itself or its material.
         if (ItemTagCodec.read(target) != null) {
             TagCatalog.TagView tag = tag(target);
-            return tag != null && tag.lookup().contains(item.getType()) ? MatchTier.TAG.priority(nested) : NO_MATCH;
+            // A custom item is only a vanilla material underneath, so no vanilla tag stands for it.
+            return itemId == null && tag != null && tag.lookup().contains(item.getType())
+                    ? MatchTier.TAG.priority(nested) : NO_MATCH;
         }
         // A filled shulker box or bundle in the frame stands only for what it holds; inside it, only for itself.
         boolean filled = !contents(target).isEmpty();
@@ -248,6 +264,12 @@ public final class TargetResolver {
         if (target.isSimilar(item)) {
             return MatchTier.EXACT.priority(nested);
         }
-        return target.getType() == item.getType() && !filled ? MatchTier.SIMILAR.priority(nested) : NO_MATCH;
+        return !filled && sameKind(target, item, itemId) ? MatchTier.SIMILAR.priority(nested) : NO_MATCH;
+    }
+
+    // Many custom items share one vanilla material, so a custom item's kind is its ID, never its material.
+    private boolean sameKind(ItemStack target, ItemStack item, @Nullable String itemId) {
+        String targetId = customItems.id(target);
+        return targetId == null ? itemId == null && target.getType() == item.getType() : targetId.equals(itemId);
     }
 }
