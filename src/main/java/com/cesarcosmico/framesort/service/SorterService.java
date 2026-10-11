@@ -98,6 +98,9 @@ public final class SorterService {
             if (existing == null) {
                 SorterSettings sorter = settings.get().sorter();
                 sorters.put(key, new Sorter(frame, block, tick + 1 + (nextPhase++ % sorter.tickRate())));
+            }
+            // On every check, not only the first: a reload's look settings then reach the sorters that exist.
+            if (existing == null || existing.frame.equals(frame)) {
                 applyLook(frame, block, true);
             }
         } else if (existing != null && existing.frame.equals(frame)) {
@@ -122,6 +125,15 @@ public final class SorterService {
         if (sorter != null && sorter.frame.equals(frame)) {
             sorters.remove(FrameGeometry.key(block));
             applyLook(frame, block, false);
+        }
+    }
+
+    /** Gives every loaded sorter its plain frame and dispenser back, so nothing stays hidden while FrameSort is off. */
+    public void stopAll() {
+        for (Sorter sorter : sorters.values()) {
+            if (FrameGeometry.attachedLoaded(sorter.frame)) {
+                applyLook(sorter.frame, sorter.block, false);
+            }
         }
     }
 
@@ -221,9 +233,7 @@ public final class SorterService {
 
     private void applyLook(ItemFrame frame, Block block, boolean active) {
         SorterSettings sorter = settings.get().sorter();
-        if (sorter.hideFrame()) {
-            frame.setVisible(!active);
-        }
+        frame.setVisible(!active || !sorter.hideFrame());
         // A fresh snapshot, written back at once: it cannot carry stale items.
         if (block.getState() instanceof Dispenser dispenser) {
             String customName = sorter.customName();

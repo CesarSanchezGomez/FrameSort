@@ -74,8 +74,8 @@ public final class FrameSortPlugin extends JavaPlugin {
     private TargetResolver resolver;
     private SorterService sorters;
     private PadService padService;
+    private InspectService inspect;
     // Null in onDisable when the plugin failed to start.
-    private @Nullable InspectService inspect;
     private @Nullable BukkitTask ticker;
 
     @Override
@@ -150,12 +150,12 @@ public final class FrameSortPlugin extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        if (ticker != null) {
-            ticker.cancel();
+        if (ticker == null) {
+            return;
         }
-        if (inspect != null) {
-            inspect.stopAll();
-        }
+        ticker.cancel();
+        sorters.stopAll();
+        inspect.stopAll();
     }
 
     /**

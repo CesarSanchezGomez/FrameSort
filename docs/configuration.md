@@ -24,7 +24,7 @@ empty line (`''`) and keeps each line short.
 | `custom-name` | `<gradient:#F7B733:#FC4A1A>Item Sorter</gradient>` | Name shown in the sorter's inventory. `''` = none. |
 | `tick-rate` | `20` | Ticks between two turns of the same sorter. |
 | `disable-when-powered` | `false` | A powered sorter stops sending. |
-| `hide-frame` | `true` | Hides the activator's frame while the sorter works. |
+| `hide-frame` | `true` | Hides the activator's frame while the sorter works. A reload applies a change to every sorter. |
 | `show-activity` | `true` | Rotates the activator after every turn that sends something. |
 
 A sorter never dispenses like a plain dispenser. Each turn it sends up to 64 items from random stacks (only part of
