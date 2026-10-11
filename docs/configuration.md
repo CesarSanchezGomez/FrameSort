@@ -21,7 +21,7 @@ empty line (`''`) and keeps each line short.
 | `activator.require-marked` | `false` | `true`: only the activator from `/framesort give sorter` works, not any item of that material. |
 | `activator.name`, `lore`, `glint`, `item-model` | | Look of the activator FrameSort hands out (MiniMessage). |
 | `frame-types` | `[ITEM_FRAME, GLOW_ITEM_FRAME]` | Frames that can hold the activator. |
-| `custom-name` | `<gradient:#F7B733:#FC4A1A>Item Sorter</gradient>` | Name shown in the sorter's inventory. `''` = none. |
+| `custom-name` | `<gradient:#F7B733:#FC4A1A>Item Sorter</gradient>` | Name shown in the sorter's inventory. `''` = none. A dispenser renamed in an anvil keeps its own name. |
 | `tick-rate` | `20` | Ticks between two turns of the same sorter. |
 | `disable-when-powered` | `false` | A powered sorter stops sending. |
 | `hide-frame` | `true` | Hides the activator's frame while the sorter works. A reload applies a change to every sorter. |

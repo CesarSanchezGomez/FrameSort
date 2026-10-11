@@ -43,6 +43,7 @@ Nothing is stored outside the world:
 | Chunk | `framesort:pads` | The pads registered in the chunk, as `"x,y,z,type"`. |
 | Item | `framesort:item-tag` | The tag a tagged item stands for, such as `minecraft:logs` (`/framesort tag apply <tag>`). |
 | Sorter dispenser | `framesort:sorted` | How many items the sorter has sent (a `long`); it goes away with the block. |
+| Sorter dispenser | `framesort:named` | Present while the dispenser has the name FrameSort gave it, so FrameSort never removes a name from an anvil. |
 | Item | `framesort:activator` | The sorter activator handed out by FrameSort. |
 | Item | `framesort:pad-item` | The pad type of a special pad block. |
 

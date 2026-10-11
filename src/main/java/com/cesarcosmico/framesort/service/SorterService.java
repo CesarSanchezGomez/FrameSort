@@ -235,14 +235,26 @@ public final class SorterService {
         SorterSettings sorter = settings.get().sorter();
         frame.setVisible(!active || !sorter.hideFrame());
         // A fresh snapshot, written back at once: it cannot carry stale items.
-        if (block.getState() instanceof Dispenser dispenser) {
-            String customName = sorter.customName();
-            Component name = active && customName != null ? MINI_MESSAGE.deserialize(customName) : null;
-            if (!Objects.equals(dispenser.customName(), name)) {
-                dispenser.customName(name);
-                dispenser.update(true, false);
-            }
+        if (!(block.getState() instanceof Dispenser dispenser)) {
+            return;
         }
+        PersistentDataContainer data = dispenser.getPersistentDataContainer();
+        // A name the dispenser already had, from an anvil, belongs to the player: FrameSort only changes its own.
+        if (dispenser.customName() != null && !data.has(Keys.NAMED)) {
+            return;
+        }
+        String customName = sorter.customName();
+        Component name = active && customName != null ? MINI_MESSAGE.deserialize(customName) : null;
+        if (Objects.equals(dispenser.customName(), name)) {
+            return;
+        }
+        dispenser.customName(name);
+        if (name == null) {
+            data.remove(Keys.NAMED);
+        } else {
+            data.set(Keys.NAMED, PersistentDataType.BOOLEAN, true);
+        }
+        dispenser.update(true, false);
     }
 
     /** A sorter opens a shulker box or bundle with contents first; it goes whole once nothing inside can go. */
