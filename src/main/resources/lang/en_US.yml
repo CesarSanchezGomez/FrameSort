@@ -8,7 +8,7 @@ command:
       - '<prefix><gray>Sort items into item frames.</gray>'
       - '<gray>• <white>Sneak + right-click</white> a sorter or pad with an empty hand to see its targets (hold an item in your off hand to see only its targets).</gray>'
       - '<gray>• <white>Sneak + right-click</white> a frame with an empty hand to mark it as a target; <white>sneak + left-click</white> it to see what it accepts.</gray>'
-    tag-list: '<gray>• <white><usage> [page]</white> <dark_gray>-</dark_gray> every item and block tag.</gray>'
+    tag-list: '<gray>• <white><usage> [page]</white> <dark_gray>-</dark_gray> every item and block tag, and those in tags.yml.</gray>'
     tag-search: '<gray>• <white><usage> \<text> [page]</white> <dark_gray>-</dark_gray> tags whose name contains a text.</gray>'
     tag-show: '<gray>• <white><usage> \<tag> [page]</white> <dark_gray>-</dark_gray> what a tag contains.</gray>'
     tag-apply: '<gray>• <white><usage> \<tag></white> <dark_gray>-</dark_gray> apply a tag to the item in your hand.</gray>'
@@ -139,8 +139,9 @@ tag:
   kind:
     item: 'item tag'
     block: 'block tag'
+    custom: 'tags.yml tag'
   entry: '  <color:#F7B733>•</color> <white><item></white>'
-  unknown: '<prefix><red>There is no item or block tag called <white>#<tag></white>. Try /framesort tag list.</red>'
+  unknown: '<prefix><red>There is no tag called <white>#<tag></white>. Try /framesort tag list.</red>'
   list:
     title: 'Tags'
     title-search: 'Tags containing "<text>"'

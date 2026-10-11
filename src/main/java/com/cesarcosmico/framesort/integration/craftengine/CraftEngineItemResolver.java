@@ -14,6 +14,7 @@ public final class CraftEngineItemResolver implements CustomItemResolver {
         // Reads the ID stored on the item, not CraftEngine's loaded item list, which is empty while it starts up or
         // reloads: an item never changes destination during a /ce reload.
         Key id = CraftEngineItems.getCustomItemId(item);
-        return id == null ? null : id.asString();
+        // Prefixed with the plugin, so two item plugins can use the same ID.
+        return id == null ? null : "craftengine:" + id.asString();
     }
 }

@@ -14,7 +14,7 @@ container.
 ## Installation
 
 1. Put `FrameSort-<version>.jar` in the server's `plugins/` folder.
-2. Start the server once. FrameSort writes `config.yml`, `pads.yml`, `commands.yml` and `lang/` to
+2. Start the server once. FrameSort writes `config.yml`, `pads.yml`, `tags.yml`, `commands.yml` and `lang/` to
    `plugins/FrameSort/`.
 3. Edit them and run `/framesort reload` (`commands.yml` needs a restart).
 
@@ -25,7 +25,8 @@ container.
 1. **Targets.** Put an item in a frame on a container and sneak + right-click the frame with an empty hand to
    mark it as a target. A frame accepts items in this order of preference:
    1. the exact item;
-   2. a tag, when the frame item has one applied (`/framesort tag apply <tag>`);
+   2. a tag, when the frame item has one applied (`/framesort tag apply <tag>`): a game tag, or one of your own in
+      `tags.yml`;
    3. the same material.
 
    A shulker box or bundle in the frame stands for what it holds, never for itself, and each of those matches
@@ -50,9 +51,10 @@ it can reach. Targets are cached, so after changing regions run `/framesort relo
 **CraftEngine.** When it is installed, a custom item counts as itself, never as the vanilla material it is made of
 (many custom items share one). Where a frame would take the same material, a custom item in it takes the same
 custom item instead, whatever its durability, name or random values; vanilla items of that material don't go there,
-and a custom item never goes to a frame for its material. No tag takes a custom item, and a custom item in a frame
-is never the default target, even one made from a carrot on a stick. The ID is read from each item, so `/ce reload`
-changes nothing.
+and a custom item never goes to a frame for its material. No game tag takes a custom item; a tag in `tags.yml` takes
+the ones it lists, written as inspecting a frame that holds the item shows them (`craftengine:default:topaz_axe`). A
+custom item in a frame is never the default target, even one made from a carrot on a stick. The ID is read from each
+item, so `/ce reload` changes nothing.
 
 Containers are looked up the moment items go in, so a container that was moved or broken is skipped: items are
 never duplicated.
@@ -90,8 +92,8 @@ Every command also runs as `/fs`. Where each command lives, its permission and w
 
 ## Configuration
 
-`config.yml` (sorters, targets, delivery, inspection), `pads.yml` (pad types and who can create them) and
-`lang/`. See [docs/configuration.md](docs/configuration.md).
+`config.yml` (sorters, targets, delivery, inspection), `pads.yml` (pad types and who can create them), `tags.yml`
+(tags of your own and replacements for the game's) and `lang/`. See [docs/configuration.md](docs/configuration.md).
 
 ## Build
 

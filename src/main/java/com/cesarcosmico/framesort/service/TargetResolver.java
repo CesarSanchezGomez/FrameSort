@@ -178,7 +178,7 @@ public final class TargetResolver {
         return key == null ? null : tags.find(key);
     }
 
-    /** The ID a custom item plugin gave {@code item}, or {@code null} for a vanilla item. */
+    /** The reference to {@code item} as tags.yml writes it, or {@code null} for a vanilla item. */
     public @Nullable String customId(ItemStack item) {
         return customItems.id(item);
     }
@@ -252,8 +252,9 @@ public final class TargetResolver {
         // A tagged item stands only for its tag, never for itself or its material.
         if (ItemTagCodec.read(target) != null) {
             TagCatalog.TagView tag = tag(target);
-            // A custom item is only a vanilla material underneath, so no vanilla tag stands for it.
-            return itemId == null && tag != null && tag.lookup().contains(item.getType())
+            // A custom item is only a vanilla material underneath, so only a tags.yml tag that lists it stands for it.
+            return tag != null && (itemId == null ? tag.lookup().contains(item.getType())
+                    : tag.customItems().contains(itemId))
                     ? MatchTier.TAG.priority(nested) : NO_MATCH;
         }
         // A filled shulker box or bundle in the frame stands only for what it holds; inside it, only for itself.

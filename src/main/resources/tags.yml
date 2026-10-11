@@ -1,0 +1,26 @@
+# FrameSort: tags of your own, and replacements for the game's tags. They only change what FrameSort's frames
+# accept, never the game's tags, recipes or anything else. /framesort reload applies this file.
+#
+# Each tag under 'tags' is a list of members:
+#   'diamond_axe' or 'minecraft:diamond_axe'   a vanilla item
+#   '#minecraft:axes'                          every item in that game tag; never a tag from this file
+#   'craftengine:default:topaz_axe'            a CraftEngine item: 'craftengine:' and its ID, namespace included.
+#                                              Inspecting a frame that holds the item shows what to write here.
+# A custom item only goes to the tags that list it, never to a tag for the material it is made of.
+#
+# A name without a namespace is a game tag: 'axes' replaces minecraft:axes entirely, so add '#minecraft:axes' to
+# extend it instead. Give new tags a namespace of your own ('server:gems').
+#
+# Example:
+#   tags:
+#     axes:
+#       - '#minecraft:axes'
+#       - 'craftengine:default:topaz_axe'
+#     'server:gems':
+#       - 'diamond'
+#       - 'emerald'
+#       - 'craftengine:default:ruby'
+
+config-version: 1
+
+tags: {}

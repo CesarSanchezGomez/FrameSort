@@ -8,7 +8,7 @@ command:
       - '<prefix><gray>Ordena items en marcos.</gray>'
       - '<gray>• <white>Shift + clic derecho</white> a un sorter o pad con la mano vacía para ver sus destinos (con un item en la otra mano, solo los de ese item).</gray>'
       - '<gray>• <white>Shift + clic derecho</white> a un marco con la mano vacía para marcarlo como destino; <white>shift + clic izquierdo</white> para ver qué acepta.</gray>'
-    tag-list: '<gray>• <white><usage> [página]</white> <dark_gray>-</dark_gray> todos los tags de items y bloques.</gray>'
+    tag-list: '<gray>• <white><usage> [página]</white> <dark_gray>-</dark_gray> todos los tags de items y bloques, y los de tags.yml.</gray>'
     tag-search: '<gray>• <white><usage> \<texto> [página]</white> <dark_gray>-</dark_gray> tags cuyo nombre contiene un texto.</gray>'
     tag-show: '<gray>• <white><usage> \<tag> [página]</white> <dark_gray>-</dark_gray> qué contiene un tag.</gray>'
     tag-apply: '<gray>• <white><usage> \<tag></white> <dark_gray>-</dark_gray> aplica un tag al item de tu mano.</gray>'
@@ -139,8 +139,9 @@ tag:
   kind:
     item: 'tag de items'
     block: 'tag de bloques'
+    custom: 'tag de tags.yml'
   entry: '  <color:#F7B733>•</color> <white><item></white>'
-  unknown: '<prefix><red>No existe ningún tag de items o bloques llamado <white>#<tag></white>. Prueba /framesort tag list.</red>'
+  unknown: '<prefix><red>No existe ningún tag llamado <white>#<tag></white>. Prueba /framesort tag list.</red>'
   list:
     title: 'Tags'
     title-search: 'Tags que contienen "<text>"'

@@ -21,6 +21,7 @@ import com.cesarcosmico.framesort.config.ConfigReader;
 import com.cesarcosmico.framesort.config.ConfigValidator;
 import com.cesarcosmico.framesort.config.FrameSortSettings;
 import com.cesarcosmico.framesort.config.PadSettings;
+import com.cesarcosmico.framesort.config.TagSettings;
 import com.cesarcosmico.framesort.integration.craftengine.CraftEngineItemResolver;
 import com.cesarcosmico.framesort.integration.worldguard.WorldGuardTargetListener;
 import com.cesarcosmico.framesort.listener.InspectListener;
@@ -66,6 +67,7 @@ public final class FrameSortPlugin extends JavaPlugin {
 
     private ConfigHolder<FrameSortSettings> settings;
     private ConfigHolder<PadSettings> pads;
+    private ConfigHolder<TagSettings> tagSettings;
     private ConfigHolder<Messages> messages;
     private TagCatalog tags;
     private TargetIndex index;
@@ -83,6 +85,7 @@ public final class FrameSortPlugin extends JavaPlugin {
         try {
             settings = new ConfigHolder<>(loadSettings(warn));
             pads = new ConfigHolder<>(loadPads(warn));
+            tagSettings = new ConfigHolder<>(loadTags(warn));
             messages = new ConfigHolder<>(Messages.load(this, settings.get().language(), warn));
             commands = CommandsConfig.load(this, warn);
         } catch (Exception e) {
@@ -91,7 +94,7 @@ public final class FrameSortPlugin extends JavaPlugin {
             return;
         }
 
-        tags = new TagCatalog();
+        tags = new TagCatalog(tagSettings);
         index = new TargetIndex(settings);
         // Only this check loads the integration's classes, so FrameSort runs without CraftEngine installed.
         CustomItemResolver customItems = getServer().getPluginManager().isPluginEnabled("CraftEngine")
@@ -168,9 +171,11 @@ public final class FrameSortPlugin extends JavaPlugin {
         };
         FrameSortSettings newSettings = loadSettings(warn);
         PadSettings newPads = loadPads(warn);
+        TagSettings newTags = loadTags(warn);
         Messages newMessages = Messages.load(this, newSettings.language(), warn);
         settings.set(newSettings);
         pads.set(newPads);
+        tagSettings.set(newTags);
         messages.set(newMessages);
         tags.clear();
         resolver.clear();
@@ -202,6 +207,13 @@ public final class FrameSortPlugin extends JavaPlugin {
         YamlConfiguration yaml = ConfigFiles.load(this, "pads.yml");
         ConfigValidator.check(this, yaml, "pads.yml", Set.of("types"), warn);
         return PadSettings.parse(new ConfigReader(yaml, "pads.yml", warn), Material::isBlock, FrameSortPlugin::isItem);
+    }
+
+    private TagSettings loadTags(Consumer<String> warn) throws IOException, InvalidConfigurationException {
+        YamlConfiguration yaml = ConfigFiles.load(this, "tags.yml");
+        ConfigValidator.check(this, yaml, "tags.yml", Set.of("tags"), warn);
+        return TagSettings.parse(new ConfigReader(yaml, "tags.yml", warn), FrameSortPlugin::isItem,
+                TagCatalog::isGameTag);
     }
 
     // Air is an item type too (ItemType.AIR), but no stack can hold it.

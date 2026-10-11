@@ -22,6 +22,7 @@ import org.bukkit.entity.Player;
 import java.util.List;
 import java.util.Locale;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 public final class TagShowCommand implements CommandFeature {
 
@@ -55,7 +56,10 @@ public final class TagShowCommand implements CommandFeature {
         TagCatalog.TagView view = context.getArgument("tag", TagCatalog.TagView.class);
         CommandSender sender = context.getSource().getSender();
         Messages text = messages.get();
-        List<Component> lines = view.materials().stream().map(material -> entry(text, material)).toList();
+        List<Component> lines = Stream.concat(
+                view.materials().stream().map(material -> entry(text, material)),
+                view.customItems().stream().map(item -> text.get("tag.entry", Placeholder.unparsed("item", item))))
+                .toList();
         String name = TagArgument.shortName(view.key());
         // Applying needs a hand, and the button only shows to whoever may apply.
         String apply = sender instanceof Player ? commands.usageFor("tag-apply", sender::hasPermission) : null;

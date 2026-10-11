@@ -7,7 +7,7 @@ com.cesarcosmico.framesort
 ├── FrameSortPlugin   composition root: wires everything, one tick task, reload
 ├── model/            plain rules: priorities, ranking by priority, delivery, composting, frame positions, paging
 ├── service/          target index and resolver, delivery, sorters, pads, inspection, tracing, tags
-├── config/           typed settings, pads.yml, commands.yml, strict YAML loading, validation, reload holder
+├── config/           typed settings, pads.yml, tags.yml, commands.yml, strict loading, validation, reload holder
 ├── item/             persistent data keys, item templates, the pad codec for chunks
 ├── text/             messages and the chat pager
 ├── command/          one class per command feature; CommandTree builds the roots from commands.yml
@@ -21,8 +21,8 @@ Packages depend on each other without cycles: `model` ← `item` ← `config` �
 the integrations. Dependencies are wired by constructor in `FrameSortPlugin`; there are no static instances.
 
 Interfaces exist only with several implementations, as closed sets, or to keep an optional plugin out:
-- `CustomItemResolver`: the CraftEngine ID of an item, or `NONE` without CraftEngine, so `TargetResolver` never
-  loads CraftEngine's classes;
+- `CustomItemResolver`: a custom item as `tags.yml` writes it (`craftengine:<namespace>:<id>`), or `NONE` without
+  CraftEngine, so `TargetResolver` never loads CraftEngine's classes;
 - `DeliveryService.Source`: a sorter slot or a pad item entity;
 - `CommandFeature`: one per command feature;
 - `GiveCommand.ItemSource`: a sorter activator or a pad block;
