@@ -27,7 +27,8 @@ empty line (`''`) and keeps each line short.
 | `hide-frame` | `true` | Hides the activator's frame while the sorter works. A reload applies a change to every sorter. |
 | `show-activity` | `true` | Rotates the activator after every turn that sends something. |
 
-A sorter never dispenses like a plain dispenser. Each turn it sends up to 64 items from random stacks (only part of
+Whoever creates or removes a sorter (placing or taking the activator, or breaking its frame or dispenser) is told
+so. A sorter never dispenses like a plain dispenser. Each turn it sends up to 64 items from random stacks (only part of
 the last one when it would go past 64), taking them from inside shulker boxes and bundles, so packed items go as fast
 as loose ones. Items with nowhere to go stay
 in the sorter without holding up the rest, and are not tried again in the same turn; a turn gives up after 64

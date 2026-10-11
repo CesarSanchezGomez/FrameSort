@@ -1,24 +1,32 @@
 package com.cesarcosmico.framesort.listener;
 
 import com.cesarcosmico.framesort.service.SorterService;
+import com.cesarcosmico.framesort.text.Messages;
 import com.destroystokyo.paper.event.entity.EntityAddToWorldEvent;
 import com.destroystokyo.paper.event.entity.EntityRemoveFromWorldEvent;
 import io.papermc.paper.event.player.PlayerItemFrameChangeEvent;
 import org.bukkit.block.Dispenser;
 import org.bukkit.entity.ItemFrame;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockDispenseEvent;
+import org.bukkit.event.hanging.HangingBreakByEntityEvent;
 import org.bukkit.event.hanging.HangingBreakEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
+
+import java.util.function.Supplier;
 
 public final class SorterListener implements Listener {
 
     private final SorterService sorters;
+    private final Supplier<Messages> messages;
 
-    public SorterListener(SorterService sorters) {
+    public SorterListener(SorterService sorters, Supplier<Messages> messages) {
         this.sorters = sorters;
+        this.messages = messages;
     }
 
     @EventHandler
@@ -38,15 +46,26 @@ public final class SorterListener implements Listener {
     // MONITOR: the sorter is forgotten only once the break is final; the event is left alone.
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onBreak(HangingBreakEvent event) {
-        if (event.getEntity() instanceof ItemFrame frame) {
-            sorters.broken(frame);
+        if (event.getEntity() instanceof ItemFrame frame && sorters.broken(frame)
+                && event instanceof HangingBreakByEntityEvent byEntity
+                && byEntity.getRemover() instanceof Player player) {
+            tell(player, SorterService.Change.REMOVED);
+        }
+    }
+
+    // MONITOR: only a break no plugin cancelled ends the sorter; its frame then falls and is forgotten.
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onBlockBreak(BlockBreakEvent event) {
+        if (sorters.isSorter(event.getBlock())) {
+            tell(event.getPlayer(), SorterService.Change.REMOVED);
         }
     }
 
     // MONITOR: the frame is re-checked only once the change is final; the event is left alone.
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onFrameChange(PlayerItemFrameChangeEvent event) {
-        sorters.considerLater(event.getItemFrame());
+        Player player = event.getPlayer();
+        sorters.considerLater(event.getItemFrame(), change -> tell(player, change));
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
@@ -60,6 +79,15 @@ public final class SorterListener implements Listener {
     public void onClose(InventoryCloseEvent event) {
         if (event.getInventory().getHolder(false) instanceof Dispenser dispenser) {
             sorters.wake(dispenser.getBlock());
+        }
+    }
+
+    private void tell(Player player, SorterService.Change change) {
+        switch (change) {
+            case CREATED -> player.sendMessage(messages.get().get("sorter.created"));
+            case REMOVED -> player.sendMessage(messages.get().get("sorter.removed"));
+            case UNCHANGED -> {
+            }
         }
     }
 }

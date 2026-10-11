@@ -153,6 +153,10 @@ give:
   players-only: '<prefix><red>Indica un jugador: /framesort give ... [jugador]</red>'
   unknown-pad: 'No existe ningún tipo de pad llamado ''<type>'''
 
+sorter:
+  created: '<prefix><green>Sorter creado.</green> <gray>Lo que haya en este dispensador irá ahora a sus marcos destino.</gray>'
+  removed: '<prefix><yellow>Sorter eliminado.</yellow>'
+
 pad:
   created: '<prefix><green>Teleport pad <white><type></white> creado.</green>'
   not-allowed: '<prefix><red>No puedes crear teleport pads aquí.</red>'

@@ -34,10 +34,14 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 /** Sorters are spread over the ticks so they never all act at once. */
 public final class SorterService {
+
+    /** What checking a frame did to its dispenser. */
+    public enum Change { CREATED, REMOVED, UNCHANGED }
 
     private static final MiniMessage MINI_MESSAGE = MiniMessage.miniMessage();
     // Shulker boxes inside bundles inside shulker boxes…: deep enough for any real setup, and bounded.
@@ -75,7 +79,7 @@ public final class SorterService {
         this.delivery = delivery;
     }
 
-    public void consider(ItemFrame frame) {
+    public Change consider(ItemFrame frame) {
         boolean holdsActivator = holdsActivator(frame);
         if (!FrameGeometry.attachedLoaded(frame)) {
             // Only frames that could make a sorter wait for the neighbouring chunk; the rest are never sorters.
@@ -89,7 +93,7 @@ public final class SorterService {
                     done.run();
                 }
             }
-            return;
+            return Change.UNCHANGED;
         }
         Block block = FrameGeometry.attachedBlock(frame);
         BlockKey key = FrameGeometry.key(block);
@@ -103,15 +107,19 @@ public final class SorterService {
             if (existing == null || existing.frame.equals(frame)) {
                 applyLook(frame, block, true);
             }
-        } else if (existing != null && existing.frame.equals(frame)) {
+            return existing == null ? Change.CREATED : Change.UNCHANGED;
+        }
+        if (existing != null && existing.frame.equals(frame)) {
             sorters.remove(key);
             applyLook(frame, block, false);
+            return Change.REMOVED;
         }
+        return Change.UNCHANGED;
     }
 
     /** Re-checks a frame on the next tick: when an item-frame event fires, the frame still holds the old item. */
-    public void considerLater(ItemFrame frame) {
-        frame.getScheduler().run(plugin, task -> consider(frame), null);
+    public void considerLater(ItemFrame frame, Consumer<Change> then) {
+        frame.getScheduler().run(plugin, task -> then.accept(consider(frame)), null);
     }
 
     /** The frame left the world because its chunk unloaded; the sorter comes back with the chunk. */
@@ -119,13 +127,16 @@ public final class SorterService {
         sorters.values().removeIf(sorter -> sorter.frame.equals(frame));
     }
 
-    public void broken(ItemFrame frame) {
+    /** @return whether the frame made a sorter */
+    public boolean broken(ItemFrame frame) {
         Block block = FrameGeometry.attachedBlock(frame);
         Sorter sorter = sorters.get(FrameGeometry.key(block));
-        if (sorter != null && sorter.frame.equals(frame)) {
-            sorters.remove(FrameGeometry.key(block));
-            applyLook(frame, block, false);
+        if (sorter == null || !sorter.frame.equals(frame)) {
+            return false;
         }
+        sorters.remove(FrameGeometry.key(block));
+        applyLook(frame, block, false);
+        return true;
     }
 
     /** Gives every loaded sorter its plain frame and dispenser back, so nothing stays hidden while FrameSort is off. */
