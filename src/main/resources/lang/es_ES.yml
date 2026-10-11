@@ -123,7 +123,7 @@ where:
   no-source: '<prefix><gray>No hay ningún sorter ni pad a menos de <radius> bloques.</gray>'
 
 trace:
-  started: '<prefix><green>Rastreando entregas a menos de <radius> bloques durante <seconds> segundos.</green> <gray>Para con /framesort trace stop.</gray>'
+  started: '<prefix><green>Rastreando entregas a menos de <radius> bloques durante <seconds> segundos.</green> <gray>Para con <stop>.</gray>'
   stopped: '<prefix><gray>Rastreo detenido.</gray>'
   not-running: '<prefix><gray>No estás rastreando.</gray>'
   ended: '<prefix><gray>El rastreo ha terminado.</gray>'
@@ -141,7 +141,8 @@ tag:
     block: 'tag de bloques'
     custom: 'tag de tags.yml'
   entry: '  <color:#F7B733>•</color> <white><item></white>'
-  unknown: '<prefix><red>No existe ningún tag llamado <white>#<tag></white>. Prueba /framesort tag list.</red>'
+  unknown: '<prefix><red>No existe ningún tag llamado <white>#<tag></white>.<hint></red>'
+  unknown-hint: ' Prueba <usage>.'
   list:
     title: 'Tags'
     title-search: 'Tags que contienen "<text>"'
@@ -150,7 +151,7 @@ tag:
 
 give:
   done: '<prefix><green>Entregado <white><amount>× <item></white> a <white><player></white>.</green>'
-  players-only: '<prefix><red>Indica un jugador: /framesort give ... [jugador]</red>'
+  players-only: '<prefix><red>Indica un jugador: <usage> ... [jugador]</red>'
   unknown-pad: 'No existe ningún tipo de pad llamado ''<type>'''
 
 sorter:

@@ -123,7 +123,7 @@ where:
   no-source: '<prefix><gray>There is no sorter or pad within <radius> blocks.</gray>'
 
 trace:
-  started: '<prefix><green>Tracing deliveries within <radius> blocks for <seconds> seconds.</green> <gray>Stop with /framesort trace stop.</gray>'
+  started: '<prefix><green>Tracing deliveries within <radius> blocks for <seconds> seconds.</green> <gray>Stop with <stop>.</gray>'
   stopped: '<prefix><gray>Tracing stopped.</gray>'
   not-running: '<prefix><gray>You are not tracing.</gray>'
   ended: '<prefix><gray>Tracing ended.</gray>'
@@ -141,7 +141,8 @@ tag:
     block: 'block tag'
     custom: 'tags.yml tag'
   entry: '  <color:#F7B733>•</color> <white><item></white>'
-  unknown: '<prefix><red>There is no tag called <white>#<tag></white>. Try /framesort tag list.</red>'
+  unknown: '<prefix><red>There is no tag called <white>#<tag></white>.<hint></red>'
+  unknown-hint: ' Try <usage>.'
   list:
     title: 'Tags'
     title-search: 'Tags containing "<text>"'
@@ -150,7 +151,7 @@ tag:
 
 give:
   done: '<prefix><green>Gave <white><amount>× <item></white> to <white><player></white>.</green>'
-  players-only: '<prefix><red>Name a player: /framesort give ... [player]</red>'
+  players-only: '<prefix><red>Name a player: <usage> ... [player]</red>'
   unknown-pad: 'There is no pad type called ''<type>'''
 
 sorter:

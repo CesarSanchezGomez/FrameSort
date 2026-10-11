@@ -156,16 +156,17 @@ tags:
 
 ## Language
 
-`language` in `config.yml` picks `lang/<language>.yml` (`en_US`, `es_ES`). A key missing from your file comes from
-the bundled copy of that language, then from the bundled `en_US`; a key missing everywhere shows as the key and is
-reported once in the console. Messages use [MiniMessage](https://docs.papermc.io/adventure/minimessage/format/);
-`<prefix>` is the `prefix` key.
+`language` in `config.yml` picks `lang/<language>.yml` (`en_US`, `es_ES`), written the first time it is used. A
+key missing from your file comes from the bundled copy of that language, then from the bundled `en_US`; a key missing
+everywhere shows as the key and is reported once in the console. Messages use
+[MiniMessage](https://docs.papermc.io/adventure/minimessage/format/); `<prefix>` is the `prefix` key.
 
 ### Help
 
 `command.help.header` opens the help (a list: one line per entry). Then comes one `command.help.<id>` line for
 each command the player may run, where `<usage>` is the first path of that command in `commands.yml`. If you move a
-command, the help follows it; any path you wrote by hand in the text does not.
+command, the help follows it, and so do `trace.started` (`<stop>`), `tag.unknown-hint` and `give.players-only`
+(`<usage>`); any path you wrote by hand in the text does not.
 
 ### Pages
 

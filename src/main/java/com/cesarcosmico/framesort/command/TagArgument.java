@@ -1,5 +1,6 @@
 package com.cesarcosmico.framesort.command;
 
+import com.cesarcosmico.framesort.config.CommandsConfig;
 import com.cesarcosmico.framesort.service.TagCatalog;
 import com.cesarcosmico.framesort.text.Messages;
 import com.mojang.brigadier.arguments.ArgumentType;
@@ -11,6 +12,7 @@ import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import io.papermc.paper.command.brigadier.MessageComponentSerializer;
 import io.papermc.paper.command.brigadier.argument.ArgumentTypes;
 import io.papermc.paper.command.brigadier.argument.CustomArgumentType;
+import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import org.bukkit.NamespacedKey;
 
@@ -21,18 +23,25 @@ final class TagArgument implements CustomArgumentType.Converted<TagCatalog.TagVi
 
     private final TagCatalog tags;
     private final Supplier<Messages> messages;
+    private final CommandsConfig commands;
 
-    TagArgument(TagCatalog tags, Supplier<Messages> messages) {
+    TagArgument(TagCatalog tags, Supplier<Messages> messages, CommandsConfig commands) {
         this.tags = tags;
         this.messages = messages;
+        this.commands = commands;
     }
 
     @Override
     public TagCatalog.TagView convert(NamespacedKey key) throws CommandSyntaxException {
         TagCatalog.TagView view = tags.find(key);
         if (view == null) {
-            throw new SimpleCommandExceptionType(MessageComponentSerializer.message().serialize(
-                    messages.get().get("tag.unknown", Placeholder.unparsed("tag", key.asString())))).create();
+            Messages text = messages.get();
+            // Parsing has no sender, so the hint names the list's path without checking who may run it.
+            String list = commands.primaryUsage("tag-list");
+            Component hint = list == null ? Component.empty()
+                    : text.get("tag.unknown-hint", Placeholder.unparsed("usage", list));
+            throw new SimpleCommandExceptionType(MessageComponentSerializer.message().serialize(text.get("tag.unknown",
+                    Placeholder.unparsed("tag", key.asString()), Placeholder.component("hint", hint)))).create();
         }
         return view;
     }

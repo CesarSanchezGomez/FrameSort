@@ -34,7 +34,7 @@ public final class TagShowCommand implements CommandFeature {
 
     public TagShowCommand(TagCatalog tags, Supplier<Messages> messages, Supplier<FrameSortSettings> settings,
                           CommandsConfig commands, CustomItemResolver customItems) {
-        this.tag = new TagArgument(tags, messages);
+        this.tag = new TagArgument(tags, messages, commands);
         this.messages = messages;
         this.settings = settings;
         this.commands = commands;

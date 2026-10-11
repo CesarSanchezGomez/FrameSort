@@ -33,13 +33,13 @@ public final class TraceCommand implements CommandFeature {
 
     @Override
     public void attach(LiteralArgumentBuilder<CommandSourceStack> node, String path) {
-        node.executes(context -> start(context, settings.get().inspect().traceDefaultSeconds()))
+        node.executes(context -> start(context, settings.get().inspect().traceDefaultSeconds(), path))
                 .then(Commands.literal("stop").executes(this::stop))
                 .then(Commands.argument("seconds", IntegerArgumentType.integer(1))
-                        .executes(context -> start(context, IntegerArgumentType.getInteger(context, "seconds"))));
+                        .executes(context -> start(context, IntegerArgumentType.getInteger(context, "seconds"), path)));
     }
 
-    private int start(CommandContext<CommandSourceStack> context, int seconds) {
+    private int start(CommandContext<CommandSourceStack> context, int seconds, String path) {
         if (!(context.getSource().getSender() instanceof Player player)) {
             context.getSource().getSender().sendMessage(messages.get().get("command.players-only"));
             return Command.SINGLE_SUCCESS;
@@ -47,7 +47,8 @@ public final class TraceCommand implements CommandFeature {
         int granted = trace.start(player, seconds);
         player.sendMessage(messages.get().get("trace.started",
                 Placeholder.unparsed("seconds", String.valueOf(granted)),
-                Placeholder.unparsed("radius", String.valueOf(settings.get().inspect().traceRadius()))));
+                Placeholder.unparsed("radius", String.valueOf(settings.get().inspect().traceRadius())),
+                Placeholder.unparsed("stop", path + " stop")));
         return Command.SINGLE_SUCCESS;
     }
 
