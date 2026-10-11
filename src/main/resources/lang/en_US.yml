@@ -25,7 +25,7 @@ command:
 pager:
   layout:
     - ''
-    - '<gradient:#F7B733:#FC4A1A>◤<st>                          </st></gradient> <white>[</white><gradient:#F7B733:#FC4A1A>FrameSort</gradient><white>]</white> <gradient:#FC4A1A:#F7B733><st>                          </st>◥</gradient>'
+    - '<gradient:#F7B733:#FC4A1A>◤<st>                          </st></gradient> <prefix><gradient:#FC4A1A:#F7B733><st>                          </st>◥</gradient>'
     - ''
     - '  <white><title></white> <dark_gray>·</dark_gray> <gray><total></gray>'
     - ''
@@ -68,7 +68,7 @@ inspect:
 frame:
   layout:
     - ''
-    - '<gradient:#F7B733:#FC4A1A>◤<st>                          </st></gradient> <white>[</white><gradient:#F7B733:#FC4A1A>FrameSort</gradient><white>]</white> <gradient:#FC4A1A:#F7B733><st>                          </st>◥</gradient>'
+    - '<gradient:#F7B733:#FC4A1A>◤<st>                          </st></gradient> <prefix><gradient:#FC4A1A:#F7B733><st>                          </st>◥</gradient>'
     - ''
     - '  <title>'
     - ''
