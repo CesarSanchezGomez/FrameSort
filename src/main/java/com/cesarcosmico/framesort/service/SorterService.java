@@ -30,7 +30,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
@@ -105,13 +104,13 @@ public final class SorterService {
             }
             // On every check, not only the first: a reload's look settings then reach the sorters that exist.
             if (existing == null || existing.frame.equals(frame)) {
-                applyLook(frame, block, true);
+                applyLook(frame, true);
             }
             return existing == null ? Change.CREATED : Change.UNCHANGED;
         }
         if (existing != null && existing.frame.equals(frame)) {
             sorters.remove(key);
-            applyLook(frame, block, false);
+            applyLook(frame, false);
             return Change.REMOVED;
         }
         return Change.UNCHANGED;
@@ -134,7 +133,7 @@ public final class SorterService {
             return false;
         }
         sorters.remove(FrameGeometry.key(sorter.block));
-        applyLook(frame, sorter.block, false);
+        applyLook(frame, false);
         return true;
     }
 
@@ -149,17 +148,19 @@ public final class SorterService {
         return sorter != null && sorter.frame.equals(frame) ? sorter : null;
     }
 
-    /** Gives every loaded sorter its plain frame and dispenser back, so nothing stays hidden while FrameSort is off. */
+    /** Shows every loaded sorter's frame again, so nothing stays hidden while FrameSort is off. */
     public void stopAll() {
-        for (Sorter sorter : sorters.values()) {
-            if (FrameGeometry.attachedLoaded(sorter.frame)) {
-                applyLook(sorter.frame, sorter.block, false);
-            }
-        }
+        sorters.values().forEach(sorter -> applyLook(sorter.frame, false));
     }
 
     public boolean isSorter(Block block) {
         return sorters.containsKey(FrameGeometry.key(block));
+    }
+
+    /** The title a sorter's inventory shows instead of the dispenser's own name, or {@code null} to keep that name. */
+    public @Nullable Component title(Block block) {
+        String title = settings.get().sorter().customName();
+        return title != null && isSorter(block) ? MINI_MESSAGE.deserialize(title) : null;
     }
 
     public void wake(Block block) {
@@ -191,7 +192,7 @@ public final class SorterService {
             }
             if (!makesSorter(current.frame, current.block)) {
                 sorters.remove(entry.getKey());
-                applyLook(current.frame, current.block, false);
+                applyLook(current.frame, false);
                 continue;
             }
             if (sorter.disableWhenPowered() && current.block.isBlockPowered()) {
@@ -252,30 +253,8 @@ public final class SorterService {
                 : 0;
     }
 
-    private void applyLook(ItemFrame frame, Block block, boolean active) {
-        SorterSettings sorter = settings.get().sorter();
-        frame.setVisible(!active || !sorter.hideFrame());
-        // A fresh snapshot, written back at once: it cannot carry stale items.
-        if (!(block.getState() instanceof Dispenser dispenser)) {
-            return;
-        }
-        PersistentDataContainer data = dispenser.getPersistentDataContainer();
-        // A name the dispenser already had, from an anvil, belongs to the player: FrameSort only changes its own.
-        if (dispenser.customName() != null && !data.has(Keys.NAMED)) {
-            return;
-        }
-        String customName = sorter.customName();
-        Component name = active && customName != null ? MINI_MESSAGE.deserialize(customName) : null;
-        if (Objects.equals(dispenser.customName(), name)) {
-            return;
-        }
-        dispenser.customName(name);
-        if (name == null) {
-            data.remove(Keys.NAMED);
-        } else {
-            data.set(Keys.NAMED, PersistentDataType.BOOLEAN, true);
-        }
-        dispenser.update(true, false);
+    private void applyLook(ItemFrame frame, boolean active) {
+        frame.setVisible(!active || !settings.get().sorter().hideFrame());
     }
 
     /** A sorter opens a shulker box or bundle with contents first; it goes whole once nothing inside can go. */

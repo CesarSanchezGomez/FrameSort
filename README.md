@@ -20,9 +20,9 @@ container.
 
 `/version FrameSort` shows the installed version.
 
-When the server stops, every sorter in a loaded chunk shows its frame again and its dispenser loses the name FrameSort
-gave it. A sorter in a chunk that isn't loaded keeps its hidden frame until it loads with FrameSort installed, so
-before removing FrameSort, take the Eye of Ender out of those sorters.
+When the server stops, every sorter in a loaded chunk shows its frame again. A sorter in a chunk that isn't loaded
+keeps its hidden frame until it loads with FrameSort installed, so before removing FrameSort, take the Eye of Ender
+out of those sorters.
 
 ## How it works
 

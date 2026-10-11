@@ -5,6 +5,7 @@ import com.cesarcosmico.framesort.text.Messages;
 import com.destroystokyo.paper.event.entity.EntityAddToWorldEvent;
 import com.destroystokyo.paper.event.entity.EntityRemoveFromWorldEvent;
 import io.papermc.paper.event.player.PlayerItemFrameChangeEvent;
+import net.kyori.adventure.text.Component;
 import org.bukkit.block.Dispenser;
 import org.bukkit.entity.ItemFrame;
 import org.bukkit.entity.Player;
@@ -16,6 +17,7 @@ import org.bukkit.event.block.BlockDispenseEvent;
 import org.bukkit.event.hanging.HangingBreakByEntityEvent;
 import org.bukkit.event.hanging.HangingBreakEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
+import org.bukkit.event.inventory.InventoryOpenEvent;
 
 import java.util.function.Supplier;
 
@@ -72,6 +74,17 @@ public final class SorterListener implements Listener {
     public void onDispense(BlockDispenseEvent event) {
         if (sorters.isSorter(event.getBlock())) {
             event.setCancelled(true);
+        }
+    }
+
+    // LOW: a default title that plugins listening later may still change. The dispenser itself is never renamed.
+    @EventHandler(priority = EventPriority.LOW, ignoreCancelled = true)
+    public void onOpen(InventoryOpenEvent event) {
+        if (event.getInventory().getHolder(false) instanceof Dispenser dispenser) {
+            Component title = sorters.title(dispenser.getBlock());
+            if (title != null) {
+                event.titleOverride(title);
+            }
         }
     }
 
