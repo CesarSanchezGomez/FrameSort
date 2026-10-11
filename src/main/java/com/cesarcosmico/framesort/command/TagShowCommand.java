@@ -2,6 +2,7 @@ package com.cesarcosmico.framesort.command;
 
 import com.cesarcosmico.framesort.config.CommandsConfig;
 import com.cesarcosmico.framesort.config.FrameSortSettings;
+import com.cesarcosmico.framesort.service.CustomItemResolver;
 import com.cesarcosmico.framesort.service.TagCatalog;
 import com.cesarcosmico.framesort.text.ChatPager;
 import com.cesarcosmico.framesort.text.Messages;
@@ -15,7 +16,6 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
-import org.bukkit.Material;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
@@ -30,13 +30,15 @@ public final class TagShowCommand implements CommandFeature {
     private final Supplier<Messages> messages;
     private final Supplier<FrameSortSettings> settings;
     private final CommandsConfig commands;
+    private final CustomItemResolver customItems;
 
     public TagShowCommand(TagCatalog tags, Supplier<Messages> messages, Supplier<FrameSortSettings> settings,
-                          CommandsConfig commands) {
+                          CommandsConfig commands, CustomItemResolver customItems) {
         this.tag = new TagArgument(tags, messages);
         this.messages = messages;
         this.settings = settings;
         this.commands = commands;
+        this.customItems = customItems;
     }
 
     @Override
@@ -57,8 +59,9 @@ public final class TagShowCommand implements CommandFeature {
         CommandSender sender = context.getSource().getSender();
         Messages text = messages.get();
         List<Component> lines = Stream.concat(
-                view.materials().stream().map(material -> entry(text, material)),
-                view.customItems().stream().map(item -> text.get("tag.entry", Placeholder.unparsed("item", item))))
+                view.materials().stream().map(material ->
+                        entry(text, Component.translatable(material), material.getKey().asString())),
+                view.customItems().stream().map(reference -> entry(text, customName(reference), reference)))
                 .toList();
         String name = TagArgument.shortName(view.key());
         // Applying needs a hand, and the button only shows to whoever may apply.
@@ -74,8 +77,13 @@ public final class TagShowCommand implements CommandFeature {
         return Command.SINGLE_SUCCESS;
     }
 
-    private static Component entry(Messages text, Material material) {
-        return text.get("tag.entry", Placeholder.component("item", Component.translatable(material)))
-                .hoverEvent(HoverEvent.showText(Component.text(material.getKey().asString())));
+    private Component customName(String reference) {
+        Component name = customItems.name(reference);
+        return name == null ? Component.text(reference) : name;
+    }
+
+    private static Component entry(Messages text, Component item, String id) {
+        return text.get("tag.entry", Placeholder.component("item", item))
+                .hoverEvent(HoverEvent.showText(Component.text(id)));
     }
 }

@@ -1,5 +1,6 @@
 package com.cesarcosmico.framesort.service;
 
+import net.kyori.adventure.text.Component;
 import org.bukkit.inventory.ItemStack;
 import org.jspecify.annotations.Nullable;
 
@@ -14,4 +15,9 @@ public interface CustomItemResolver {
 
     /** @return the item's reference, or {@code null} for a vanilla item */
     @Nullable String id(ItemStack item);
+
+    /** @return the name the plugin gives the item of {@code reference}, or {@code null} if it doesn't know it */
+    default @Nullable Component name(String reference) {
+        return null;
+    }
 }

@@ -139,7 +139,10 @@ tags:
 - **Matching.** A vanilla item goes to a tag by its material; a custom item only by its reference, never by the
   material it is made of.
 - **Commands.** `tag list`, `tag search`, `tag show` and `tag apply` include these tags. `tag show` marks them as
-  "tags.yml tag" and lists their custom items after the materials.
+  "tags.yml tag" and lists their custom items after the materials, by the name CraftEngine gives them: CraftEngine
+  translates it for each player, as in their inventory (a name written with `<l10n:…>` needs CraftEngine's
+  `network.intercept-packets.system-chat`, on by default). Hovering shows the reference, which is also shown instead
+  of the name while CraftEngine doesn't know the item (not installed, a typo, or during `/ce reload`).
 - **Warnings.** Each of these is reported with its path (`tags.yml > tags.<name>`) and ignored: a malformed name or
   member, an unknown material or one that is not an item, a `#tag` the game doesn't have, an item plugin FrameSort
   doesn't read (only `craftengine:` today), a CraftEngine item without its namespace (`craftengine:topaz_axe`; write
