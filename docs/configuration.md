@@ -1,10 +1,10 @@
 # Configuration
 
-`config.yml`, `pads.yml` and `commands.yml` have a `config-version`. When FrameSort's defaults change, the console
-lists their missing and unknown keys; your files are never rewritten. Language files fill missing keys on their own
-(see [Language](#language)). Invalid values are reported with their path and replaced by the default.
-`/framesort reload` applies `config.yml`, `pads.yml` and the language file and tells you how many values fell back
-to their defaults. A file that is not valid YAML stops the reload and the previous configuration stays active.
+`config.yml`, `pads.yml`, `tags.yml` and `commands.yml` have a `config-version`. When FrameSort's defaults change,
+the console lists their missing and unknown keys; your files are never rewritten. Language files fill missing keys on
+their own (see [Language](#language)). Invalid values are reported with their path and replaced by the default.
+`/framesort reload` applies `config.yml`, `pads.yml`, `tags.yml` and the language file and tells you how many values
+fell back to their defaults. A file that is not valid YAML stops the reload and the previous configuration stays active.
 `commands.yml` needs a restart.
 
 Text values are written in single quotes; an apostrophe inside one is written twice (`'can''t'`). Text with
@@ -61,7 +61,8 @@ How a destination is chosen:
    comes last. Targets with the same priority form a level. A filled shulker box or bundle in the frame stands only
    for what it holds; an empty one takes any shulker box or bundle of its kind, filled or not. With CraftEngine
    installed, a custom item's material is its ID: the material step takes the same custom item, never a vanilla item
-   or another custom item of the same base material, and no tag takes a custom item.
+   or another custom item of the same base material. No game tag takes a custom item, only a [`tags.yml`](#tagsyml)
+   tag that lists it.
 2. Levels are used in order, best first. In each level, the item goes into the containers in random order until it
    is all in.
 3. Whatever is left is dropped at one random frame of that level without a container. If that level's frames
@@ -110,6 +111,44 @@ blocks stay; breaking the top block removes it. In `item` mode, breaking it give
 back. The top block of a registered pad can't be pushed by pistons or blown up.
 
 Items resting up to one block above the top block count, so carpets or slabs on the pad are fine.
+
+## tags.yml
+
+Tags of your own, and replacements for the game's tags. They only change what FrameSort's frames accept, never the
+game's tags, recipes or anything else. Each tag under `tags` is a list of members:
+
+```yaml
+tags:
+  axes:
+    - '#minecraft:axes'
+    - 'craftengine:default:topaz_axe'
+  'server:gems':
+    - 'diamond'
+    - 'emerald'
+```
+
+| Member | Meaning |
+|---|---|
+| `'diamond_axe'`, `'minecraft:diamond_axe'` | A vanilla item. |
+| `'#minecraft:axes'` | Every item in that game tag, as the game has it, so it keeps up when Minecraft adds items. It never reads a tag from `tags.yml`, so tags can't loop. |
+| `'craftengine:default:topaz_axe'` | A CraftEngine item: `craftengine:` and the item's ID, namespace included. Sneak + left-click a frame holding the item to see what to write. |
+
+- **Names.** A name without a namespace is a game tag (`axes` is `minecraft:axes`), so it replaces that tag entirely
+  inside FrameSort; add `'#minecraft:axes'` to extend it instead of copying it. Give new tags a namespace of your own
+  (`'server:gems'`). Removing a replacement and reloading brings the game's tag back.
+- **Matching.** A vanilla item goes to a tag by its material; a custom item only by its reference, never by the
+  material it is made of.
+- **Commands.** `tag list`, `tag search`, `tag show` and `tag apply` include these tags. `tag show` marks them as
+  "tags.yml tag" and lists their custom items after the materials, by the name CraftEngine gives them: CraftEngine
+  translates it for each player, as in their inventory (a name written with `<l10n:…>` needs CraftEngine's
+  `network.intercept-packets.system-chat`, on by default). Hovering shows the reference, which is also shown instead
+  of the name while CraftEngine doesn't know the item (not installed, a typo, or during `/ce reload`).
+- **Warnings.** Each of these is reported with its path (`tags.yml > tags.<name>`) and ignored: a malformed name or
+  member, an unknown material or one that is not an item, a `#tag` the game doesn't have, an item plugin FrameSort
+  doesn't read (only `craftengine:` today), a CraftEngine item without its namespace (`craftengine:topaz_axe`; write
+  `craftengine:default:topaz_axe`: two packs can use the same name, so `default` is never assumed), a tag named twice
+  (`logs` and `minecraft:logs`: the first one counts) and a tag left without valid members. The rest of a CraftEngine
+  ID is not checked, because CraftEngine may not have loaded its items yet.
 
 ## Language
 

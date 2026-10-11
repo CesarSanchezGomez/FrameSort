@@ -151,7 +151,8 @@ public final class InspectService {
                 String tagCommand = commands.usageFor("tag-show", player::hasPermission);
                 Component accepts = text.get("frame.accepts.tag",
                         Placeholder.unparsed("tag", view.key().asString()),
-                        Placeholder.unparsed("count", String.valueOf(view.materials().size())));
+                        Placeholder.unparsed("count",
+                                String.valueOf(view.materials().size() + view.customItems().size())));
                 lines.add(tagCommand == null ? accepts
                         : accepts.clickEvent(ClickEvent.runCommand(tagCommand + " " + view.key().asString())));
             }

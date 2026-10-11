@@ -5,8 +5,8 @@
 | Command | What it does |
 |---|---|
 | `/framesort` | Help: how to inspect, then one line for each command you may run. |
-| `/framesort tag show <tag> [page]` | The items or blocks in a tag, 8 per page (`inspect.page-size`), in a framed list with « » buttons. Hover an entry to see its id. Vanilla tags can be written without `minecraft:`. |
-| `/framesort tag list [page]` | Every item and block tag. Click a tag to show its contents. |
+| `/framesort tag show <tag> [page]` | The items or blocks in a tag, 8 per page (`inspect.page-size`), in a framed list with « » buttons. Hover an entry to see its id. A tag from `tags.yml` lists its custom items after them, by their CraftEngine name, translated as in your inventory; hovering one shows its reference. Vanilla tags can be written without `minecraft:`. |
+| `/framesort tag list [page]` | Every item and block tag, and the tags in `tags.yml`. Click a tag to show its contents. |
 | `/framesort tag search <text> [page]` | Only the tags whose name contains `<text>`. |
 | `/framesort tag apply <tag>` | Applies the tag to the item in your main hand (its name and glint come from `targets.tagged-item`). The [Apply] button in `/framesort tag show <tag>` runs it. In a frame a tagged item accepts only its tag. |
 | `/framesort tag remove` | Takes the tag off the item in your main hand. |
@@ -16,7 +16,7 @@
 | `/framesort inspect <page>` | Another page of the last inspection list (the page buttons run it). |
 | `/framesort give sorter [player] [amount]` | The sorter activator from `config.yml`. Needed when `sorter.activator.require-marked` is true. |
 | `/framesort give pad <type> [player] [amount]` | The special top block of a pad type. Needed when `pads.yml` has `creation: item`. |
-| `/framesort reload` | Reloads `config.yml`, `pads.yml` and the language file. If a file is broken, the previous configuration stays active. |
+| `/framesort reload` | Reloads `config.yml`, `pads.yml`, `tags.yml` and the language file. If a file is broken, the previous configuration stays active. |
 
 ## Inspecting
 
