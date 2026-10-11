@@ -109,8 +109,10 @@ frame, it destroys whatever has no other target or no room left in one. An empty
 | `types.<id>.item` | | `name`, `lore` and `glint` of the special top block (its material is the top block of the structure). |
 
 A pad is created when its top block is placed on its base, so place the base first. It counts as long as both
-blocks stay; breaking the top block removes it. In `item` mode, breaking it gives the special item
-back. The top block of a registered pad can't be pushed by pistons or blown up.
+blocks stay; breaking the top block removes it. If the top block goes any other way (WorldEdit, a command, gravity),
+the pad is forgotten at the next sweep. Without its base a pad waits, and works again once the base is back. In
+`item` mode, breaking it gives the special item back. The top block of a registered pad can't be pushed by pistons
+or blown up.
 
 Items resting up to one block above the top block count, so carpets or slabs on the pad are fine.
 
