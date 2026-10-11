@@ -194,7 +194,8 @@ public final class SorterService {
                 break;
             }
             ItemStack tried = slot.get();
-            int moved = delivery.deliver(sorter.block, new SlotSource(slot, location));
+            int kept = Math.max(0, tried.getAmount() - (PER_TURN - sent));
+            int moved = delivery.deliver(sorter.block, new SlotSource(slot, location, kept));
             if (moved == 0) {
                 missed.add(tried);
             }
@@ -353,27 +354,32 @@ public final class SorterService {
         }
     }
 
-    private record SlotSource(Slot slot, Location location) implements DeliveryService.Source {
+    /** Offers all of the slot but {@code kept} items, which stay in it whatever happens: a turn never goes past 64. */
+    private record SlotSource(Slot slot, Location location, int kept) implements DeliveryService.Source {
         @Override
         public ItemStack stack() {
-            return slot.get();
+            ItemStack item = slot.get();
+            return item.asQuantity(item.getAmount() - kept);
         }
 
         @Override
         public void commit(int remaining) {
-            slot.set(remaining <= 0 ? ItemStack.empty() : slot.get().asQuantity(remaining));
+            leave(kept + remaining);
         }
 
         @Override
         public void moveTo(Location destination) {
-            ItemStack rest = slot.get().clone();
-            destination.getWorld().dropItem(destination, rest, item -> item.setVelocity(new Vector()));
-            slot.set(ItemStack.empty());
+            destination.getWorld().dropItem(destination, stack(), item -> item.setVelocity(new Vector()));
+            leave(kept);
         }
 
         @Override
         public void destroy() {
-            slot.set(ItemStack.empty());
+            leave(kept);
+        }
+
+        private void leave(int amount) {
+            slot.set(amount <= 0 ? ItemStack.empty() : slot.get().asQuantity(amount));
         }
     }
 }
