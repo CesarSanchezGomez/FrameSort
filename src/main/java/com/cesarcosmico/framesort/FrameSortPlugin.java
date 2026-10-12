@@ -103,7 +103,7 @@ public final class FrameSortPlugin extends JavaPlugin {
         resolver = new TargetResolver(settings, index, tags, customItems);
         TraceService trace = new TraceService(this, settings, messages);
         DeliveryService delivery = new DeliveryService(this, resolver, trace::report);
-        sorters = new SorterService(this, settings, delivery);
+        sorters = new SorterService(this, settings, delivery, customItems);
         padService = new PadService(getServer(), pads, delivery);
         inspect = new InspectService(new HighlightService(this), settings, messages, index, resolver, sorters,
                 padService, commands);

@@ -10,6 +10,7 @@ import org.bukkit.inventory.ItemStack;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Set;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -42,10 +43,15 @@ public record SorterSettings(ItemTemplate activator, boolean requireMarked, Set<
                 reader.bool("show-activity", true));
     }
 
-    /** Whether {@code frame} holds the activator, which makes a sorter of the dispenser it hangs on. */
-    public boolean isActivatorFrame(ItemFrame frame) {
+    /**
+     * Whether {@code frame} holds the activator, which makes a sorter of the dispenser it hangs on. {@code customId}
+     * gives a custom item's reference, or {@code null} for a vanilla item.
+     */
+    public boolean isActivatorFrame(ItemFrame frame, Function<ItemStack, @Nullable String> customId) {
         ItemStack item = frame.getItem();
+        // A custom item is only a vanilla material underneath, so one made from the activator's material isn't one.
         return frameTypes.contains(frame.getType()) && item.getType() == activator.material()
+                && customId.apply(item) == null
                 && (!requireMarked || ItemTemplate.marker(item, Keys.ACTIVATOR) != null);
     }
 

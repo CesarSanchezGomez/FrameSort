@@ -244,7 +244,7 @@ public final class TargetResolver {
         return List.copyOf(matches);
     }
 
-    private static boolean eligible(FrameSortSettings current, Block source, ItemFrame frame) {
+    private boolean eligible(FrameSortSettings current, Block source, ItemFrame frame) {
         ItemStack shown = frame.getItem();
         if (shown.isEmpty() || !FrameGeometry.attachedLoaded(frame)) {
             return false;
@@ -256,11 +256,12 @@ public final class TargetResolver {
         }
         // Never send a source's items back into itself, and never treat a sorter's own frame as a target.
         return !attached.equals(source)
-                && !(attached.getType() == Material.DISPENSER && current.sorter().isActivatorFrame(frame));
+                && !(attached.getType() == Material.DISPENSER
+                        && current.sorter().isActivatorFrame(frame, customItems::id));
     }
 
     // Never cached: sorters come and go, and the blocks below a drop spot change, without touching any target frame.
-    private static boolean wouldLoop(FrameSortSettings current, Block source, ItemFrame frame) {
+    private boolean wouldLoop(FrameSortSettings current, Block source, ItemFrame frame) {
         if (isSorter(current, FrameGeometry.attachedBlock(frame)) && isSorter(current, source)) {
             return true;
         }
@@ -283,13 +284,14 @@ public final class TargetResolver {
     }
 
     // Read from the world: SorterService delivers through this class, so it can't be asked.
-    private static boolean isSorter(FrameSortSettings current, Block block) {
+    private boolean isSorter(FrameSortSettings current, Block block) {
         if (block.getType() != Material.DISPENSER) {
             return false;
         }
         for (ItemFrame frame : block.getWorld().getNearbyEntitiesByType(ItemFrame.class,
                 block.getLocation().toCenterLocation(), 1)) {
-            if (FrameGeometry.attachedBlock(frame).equals(block) && current.sorter().isActivatorFrame(frame)) {
+            if (FrameGeometry.attachedBlock(frame).equals(block)
+                    && current.sorter().isActivatorFrame(frame, customItems::id)) {
                 return true;
             }
         }

@@ -66,20 +66,23 @@ public final class SorterService {
     private final Plugin plugin;
     private final Supplier<FrameSortSettings> settings;
     private final DeliveryService delivery;
+    private final CustomItemResolver customItems;
     private final Map<BlockKey, Sorter> sorters = new HashMap<>();
     // Frames with a retry pending; every load, reload or frame change would otherwise start another retry chain.
     private final Set<UUID> waiting = new HashSet<>();
     private long tick;
     private int nextPhase;
 
-    public SorterService(Plugin plugin, Supplier<FrameSortSettings> settings, DeliveryService delivery) {
+    public SorterService(Plugin plugin, Supplier<FrameSortSettings> settings, DeliveryService delivery,
+                         CustomItemResolver customItems) {
         this.plugin = plugin;
         this.settings = settings;
         this.delivery = delivery;
+        this.customItems = customItems;
     }
 
     public Change consider(ItemFrame frame) {
-        boolean holdsActivator = settings.get().sorter().isActivatorFrame(frame);
+        boolean holdsActivator = settings.get().sorter().isActivatorFrame(frame, customItems::id);
         if (!FrameGeometry.attachedLoaded(frame)) {
             // Only frames that could make a sorter wait for the neighbouring chunk; the rest are never sorters.
             if (holdsActivator && waiting.add(frame.getUniqueId())) {
@@ -205,7 +208,8 @@ public final class SorterService {
     }
 
     private boolean makesSorter(ItemFrame frame, Block block) {
-        return settings.get().sorter().isActivatorFrame(frame) && block.getType() == Material.DISPENSER;
+        return block.getType() == Material.DISPENSER
+                && settings.get().sorter().isActivatorFrame(frame, customItems::id);
     }
 
     private void dispense(Sorter sorter) {
