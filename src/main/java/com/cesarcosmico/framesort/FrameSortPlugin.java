@@ -199,7 +199,7 @@ public final class FrameSortPlugin extends JavaPlugin {
 
     private FrameSortSettings loadSettings(Consumer<String> warn) throws IOException, InvalidConfigurationException {
         YamlConfiguration yaml = ConfigFiles.load(this, "config.yml");
-        ConfigValidator.check(this, yaml, "config.yml", warn);
+        ConfigValidator.check(this, yaml, "config.yml", Set.of(), FrameSortSettings.OPTIONAL_KEYS, warn);
         return FrameSortSettings.parse(new ConfigReader(yaml, "config.yml", warn), FrameSortPlugin::isItem);
     }
 

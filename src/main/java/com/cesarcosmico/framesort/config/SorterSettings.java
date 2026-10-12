@@ -31,7 +31,7 @@ public record SorterSettings(ItemTemplate activator, boolean requireMarked, Set<
             activator.warn("material", material + " is not an item, using ENDER_EYE");
             material = Material.ENDER_EYE;
         }
-        String customName = reader.string("custom-name", "<gradient:#F7B733:#FC4A1A>Item Sorter</gradient>");
+        String customName = reader.string("custom-name", "");
         return new SorterSettings(
                 itemTemplate(activator, material, activator.key("item-model")),
                 activator.bool("require-marked", false),

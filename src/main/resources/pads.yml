@@ -8,7 +8,7 @@ sweep-interval: 10   # ticks
 types:
   simple:
     structure: [CRYING_OBSIDIAN, GILDED_BLACKSTONE]   # top, base: two blocks a player can place
-    item:
+    item:   # optional, and each key in it: leave it out (or set '', [] or false) for none of it
       name: '<gradient:#F7B733:#FC4A1A>Teleport Pad</gradient>'
       lore:
         - ''

@@ -120,6 +120,27 @@ class FrameSortSettingsTest {
     }
 
     @Test
+    void leavingOutTheOptionalKeysMeansWithoutThem() throws Exception {
+        YamlConfiguration bundled = bundled("config.yml");
+        YamlConfiguration live = bundled("config.yml");
+        for (String key : FrameSortSettings.OPTIONAL_KEYS) {
+            // Each one stays in the bundled file, so the admin sees it and a typo of it is still reported.
+            assertTrue(bundled.isSet(key), key);
+            live.set(key, null);
+        }
+        List<String> warnings = new ArrayList<>();
+        ConfigValidator.compare(live, bundled, "config.yml", Set.of(), FrameSortSettings.OPTIONAL_KEYS, warnings::add);
+        SorterSettings sorter = parse(live, warnings).sorter();
+
+        assertEquals(List.of(), warnings);
+        assertNull(sorter.activator().name());
+        assertEquals(List.of(), sorter.activator().lore());
+        assertFalse(sorter.activator().glint());
+        assertNull(sorter.activator().itemModel());
+        assertNull(sorter.customName());
+    }
+
+    @Test
     void materialsThatAreNotItemsFallBack() throws Exception {
         YamlConfiguration yaml = new YamlConfiguration();
         yaml.loadFromString("""

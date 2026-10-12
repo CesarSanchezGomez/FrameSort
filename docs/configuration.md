@@ -1,8 +1,9 @@
 # Configuration
 
-`config.yml`, `pads.yml`, `tags.yml` and `commands.yml` have a `config-version`. When FrameSort's defaults change,
-the console lists their missing and unknown keys; your files are never rewritten. Language files fill missing keys on
-their own (see [Language](#language)). Invalid values are reported with their path and replaced by the default.
+`config.yml`, `pads.yml`, `tags.yml` and `commands.yml` have a `config-version`. When FrameSort's defaults change, the
+console lists their missing and unknown keys; your files are never rewritten. Keys marked *optional* can be left out
+without a warning: leaving one out means none of it, such as an activator with no lore. Language files fill missing keys
+on their own (see [Language](#language)). Invalid values are reported with their path and replaced by the default.
 `/framesort reload` applies `config.yml`, `pads.yml`, `tags.yml` and the language file and tells you how many values
 fell back to their defaults. A file that is not valid YAML stops the reload and the previous configuration stays active.
 `commands.yml` needs a restart.
@@ -19,9 +20,9 @@ empty line (`''`) and keeps each line short.
 |---|---|---|
 | `activator.material` | `ENDER_EYE` | Item that turns a dispenser into a sorter when placed in a frame on it. A material that is not an item (`WATER`, `AIR`) falls back to the default. A CraftEngine item made from that material is not the activator. |
 | `activator.require-marked` | `false` | `true`: only the activator from `/framesort give sorter` works, not any item of that material. |
-| `activator.name`, `lore`, `glint`, `item-model` | | Look of the activator FrameSort hands out (MiniMessage). |
+| `activator.name`, `lore`, `glint`, `item-model` | | *Optional.* Look of the activator FrameSort hands out: `name` (MiniMessage), `lore` (one line per entry), `glint` and `item-model` (a model from a resource pack). Left out, or set to `''`, `[]` or `false`, the activator has none of it: with no name it shows the item's own name. |
 | `frame-types` | `[ITEM_FRAME, GLOW_ITEM_FRAME]` | Frames that can hold the activator. |
-| `custom-name` | `<gradient:#F7B733:#FC4A1A>Item Sorter</gradient>` | Title of a sorter's inventory. `''` = the dispenser's own name. The dispenser itself is never renamed: once it stops sorting it shows its own name again (from an anvil, or none), and a broken sorter drops it with that name. |
+| `custom-name` | `<gradient:#F7B733:#FC4A1A>Item Sorter</gradient>` | *Optional.* Title of a sorter's inventory. Left out or `''` = the dispenser's own name. The dispenser itself is never renamed: once it stops sorting it shows its own name again (from an anvil, or none), and a broken sorter drops it with that name. |
 | `tick-rate` | `20` | Ticks between two turns of the same sorter. |
 | `disable-when-powered` | `false` | A powered sorter stops sending. |
 | `hide-frame` | `true` | Hides the activator's frame while the sorter works. A reload applies a change to every sorter. |
@@ -112,7 +113,7 @@ frame, it destroys whatever has no other target or no room left in one. An empty
 | `creation` | `anyone` | `anyone`: any player who places the top block on its base. `permission`: only players with `framesort.pad.create`. `item`: only by placing the pad's special item (from `/framesort give pad`) as the top block. |
 | `sweep-interval` | `10` | Ticks between checks for items resting on pads. Items that arrive by water or fall onto a pad are picked up then. |
 | `types.<id>.structure` | | Exactly two blocks: the top, where items rest, then its base. Players build pads by hand, so both must be blocks a player can place (not `STICK`, `WATER` or `AIR`); otherwise the type is skipped with a warning. |
-| `types.<id>.item` | | `name`, `lore` and `glint` of the special top block (its material is the top block of the structure). |
+| `types.<id>.item` | | *Optional*, and so is each key in it: `name` (MiniMessage), `lore` (one line per entry) and `glint` of the special top block. Left out, or set to `''`, `[]` or `false`, the block has none of it. Its material is the top block of the structure, and it keeps that block's model. |
 
 A pad is created when its top block is placed on its base, so place the base first. It counts as long as both
 blocks stay; breaking the top block removes it. If the top block goes any other way (WorldEdit, a command, gravity),

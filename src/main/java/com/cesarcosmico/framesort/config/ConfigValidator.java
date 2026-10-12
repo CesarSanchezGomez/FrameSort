@@ -31,14 +31,23 @@ public final class ConfigValidator {
      */
     public static void check(Plugin plugin, ConfigurationSection live, String resource, Set<String> open,
                              Consumer<String> warn) {
+        check(plugin, live, resource, open, Set.of(), warn);
+    }
+
+    /**
+     * Same as {@link #check(Plugin, ConfigurationSection, String, Set, Consumer)}, and the {@code optional} keys (full
+     * paths) may be missing without a warning: leaving one out means "without it", such as an item with no lore.
+     */
+    public static void check(Plugin plugin, ConfigurationSection live, String resource, Set<String> open,
+                             Set<String> optional, Consumer<String> warn) {
         YamlConfiguration bundled = ConfigFiles.bundled(plugin, resource);
         if (bundled != null) {
-            compare(live, bundled, resource, open, warn);
+            compare(live, bundled, resource, open, optional, warn);
         }
     }
 
     static void compare(ConfigurationSection live, ConfigurationSection bundled, String resource, Set<String> open,
-                        Consumer<String> warn) {
+                        Set<String> optional, Consumer<String> warn) {
         int expected = bundled.getInt(VERSION_KEY, 0);
         int current = live.getInt(VERSION_KEY, 0);
         if (current < expected) {
@@ -48,7 +57,8 @@ public final class ConfigValidator {
 
         List<String> missing = new ArrayList<>();
         for (String key : bundled.getKeys(true)) {
-            if (!bundled.isConfigurationSection(key) && !live.isSet(key) && !isOpen(key, open)) {
+            if (!bundled.isConfigurationSection(key) && !live.isSet(key) && !isOpen(key, open)
+                    && !optional.contains(key)) {
                 missing.add(key);
             }
         }

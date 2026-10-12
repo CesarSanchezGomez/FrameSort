@@ -24,12 +24,16 @@ class ConfigValidatorTest {
             """;
 
     private static List<String> compare(String live, Set<String> open) throws Exception {
+        return compare(live, open, Set.of());
+    }
+
+    private static List<String> compare(String live, Set<String> open, Set<String> optional) throws Exception {
         YamlConfiguration liveYaml = new YamlConfiguration();
         liveYaml.loadFromString(live);
         YamlConfiguration bundled = new YamlConfiguration();
         bundled.loadFromString(BUNDLED);
         List<String> warnings = new ArrayList<>();
-        ConfigValidator.compare(liveYaml, bundled, "config.yml", open, warnings::add);
+        ConfigValidator.compare(liveYaml, bundled, "config.yml", open, optional, warnings::add);
         return warnings;
     }
 
@@ -50,6 +54,15 @@ class ConfigValidatorTest {
         List<String> warnings = compare(BUNDLED.replace("  per-tick: 4\n", ""), Set.of());
         assertEquals(1, warnings.size());
         assertTrue(warnings.getFirst().contains("limits.per-tick"));
+    }
+
+    @Test
+    void optionalKeysMayBeMissingButAreStillKnown() throws Exception {
+        assertEquals(List.of(), compare(BUNDLED.replace("  per-tick: 4\n", ""), Set.of(), Set.of("limits.per-tick")));
+        // A typo of an optional key is still an unknown key.
+        List<String> warnings = compare(BUNDLED.replace("per-tick", "per-tik"), Set.of(), Set.of("limits.per-tick"));
+        assertEquals(1, warnings.size());
+        assertTrue(warnings.getFirst().contains("[limits.per-tik]"));
     }
 
     @Test
