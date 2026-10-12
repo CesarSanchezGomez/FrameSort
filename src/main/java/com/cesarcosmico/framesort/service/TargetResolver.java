@@ -91,6 +91,7 @@ public final class TargetResolver {
 
     // Deliveries and inspections both plan here, so an inspection always shows what a delivery would do.
     public Plan plan(Block source, ItemStack item) {
+        FrameSortSettings current = settings.get();
         Ranking<ItemFrame> ranking = new Ranking<>();
         boolean stale = false;
         for (Match match : matches(source, item)) {
@@ -103,13 +104,17 @@ public final class TargetResolver {
             if (FrameGeometry.attachedBlock(frame).getType() == Material.COMPOSTER && !item.getType().isCompostable()) {
                 continue;
             }
+            // Not cached: the blocks a dropped item falls past change without touching the frames.
+            if (dropsOntoPad(current, frame)) {
+                continue;
+            }
             ranking.add(match.priority(), frame);
         }
         List<Level> levels = new ArrayList<>();
         for (List<ItemFrame> tied : ranking.levels()) {
             Map<Destination, List<ItemFrame>> split = new EnumMap<>(Destination.class);
             for (ItemFrame frame : tied) {
-                split.computeIfAbsent(destination(frame), key -> new ArrayList<>()).add(frame);
+                split.computeIfAbsent(destination(current, frame), key -> new ArrayList<>()).add(frame);
             }
             levels.add(new Level(split.getOrDefault(Destination.CONTAINER, List.of()),
                     split.getOrDefault(Destination.DROPPED, List.of()),
@@ -205,7 +210,9 @@ public final class TargetResolver {
 
     /** Whether {@code source} may send to {@code frame} at all, whatever the item; the caller checks the distance. */
     public boolean reaches(Block source, ItemFrame frame) {
-        return eligible(settings.get(), source, frame) && new TargetBindEvent(source, frame).callEvent();
+        FrameSortSettings current = settings.get();
+        return eligible(current, source, frame) && !dropsOntoPad(current, frame)
+                && new TargetBindEvent(source, frame).callEvent();
     }
 
     /** The frames in range that {@code source} may send to, whatever the item. */
@@ -254,13 +261,14 @@ public final class TargetResolver {
                 || attached.getType() == Material.DISPENSER && current.sorter().isActivatorFrame(frame)) {
             return false;
         }
-        // Nor drop items where they land on a pad: it would pick them up and send them again.
-        if (destination(current, frame) == Destination.DROPPED
-                && landsOnPad(FrameGeometry.dropPoint(frame).getBlock())) {
-            return false;
-        }
         // A sorter never feeds another, so no two sorters pass items back and forth; a pad may feed one.
         return !(isSorter(current, attached) && isSorter(current, source));
+    }
+
+    // A pad would pick the items up and send them again.
+    private static boolean dropsOntoPad(FrameSortSettings current, ItemFrame frame) {
+        return destination(current, frame) == Destination.DROPPED
+                && landsOnPad(FrameGeometry.dropPoint(frame).getBlock());
     }
 
     /** Whether items dropped in {@code drop} would fall into a pad's pickup space. */
