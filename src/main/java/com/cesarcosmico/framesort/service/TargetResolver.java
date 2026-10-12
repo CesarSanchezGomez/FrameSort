@@ -104,8 +104,7 @@ public final class TargetResolver {
             if (FrameGeometry.attachedBlock(frame).getType() == Material.COMPOSTER && !item.getType().isCompostable()) {
                 continue;
             }
-            // Not cached: the blocks a dropped item falls past change without touching the frames.
-            if (dropsOntoPad(current, frame)) {
+            if (wouldLoop(current, source, frame)) {
                 continue;
             }
             ranking.add(match.priority(), frame);
@@ -211,7 +210,7 @@ public final class TargetResolver {
     /** Whether {@code source} may send to {@code frame} at all, whatever the item; the caller checks the distance. */
     public boolean reaches(Block source, ItemFrame frame) {
         FrameSortSettings current = settings.get();
-        return eligible(current, source, frame) && !dropsOntoPad(current, frame)
+        return eligible(current, source, frame) && !wouldLoop(current, source, frame)
                 && new TargetBindEvent(source, frame).callEvent();
     }
 
@@ -257,21 +256,19 @@ public final class TargetResolver {
             return false;
         }
         // Never send a source's items back into itself, and never treat a sorter's own frame as a target.
-        if (attached.equals(source)
-                || attached.getType() == Material.DISPENSER && current.sorter().isActivatorFrame(frame)) {
-            return false;
-        }
-        // A sorter never feeds another, so no two sorters pass items back and forth; a pad may feed one.
-        return !(isSorter(current, attached) && isSorter(current, source));
+        return !attached.equals(source)
+                && !(attached.getType() == Material.DISPENSER && current.sorter().isActivatorFrame(frame));
     }
 
-    // A pad would pick the items up and send them again.
-    private static boolean dropsOntoPad(FrameSortSettings current, ItemFrame frame) {
+    // Never cached: sorters come and go, and the blocks below a drop spot change, without touching any target frame.
+    private static boolean wouldLoop(FrameSortSettings current, Block source, ItemFrame frame) {
+        if (isSorter(current, FrameGeometry.attachedBlock(frame)) && isSorter(current, source)) {
+            return true;
+        }
         return destination(current, frame) == Destination.DROPPED
                 && landsOnPad(FrameGeometry.dropPoint(frame).getBlock());
     }
 
-    /** Whether items dropped in {@code drop} would fall into a pad's pickup space. */
     private static boolean landsOnPad(Block drop) {
         Block block = drop;
         while (block.isPassable() && block.getY() > block.getWorld().getMinHeight()) {

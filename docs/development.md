@@ -52,8 +52,8 @@ Nothing is stored outside the world:
   loads and unloads). Finding targets only looks at the chunks within `max-distance`, never at every entity in
   the world.
 - **Cache.** Matches are cached per source and item (amount ignored) and invalidated by a per-world epoch that
-  changes with any target change. A cached frame is checked again before use, and so is whether items dropped at
-  it would land on a pad: the blocks below change without touching any frame.
+  changes with any target change. A cached frame is checked again before use, and so are the loop guards (a frame
+  on another sorter, items that would land on a pad): sorters and the blocks below change without touching a frame.
 - **One plan.** `TargetResolver.plan` ranks the targets into levels of preference, each split into containers,
   drop spots and lava. Deliveries and inspections (`/framesort where`, inspecting with an item in the off hand) both
   use it, so an inspection shows exactly what a delivery would do.
