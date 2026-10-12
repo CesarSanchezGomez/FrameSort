@@ -72,8 +72,9 @@ How a destination is chosen:
 4. Otherwise, what is left goes on to the next level. If no level has room, it stays.
 
 **A sorter never sends to another sorter.** A target frame on a sorter only takes items from pads, so a pad can feed
-a sorter that opens the shulker boxes and bundles dropped on it, and no two sorters pass items back and forth.
-Hoppers can still lead items back into a sorter: build them so that items don't go round.
+a sorter that opens the shulker boxes and bundles dropped on it, and no two sorters pass items back and forth. Nor
+does a sorter or pad send to itself: neither into its own block nor to a drop spot right above it, where a pad would
+pick the items up again. Hoppers can still lead items back into a sorter: build them so that items don't go round.
 
 **Tagged items.** `/framesort tag apply <tag>` (or the [Apply] button in `/framesort tag show <tag>`) applies a tag
 to the item in your hand: the tag is stored inside the item, and its name and glint come from `targets.tagged-item`.

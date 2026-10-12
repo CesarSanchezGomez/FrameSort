@@ -15,6 +15,7 @@ import org.bukkit.Color;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
 import org.bukkit.entity.ItemFrame;
 import org.bukkit.inventory.ItemStack;
 import org.jspecify.annotations.Nullable;
@@ -117,10 +118,14 @@ public final class TargetResolver {
     }
 
     public Destination destination(ItemFrame frame) {
+        return destination(settings.get(), frame);
+    }
+
+    private static Destination destination(FrameSortSettings current, ItemFrame frame) {
         if (FrameGeometry.isLava(frame)) {
             return Destination.DESTROYED;
         }
-        return settings.get().delivery().insertIntoContainers()
+        return current.delivery().insertIntoContainers()
                 && FrameGeometry.isContainer(FrameGeometry.attachedBlock(frame))
                 ? Destination.CONTAINER : Destination.DROPPED;
     }
@@ -246,6 +251,11 @@ public final class TargetResolver {
         // Never send a source's items back into itself, and never treat a sorter's own frame as a target.
         if (attached.equals(source)
                 || attached.getType() == Material.DISPENSER && current.sorter().isActivatorFrame(frame)) {
+            return false;
+        }
+        // Nor drop them right onto it: a pad would pick them up and send them again.
+        if (destination(current, frame) == Destination.DROPPED
+                && FrameGeometry.dropPoint(frame).getBlock().equals(source.getRelative(BlockFace.UP))) {
             return false;
         }
         // A sorter never feeds another, so no two sorters pass items back and forth; a pad may feed one.
