@@ -1,5 +1,6 @@
 package com.cesarcosmico.framesort.command;
 
+import com.cesarcosmico.framesort.config.CommandsConfig;
 import com.cesarcosmico.framesort.config.FrameSortSettings;
 import com.cesarcosmico.framesort.config.TargetSettings;
 import com.cesarcosmico.framesort.item.ItemTagCodec;
@@ -26,8 +27,9 @@ public final class TagApplyCommand implements CommandFeature {
     private final Supplier<Messages> messages;
     private final Supplier<FrameSortSettings> settings;
 
-    public TagApplyCommand(TagCatalog tags, Supplier<Messages> messages, Supplier<FrameSortSettings> settings) {
-        this.tag = new TagArgument(tags, messages);
+    public TagApplyCommand(TagCatalog tags, Supplier<Messages> messages, Supplier<FrameSortSettings> settings,
+                           CommandsConfig commands) {
+        this.tag = new TagArgument(tags, messages, commands);
         this.messages = messages;
         this.settings = settings;
     }

@@ -14,11 +14,15 @@ container.
 ## Installation
 
 1. Put `FrameSort-<version>.jar` in the server's `plugins/` folder.
-2. Start the server once. FrameSort writes `config.yml`, `pads.yml`, `tags.yml`, `commands.yml` and `lang/` to
-   `plugins/FrameSort/`.
+2. Start the server once. FrameSort writes `config.yml`, `pads.yml`, `tags.yml`, `commands.yml` and the language
+   file in use (`lang/en_US.yml`) to `plugins/FrameSort/`.
 3. Edit them and run `/framesort reload` (`commands.yml` needs a restart).
 
 `/version FrameSort` shows the installed version.
+
+When the server stops, every sorter in a loaded chunk shows its frame again. A sorter in a chunk that isn't loaded
+keeps its hidden frame until it loads with FrameSort installed, so before removing FrameSort, take the Eye of Ender
+out of those sorters.
 
 ## How it works
 
@@ -86,7 +90,7 @@ Every command also runs as `/fs`. Where each command lives, its permission and w
 | `framesort.use` | everyone | inspecting, marking targets and the help, tag, where, trace and inspect commands (every `framesort.command.tag-*`) |
 | `framesort.admin` | op | creating pads in `permission` mode and the give and reload commands |
 | `framesort.inspect` | everyone | inspecting sorters, pads and frames |
-| `framesort.target.create` | everyone | marking frames as targets |
+| `framesort.target.create` | everyone | marking frames as targets (with `framesort.inspect`) |
 | `framesort.pad.create` | op | creating pads when `pads.yml` has `creation: permission` |
 | `framesort.command.<command>` | as in the table above | each command |
 

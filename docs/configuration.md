@@ -21,14 +21,16 @@ empty line (`''`) and keeps each line short.
 | `activator.require-marked` | `false` | `true`: only the activator from `/framesort give sorter` works, not any item of that material. |
 | `activator.name`, `lore`, `glint`, `item-model` | | Look of the activator FrameSort hands out (MiniMessage). |
 | `frame-types` | `[ITEM_FRAME, GLOW_ITEM_FRAME]` | Frames that can hold the activator. |
-| `custom-name` | `<gradient:#F7B733:#FC4A1A>Item Sorter</gradient>` | Name shown in the sorter's inventory. `''` = none. |
+| `custom-name` | `<gradient:#F7B733:#FC4A1A>Item Sorter</gradient>` | Title of a sorter's inventory. `''` = the dispenser's own name. The dispenser itself is never renamed: once it stops sorting it shows its own name again (from an anvil, or none), and a broken sorter drops it with that name. |
 | `tick-rate` | `20` | Ticks between two turns of the same sorter. |
 | `disable-when-powered` | `false` | A powered sorter stops sending. |
-| `hide-frame` | `true` | Hides the activator's frame while the sorter works. |
+| `hide-frame` | `true` | Hides the activator's frame while the sorter works. A reload applies a change to every sorter. |
 | `show-activity` | `true` | Rotates the activator after every turn that sends something. |
 
-A sorter never dispenses like a plain dispenser. Each turn it sends random stacks until 64 items have gone, taking
-them from inside shulker boxes and bundles, so packed items go as fast as loose ones. Items with nowhere to go stay
+Whoever creates or removes a sorter (placing or taking the activator, or breaking its frame or dispenser) is told
+so. A sorter never dispenses like a plain dispenser. Each turn it sends up to 64 items from random stacks (only part of
+the last one when it would go past 64), taking them from inside shulker boxes and bundles, so packed items go as fast
+as loose ones. Items with nowhere to go stay
 in the sorter without holding up the rest, and are not tried again in the same turn; a turn gives up after 64
 tries. Once nothing inside a shulker box or bundle can go anywhere, the box or bundle itself is sent whole to the
 targets that accept it.
@@ -38,13 +40,13 @@ targets that accept it.
 | Key | Default | Meaning |
 |---|---|---|
 | `registration` | `manual` | `manual`: only frames marked by sneak + right-clicking them with an empty hand. `automatic`: every frame of `frame-types` on a container or composter; frames anywhere else (walls, lava cauldrons) are never targets, so marking is the only way to make a drop spot or a trash can. |
-| `positions` | `[FRONT]` | Where a target frame may hang on its block: `TOP`, `BOTTOM`, `FRONT`, `BACK`, `LEFT`, `RIGHT` (`SIDES` = `LEFT` + `RIGHT`). `FRONT`, `BACK`, `LEFT` and `RIGHT` follow the way the block faces (chests, barrels, furnaces…); left and right are as seen standing in front of it. On blocks without a horizontal facing (hoppers, upright barrels, composters) a side face counts as any of the four. |
 | `frame-types` | `[ITEM_FRAME, GLOW_ITEM_FRAME]` | Frames that can be targets. |
 | `tagged-item.name` | `'<gradient:#F7B733:#FC4A1A>#<tag></gradient>'` | Name a tagged item gets (MiniMessage); `<tag>` is the tag, without `minecraft:` for vanilla tags. |
 | `tagged-item.glint` | `true` | Tagged items get the enchantment glint, so they stand out in inventories and frames. |
 
-Only the front counts by default, so decorative frames on the top or sides of a chest are never used. Add positions
-only where frames are meant to be targets, especially with `automatic`.
+A target frame may hang on any face of its block, whichever way the block faces: the lid of an upright barrel, the
+side of a chest or the bottom of one in a ceiling. With `automatic`, that means every frame on a container or
+composter is a target.
 
 ### delivery
 
@@ -68,6 +70,12 @@ How a destination is chosen:
 3. Whatever is left is dropped at one random frame of that level without a container. If that level's frames
    without a container are all on lava cauldrons, the rest is destroyed. Either way the delivery ends there.
 4. Otherwise, what is left goes on to the next level. If no level has room, it stays.
+
+**A sorter never sends to another sorter.** A target frame on a sorter only takes items from pads (its frame card says
+so), so a pad can feed a sorter that opens the shulker boxes and bundles dropped on it, and no two sorters pass items
+back and forth. Nor does a sorter or pad send into its own block, and none of them drops items where they would fall
+onto a pad, which would pick them up and send them again. Hoppers can still lead items back into a sorter: build them so
+that items don't go round.
 
 **Tagged items.** `/framesort tag apply <tag>` (or the [Apply] button in `/framesort tag show <tag>`) applies a tag
 to the item in your hand: the tag is stored inside the item, and its name and glint come from `targets.tagged-item`.
@@ -107,8 +115,10 @@ frame, it destroys whatever has no other target or no room left in one. An empty
 | `types.<id>.item` | | `name`, `lore` and `glint` of the special top block (its material is the top block of the structure). |
 
 A pad is created when its top block is placed on its base, so place the base first. It counts as long as both
-blocks stay; breaking the top block removes it. In `item` mode, breaking it gives the special item
-back. The top block of a registered pad can't be pushed by pistons or blown up.
+blocks stay; breaking the top block removes it. If the top block goes any other way (WorldEdit, a command, gravity),
+the pad is forgotten at the next sweep. Without its base a pad waits, and works again once the base is back. In
+`item` mode, breaking it gives the special item back. The top block of a registered pad can't be pushed by pistons
+or blown up.
 
 Items resting up to one block above the top block count, so carpets or slabs on the pad are fine.
 
@@ -152,16 +162,17 @@ tags:
 
 ## Language
 
-`language` in `config.yml` picks `lang/<language>.yml` (`en_US`, `es_ES`). A key missing from your file comes from
-the bundled copy of that language, then from the bundled `en_US`; a key missing everywhere shows as the key and is
-reported once in the console. Messages use [MiniMessage](https://docs.papermc.io/adventure/minimessage/format/);
-`<prefix>` is the `prefix` key.
+`language` in `config.yml` picks `lang/<language>.yml` (`en_US`, `es_ES`), written the first time it is used. A
+key missing from your file comes from the bundled copy of that language, then from the bundled `en_US`; a key missing
+everywhere shows as the key and is reported once in the console. Messages use
+[MiniMessage](https://docs.papermc.io/adventure/minimessage/format/); `<prefix>` is the `prefix` key.
 
 ### Help
 
 `command.help.header` opens the help (a list: one line per entry). Then comes one `command.help.<id>` line for
 each command the player may run, where `<usage>` is the first path of that command in `commands.yml`. If you move a
-command, the help follows it; any path you wrote by hand in the text does not.
+command, the help follows it, and so do `trace.started` (`<stop>`), `tag.unknown-hint` and `give.players-only`
+(`<usage>`); any path you wrote by hand in the text does not.
 
 ### Pages
 
@@ -177,4 +188,5 @@ Lists (`tag list`, `tag search`, `tag show` and the inspection lists) are built 
 ### Frame card
 
 What a frame accepts is shown as one message built from `frame.layout`, framed like a page: `<title>` is
-`frame.title` and `<lines>` are the `frame.status`, `frame.into`, `frame.accepts` and `frame.sources` lines that apply.
+`frame.title` and `<lines>` are the `frame.status`, `frame.into`, `frame.on-sorter`, `frame.accepts` and
+`frame.sources` lines that apply.

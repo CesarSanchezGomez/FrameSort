@@ -101,16 +101,14 @@ public final class PadService {
         return type == null ? null : createItem(type, 1);
     }
 
-    public boolean isRegistered(Block block) {
-        Map<BlockKey, String> inChunk = pads.get(FrameGeometry.key(block.getChunk()));
-        return inChunk != null && inChunk.containsKey(FrameGeometry.key(block));
+    /** Whether {@code block} is the top block of a registered pad. */
+    public boolean isPad(Block block) {
+        return registered(block) != null;
     }
 
     /** The pad whose top block this is, if it is registered and its column is still complete. */
     public @Nullable PadType padAt(Block top) {
-        Map<BlockKey, String> inChunk = pads.get(FrameGeometry.key(top.getChunk()));
-        String typeId = inChunk == null ? null : inChunk.get(FrameGeometry.key(top));
-        PadType type = typeId == null ? null : settings.get().type(typeId);
+        PadType type = registered(top);
         return type != null && matches(top, type) ? type : null;
     }
 
@@ -139,17 +137,28 @@ public final class PadService {
             return;
         }
         for (Map<BlockKey, String> inChunk : List.copyOf(pads.values())) {
-            for (BlockKey key : List.copyOf(inChunk.keySet())) {
+            for (Map.Entry<BlockKey, String> pad : Map.copyOf(inChunk).entrySet()) {
+                BlockKey key = pad.getKey();
                 World world = server.getWorld(key.world());
                 if (world != null) {
-                    sweep(world.getBlockAt(key.x(), key.y(), key.z()));
+                    sweep(world.getBlockAt(key.x(), key.y(), key.z()), pad.getValue());
                 }
             }
         }
     }
 
-    private void sweep(Block top) {
-        if (padAt(top) == null) {
+    private void sweep(Block top, String typeId) {
+        PadType type = settings.get().type(typeId);
+        // A type taken out of pads.yml, or mistyped, keeps its pads: they work again once it is back.
+        if (type == null) {
+            return;
+        }
+        // A player's break unregisters the pad at once; one by WorldEdit, a command or gravity is only seen here.
+        if (top.getType() != type.top()) {
+            unregister(top);
+            return;
+        }
+        if (!matches(top, type)) {
             return;
         }
         // Items count when resting up to one block above the pad, like a hopper's pickup area.
@@ -163,6 +172,13 @@ public final class PadService {
 
     private static boolean matches(Block top, PadType type) {
         return top.getType() == type.top() && top.getRelative(BlockFace.DOWN).getType() == type.base();
+    }
+
+    private @Nullable PadType registered(Block block) {
+        Map<BlockKey, String> inChunk = pads.get(FrameGeometry.key(block.getChunk()));
+        String typeId = inChunk == null ? null : inChunk.get(FrameGeometry.key(block));
+        PadType type = typeId == null ? null : settings.get().type(typeId);
+        return type != null && block.getType() == type.top() ? type : null;
     }
 
     private void register(Block block, PadType type) {

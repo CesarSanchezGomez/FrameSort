@@ -25,7 +25,7 @@ command:
 pager:
   layout:
     - ''
-    - '<gradient:#F7B733:#FC4A1A>◤<st>                          </st></gradient> <white>[</white><gradient:#F7B733:#FC4A1A>FrameSort</gradient><white>]</white> <gradient:#FC4A1A:#F7B733><st>                          </st>◥</gradient>'
+    - '<gradient:#F7B733:#FC4A1A>◤<st>                          </st></gradient> <prefix><gradient:#FC4A1A:#F7B733><st>                          </st>◥</gradient>'
     - ''
     - '  <white><title></white> <dark_gray>·</dark_gray> <gray><total></gray>'
     - ''
@@ -68,7 +68,7 @@ inspect:
 frame:
   layout:
     - ''
-    - '<gradient:#F7B733:#FC4A1A>◤<st>                          </st></gradient> <white>[</white><gradient:#F7B733:#FC4A1A>FrameSort</gradient><white>]</white> <gradient:#FC4A1A:#F7B733><st>                          </st>◥</gradient>'
+    - '<gradient:#F7B733:#FC4A1A>◤<st>                          </st></gradient> <prefix><gradient:#FC4A1A:#F7B733><st>                          </st>◥</gradient>'
     - ''
     - '  <title>'
     - ''
@@ -78,9 +78,8 @@ frame:
     - ''
   title: '<white>Target frame</white> <dark_gray>(<x>, <y>, <z>)</dark_gray>'
   status:
-    target: '  <green>✔</green> <gray>A target, on the <position> of its block</gray>'
+    target: '  <green>✔</green> <gray>A target</gray>'
     unmarked: '  <yellow>✘</yellow> <gray>Not a target yet: sneak + right-click it with an empty hand</gray>'
-    not-allowed: '  <red>✘</red> <gray>Frames can''t be targets on the <position> of a block here</gray>'
     wrong-type: '  <red>✘</red> <gray>This kind of frame can''t be a target</gray>'
   into:
     container: '  <color:#F7B733>•</color> <gray>Items go into</gray> <white><block></white>'
@@ -93,6 +92,7 @@ frame:
     similar: '  <color:#F7B733>•</color> <gray>Accepts any</gray> <white><material></white> <dark_gray>when nothing matches better</dark_gray>'
     custom: '  <color:#F7B733>•</color> <gray>Accepts any</gray> <white><id></white> <dark_gray>when nothing matches better</dark_gray>'
     default: '  <color:#F7B733>•</color> <gray>Default target:</gray> <white>whatever matches no other frame, or has no room left in one</white>'
+  on-sorter: '  <color:#F7B733>•</color> <gray>On a sorter: only teleport pads send here</gray>'
   sources: '  <color:#F7B733>•</color> <gray>Sorters and pads in range:</gray> <white><count></white>'
 
 mark:
@@ -101,16 +101,6 @@ mark:
   automatic: '<prefix><gray>Every frame is a target already on this server.</gray>'
   no-permission: '<prefix><red>You can''t mark target frames.</red>'
   wrong-type: '<prefix><red>This kind of frame can''t be a target.</red>'
-  wrong-position: '<prefix><red>Target frames can''t go on the <position> of a block here. Allowed: <allowed>.</red>'
-
-position:
-  top: 'top'
-  bottom: 'bottom'
-  front: 'front'
-  back: 'back'
-  left: 'left'
-  right: 'right'
-  side: 'side'
 
 tag-item:
   applied: '<prefix><green>The item in your hand now stands for <white>#<tag></white> in frames.</green>'
@@ -123,7 +113,7 @@ where:
   no-source: '<prefix><gray>There is no sorter or pad within <radius> blocks.</gray>'
 
 trace:
-  started: '<prefix><green>Tracing deliveries within <radius> blocks for <seconds> seconds.</green> <gray>Stop with /framesort trace stop.</gray>'
+  started: '<prefix><green>Tracing deliveries within <radius> blocks for <seconds> seconds.</green> <gray>Stop with <stop>.</gray>'
   stopped: '<prefix><gray>Tracing stopped.</gray>'
   not-running: '<prefix><gray>You are not tracing.</gray>'
   ended: '<prefix><gray>Tracing ended.</gray>'
@@ -141,7 +131,8 @@ tag:
     block: 'block tag'
     custom: 'tags.yml tag'
   entry: '  <color:#F7B733>•</color> <white><item></white>'
-  unknown: '<prefix><red>There is no tag called <white>#<tag></white>. Try /framesort tag list.</red>'
+  unknown: '<prefix><red>There is no tag called <white>#<tag></white>.<hint></red>'
+  unknown-hint: ' Try <usage>.'
   list:
     title: 'Tags'
     title-search: 'Tags containing "<text>"'
@@ -150,8 +141,12 @@ tag:
 
 give:
   done: '<prefix><green>Gave <white><amount>× <item></white> to <white><player></white>.</green>'
-  players-only: '<prefix><red>Name a player: /framesort give ... [player]</red>'
+  players-only: '<prefix><red>Name a player: <usage> ... [player]</red>'
   unknown-pad: 'There is no pad type called ''<type>'''
+
+sorter:
+  created: '<prefix><green>Sorter created.</green> <gray>Items in this dispenser now go to their target frames.</gray>'
+  removed: '<prefix><yellow>Sorter removed.</yellow>'
 
 pad:
   created: '<prefix><green>Teleport pad <white><type></white> created.</green>'

@@ -4,6 +4,7 @@ import com.cesarcosmico.framesort.api.TargetBindEvent;
 import com.cesarcosmico.framesort.config.FrameSortSettings;
 import com.cesarcosmico.framesort.config.InspectSettings;
 import com.cesarcosmico.framesort.item.ItemTagCodec;
+import com.cesarcosmico.framesort.item.PadCodec;
 import com.cesarcosmico.framesort.model.BlockKey;
 import com.cesarcosmico.framesort.model.MatchTier;
 import com.cesarcosmico.framesort.model.Ranking;
@@ -15,6 +16,7 @@ import org.bukkit.Color;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
 import org.bukkit.entity.ItemFrame;
 import org.bukkit.inventory.ItemStack;
 import org.jspecify.annotations.Nullable;
@@ -89,6 +91,7 @@ public final class TargetResolver {
 
     // Deliveries and inspections both plan here, so an inspection always shows what a delivery would do.
     public Plan plan(Block source, ItemStack item) {
+        FrameSortSettings current = settings.get();
         Ranking<ItemFrame> ranking = new Ranking<>();
         boolean stale = false;
         for (Match match : matches(source, item)) {
@@ -101,13 +104,16 @@ public final class TargetResolver {
             if (FrameGeometry.attachedBlock(frame).getType() == Material.COMPOSTER && !item.getType().isCompostable()) {
                 continue;
             }
+            if (wouldLoop(current, source, frame)) {
+                continue;
+            }
             ranking.add(match.priority(), frame);
         }
         List<Level> levels = new ArrayList<>();
         for (List<ItemFrame> tied : ranking.levels()) {
             Map<Destination, List<ItemFrame>> split = new EnumMap<>(Destination.class);
             for (ItemFrame frame : tied) {
-                split.computeIfAbsent(destination(frame), key -> new ArrayList<>()).add(frame);
+                split.computeIfAbsent(destination(current, frame), key -> new ArrayList<>()).add(frame);
             }
             levels.add(new Level(split.getOrDefault(Destination.CONTAINER, List.of()),
                     split.getOrDefault(Destination.DROPPED, List.of()),
@@ -117,10 +123,14 @@ public final class TargetResolver {
     }
 
     public Destination destination(ItemFrame frame) {
+        return destination(settings.get(), frame);
+    }
+
+    private static Destination destination(FrameSortSettings current, ItemFrame frame) {
         if (FrameGeometry.isLava(frame)) {
             return Destination.DESTROYED;
         }
-        return settings.get().delivery().insertIntoContainers()
+        return current.delivery().insertIntoContainers()
                 && FrameGeometry.isContainer(FrameGeometry.attachedBlock(frame))
                 ? Destination.CONTAINER : Destination.DROPPED;
     }
@@ -199,7 +209,9 @@ public final class TargetResolver {
 
     /** Whether {@code source} may send to {@code frame} at all, whatever the item; the caller checks the distance. */
     public boolean reaches(Block source, ItemFrame frame) {
-        return eligible(settings.get(), source, frame) && new TargetBindEvent(source, frame).callEvent();
+        FrameSortSettings current = settings.get();
+        return eligible(current, source, frame) && !wouldLoop(current, source, frame)
+                && new TargetBindEvent(source, frame).callEvent();
     }
 
     /** The frames in range that {@code source} may send to, whatever the item. */
@@ -234,8 +246,7 @@ public final class TargetResolver {
 
     private static boolean eligible(FrameSortSettings current, Block source, ItemFrame frame) {
         ItemStack shown = frame.getItem();
-        if (shown.isEmpty() || !FrameGeometry.attachedLoaded(frame)
-                || !current.targets().allows(FrameGeometry.positions(frame))) {
+        if (shown.isEmpty() || !FrameGeometry.attachedLoaded(frame)) {
             return false;
         }
         Block attached = FrameGeometry.attachedBlock(frame);
@@ -245,7 +256,44 @@ public final class TargetResolver {
         }
         // Never send a source's items back into itself, and never treat a sorter's own frame as a target.
         return !attached.equals(source)
-                && !(current.sorter().isActivator(shown) && attached.getType() == Material.DISPENSER);
+                && !(attached.getType() == Material.DISPENSER && current.sorter().isActivatorFrame(frame));
+    }
+
+    // Never cached: sorters come and go, and the blocks below a drop spot change, without touching any target frame.
+    private static boolean wouldLoop(FrameSortSettings current, Block source, ItemFrame frame) {
+        if (isSorter(current, FrameGeometry.attachedBlock(frame)) && isSorter(current, source)) {
+            return true;
+        }
+        return destination(current, frame) == Destination.DROPPED
+                && landsOnPad(FrameGeometry.dropPoint(frame).getBlock());
+    }
+
+    private static boolean landsOnPad(Block drop) {
+        Block block = drop;
+        while (block.isPassable() && block.getY() > block.getWorld().getMinHeight()) {
+            block = block.getRelative(BlockFace.DOWN);
+        }
+        // A carpet or slab on the pad still leaves the items in its pickup space.
+        return isPadTop(block) || isPadTop(block.getRelative(BlockFace.DOWN));
+    }
+
+    // Read from the chunk: PadService delivers through this class, so it can't be asked.
+    private static boolean isPadTop(Block block) {
+        return PadCodec.read(block.getChunk()).containsKey(FrameGeometry.key(block));
+    }
+
+    // Read from the world: SorterService delivers through this class, so it can't be asked.
+    private static boolean isSorter(FrameSortSettings current, Block block) {
+        if (block.getType() != Material.DISPENSER) {
+            return false;
+        }
+        for (ItemFrame frame : block.getWorld().getNearbyEntitiesByType(ItemFrame.class,
+                block.getLocation().toCenterLocation(), 1)) {
+            if (FrameGeometry.attachedBlock(frame).equals(block) && current.sorter().isActivatorFrame(frame)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private int direct(ItemStack target, ItemStack item, @Nullable String itemId, boolean nested) {

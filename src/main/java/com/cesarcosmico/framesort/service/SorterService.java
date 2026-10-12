@@ -30,14 +30,17 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 /** Sorters are spread over the ticks so they never all act at once. */
 public final class SorterService {
+
+    /** What checking a frame did to its dispenser. */
+    public enum Change { CREATED, REMOVED, UNCHANGED }
 
     private static final MiniMessage MINI_MESSAGE = MiniMessage.miniMessage();
     // Shulker boxes inside bundles inside shulker boxes…: deep enough for any real setup, and bounded.
@@ -75,8 +78,8 @@ public final class SorterService {
         this.delivery = delivery;
     }
 
-    public void consider(ItemFrame frame) {
-        boolean holdsActivator = holdsActivator(frame);
+    public Change consider(ItemFrame frame) {
+        boolean holdsActivator = settings.get().sorter().isActivatorFrame(frame);
         if (!FrameGeometry.attachedLoaded(frame)) {
             // Only frames that could make a sorter wait for the neighbouring chunk; the rest are never sorters.
             if (holdsActivator && waiting.add(frame.getUniqueId())) {
@@ -89,7 +92,7 @@ public final class SorterService {
                     done.run();
                 }
             }
-            return;
+            return Change.UNCHANGED;
         }
         Block block = FrameGeometry.attachedBlock(frame);
         BlockKey key = FrameGeometry.key(block);
@@ -98,17 +101,24 @@ public final class SorterService {
             if (existing == null) {
                 SorterSettings sorter = settings.get().sorter();
                 sorters.put(key, new Sorter(frame, block, tick + 1 + (nextPhase++ % sorter.tickRate())));
-                applyLook(frame, block, true);
             }
-        } else if (existing != null && existing.frame.equals(frame)) {
-            sorters.remove(key);
-            applyLook(frame, block, false);
+            // On every check, not only the first: a reload's look settings then reach the sorters that exist.
+            if (existing == null || existing.frame.equals(frame)) {
+                applyLook(frame, true);
+            }
+            return existing == null ? Change.CREATED : Change.UNCHANGED;
         }
+        if (existing != null && existing.frame.equals(frame)) {
+            sorters.remove(key);
+            applyLook(frame, false);
+            return Change.REMOVED;
+        }
+        return Change.UNCHANGED;
     }
 
     /** Re-checks a frame on the next tick: when an item-frame event fires, the frame still holds the old item. */
-    public void considerLater(ItemFrame frame) {
-        frame.getScheduler().run(plugin, task -> consider(frame), null);
+    public void considerLater(ItemFrame frame, Consumer<Change> then) {
+        frame.getScheduler().run(plugin, task -> then.accept(consider(frame)), null);
     }
 
     /** The frame left the world because its chunk unloaded; the sorter comes back with the chunk. */
@@ -116,17 +126,41 @@ public final class SorterService {
         sorters.values().removeIf(sorter -> sorter.frame.equals(frame));
     }
 
-    public void broken(ItemFrame frame) {
-        Block block = FrameGeometry.attachedBlock(frame);
-        Sorter sorter = sorters.get(FrameGeometry.key(block));
-        if (sorter != null && sorter.frame.equals(frame)) {
-            sorters.remove(FrameGeometry.key(block));
-            applyLook(frame, block, false);
+    /** @return whether the frame made a sorter */
+    public boolean broken(ItemFrame frame) {
+        Sorter sorter = sorterOf(frame);
+        if (sorter == null) {
+            return false;
         }
+        sorters.remove(FrameGeometry.key(sorter.block));
+        applyLook(frame, false);
+        return true;
+    }
+
+    /** The dispenser {@code frame} makes a sorter, or {@code null} when it makes none. */
+    public @Nullable Block blockOf(ItemFrame frame) {
+        Sorter sorter = sorterOf(frame);
+        return sorter == null ? null : sorter.block;
+    }
+
+    private @Nullable Sorter sorterOf(ItemFrame frame) {
+        Sorter sorter = sorters.get(FrameGeometry.key(FrameGeometry.attachedBlock(frame)));
+        return sorter != null && sorter.frame.equals(frame) ? sorter : null;
+    }
+
+    /** Shows every loaded sorter's frame again, so nothing stays hidden while FrameSort is off. */
+    public void stopAll() {
+        sorters.values().forEach(sorter -> applyLook(sorter.frame, false));
     }
 
     public boolean isSorter(Block block) {
         return sorters.containsKey(FrameGeometry.key(block));
+    }
+
+    /** The title a sorter's inventory shows instead of the dispenser's own name, or {@code null} to keep that name. */
+    public @Nullable Component title(Block block) {
+        String title = settings.get().sorter().customName();
+        return title != null && isSorter(block) ? MINI_MESSAGE.deserialize(title) : null;
     }
 
     public void wake(Block block) {
@@ -158,7 +192,7 @@ public final class SorterService {
             }
             if (!makesSorter(current.frame, current.block)) {
                 sorters.remove(entry.getKey());
-                applyLook(current.frame, current.block, false);
+                applyLook(current.frame, false);
                 continue;
             }
             if (sorter.disableWhenPowered() && current.block.isBlockPowered()) {
@@ -170,13 +204,8 @@ public final class SorterService {
         }
     }
 
-    private boolean holdsActivator(ItemFrame frame) {
-        SorterSettings sorter = settings.get().sorter();
-        return sorter.frameTypes().contains(frame.getType()) && sorter.isActivator(frame.getItem());
-    }
-
     private boolean makesSorter(ItemFrame frame, Block block) {
-        return holdsActivator(frame) && block.getType() == Material.DISPENSER;
+        return settings.get().sorter().isActivatorFrame(frame) && block.getType() == Material.DISPENSER;
     }
 
     private void dispense(Sorter sorter) {
@@ -194,7 +223,8 @@ public final class SorterService {
                 break;
             }
             ItemStack tried = slot.get();
-            int moved = delivery.deliver(sorter.block, new SlotSource(slot, location));
+            int kept = Math.max(0, tried.getAmount() - (PER_TURN - sent));
+            int moved = delivery.deliver(sorter.block, new SlotSource(slot, location, kept));
             if (moved == 0) {
                 missed.add(tried);
             }
@@ -218,20 +248,8 @@ public final class SorterService {
                 : 0;
     }
 
-    private void applyLook(ItemFrame frame, Block block, boolean active) {
-        SorterSettings sorter = settings.get().sorter();
-        if (sorter.hideFrame()) {
-            frame.setVisible(!active);
-        }
-        // A fresh snapshot, written back at once: it cannot carry stale items.
-        if (block.getState() instanceof Dispenser dispenser) {
-            String customName = sorter.customName();
-            Component name = active && customName != null ? MINI_MESSAGE.deserialize(customName) : null;
-            if (!Objects.equals(dispenser.customName(), name)) {
-                dispenser.customName(name);
-                dispenser.update(true, false);
-            }
-        }
+    private void applyLook(ItemFrame frame, boolean active) {
+        frame.setVisible(!active || !settings.get().sorter().hideFrame());
     }
 
     /** A sorter opens a shulker box or bundle with contents first; it goes whole once nothing inside can go. */
@@ -353,27 +371,32 @@ public final class SorterService {
         }
     }
 
-    private record SlotSource(Slot slot, Location location) implements DeliveryService.Source {
+    /** Offers all of the slot but {@code kept} items, which stay in it whatever happens: a turn never goes past 64. */
+    private record SlotSource(Slot slot, Location location, int kept) implements DeliveryService.Source {
         @Override
         public ItemStack stack() {
-            return slot.get();
+            ItemStack item = slot.get();
+            return item.asQuantity(item.getAmount() - kept);
         }
 
         @Override
         public void commit(int remaining) {
-            slot.set(remaining <= 0 ? ItemStack.empty() : slot.get().asQuantity(remaining));
+            leave(kept + remaining);
         }
 
         @Override
         public void moveTo(Location destination) {
-            ItemStack rest = slot.get().clone();
-            destination.getWorld().dropItem(destination, rest, item -> item.setVelocity(new Vector()));
-            slot.set(ItemStack.empty());
+            destination.getWorld().dropItem(destination, stack(), item -> item.setVelocity(new Vector()));
+            leave(kept);
         }
 
         @Override
         public void destroy() {
-            slot.set(ItemStack.empty());
+            leave(kept);
+        }
+
+        private void leave(int amount) {
+            slot.set(amount <= 0 ? ItemStack.empty() : slot.get().asQuantity(amount));
         }
     }
 }

@@ -59,7 +59,7 @@ public final class PadListener implements Listener {
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onBreak(BlockBreakEvent event) {
         Block block = event.getBlock();
-        if (!pads.isRegistered(block)) {
+        if (!pads.isPad(block)) {
             return;
         }
         ItemStack special = pads.broken(block);
@@ -85,17 +85,17 @@ public final class PadListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onEntityExplode(EntityExplodeEvent event) {
-        event.blockList().removeIf(pads::isRegistered);
+        event.blockList().removeIf(pads::isPad);
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onBlockExplode(BlockExplodeEvent event) {
-        event.blockList().removeIf(pads::isRegistered);
+        event.blockList().removeIf(pads::isPad);
     }
 
     private boolean movesPad(List<Block> blocks) {
         for (Block block : blocks) {
-            if (pads.isRegistered(block)) {
+            if (pads.isPad(block)) {
                 return true;
             }
         }

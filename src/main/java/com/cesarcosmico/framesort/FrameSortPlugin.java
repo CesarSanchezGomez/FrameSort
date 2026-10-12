@@ -74,8 +74,8 @@ public final class FrameSortPlugin extends JavaPlugin {
     private TargetResolver resolver;
     private SorterService sorters;
     private PadService padService;
+    private InspectService inspect;
     // Null in onDisable when the plugin failed to start.
-    private @Nullable InspectService inspect;
     private @Nullable BukkitTask ticker;
 
     @Override
@@ -108,8 +108,8 @@ public final class FrameSortPlugin extends JavaPlugin {
         inspect = new InspectService(new HighlightService(this), settings, messages, index, resolver, sorters,
                 padService, commands);
 
-        register(new TargetListener(index), new SorterListener(sorters), new PadListener(padService, messages),
-                new InspectListener(inspect, sorters, padService));
+        register(new TargetListener(index), new SorterListener(sorters, messages),
+                new PadListener(padService, messages), new InspectListener(inspect, sorters, padService));
         // Only this check loads the integration's classes, so FrameSort runs without WorldGuard installed.
         if (getServer().getPluginManager().isPluginEnabled("WorldGuard")) {
             register(new WorldGuardTargetListener());
@@ -122,7 +122,7 @@ public final class FrameSortPlugin extends JavaPlugin {
                 new TagListCommand(listing),
                 new TagSearchCommand(listing),
                 new TagShowCommand(tags, messages, settings, commands, customItems),
-                new TagApplyCommand(tags, messages, settings),
+                new TagApplyCommand(tags, messages, settings, commands),
                 new TagRemoveCommand(messages),
                 new TraceCommand(trace, messages, settings),
                 new InspectCommand(inspect, messages),
@@ -150,12 +150,12 @@ public final class FrameSortPlugin extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        if (ticker != null) {
-            ticker.cancel();
+        if (ticker == null) {
+            return;
         }
-        if (inspect != null) {
-            inspect.stopAll();
-        }
+        ticker.cancel();
+        sorters.stopAll();
+        inspect.stopAll();
     }
 
     /**

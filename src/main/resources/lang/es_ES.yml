@@ -25,7 +25,7 @@ command:
 pager:
   layout:
     - ''
-    - '<gradient:#F7B733:#FC4A1A>◤<st>                          </st></gradient> <white>[</white><gradient:#F7B733:#FC4A1A>FrameSort</gradient><white>]</white> <gradient:#FC4A1A:#F7B733><st>                          </st>◥</gradient>'
+    - '<gradient:#F7B733:#FC4A1A>◤<st>                          </st></gradient> <prefix><gradient:#FC4A1A:#F7B733><st>                          </st>◥</gradient>'
     - ''
     - '  <white><title></white> <dark_gray>·</dark_gray> <gray><total></gray>'
     - ''
@@ -68,7 +68,7 @@ inspect:
 frame:
   layout:
     - ''
-    - '<gradient:#F7B733:#FC4A1A>◤<st>                          </st></gradient> <white>[</white><gradient:#F7B733:#FC4A1A>FrameSort</gradient><white>]</white> <gradient:#FC4A1A:#F7B733><st>                          </st>◥</gradient>'
+    - '<gradient:#F7B733:#FC4A1A>◤<st>                          </st></gradient> <prefix><gradient:#FC4A1A:#F7B733><st>                          </st>◥</gradient>'
     - ''
     - '  <title>'
     - ''
@@ -78,9 +78,8 @@ frame:
     - ''
   title: '<white>Marco destino</white> <dark_gray>(<x>, <y>, <z>)</dark_gray>'
   status:
-    target: '  <green>✔</green> <gray>Es un destino, en la cara <position> de su bloque</gray>'
+    target: '  <green>✔</green> <gray>Es un destino</gray>'
     unmarked: '  <yellow>✘</yellow> <gray>Aún no es destino: shift + clic derecho con la mano vacía</gray>'
-    not-allowed: '  <red>✘</red> <gray>Aquí no se permiten destinos en la cara <position> de un bloque</gray>'
     wrong-type: '  <red>✘</red> <gray>Este tipo de marco no puede ser destino</gray>'
   into:
     container: '  <color:#F7B733>•</color> <gray>Los items van a</gray> <white><block></white>'
@@ -93,6 +92,7 @@ frame:
     similar: '  <color:#F7B733>•</color> <gray>Acepta cualquier</gray> <white><material></white> <dark_gray>si nada coincide mejor</dark_gray>'
     custom: '  <color:#F7B733>•</color> <gray>Acepta cualquier</gray> <white><id></white> <dark_gray>si nada coincide mejor</dark_gray>'
     default: '  <color:#F7B733>•</color> <gray>Destino por defecto:</gray> <white>lo que no encaja en ningún otro marco o ya no cabe en ellos</white>'
+  on-sorter: '  <color:#F7B733>•</color> <gray>En un sorter: solo le envían los pads</gray>'
   sources: '  <color:#F7B733>•</color> <gray>Sorters y pads al alcance:</gray> <white><count></white>'
 
 mark:
@@ -101,16 +101,6 @@ mark:
   automatic: '<prefix><gray>En este servidor todos los marcos ya son destinos.</gray>'
   no-permission: '<prefix><red>No puedes marcar marcos como destino.</red>'
   wrong-type: '<prefix><red>Este tipo de marco no puede ser destino.</red>'
-  wrong-position: '<prefix><red>Aquí los destinos no pueden ir en la cara <position> de un bloque. Permitidas: <allowed>.</red>'
-
-position:
-  top: 'superior'
-  bottom: 'inferior'
-  front: 'frontal'
-  back: 'trasera'
-  left: 'izquierda'
-  right: 'derecha'
-  side: 'lateral'
 
 tag-item:
   applied: '<prefix><green>El item de tu mano ahora representa <white>#<tag></white> en los marcos.</green>'
@@ -123,7 +113,7 @@ where:
   no-source: '<prefix><gray>No hay ningún sorter ni pad a menos de <radius> bloques.</gray>'
 
 trace:
-  started: '<prefix><green>Rastreando entregas a menos de <radius> bloques durante <seconds> segundos.</green> <gray>Para con /framesort trace stop.</gray>'
+  started: '<prefix><green>Rastreando entregas a menos de <radius> bloques durante <seconds> segundos.</green> <gray>Para con <stop>.</gray>'
   stopped: '<prefix><gray>Rastreo detenido.</gray>'
   not-running: '<prefix><gray>No estás rastreando.</gray>'
   ended: '<prefix><gray>El rastreo ha terminado.</gray>'
@@ -141,7 +131,8 @@ tag:
     block: 'tag de bloques'
     custom: 'tag de tags.yml'
   entry: '  <color:#F7B733>•</color> <white><item></white>'
-  unknown: '<prefix><red>No existe ningún tag llamado <white>#<tag></white>. Prueba /framesort tag list.</red>'
+  unknown: '<prefix><red>No existe ningún tag llamado <white>#<tag></white>.<hint></red>'
+  unknown-hint: ' Prueba <usage>.'
   list:
     title: 'Tags'
     title-search: 'Tags que contienen "<text>"'
@@ -150,8 +141,12 @@ tag:
 
 give:
   done: '<prefix><green>Entregado <white><amount>× <item></white> a <white><player></white>.</green>'
-  players-only: '<prefix><red>Indica un jugador: /framesort give ... [jugador]</red>'
+  players-only: '<prefix><red>Indica un jugador: <usage> ... [jugador]</red>'
   unknown-pad: 'No existe ningún tipo de pad llamado ''<type>'''
+
+sorter:
+  created: '<prefix><green>Sorter creado.</green> <gray>Lo que haya en este dispensador irá ahora a sus marcos destino.</gray>'
+  removed: '<prefix><yellow>Sorter eliminado.</yellow>'
 
 pad:
   created: '<prefix><green>Teleport pad <white><type></white> creado.</green>'
