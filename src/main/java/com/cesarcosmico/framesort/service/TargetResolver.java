@@ -4,6 +4,7 @@ import com.cesarcosmico.framesort.api.TargetBindEvent;
 import com.cesarcosmico.framesort.config.FrameSortSettings;
 import com.cesarcosmico.framesort.config.InspectSettings;
 import com.cesarcosmico.framesort.item.ItemTagCodec;
+import com.cesarcosmico.framesort.item.PadCodec;
 import com.cesarcosmico.framesort.model.BlockKey;
 import com.cesarcosmico.framesort.model.MatchTier;
 import com.cesarcosmico.framesort.model.Ranking;
@@ -253,13 +254,28 @@ public final class TargetResolver {
                 || attached.getType() == Material.DISPENSER && current.sorter().isActivatorFrame(frame)) {
             return false;
         }
-        // Nor drop them right onto it: a pad would pick them up and send them again.
+        // Nor drop items where they land on a pad: it would pick them up and send them again.
         if (destination(current, frame) == Destination.DROPPED
-                && FrameGeometry.dropPoint(frame).getBlock().equals(source.getRelative(BlockFace.UP))) {
+                && landsOnPad(FrameGeometry.dropPoint(frame).getBlock())) {
             return false;
         }
         // A sorter never feeds another, so no two sorters pass items back and forth; a pad may feed one.
         return !(isSorter(current, attached) && isSorter(current, source));
+    }
+
+    /** Whether items dropped in {@code drop} would fall into a pad's pickup space. */
+    private static boolean landsOnPad(Block drop) {
+        Block block = drop;
+        while (block.isPassable() && block.getY() > block.getWorld().getMinHeight()) {
+            block = block.getRelative(BlockFace.DOWN);
+        }
+        // A carpet or slab on the pad still leaves the items in its pickup space.
+        return isPadTop(block) || isPadTop(block.getRelative(BlockFace.DOWN));
+    }
+
+    // Read from the chunk: PadService delivers through this class, so it can't be asked.
+    private static boolean isPadTop(Block block) {
+        return PadCodec.read(block.getChunk()).containsKey(FrameGeometry.key(block));
     }
 
     // Read from the world: SorterService delivers through this class, so it can't be asked.
