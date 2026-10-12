@@ -29,7 +29,8 @@ sorter:
 targets:
   registration: manual   # manual | automatic (automatic: only frames on containers and composters)
   frame-types: [ITEM_FRAME, GLOW_ITEM_FRAME]
-  tagged-item:   # what /framesort tag apply <tag> does to the item in your hand
+  tagged-item:   # look /framesort tag apply <tag> gives the item in your hand; tag remove gives its own back
+    # Optional, each one: name, lore (added below the item's own) and glint.
     name: '<gradient:#F7B733:#FC4A1A>#<tag></gradient>'   # <tag> is the tag
     glint: true
 

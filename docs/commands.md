@@ -8,8 +8,8 @@
 | `/framesort tag show <tag> [page]` | The items or blocks in a tag, 8 per page (`inspect.page-size`), in a framed list with « » buttons. Hover an entry to see its id. A tag from `tags.yml` lists its custom items after them, by their CraftEngine name, translated as in your inventory; hovering one shows its reference. Vanilla tags can be written without `minecraft:`. |
 | `/framesort tag list [page]` | Every item and block tag, and the tags in `tags.yml`. Click a tag to show its contents. |
 | `/framesort tag search <text> [page]` | Only the tags whose name contains `<text>`. |
-| `/framesort tag apply <tag>` | Applies the tag to the item in your main hand (its name and glint come from `targets.tagged-item`). The [Apply] button in `/framesort tag show <tag>` runs it. In a frame a tagged item accepts only its tag. |
-| `/framesort tag remove` | Takes the tag off the item in your main hand. |
+| `/framesort tag apply <tag>` | Applies the tag to the item in your main hand, which takes the look of `targets.tagged-item` (name, lore and glint). A tagged item gets the new tag instead. The [Apply] button in `/framesort tag show <tag>` runs it. In a frame a tagged item accepts only its tag. |
+| `/framesort tag remove` | Takes the tag off the item in your main hand and gives it back the name, lore and glint it had before. |
 | `/framesort where` | Where the item in your main hand would go from the nearest sorter or pad within `delivery.max-distance`, listed and highlighted like an inspection with that item in your off hand. Its components count (enchantments, name, contents). |
 | `/framesort trace [seconds]` | For a while (`inspect.trace-default-seconds`, at most `inspect.trace-max-seconds`), deliveries from sorters and pads near you show in the action bar, with a streak of particles converging on their destination and a small splash when they arrive. A sorter turn draws one streak per target frame, and at most one delivery shows every 0.15 s, so a busy sorter never floods the screen. |
 | `/framesort trace stop` | Stops tracing. |

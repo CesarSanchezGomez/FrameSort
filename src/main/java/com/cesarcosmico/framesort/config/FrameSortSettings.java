@@ -10,9 +10,10 @@ import java.util.function.Predicate;
 public record FrameSortSettings(String language, SorterSettings sorter, TargetSettings targets,
                                 DeliverySettings delivery, InspectSettings inspect) {
 
-    /** Keys whose absence means "without it": the activator's look and the sorter's title. */
+    /** Keys whose absence means "without it": the activator's and a tagged item's look, and the sorter's title. */
     public static final Set<String> OPTIONAL_KEYS = Set.of("sorter.custom-name", "sorter.activator.name",
-            "sorter.activator.lore", "sorter.activator.glint");
+            "sorter.activator.lore", "sorter.activator.glint", "targets.tagged-item.name", "targets.tagged-item.lore",
+            "targets.tagged-item.glint");
 
     /** Sections of vanilla component names, which only Minecraft knows. */
     public static final Set<String> OPEN_KEYS = Set.of("sorter.activator.components");

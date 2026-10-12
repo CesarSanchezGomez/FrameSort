@@ -42,6 +42,7 @@ Nothing is stored outside the world:
 | Item frame entity | `framesort:target` | Present while the frame is a target (manual registration). |
 | Chunk | `framesort:pads` | The pads registered in the chunk, as `"x,y,z,type"`. |
 | Item | `framesort:item-tag` | The tag a tagged item stands for, such as `minecraft:logs` (`/framesort tag apply <tag>`). |
+| Item | `framesort:item-tag-original` | The name, lore and glint a tagged item had before its tag, as item bytes, so `/framesort tag remove` gives them back. |
 | Sorter dispenser | `framesort:sorted` | How many items the sorter has sent (a `long`); it goes away with the block. |
 | Item | `framesort:activator` | The sorter activator handed out by FrameSort. |
 | Item | `framesort:pad-item` | The pad type of a special pad block. |

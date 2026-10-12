@@ -1,5 +1,6 @@
 package com.cesarcosmico.framesort.config;
 
+import com.cesarcosmico.framesort.item.ItemLook;
 import com.cesarcosmico.framesort.model.TargetRegistration;
 import org.bukkit.Color;
 import org.bukkit.Material;
@@ -57,6 +58,8 @@ class FrameSortSettingsTest {
         assertTrue(settings.delivery().insertIntoContainers());
         assertEquals(Material.CARROT_ON_A_STICK, settings.delivery().defaultTargetItem());
         assertEquals(Map.of(), settings.sorter().activator().components());
+        assertEquals("<gradient:#F7B733:#FC4A1A>#<tag></gradient>", settings.targets().taggedItem().name());
+        assertTrue(settings.targets().taggedItem().glint());
         assertEquals(5, settings.inspect().highlightSeconds());
         assertEquals(Color.fromRGB(0x55FF55), settings.inspect().colors().container());
         assertEquals(Color.fromRGB(0xFF5555), settings.inspect().colors().lava());
@@ -71,8 +74,8 @@ class FrameSortSettingsTest {
         assertEquals(64, settings.delivery().maxDistance());
         assertEquals(Set.of(EntityType.ITEM_FRAME, EntityType.GLOW_ITEM_FRAME), settings.sorter().frameTypes());
         assertEquals(8, settings.inspect().pageSize());
-        assertEquals("<gradient:#F7B733:#FC4A1A>#<tag></gradient>", settings.targets().taggedName());
-        assertTrue(settings.targets().taggedGlint());
+        // Without the section a tag changes nothing in the item's look.
+        assertEquals(new ItemLook(null, List.of(), false), settings.targets().taggedItem());
     }
 
     @Test
@@ -138,6 +141,7 @@ class FrameSortSettingsTest {
         SorterSettings sorter = parse(live, warnings).sorter();
 
         assertEquals(List.of(), warnings);
+        assertEquals(new ItemLook(null, List.of(), false), parse(live, warnings).targets().taggedItem());
         assertNull(sorter.activator().look().name());
         assertEquals(List.of(), sorter.activator().look().lore());
         assertFalse(sorter.activator().look().glint());
@@ -158,6 +162,24 @@ class FrameSortSettingsTest {
         assertEquals(Set.of("item_model"), parse(live, warnings).sorter().activator().components().keySet());
         assertEquals(List.of("config.yml > sorter.activator.components.nope: Unknown item component "
                 + "'minecraft:nope', ignored"), warnings);
+    }
+
+    @Test
+    void aTaggedItemTakesLoreButNoComponents() throws Exception {
+        YamlConfiguration bundled = bundled("config.yml");
+        YamlConfiguration live = bundled("config.yml");
+        live.set("targets.tagged-item.lore", List.of("<gray>Sorted by tag</gray>"));
+        List<String> warnings = new ArrayList<>();
+        ConfigValidator.compare(live, bundled, "config.yml", FrameSortSettings.OPEN_KEYS,
+                FrameSortSettings.OPTIONAL_KEYS, warnings::add);
+        assertEquals(List.of(), warnings);
+        assertEquals(List.of("<gray>Sorted by tag</gray>"), parse(live, warnings).targets().taggedItem().lore());
+
+        live.set("targets.tagged-item.components.item_model", "mypack:tag");
+        ConfigValidator.compare(live, bundled, "config.yml", FrameSortSettings.OPEN_KEYS,
+                FrameSortSettings.OPTIONAL_KEYS, warnings::add);
+        assertEquals(1, warnings.size(), warnings::toString);
+        assertTrue(warnings.getFirst().contains("[targets.tagged-item.components]"), warnings::toString);
     }
 
     @Test

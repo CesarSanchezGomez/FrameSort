@@ -2,7 +2,6 @@ package com.cesarcosmico.framesort.command;
 
 import com.cesarcosmico.framesort.config.CommandsConfig;
 import com.cesarcosmico.framesort.config.FrameSortSettings;
-import com.cesarcosmico.framesort.config.TargetSettings;
 import com.cesarcosmico.framesort.item.ItemTagCodec;
 import com.cesarcosmico.framesort.service.TagCatalog;
 import com.cesarcosmico.framesort.text.Messages;
@@ -11,7 +10,6 @@ import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
 import io.papermc.paper.command.brigadier.Commands;
-import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -20,8 +18,6 @@ import org.jspecify.annotations.Nullable;
 import java.util.function.Supplier;
 
 public final class TagApplyCommand implements CommandFeature {
-
-    private static final MiniMessage MINI_MESSAGE = MiniMessage.miniMessage();
 
     private final TagArgument tag;
     private final Supplier<Messages> messages;
@@ -51,11 +47,8 @@ public final class TagApplyCommand implements CommandFeature {
         }
         TagCatalog.TagView view = context.getArgument("tag", TagCatalog.TagView.class);
         String name = TagArgument.shortName(view.key());
-        TargetSettings targets = settings.get().targets();
         ItemStack held = player.getInventory().getItemInMainHand();
-        ItemTagCodec.apply(held, view.key(),
-                MINI_MESSAGE.deserialize(targets.taggedName(), Placeholder.unparsed("tag", name)),
-                targets.taggedGlint());
+        ItemTagCodec.apply(held, view.key(), settings.get().targets().taggedItem(), Placeholder.unparsed("tag", name));
         player.getInventory().setItemInMainHand(held);
         player.sendMessage(messages.get().get("tag-item.applied", Placeholder.unparsed("tag", name)));
         return Command.SINGLE_SUCCESS;

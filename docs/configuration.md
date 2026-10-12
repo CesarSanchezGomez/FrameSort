@@ -14,13 +14,13 @@ empty line (`''`) and keeps each line short.
 
 ## Item look
 
-The activator and the pad items take these keys, all optional: left out, or set to `''`, `[]` or `false`, the item
-has none of it.
+The activator, the pad items and tagged items take these keys, all optional: left out, or set to `''`, `[]` or
+`false`, the item has none of it.
 
 | Key | Meaning |
 |---|---|
-| `name` | MiniMessage. Not italic unless you write `<i>`. |
-| `lore` | A list of MiniMessage lines, not italic unless you write `<i>`. |
+| `name` | MiniMessage. Not italic unless you write `<i>`. On a tagged item it replaces the item's name. |
+| `lore` | A list of MiniMessage lines, not italic unless you write `<i>`. On a tagged item they go below its own lines. |
 | `glint` | `true` adds the enchantment glint. `false` leaves the item's own glint alone: a nether star still shines. |
 | `components` | Only the activator. Any vanilla item component by its vanilla name, written as YAML in the same shape as in `/give`. |
 
@@ -82,8 +82,7 @@ targets that accept it.
 |---|---|---|
 | `registration` | `manual` | `manual`: only frames marked by sneak + right-clicking them with an empty hand. `automatic`: every frame of `frame-types` on a container or composter; frames anywhere else (walls, lava cauldrons) are never targets, so marking is the only way to make a drop spot or a trash can. |
 | `frame-types` | `[ITEM_FRAME, GLOW_ITEM_FRAME]` | Frames that can be targets. |
-| `tagged-item.name` | `'<gradient:#F7B733:#FC4A1A>#<tag></gradient>'` | Name a tagged item gets (MiniMessage); `<tag>` is the tag, without `minecraft:` for vanilla tags. |
-| `tagged-item.glint` | `true` | Tagged items get the enchantment glint, so they stand out in inventories and frames. |
+| `tagged-item.name`, `lore`, `glint` | `'<gradient:#F7B733:#FC4A1A>#<tag></gradient>'`, none, `true` | *Optional.* Look a tagged item gets (see [Item look](#item-look)); in `name` and `lore`, `<tag>` is the tag, without `minecraft:` for vanilla tags. Left out, or set to `''`, `[]` or `false`, the item has none of it: `tagged-item: {}` tags items without changing how they look. |
 
 A target frame may hang on any face of its block, whichever way the block faces: the lid of an upright barrel, the
 side of a chest or the bottom of one in a ceiling. With `automatic`, that means every frame on a container or
@@ -119,11 +118,13 @@ onto a pad, which would pick them up and send them again. Hoppers can still lead
 that items don't go round.
 
 **Tagged items.** `/framesort tag apply <tag>` (or the [Apply] button in `/framesort tag show <tag>`) applies a tag
-to the item in your hand: the tag is stored inside the item, and its name and glint come from `targets.tagged-item`.
+to the item in your hand: the tag is stored inside the item, which takes the look of `targets.tagged-item`.
 In a frame, a tagged item accepts everything in its tag, never itself or its own material; a tagged shulker box or
 bundle with contents also accepts what it holds. Inside a shulker box or bundle in the frame, a tagged item adds its
 tag to what the frame accepts. Renaming the item in an anvil never changes its
-tag, and a plain renamed item never has one. `/framesort tag remove` takes the tag off.
+tag, and a plain renamed item never has one. Applying a tag to a tagged item replaces the tag. `/framesort tag remove`
+takes the tag off and gives the item back the name, lore and glint it had when it was tagged, so it stacks with
+untagged ones again; a name given in an anvil after tagging is lost then.
 
 **Composters compost.** A target frame on a composter takes only compostable items and composts them as a hopper
 feeding it would: every item is used up, the level rises with that item's vanilla chance, and a full composter turns
