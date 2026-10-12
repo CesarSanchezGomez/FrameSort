@@ -97,7 +97,6 @@ frame:
 
 mark:
   marked: '<prefix><green>Este marco ahora es un destino.</green>'
-  marked-on-sorter: '<prefix><green>Este marco ahora es un destino.</green> <gray>Está en un sorter, así que solo le envían los pads.</gray>'
   unmarked: '<prefix><yellow>Este marco ya no es un destino.</yellow>'
   automatic: '<prefix><gray>En este servidor todos los marcos ya son destinos.</gray>'
   no-permission: '<prefix><red>No puedes marcar marcos como destino.</red>'

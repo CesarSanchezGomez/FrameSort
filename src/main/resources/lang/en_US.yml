@@ -97,7 +97,6 @@ frame:
 
 mark:
   marked: '<prefix><green>This frame is now a target.</green>'
-  marked-on-sorter: '<prefix><green>This frame is now a target.</green> <gray>It is on a sorter, so only teleport pads send to it.</gray>'
   unmarked: '<prefix><yellow>This frame is no longer a target.</yellow>'
   automatic: '<prefix><gray>Every frame is a target already on this server.</gray>'
   no-permission: '<prefix><red>You can''t mark target frames.</red>'

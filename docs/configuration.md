@@ -71,11 +71,11 @@ How a destination is chosen:
    without a container are all on lava cauldrons, the rest is destroyed. Either way the delivery ends there.
 4. Otherwise, what is left goes on to the next level. If no level has room, it stays.
 
-**A sorter never sends to another sorter.** A target frame on a sorter only takes items from pads (marking it or
-inspecting it says so), so a pad can feed a sorter that opens the shulker boxes and bundles dropped on it, and no two
-sorters pass items back and forth. Nor does a sorter or pad send into its own block, and none of them drops items where
-they would fall onto a pad, which would pick them up and send them again. Hoppers can still lead items back into a
-sorter: build them so that items don't go round.
+**A sorter never sends to another sorter.** A target frame on a sorter only takes items from pads (its frame card says
+so), so a pad can feed a sorter that opens the shulker boxes and bundles dropped on it, and no two sorters pass items
+back and forth. Nor does a sorter or pad send into its own block, and none of them drops items where they would fall
+onto a pad, which would pick them up and send them again. Hoppers can still lead items back into a sorter: build them so
+that items don't go round.
 
 **Tagged items.** `/framesort tag apply <tag>` (or the [Apply] button in `/framesort tag show <tag>`) applies a tag
 to the item in your hand: the tag is stored inside the item, and its name and glint come from `targets.tagged-item`.

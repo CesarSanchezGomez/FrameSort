@@ -139,7 +139,8 @@ public final class InspectService {
             case DROPPED -> text.get("frame.into.dropped");
             case DESTROYED -> text.get("frame.into.lava");
         });
-        if (onSorter(frame)) {
+        // A sorter never sends to another sorter, so only pads reach a frame on one.
+        if (sorters.isSorter(FrameGeometry.attachedBlock(frame))) {
             lines.add(text.get("frame.on-sorter"));
         }
 
@@ -201,8 +202,7 @@ public final class InspectService {
         }
         boolean mark = !index.isMarked(frame);
         index.setMarked(frame, mark);
-        String key = !mark ? "mark.unmarked" : onSorter(frame) ? "mark.marked-on-sorter" : "mark.marked";
-        player.sendMessage(text.get(key));
+        player.sendMessage(text.get(mark ? "mark.marked" : "mark.unmarked"));
         InspectSettings.Colors colors = settings.get().inspect().colors();
         highlight(player, List.of(new HighlightService.Highlight(frame, mark ? colors.container() : colors.lava())));
     }
@@ -275,11 +275,6 @@ public final class InspectService {
             return text.get("frame.status.wrong-type");
         }
         return text.get(index.isTarget(frame) ? "frame.status.target" : "frame.status.unmarked");
-    }
-
-    // A sorter never sends to another sorter, so only pads reach a frame on one.
-    private boolean onSorter(ItemFrame frame) {
-        return sorters.isSorter(FrameGeometry.attachedBlock(frame));
     }
 
     private HighlightService.Highlight highlight(ItemFrame frame, Destination destination) {
