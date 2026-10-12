@@ -5,6 +5,7 @@ import com.cesarcosmico.framesort.item.Keys;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.entity.EntityType;
+import org.bukkit.entity.ItemFrame;
 import org.bukkit.inventory.ItemStack;
 import org.jspecify.annotations.Nullable;
 
@@ -41,11 +42,11 @@ public record SorterSettings(ItemTemplate activator, boolean requireMarked, Set<
                 reader.bool("show-activity", true));
     }
 
-    public boolean isActivator(ItemStack item) {
-        if (item.getType() != activator.material()) {
-            return false;
-        }
-        return !requireMarked || ItemTemplate.marker(item, Keys.ACTIVATOR) != null;
+    /** Whether {@code frame} holds the activator, which makes a sorter of the dispenser it hangs on. */
+    public boolean isActivatorFrame(ItemFrame frame) {
+        ItemStack item = frame.getItem();
+        return frameTypes.contains(frame.getType()) && item.getType() == activator.material()
+                && (!requireMarked || ItemTemplate.marker(item, Keys.ACTIVATOR) != null);
     }
 
     static ItemTemplate itemTemplate(ConfigReader reader, Material material, @Nullable NamespacedKey model) {

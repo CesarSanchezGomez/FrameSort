@@ -244,8 +244,26 @@ public final class TargetResolver {
             return false;
         }
         // Never send a source's items back into itself, and never treat a sorter's own frame as a target.
-        return !attached.equals(source)
-                && !(current.sorter().isActivator(shown) && attached.getType() == Material.DISPENSER);
+        if (attached.equals(source)
+                || attached.getType() == Material.DISPENSER && current.sorter().isActivatorFrame(frame)) {
+            return false;
+        }
+        // A sorter never feeds another, so no two sorters pass items back and forth; a pad may feed one.
+        return !(isSorter(current, attached) && isSorter(current, source));
+    }
+
+    // Read from the world: SorterService delivers through this class, so it can't be asked.
+    private static boolean isSorter(FrameSortSettings current, Block block) {
+        if (block.getType() != Material.DISPENSER) {
+            return false;
+        }
+        for (ItemFrame frame : block.getWorld().getNearbyEntitiesByType(ItemFrame.class,
+                block.getLocation().toCenterLocation(), 1)) {
+            if (FrameGeometry.attachedBlock(frame).equals(block) && current.sorter().isActivatorFrame(frame)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private int direct(ItemStack target, ItemStack item, @Nullable String itemId, boolean nested) {

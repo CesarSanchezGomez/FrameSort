@@ -79,7 +79,7 @@ public final class SorterService {
     }
 
     public Change consider(ItemFrame frame) {
-        boolean holdsActivator = holdsActivator(frame);
+        boolean holdsActivator = settings.get().sorter().isActivatorFrame(frame);
         if (!FrameGeometry.attachedLoaded(frame)) {
             // Only frames that could make a sorter wait for the neighbouring chunk; the rest are never sorters.
             if (holdsActivator && waiting.add(frame.getUniqueId())) {
@@ -204,13 +204,8 @@ public final class SorterService {
         }
     }
 
-    private boolean holdsActivator(ItemFrame frame) {
-        SorterSettings sorter = settings.get().sorter();
-        return sorter.frameTypes().contains(frame.getType()) && sorter.isActivator(frame.getItem());
-    }
-
     private boolean makesSorter(ItemFrame frame, Block block) {
-        return holdsActivator(frame) && block.getType() == Material.DISPENSER;
+        return settings.get().sorter().isActivatorFrame(frame) && block.getType() == Material.DISPENSER;
     }
 
     private void dispense(Sorter sorter) {
