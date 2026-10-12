@@ -88,3 +88,7 @@ Tracing ends on a timer per player, so the "tracing ended" message arrives on ti
 (`@ApiStatus.Experimental`), through which `TagCatalog` reads item and block tags, and the data components
 (`@MinecraftVersionDependent`) behind item templates, tagged items and shulker box and bundle contents. Check them
 again whenever Paper or Minecraft changes.
+
+The activator's `components` reach Minecraft as `/give` syntax through `ItemFactory#createItemStack`, which checks
+them on load and reload with the server's registries (main thread). Component names belong to Minecraft: one that a
+new version renames or removes becomes a warning on load, not an error.

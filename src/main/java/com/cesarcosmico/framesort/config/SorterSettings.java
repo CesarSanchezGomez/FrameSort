@@ -2,8 +2,8 @@ package com.cesarcosmico.framesort.config;
 
 import com.cesarcosmico.framesort.item.ItemTemplate;
 import com.cesarcosmico.framesort.item.Keys;
+import com.cesarcosmico.framesort.item.MarkerCodec;
 import org.bukkit.Material;
-import org.bukkit.NamespacedKey;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.ItemFrame;
 import org.bukkit.inventory.ItemStack;
@@ -24,7 +24,8 @@ public record SorterSettings(ItemTemplate activator, boolean requireMarked, Set<
         frameTypes = Set.copyOf(frameTypes);
     }
 
-    static SorterSettings parse(ConfigReader reader, Predicate<Material> isItem) {
+    static SorterSettings parse(ConfigReader reader, Predicate<Material> isItem,
+                                Function<String, @Nullable String> problem) {
         ConfigReader activator = reader.sectionOrEmpty("activator");
         Material material = activator.requiredMaterial("material", Material.ENDER_EYE);
         if (!isItem.test(material)) {
@@ -33,7 +34,7 @@ public record SorterSettings(ItemTemplate activator, boolean requireMarked, Set<
         }
         String customName = reader.string("custom-name", "");
         return new SorterSettings(
-                itemTemplate(activator, material, activator.key("item-model")),
+                ItemLookParser.template(activator, material, problem),
                 activator.bool("require-marked", false),
                 frameTypes(reader),
                 customName.isBlank() ? null : customName,
@@ -52,13 +53,7 @@ public record SorterSettings(ItemTemplate activator, boolean requireMarked, Set<
         // A custom item is only a vanilla material underneath, so one made from the activator's material isn't one.
         return frameTypes.contains(frame.getType()) && item.getType() == activator.material()
                 && customId.apply(item) == null
-                && (!requireMarked || ItemTemplate.marker(item, Keys.ACTIVATOR) != null);
-    }
-
-    static ItemTemplate itemTemplate(ConfigReader reader, Material material, @Nullable NamespacedKey model) {
-        String name = reader.string("name", "");
-        return new ItemTemplate(material, name.isBlank() ? null : name, reader.strings("lore"),
-                reader.bool("glint", false), model);
+                && (!requireMarked || MarkerCodec.read(item, Keys.ACTIVATOR) != null);
     }
 
     static Set<EntityType> frameTypes(ConfigReader reader) {

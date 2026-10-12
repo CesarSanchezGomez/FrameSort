@@ -10,6 +10,7 @@ sorter:
     material: ENDER_EYE
     require-marked: false   # true: only the activator from /framesort give sorter
     # Optional, each one: leave it out (or set '', [] or false) and the activator has none of it.
+    # 'components' adds any vanilla component (a model, a head texture, a colour): see docs/configuration.md.
     name: '<gradient:#F7B733:#FC4A1A>Sorter Activator</gradient>'
     lore:
       - ''
@@ -17,7 +18,6 @@ sorter:
       - ' <gray>on a dispenser.</gray> '
       - ''
     glint: true
-    item-model: ''
   frame-types: [ITEM_FRAME, GLOW_ITEM_FRAME]
   # Optional: left out or '' = the dispenser's own name.
   custom-name: '<gradient:#F7B733:#FC4A1A>Item Sorter</gradient>'

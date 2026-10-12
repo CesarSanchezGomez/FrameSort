@@ -5,6 +5,7 @@ import org.bukkit.Color;
 import org.bukkit.Material;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.EntityType;
+import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.Test;
 
 import java.io.InputStream;
@@ -12,7 +13,9 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.function.Predicate;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -24,6 +27,9 @@ class FrameSortSettingsTest {
 
     // Material::isItem needs a running server; water is the only non-item these tests use.
     static final Predicate<Material> IS_ITEM = material -> material != Material.WATER;
+    // Minecraft checks components on a server; these tests reject only the component named "nope".
+    static final Function<String, @Nullable String> PROBLEM =
+            input -> input.contains("nope=") ? "Unknown item component 'minecraft:nope'" : null;
 
     static YamlConfiguration bundled(String resource) throws Exception {
         try (InputStream in = FrameSortSettingsTest.class.getResourceAsStream("/" + resource)) {
@@ -32,7 +38,7 @@ class FrameSortSettingsTest {
     }
 
     private static FrameSortSettings parse(YamlConfiguration yaml, List<String> warnings) {
-        return FrameSortSettings.parse(new ConfigReader(yaml, "config.yml", warnings::add), IS_ITEM);
+        return FrameSortSettings.parse(new ConfigReader(yaml, "config.yml", warnings::add), IS_ITEM, PROBLEM);
     }
 
     @Test
@@ -50,7 +56,7 @@ class FrameSortSettingsTest {
         assertEquals(64, settings.delivery().maxDistance());
         assertTrue(settings.delivery().insertIntoContainers());
         assertEquals(Material.CARROT_ON_A_STICK, settings.delivery().defaultTargetItem());
-        assertNull(settings.sorter().activator().itemModel());
+        assertEquals(Map.of(), settings.sorter().activator().components());
         assertEquals(5, settings.inspect().highlightSeconds());
         assertEquals(Color.fromRGB(0x55FF55), settings.inspect().colors().container());
         assertEquals(Color.fromRGB(0xFF5555), settings.inspect().colors().lava());
@@ -124,20 +130,46 @@ class FrameSortSettingsTest {
         YamlConfiguration bundled = bundled("config.yml");
         YamlConfiguration live = bundled("config.yml");
         for (String key : FrameSortSettings.OPTIONAL_KEYS) {
-            // Each one stays in the bundled file, so the admin sees it and a typo of it is still reported.
-            assertTrue(bundled.isSet(key), key);
             live.set(key, null);
         }
         List<String> warnings = new ArrayList<>();
-        ConfigValidator.compare(live, bundled, "config.yml", Set.of(), FrameSortSettings.OPTIONAL_KEYS, warnings::add);
+        ConfigValidator.compare(live, bundled, "config.yml", FrameSortSettings.OPEN_KEYS,
+                FrameSortSettings.OPTIONAL_KEYS, warnings::add);
         SorterSettings sorter = parse(live, warnings).sorter();
 
         assertEquals(List.of(), warnings);
-        assertNull(sorter.activator().name());
-        assertEquals(List.of(), sorter.activator().lore());
-        assertFalse(sorter.activator().glint());
-        assertNull(sorter.activator().itemModel());
+        assertNull(sorter.activator().look().name());
+        assertEquals(List.of(), sorter.activator().look().lore());
+        assertFalse(sorter.activator().look().glint());
         assertNull(sorter.customName());
+    }
+
+    @Test
+    void activatorComponentsAreKnownAndChecked() throws Exception {
+        YamlConfiguration bundled = bundled("config.yml");
+        YamlConfiguration live = bundled("config.yml");
+        live.set("sorter.activator.components.item_model", "mypack:sorter");
+        live.set("sorter.activator.components.nope", 1);
+        List<String> warnings = new ArrayList<>();
+        ConfigValidator.compare(live, bundled, "config.yml", FrameSortSettings.OPEN_KEYS,
+                FrameSortSettings.OPTIONAL_KEYS, warnings::add);
+        assertEquals(List.of(), warnings);
+
+        assertEquals(Set.of("item_model"), parse(live, warnings).sorter().activator().components().keySet());
+        assertEquals(List.of("config.yml > sorter.activator.components.nope: Unknown item component "
+                + "'minecraft:nope', ignored"), warnings);
+    }
+
+    @Test
+    void aTypoOfComponentsIsAnUnknownKey() throws Exception {
+        YamlConfiguration bundled = bundled("config.yml");
+        YamlConfiguration live = bundled("config.yml");
+        live.set("sorter.activator.componets.item_model", "mypack:sorter");
+        List<String> warnings = new ArrayList<>();
+        ConfigValidator.compare(live, bundled, "config.yml", FrameSortSettings.OPEN_KEYS,
+                FrameSortSettings.OPTIONAL_KEYS, warnings::add);
+        assertEquals(1, warnings.size(), warnings::toString);
+        assertTrue(warnings.getFirst().contains("[sorter.activator.componets]"), warnings::toString);
     }
 
     @Test

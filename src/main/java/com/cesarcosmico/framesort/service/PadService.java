@@ -2,8 +2,8 @@ package com.cesarcosmico.framesort.service;
 
 import com.cesarcosmico.framesort.config.PadSettings;
 import com.cesarcosmico.framesort.config.PadType;
-import com.cesarcosmico.framesort.item.ItemTemplate;
 import com.cesarcosmico.framesort.item.Keys;
+import com.cesarcosmico.framesort.item.MarkerCodec;
 import com.cesarcosmico.framesort.item.PadCodec;
 import com.cesarcosmico.framesort.model.BlockKey;
 import com.cesarcosmico.framesort.model.ChunkKey;
@@ -72,7 +72,7 @@ public final class PadService {
     /** Registers a pad when {@code block}, just placed by {@code player} from {@code hand}, completes one. */
     public Placement placed(Player player, Block block, ItemStack hand) {
         PadSettings current = settings.get();
-        String marker = ItemTemplate.marker(hand, Keys.PAD_ITEM);
+        String marker = MarkerCodec.read(hand, Keys.PAD_ITEM);
         boolean blocked = false;
         for (PadType type : current.types().values()) {
             if (!matches(block, type)) {
@@ -131,7 +131,7 @@ public final class PadService {
     }
 
     public ItemStack createItem(PadType type, int amount) {
-        return type.item().create(Keys.PAD_ITEM, type.id(), amount);
+        return MarkerCodec.mark(type.item().create(amount), Keys.PAD_ITEM, type.id());
     }
 
     public void tick() {
