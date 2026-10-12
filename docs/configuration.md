@@ -122,6 +122,9 @@ or blown up.
 
 Items resting up to one block above the top block count, so carpets or slabs on the pad are fine.
 
+Pads are built from vanilla blocks. A CraftEngine block never counts as one, whatever vanilla block it shows as to
+the server (bricks by default), and one put in place of a pad's top block ends the pad at the next sweep.
+
 ## tags.yml
 
 Tags of your own, and replacements for the game's tags. They only change what FrameSort's frames accept, never the

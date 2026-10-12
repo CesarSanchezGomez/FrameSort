@@ -46,13 +46,16 @@ public final class PadService {
     private final Server server;
     private final Supplier<PadSettings> settings;
     private final DeliveryService delivery;
+    private final CustomItemResolver customItems;
     private final Map<ChunkKey, Map<BlockKey, String>> pads = new HashMap<>();
     private long tick;
 
-    public PadService(Server server, Supplier<PadSettings> settings, DeliveryService delivery) {
+    public PadService(Server server, Supplier<PadSettings> settings, DeliveryService delivery,
+                      CustomItemResolver customItems) {
         this.server = server;
         this.settings = settings;
         this.delivery = delivery;
+        this.customItems = customItems;
     }
 
     public void load(Chunk chunk) {
@@ -153,8 +156,9 @@ public final class PadService {
         if (type == null) {
             return;
         }
-        // A player's break unregisters the pad at once; one by WorldEdit, a command or gravity is only seen here.
-        if (top.getType() != type.top()) {
+        // A player's break unregisters the pad at once; one by WorldEdit, a command, gravity or a CraftEngine block put
+        // in its place is only seen here.
+        if (top.getType() != type.top() || customItems.isCustomBlock(top)) {
             unregister(top);
             return;
         }
@@ -170,15 +174,18 @@ public final class PadService {
         }
     }
 
-    private static boolean matches(Block top, PadType type) {
-        return top.getType() == type.top() && top.getRelative(BlockFace.DOWN).getType() == type.base();
+    // A CraftEngine block shows to the server as a vanilla one (bricks by default), so it never counts as that block.
+    private boolean matches(Block top, PadType type) {
+        Block base = top.getRelative(BlockFace.DOWN);
+        return top.getType() == type.top() && base.getType() == type.base()
+                && !customItems.isCustomBlock(top) && !customItems.isCustomBlock(base);
     }
 
     private @Nullable PadType registered(Block block) {
         Map<BlockKey, String> inChunk = pads.get(FrameGeometry.key(block.getChunk()));
         String typeId = inChunk == null ? null : inChunk.get(FrameGeometry.key(block));
         PadType type = typeId == null ? null : settings.get().type(typeId);
-        return type != null && block.getType() == type.top() ? type : null;
+        return type != null && block.getType() == type.top() && !customItems.isCustomBlock(block) ? type : null;
     }
 
     private void register(Block block, PadType type) {

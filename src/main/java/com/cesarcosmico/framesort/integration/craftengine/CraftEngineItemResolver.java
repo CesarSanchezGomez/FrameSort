@@ -2,9 +2,11 @@ package com.cesarcosmico.framesort.integration.craftengine;
 
 import com.cesarcosmico.framesort.service.CustomItemResolver;
 import net.kyori.adventure.text.Component;
+import net.momirealms.craftengine.bukkit.api.CraftEngineBlocks;
 import net.momirealms.craftengine.bukkit.api.CraftEngineItems;
 import net.momirealms.craftengine.bukkit.item.BukkitItemDefinition;
 import net.momirealms.craftengine.core.util.Key;
+import org.bukkit.block.Block;
 import org.bukkit.inventory.ItemStack;
 import org.jspecify.annotations.Nullable;
 
@@ -26,5 +28,11 @@ public final class CraftEngineItemResolver implements CustomItemResolver {
         BukkitItemDefinition item = CraftEngineItems.byId(reference.substring(PREFIX.length()));
         // CraftEngine translates this name for each player as the message goes out, as it does in inventories.
         return item == null ? null : item.buildBukkitItem().effectiveName();
+    }
+
+    @Override
+    public boolean isCustomBlock(Block block) {
+        // True for any of CraftEngine's block slots, also while a /ce reload has them unbound.
+        return CraftEngineBlocks.isCustomBlock(block);
     }
 }
