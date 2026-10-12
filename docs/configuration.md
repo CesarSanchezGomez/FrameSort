@@ -71,10 +71,11 @@ How a destination is chosen:
    without a container are all on lava cauldrons, the rest is destroyed. Either way the delivery ends there.
 4. Otherwise, what is left goes on to the next level. If no level has room, it stays.
 
-**A sorter never sends to another sorter.** A target frame on a sorter only takes items from pads, so a pad can feed
-a sorter that opens the shulker boxes and bundles dropped on it, and no two sorters pass items back and forth. Nor
-does a sorter or pad send to itself: neither into its own block nor to a drop spot right above it, where a pad would
-pick the items up again. Hoppers can still lead items back into a sorter: build them so that items don't go round.
+**A sorter never sends to another sorter.** A target frame on a sorter only takes items from pads (marking it or
+inspecting it says so), so a pad can feed a sorter that opens the shulker boxes and bundles dropped on it, and no two
+sorters pass items back and forth. Nor does a sorter or pad send to itself: neither into its own block nor to a drop
+spot right above it, where a pad would pick the items up again. Hoppers can still lead items back into a sorter:
+build them so that items don't go round.
 
 **Tagged items.** `/framesort tag apply <tag>` (or the [Apply] button in `/framesort tag show <tag>`) applies a tag
 to the item in your hand: the tag is stored inside the item, and its name and glint come from `targets.tagged-item`.
@@ -187,4 +188,5 @@ Lists (`tag list`, `tag search`, `tag show` and the inspection lists) are built 
 ### Frame card
 
 What a frame accepts is shown as one message built from `frame.layout`, framed like a page: `<title>` is
-`frame.title` and `<lines>` are the `frame.status`, `frame.into`, `frame.accepts` and `frame.sources` lines that apply.
+`frame.title` and `<lines>` are the `frame.status`, `frame.into`, `frame.on-sorter`, `frame.accepts` and
+`frame.sources` lines that apply.
