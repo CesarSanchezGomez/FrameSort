@@ -77,8 +77,8 @@ public final class SorterListener implements Listener {
         }
     }
 
-    // LOW: a default title that plugins listening later may still change. The dispenser itself is never renamed.
-    @EventHandler(priority = EventPriority.LOW, ignoreCancelled = true)
+    // Only the title the player sees changes: the dispenser keeps its own name, for when it stops sorting.
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onOpen(InventoryOpenEvent event) {
         if (event.getInventory().getHolder(false) instanceof Dispenser dispenser) {
             Component title = sorters.title(dispenser.getBlock());
