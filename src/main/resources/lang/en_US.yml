@@ -78,9 +78,8 @@ frame:
     - ''
   title: '<white>Target frame</white> <dark_gray>(<x>, <y>, <z>)</dark_gray>'
   status:
-    target: '  <green>✔</green> <gray>A target, on the <position> of its block</gray>'
+    target: '  <green>✔</green> <gray>A target</gray>'
     unmarked: '  <yellow>✘</yellow> <gray>Not a target yet: sneak + right-click it with an empty hand</gray>'
-    not-allowed: '  <red>✘</red> <gray>Frames can''t be targets on the <position> of a block here</gray>'
     wrong-type: '  <red>✘</red> <gray>This kind of frame can''t be a target</gray>'
   into:
     container: '  <color:#F7B733>•</color> <gray>Items go into</gray> <white><block></white>'
@@ -103,16 +102,6 @@ mark:
   automatic: '<prefix><gray>Every frame is a target already on this server.</gray>'
   no-permission: '<prefix><red>You can''t mark target frames.</red>'
   wrong-type: '<prefix><red>This kind of frame can''t be a target.</red>'
-  wrong-position: '<prefix><red>Target frames can''t go on the <position> of a block here. Allowed: <allowed>.</red>'
-
-position:
-  top: 'top'
-  bottom: 'bottom'
-  front: 'front'
-  back: 'back'
-  left: 'left'
-  right: 'right'
-  side: 'side'
 
 tag-item:
   applied: '<prefix><green>The item in your hand now stands for <white>#<tag></white> in frames.</green>'

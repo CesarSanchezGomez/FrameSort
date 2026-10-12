@@ -246,8 +246,7 @@ public final class TargetResolver {
 
     private static boolean eligible(FrameSortSettings current, Block source, ItemFrame frame) {
         ItemStack shown = frame.getItem();
-        if (shown.isEmpty() || !FrameGeometry.attachedLoaded(frame)
-                || !current.targets().allows(FrameGeometry.positions(frame))) {
+        if (shown.isEmpty() || !FrameGeometry.attachedLoaded(frame)) {
             return false;
         }
         Block attached = FrameGeometry.attachedBlock(frame);

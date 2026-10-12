@@ -78,9 +78,8 @@ frame:
     - ''
   title: '<white>Marco destino</white> <dark_gray>(<x>, <y>, <z>)</dark_gray>'
   status:
-    target: '  <green>✔</green> <gray>Es un destino, en la cara <position> de su bloque</gray>'
+    target: '  <green>✔</green> <gray>Es un destino</gray>'
     unmarked: '  <yellow>✘</yellow> <gray>Aún no es destino: shift + clic derecho con la mano vacía</gray>'
-    not-allowed: '  <red>✘</red> <gray>Aquí no se permiten destinos en la cara <position> de un bloque</gray>'
     wrong-type: '  <red>✘</red> <gray>Este tipo de marco no puede ser destino</gray>'
   into:
     container: '  <color:#F7B733>•</color> <gray>Los items van a</gray> <white><block></white>'
@@ -103,16 +102,6 @@ mark:
   automatic: '<prefix><gray>En este servidor todos los marcos ya son destinos.</gray>'
   no-permission: '<prefix><red>No puedes marcar marcos como destino.</red>'
   wrong-type: '<prefix><red>Este tipo de marco no puede ser destino.</red>'
-  wrong-position: '<prefix><red>Aquí los destinos no pueden ir en la cara <position> de un bloque. Permitidas: <allowed>.</red>'
-
-position:
-  top: 'superior'
-  bottom: 'inferior'
-  front: 'frontal'
-  back: 'trasera'
-  left: 'izquierda'
-  right: 'derecha'
-  side: 'lateral'
 
 tag-item:
   applied: '<prefix><green>El item de tu mano ahora representa <white>#<tag></white> en los marcos.</green>'

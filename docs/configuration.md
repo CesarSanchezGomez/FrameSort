@@ -40,13 +40,13 @@ targets that accept it.
 | Key | Default | Meaning |
 |---|---|---|
 | `registration` | `manual` | `manual`: only frames marked by sneak + right-clicking them with an empty hand. `automatic`: every frame of `frame-types` on a container or composter; frames anywhere else (walls, lava cauldrons) are never targets, so marking is the only way to make a drop spot or a trash can. |
-| `positions` | `[FRONT]` | Where a target frame may hang on its block: `TOP`, `BOTTOM`, `FRONT`, `BACK`, `LEFT`, `RIGHT` (`SIDES` = `LEFT` + `RIGHT`). `FRONT`, `BACK`, `LEFT` and `RIGHT` follow the way the block faces (chests, barrels, furnaces…); left and right are as seen standing in front of it. On blocks without a horizontal facing (hoppers, upright barrels, composters) a side face counts as any of the four. |
 | `frame-types` | `[ITEM_FRAME, GLOW_ITEM_FRAME]` | Frames that can be targets. |
 | `tagged-item.name` | `'<gradient:#F7B733:#FC4A1A>#<tag></gradient>'` | Name a tagged item gets (MiniMessage); `<tag>` is the tag, without `minecraft:` for vanilla tags. |
 | `tagged-item.glint` | `true` | Tagged items get the enchantment glint, so they stand out in inventories and frames. |
 
-Only the front counts by default, so decorative frames on the top or sides of a chest are never used. Add positions
-only where frames are meant to be targets, especially with `automatic`.
+A target frame may hang on any face of its block, whichever way the block faces: the lid of an upright barrel, the
+side of a chest or the bottom of one in a ceiling. With `automatic`, that means every frame on a container or
+composter is a target.
 
 ### delivery
 

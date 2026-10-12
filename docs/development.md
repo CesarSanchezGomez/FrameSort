@@ -5,7 +5,7 @@
 ```
 com.cesarcosmico.framesort
 ├── FrameSortPlugin   composition root: wires everything, one tick task, reload
-├── model/            plain rules: priorities, ranking by priority, delivery, composting, frame positions, paging
+├── model/            plain rules: priorities, ranking by priority, delivery, composting, paging
 ├── service/          target index and resolver, delivery, sorters, pads, inspection, tracing, tags
 ├── config/           typed settings, pads.yml, tags.yml, commands.yml, strict loading, validation, reload holder
 ├── item/             persistent data keys, item templates, the pad codec for chunks

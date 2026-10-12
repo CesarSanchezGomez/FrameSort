@@ -6,7 +6,6 @@ import com.cesarcosmico.framesort.config.InspectSettings;
 import com.cesarcosmico.framesort.config.TargetSettings;
 import com.cesarcosmico.framesort.item.ItemTagCodec;
 import com.cesarcosmico.framesort.model.BlockKey;
-import com.cesarcosmico.framesort.model.FramePosition;
 import com.cesarcosmico.framesort.model.TargetRegistration;
 import com.cesarcosmico.framesort.service.TargetResolver.Destination;
 import com.cesarcosmico.framesort.text.ChatPager;
@@ -27,9 +26,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
@@ -202,14 +199,6 @@ public final class InspectService {
             player.sendMessage(text.get("mark.wrong-type"));
             return;
         }
-        Set<FramePosition> position = FrameGeometry.positions(frame);
-        if (!targets.allows(position)) {
-            player.sendMessage(text.get("mark.wrong-position",
-                    Placeholder.component("position", positionName(text, position)),
-                    Placeholder.component("allowed", Component.join(JoinConfiguration.commas(true),
-                            targets.positions().stream().sorted().map(p -> positionName(text, Set.of(p))).toList()))));
-            return;
-        }
         boolean mark = !index.isMarked(frame);
         index.setMarked(frame, mark);
         String key = !mark ? "mark.unmarked" : onSorter(frame) ? "mark.marked-on-sorter" : "mark.marked";
@@ -282,16 +271,10 @@ public final class InspectService {
     }
 
     private Component status(Messages text, ItemFrame frame) {
-        TargetSettings targets = settings.get().targets();
-        Set<FramePosition> position = FrameGeometry.positions(frame);
-        TagResolver where = Placeholder.component("position", positionName(text, position));
-        if (!targets.frameTypes().contains(frame.getType())) {
+        if (!settings.get().targets().frameTypes().contains(frame.getType())) {
             return text.get("frame.status.wrong-type");
         }
-        if (!targets.allows(position)) {
-            return text.get("frame.status.not-allowed", where);
-        }
-        return index.isTarget(frame) ? text.get("frame.status.target", where) : text.get("frame.status.unmarked");
+        return text.get(index.isTarget(frame) ? "frame.status.target" : "frame.status.unmarked");
     }
 
     // A sorter never sends to another sorter, so only pads reach a frame on one.
@@ -330,13 +313,6 @@ public final class InspectService {
 
     private static Component blockName(Block block) {
         return Component.translatable(block.getType());
-    }
-
-    // A frame on a container without a facing counts as every side: it is just "a side".
-    private static Component positionName(Messages text, Set<FramePosition> position) {
-        return position.size() == 1
-                ? text.get("position." + position.iterator().next().name().toLowerCase(Locale.ROOT))
-                : text.get("position.side");
     }
 
     private static TagResolver coordinates(Location location) {

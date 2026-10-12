@@ -1,6 +1,5 @@
 package com.cesarcosmico.framesort.config;
 
-import com.cesarcosmico.framesort.model.FramePosition;
 import com.cesarcosmico.framesort.model.TargetRegistration;
 import org.bukkit.Color;
 import org.bukkit.Material;
@@ -48,7 +47,6 @@ class FrameSortSettingsTest {
         assertEquals(20, settings.sorter().tickRate());
         assertTrue(settings.sorter().showActivity());
         assertEquals(TargetRegistration.MANUAL, settings.targets().registration());
-        assertEquals(Set.of(FramePosition.FRONT), settings.targets().positions());
         assertEquals(64, settings.delivery().maxDistance());
         assertTrue(settings.delivery().insertIntoContainers());
         assertEquals(Material.CARROT_ON_A_STICK, settings.delivery().defaultTargetItem());
@@ -67,7 +65,6 @@ class FrameSortSettingsTest {
         assertEquals(64, settings.delivery().maxDistance());
         assertEquals(Set.of(EntityType.ITEM_FRAME, EntityType.GLOW_ITEM_FRAME), settings.sorter().frameTypes());
         assertEquals(8, settings.inspect().pageSize());
-        assertEquals(Set.of(FramePosition.FRONT), settings.targets().positions());
         assertEquals("<gradient:#F7B733:#FC4A1A>#<tag></gradient>", settings.targets().taggedName());
         assertTrue(settings.targets().taggedGlint());
     }
@@ -83,7 +80,6 @@ class FrameSortSettingsTest {
                   frame-types: [ITEM_FRAME, ZOMBIE]
                 targets:
                   registration: sometimes
-                  positions: [FRONT, SIDES, UNDER]
                 delivery:
                   max-distance: lots
                   default-target-item: ""
@@ -98,14 +94,12 @@ class FrameSortSettingsTest {
         assertEquals(20, settings.sorter().tickRate());
         assertEquals(Set.of(EntityType.ITEM_FRAME), settings.sorter().frameTypes());
         assertEquals(TargetRegistration.MANUAL, settings.targets().registration());
-        assertEquals(Set.of(FramePosition.FRONT, FramePosition.LEFT, FramePosition.RIGHT),
-                settings.targets().positions());
         assertEquals(64, settings.delivery().maxDistance());
         assertNull(settings.delivery().defaultTargetItem());
         assertEquals(Color.fromRGB(0xFFFF55), settings.inspect().colors().dropped());
         assertEquals(Color.fromRGB(0x00FF7F), settings.inspect().colors().lava());
         // default-target-item "" is a valid "off", so it does not warn.
-        assertEquals(8, warnings.size(), warnings::toString);
+        assertEquals(7, warnings.size(), warnings::toString);
         assertTrue(warnings.stream().allMatch(w -> w.startsWith("config.yml > ")), warnings::toString);
     }
 
