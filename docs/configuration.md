@@ -20,7 +20,7 @@ The activator, the pad items and tagged items take these keys, all optional: lef
 | Key | Meaning |
 |---|---|
 | `name` | MiniMessage. Not italic unless you write `<i>`. On a tagged item it replaces the item's name. |
-| `lore` | A list of MiniMessage lines, not italic unless you write `<i>`. On a tagged item they go below its own lines. |
+| `lore` | A list of MiniMessage lines, not italic unless you write `<i>`. On a tagged item they go below its own lines; on a CraftEngine item FrameSort hands out, they replace its lore. |
 | `glint` | `true` adds the enchantment glint. `false` leaves the item's own glint alone: a nether star still shines. |
 | `components` | Only a vanilla activator. Any vanilla item component by its vanilla name, written as YAML in the same shape as in `/give`. |
 
@@ -55,9 +55,9 @@ More: `dyed_color: 0xFF0000` (leather armour), `potion_contents: {custom_color: 
 **CraftEngine items and blocks.** With [CraftEngine](https://modrinth.com/plugin/craftengine) installed, wherever a
 material goes you can write one of its items or blocks as `'craftengine:<namespace>:<id>'`, as in
 [`tags.yml`](#tagsyml). CraftEngine builds the item; FrameSort lays `name`, `lore` and `glint` over it when it hands
-it out: the name over CraftEngine's, the lore below CraftEngine's lines, and the glint. Leave them out and the item
-looks as CraftEngine makes it. `components` don't apply: the model and the rest are CraftEngine's (they are reported
-and ignored).
+it out: its name and its lore show instead of CraftEngine's, and the glint is added. Each one you leave out keeps
+CraftEngine's, so with none of them the item looks as CraftEngine makes it. `components` don't apply: the model and
+the rest are CraftEngine's (they are reported and ignored).
 
 - With `require-marked: true` or `creation: item`, only the item from `/framesort give` works. FrameSort's mark
   can't be seen, so its look is what tells it apart from the same item from `/ce give`; the two don't stack.

@@ -61,7 +61,7 @@ custom item in a frame is never the default target, even one made from a carrot 
 even one made from an Eye of Ender, unless the config names that custom item
 (`activator.material: 'craftengine:default:ruby'`, and the same in `default-target-item`). A pad's blocks can be
 CraftEngine blocks too, named the same way in `pads.yml`; otherwise a CraftEngine block never counts as a vanilla one.
-What FrameSort hands out (the activator, a pad block) carries its name, lore and glint over CraftEngine's look. The
+What FrameSort hands out (the activator, a pad block) shows its name and lore instead of CraftEngine's, if set. The
 ID is read from each item, so `/ce reload` changes nothing for items; a pad made of CraftEngine blocks waits until the
 reload ends.
 

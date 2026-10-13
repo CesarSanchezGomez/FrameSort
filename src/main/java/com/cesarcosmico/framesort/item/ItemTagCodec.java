@@ -29,7 +29,7 @@ public final class ItemTagCodec {
         ItemStack own = ItemStack.of(item.getType());
         own.copyDataFrom(item, LOOK::contains);
         byte[] snapshot = own.serializeAsBytes();
-        ItemOverlay.apply(item, look, resolvers);
+        ItemOverlay.applyBelowOwnLore(item, look, resolvers);
         item.editPersistentDataContainer(pdc -> {
             pdc.set(Keys.ITEM_TAG, PersistentDataType.STRING, tag.asString());
             pdc.set(Keys.ITEM_TAG_ORIGINAL, PersistentDataType.BYTE_ARRAY, snapshot);
