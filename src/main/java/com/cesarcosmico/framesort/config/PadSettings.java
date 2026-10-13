@@ -1,6 +1,5 @@
 package com.cesarcosmico.framesort.config;
 
-import com.cesarcosmico.framesort.item.ItemTemplate;
 import com.cesarcosmico.framesort.model.ItemReference;
 import com.cesarcosmico.framesort.model.PadMode;
 import org.bukkit.Material;
@@ -77,18 +76,11 @@ public record PadSettings(PadMode creation, int sweepInterval, Map<String, PadTy
         }
         ItemReference top = structure.getFirst();
         ConfigReader item = reader.sectionOrEmpty("item");
-        ItemTemplate template = null;
-        if (top instanceof ItemReference.Vanilla(Material material)) {
-            if (item.isSet("components")) {
-                item.warn("components", "a pad item looks like the block it places, ignored");
-            }
-            template = new ItemTemplate(material, Map.of(), ItemLookParser.look(item));
-        } else {
-            String look = ItemReferences.lookKeys(item);
-            if (look != null) {
-                reader.warn("item", "a CraftEngine block keeps its own look; " + look + " ignored");
-            }
+        if (top instanceof ItemReference.Custom) {
+            ItemReferences.ignoreComponents(item);
+        } else if (item.isSet("components")) {
+            item.warn("components", "a pad item looks like the block it places, ignored");
         }
-        return new PadType(id.toLowerCase(Locale.ROOT), top, structure.get(1), template);
+        return new PadType(id.toLowerCase(Locale.ROOT), top, structure.get(1), ItemLookParser.look(item));
     }
 }

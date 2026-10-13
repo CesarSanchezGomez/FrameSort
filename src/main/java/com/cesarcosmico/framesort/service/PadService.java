@@ -2,6 +2,7 @@ package com.cesarcosmico.framesort.service;
 
 import com.cesarcosmico.framesort.config.PadSettings;
 import com.cesarcosmico.framesort.config.PadType;
+import com.cesarcosmico.framesort.item.ItemOverlay;
 import com.cesarcosmico.framesort.item.ItemTemplate;
 import com.cesarcosmico.framesort.item.Keys;
 import com.cesarcosmico.framesort.item.MarkerCodec;
@@ -12,6 +13,7 @@ import com.cesarcosmico.framesort.model.ItemReference;
 import com.cesarcosmico.framesort.model.PadMode;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.Server;
 import org.bukkit.World;
 import org.bukkit.block.Block;
@@ -134,8 +136,14 @@ public final class PadService {
 
     /** {@code null} when CraftEngine can't build the item of the pad's top block now. */
     public @Nullable ItemStack createItem(PadType type, int amount) {
-        ItemTemplate template = type.item();
-        ItemStack item = template != null ? template.create(amount) : customItems.blockItem(type.top(), amount);
+        ItemStack item = switch (type.top()) {
+            case ItemReference.Vanilla(Material material) ->
+                    new ItemTemplate(material, Map.of(), type.look()).create(amount);
+            case ItemReference.Custom custom -> {
+                ItemStack built = customItems.blockItem(custom, amount);
+                yield built == null ? null : ItemOverlay.apply(built, type.look());
+            }
+        };
         return item == null ? null : MarkerCodec.mark(item, Keys.PAD_ITEM, type.id());
     }
 

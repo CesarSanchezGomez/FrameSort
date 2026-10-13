@@ -2,10 +2,12 @@ package com.cesarcosmico.framesort.service;
 
 import com.cesarcosmico.framesort.config.FrameSortSettings;
 import com.cesarcosmico.framesort.config.SorterSettings;
+import com.cesarcosmico.framesort.item.ItemOverlay;
 import com.cesarcosmico.framesort.item.ItemTemplate;
 import com.cesarcosmico.framesort.item.Keys;
 import com.cesarcosmico.framesort.item.MarkerCodec;
 import com.cesarcosmico.framesort.model.BlockKey;
+import com.cesarcosmico.framesort.model.ItemReference;
 import io.papermc.paper.datacomponent.DataComponentTypes;
 import io.papermc.paper.datacomponent.item.BundleContents;
 import io.papermc.paper.datacomponent.item.ItemContainerContents;
@@ -182,8 +184,14 @@ public final class SorterService {
     /** {@code null} when CraftEngine can't build the activator now: an ID it doesn't know, or a /ce reload. */
     public @Nullable ItemStack createActivator(int amount) {
         SorterSettings sorter = settings.get().sorter();
-        ItemTemplate template = sorter.activatorTemplate();
-        ItemStack item = template != null ? template.create(amount) : customItems.item(sorter.activator(), amount);
+        ItemStack item = switch (sorter.activator()) {
+            case ItemReference.Vanilla(Material material) ->
+                    new ItemTemplate(material, sorter.activatorComponents(), sorter.activatorLook()).create(amount);
+            case ItemReference.Custom custom -> {
+                ItemStack built = customItems.item(custom, amount);
+                yield built == null ? null : ItemOverlay.apply(built, sorter.activatorLook());
+            }
+        };
         return item == null ? null : MarkerCodec.mark(item, Keys.ACTIVATOR, "sorter");
     }
 

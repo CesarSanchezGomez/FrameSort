@@ -1,5 +1,6 @@
 package com.cesarcosmico.framesort.config;
 
+import com.cesarcosmico.framesort.item.ItemLook;
 import com.cesarcosmico.framesort.item.ItemTemplate;
 import com.cesarcosmico.framesort.item.Keys;
 import com.cesarcosmico.framesort.item.MarkerCodec;
@@ -10,16 +11,19 @@ import org.bukkit.entity.ItemFrame;
 import org.bukkit.inventory.ItemStack;
 import org.jspecify.annotations.Nullable;
 
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 /**
- * {@code activatorTemplate} is how FrameSort builds a vanilla activator; it is {@code null} for a CraftEngine one,
- * which CraftEngine builds with its own look.
+ * A vanilla activator is built from its material, {@code activatorComponents} and {@code activatorLook}; a CraftEngine
+ * one is built by CraftEngine, with {@code activatorLook} laid over it and no components.
  */
-public record SorterSettings(ItemReference activator, @Nullable ItemTemplate activatorTemplate,
+public record SorterSettings(ItemReference activator, ItemLook activatorLook, Map<String, String> activatorComponents,
                              boolean requireMarked, Set<EntityType> frameTypes, @Nullable String customName,
                              int tickRate, boolean disableWhenPowered, boolean hideFrame, boolean showActivity) {
 
@@ -27,6 +31,7 @@ public record SorterSettings(ItemReference activator, @Nullable ItemTemplate act
     private static final ItemReference DEFAULT_ACTIVATOR = new ItemReference.Vanilla(Material.ENDER_EYE);
 
     public SorterSettings {
+        activatorComponents = Collections.unmodifiableMap(new LinkedHashMap<>(activatorComponents));
         frameTypes = Set.copyOf(frameTypes);
     }
 
@@ -34,19 +39,22 @@ public record SorterSettings(ItemReference activator, @Nullable ItemTemplate act
                                 Function<String, @Nullable String> problem) {
         ConfigReader activator = reader.sectionOrEmpty("activator");
         ItemReference item = activatorItem(activator, isItem);
-        ItemTemplate template = null;
+        ItemLook look;
+        Map<String, String> components;
         if (item instanceof ItemReference.Vanilla(Material material)) {
-            template = ItemLookParser.template(activator, material, problem);
+            ItemTemplate template = ItemLookParser.template(activator, material, problem);
+            look = template.look();
+            components = template.components();
         } else {
-            String look = ItemReferences.lookKeys(activator);
-            if (look != null) {
-                activator.warn("material", "a CraftEngine item keeps its own look; " + look + " ignored");
-            }
+            ItemReferences.ignoreComponents(activator);
+            look = ItemLookParser.look(activator);
+            components = Map.of();
         }
         String customName = reader.string("custom-name", "");
         return new SorterSettings(
                 item,
-                template,
+                look,
+                components,
                 activator.bool("require-marked", false),
                 frameTypes(reader),
                 customName.isBlank() ? null : customName,
