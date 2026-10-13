@@ -1,5 +1,6 @@
 package com.cesarcosmico.framesort.integration.craftengine;
 
+import com.cesarcosmico.framesort.model.ItemReference;
 import com.cesarcosmico.framesort.service.CustomItemResolver;
 import net.kyori.adventure.text.Component;
 import net.momirealms.craftengine.bukkit.api.CraftEngineBlocks;
@@ -13,7 +14,7 @@ import org.jspecify.annotations.Nullable;
 /** Created only when CraftEngine is enabled, so its classes are never loaded otherwise. */
 public final class CraftEngineItemResolver implements CustomItemResolver {
 
-    private static final String PREFIX = "craftengine:";
+    private static final String PREFIX = ItemReference.CRAFT_ENGINE + ":";
 
     @Override
     public @Nullable String id(ItemStack item) {
