@@ -6,6 +6,8 @@ import net.kyori.adventure.text.Component;
 import net.momirealms.craftengine.bukkit.api.CraftEngineBlocks;
 import net.momirealms.craftengine.bukkit.api.CraftEngineItems;
 import net.momirealms.craftengine.bukkit.item.BukkitItemDefinition;
+import net.momirealms.craftengine.core.block.BlockDefinition;
+import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.util.Key;
 import org.bukkit.block.Block;
 import org.bukkit.inventory.ItemStack;
@@ -44,6 +46,24 @@ public final class CraftEngineItemResolver implements CustomItemResolver {
         ItemStack built = item.buildBukkitItem();
         built.setAmount(amount);
         return built;
+    }
+
+    @Override
+    public @Nullable String blockId(Block block) {
+        ImmutableBlockState state = CraftEngineBlocks.getCustomBlockState(block);
+        // Null for a vanilla block, and for a CraftEngine one while /ce reload has it unbound.
+        return state == null || state.isEmpty() ? null : PREFIX + state.owner().value().id().asString();
+    }
+
+    @Override
+    public @Nullable ItemStack blockItem(ItemReference block, int amount) {
+        if (!(block instanceof ItemReference.Custom(String id))) {
+            return null;
+        }
+        BlockDefinition definition = CraftEngineBlocks.byId(Key.of(id.substring(PREFIX.length())));
+        // The block's own ID unless its settings name another item; there may be no item with that ID.
+        Key item = definition == null ? null : definition.defaultState().settings().itemId();
+        return item == null ? null : item(new ItemReference.Custom(PREFIX + item.asString()), amount);
     }
 
     @Override

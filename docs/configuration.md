@@ -160,8 +160,8 @@ frame, it destroys whatever has no other target or no room left in one. An empty
 |---|---|---|
 | `creation` | `anyone` | `anyone`: any player who places the top block on its base. `permission`: only players with `framesort.pad.create`. `item`: only by placing the pad's special item (from `/framesort give pad`) as the top block. |
 | `sweep-interval` | `10` | Ticks between checks for items resting on pads. Items that arrive by water or fall onto a pad are picked up then. |
-| `types.<id>.structure` | | Exactly two blocks: the top, where items rest, then its base. Players build pads by hand, so both must be blocks a player can place (not `STICK`, `WATER` or `AIR`); otherwise the type is skipped with a warning. |
-| `types.<id>.item` | | *Optional*, and so is each key in it: `name`, `lore` and `glint` of the special top block (see [Item look](#item-look)). Left out, or set to `''`, `[]` or `false`, the block has none of it. Its material is the top block of the structure and it looks like that block, so it takes no `components` (they are reported and ignored). |
+| `types.<id>.structure` | | Exactly two blocks: the top, where items rest, then its base. Each one is a material or a CraftEngine block (`'craftengine:<namespace>:<id>'`). Players build pads by hand, so a material must be a block a player can place (not `STICK`, `WATER` or `AIR`); otherwise the type is skipped with a warning. |
+| `types.<id>.item` | | *Optional*, and so is each key in it: `name`, `lore` and `glint` of the special top block (see [Item look](#item-look)). Left out, or set to `''`, `[]` or `false`, the block has none of it. Its material is the top block of the structure and it looks like that block, so it takes no `components` (they are reported and ignored). With a CraftEngine top block the item is CraftEngine's, with its own look, so none of these keys apply (they are reported and ignored). |
 
 A pad is created when its top block is placed on its base, so place the base first. It counts as long as both
 blocks stay; breaking the top block removes it. If the top block goes any other way (WorldEdit, a command, gravity),
@@ -171,8 +171,16 @@ or blown up.
 
 Items resting up to one block above the top block count, so carpets or slabs on the pad are fine.
 
-Pads are built from vanilla blocks. A CraftEngine block never counts as one, whatever vanilla block it shows as to
-the server (bricks by default), and one put in place of a pad's top block ends the pad at the next sweep.
+A vanilla block in `structure` is only that block: a CraftEngine block never counts as it, whatever vanilla block it
+shows as to the server (bricks by default), and one put in place of a pad's top block ends the pad at the next
+sweep. A CraftEngine block in `structure` is only that CraftEngine block, whatever it looks like or does. Its
+furniture can't be part of a pad: it is not a block. A pad with a CraftEngine block works like any other:
+- it is created when that block is placed on the base;
+- in `item` mode, the special item is CraftEngine's item for that block with FrameSort's mark, so it doesn't stack
+  with the same item from `/ce give`, and breaking the pad gives it back;
+- while `/ce reload` runs, the pad is kept and protected but sends nothing, because CraftEngine's blocks can't be
+  told apart until it ends;
+- an ID CraftEngine doesn't know never makes a pad.
 
 ## tags.yml
 

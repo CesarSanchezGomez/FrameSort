@@ -2,11 +2,13 @@ package com.cesarcosmico.framesort.service;
 
 import com.cesarcosmico.framesort.config.PadSettings;
 import com.cesarcosmico.framesort.config.PadType;
+import com.cesarcosmico.framesort.item.ItemTemplate;
 import com.cesarcosmico.framesort.item.Keys;
 import com.cesarcosmico.framesort.item.MarkerCodec;
 import com.cesarcosmico.framesort.item.PadCodec;
 import com.cesarcosmico.framesort.model.BlockKey;
 import com.cesarcosmico.framesort.model.ChunkKey;
+import com.cesarcosmico.framesort.model.ItemReference;
 import com.cesarcosmico.framesort.model.PadMode;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
@@ -130,8 +132,11 @@ public final class PadService {
         return List.copyOf(found);
     }
 
-    public ItemStack createItem(PadType type, int amount) {
-        return MarkerCodec.mark(type.item().create(amount), Keys.PAD_ITEM, type.id());
+    /** {@code null} when CraftEngine can't build the item of the pad's top block now. */
+    public @Nullable ItemStack createItem(PadType type, int amount) {
+        ItemTemplate template = type.item();
+        ItemStack item = template != null ? template.create(amount) : customItems.blockItem(type.top(), amount);
+        return item == null ? null : MarkerCodec.mark(item, Keys.PAD_ITEM, type.id());
     }
 
     public void tick() {
@@ -156,9 +161,9 @@ public final class PadService {
         if (type == null) {
             return;
         }
-        // A player's break unregisters the pad at once; one by WorldEdit, a command, gravity or a CraftEngine block put
-        // in its place is only seen here.
-        if (top.getType() != type.top() || customItems.isCustomBlock(top)) {
+        // A player's break unregisters the pad at once; one by WorldEdit, a command, gravity or another block put in
+        // its place is only seen here.
+        if (!isTop(top, type)) {
             unregister(top);
             return;
         }
@@ -174,18 +179,29 @@ public final class PadService {
         }
     }
 
-    // A CraftEngine block shows to the server as a vanilla one (bricks by default), so it never counts as that block.
     private boolean matches(Block top, PadType type) {
-        Block base = top.getRelative(BlockFace.DOWN);
-        return top.getType() == type.top() && base.getType() == type.base()
-                && !customItems.isCustomBlock(top) && !customItems.isCustomBlock(base);
+        return is(top, type.top()) && is(top.getRelative(BlockFace.DOWN), type.base());
+    }
+
+    // A CraftEngine block shows to the server as a vanilla one (bricks by default), so it never counts as that block;
+    // while /ce reload has it unbound, it counts as no block at all.
+    private boolean is(Block block, ItemReference reference) {
+        String id = customItems.blockId(block);
+        return (id != null || !customItems.isCustomBlock(block)) && reference.matches(block.getType(), id);
+    }
+
+    // While /ce reload has CraftEngine's blocks unbound, a pad's CraftEngine top block can't be told from another:
+    // the pad is kept, and protected, until the reload ends.
+    private boolean isTop(Block block, PadType type) {
+        return is(block, type.top()) || type.top() instanceof ItemReference.Custom
+                && customItems.isCustomBlock(block) && customItems.blockId(block) == null;
     }
 
     private @Nullable PadType registered(Block block) {
         Map<BlockKey, String> inChunk = pads.get(FrameGeometry.key(block.getChunk()));
         String typeId = inChunk == null ? null : inChunk.get(FrameGeometry.key(block));
         PadType type = typeId == null ? null : settings.get().type(typeId);
-        return type != null && block.getType() == type.top() && !customItems.isCustomBlock(block) ? type : null;
+        return type != null && isTop(block, type) ? type : null;
     }
 
     private void register(Block block, PadType type) {

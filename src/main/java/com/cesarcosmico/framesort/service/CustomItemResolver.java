@@ -36,4 +36,17 @@ public interface CustomItemResolver {
     default @Nullable ItemStack item(ItemReference reference, int amount) {
         return null;
     }
+
+    /**
+     * The reference to the plugin's block at {@code block}, or {@code null} for a vanilla block and, while the plugin
+     * reloads, for one of its own ({@link #isCustomBlock} still tells those apart).
+     */
+    default @Nullable String blockId(Block block) {
+        return null;
+    }
+
+    /** The item that places the plugin's {@code block}, as {@link #item} builds it, or {@code null}. */
+    default @Nullable ItemStack blockItem(ItemReference block, int amount) {
+        return null;
+    }
 }
