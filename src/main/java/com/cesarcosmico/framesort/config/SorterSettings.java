@@ -3,6 +3,7 @@ package com.cesarcosmico.framesort.config;
 import com.cesarcosmico.framesort.item.ItemTemplate;
 import com.cesarcosmico.framesort.item.Keys;
 import com.cesarcosmico.framesort.item.MarkerCodec;
+import com.cesarcosmico.framesort.model.ItemReference;
 import org.bukkit.Material;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.ItemFrame;
@@ -14,11 +15,16 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-public record SorterSettings(ItemTemplate activator, boolean requireMarked, Set<EntityType> frameTypes,
-                             @Nullable String customName, int tickRate,
-                             boolean disableWhenPowered, boolean hideFrame, boolean showActivity) {
+/**
+ * {@code activatorTemplate} is how FrameSort builds a vanilla activator; it is {@code null} for a CraftEngine one,
+ * which CraftEngine builds with its own look.
+ */
+public record SorterSettings(ItemReference activator, @Nullable ItemTemplate activatorTemplate,
+                             boolean requireMarked, Set<EntityType> frameTypes, @Nullable String customName,
+                             int tickRate, boolean disableWhenPowered, boolean hideFrame, boolean showActivity) {
 
     private static final Set<EntityType> ITEM_FRAMES = Set.of(EntityType.ITEM_FRAME, EntityType.GLOW_ITEM_FRAME);
+    private static final ItemReference DEFAULT_ACTIVATOR = new ItemReference.Vanilla(Material.ENDER_EYE);
 
     public SorterSettings {
         frameTypes = Set.copyOf(frameTypes);
@@ -27,14 +33,20 @@ public record SorterSettings(ItemTemplate activator, boolean requireMarked, Set<
     static SorterSettings parse(ConfigReader reader, Predicate<Material> isItem,
                                 Function<String, @Nullable String> problem) {
         ConfigReader activator = reader.sectionOrEmpty("activator");
-        Material material = activator.requiredMaterial("material", Material.ENDER_EYE);
-        if (!isItem.test(material)) {
-            activator.warn("material", material + " is not an item, using ENDER_EYE");
-            material = Material.ENDER_EYE;
+        ItemReference item = activatorItem(activator, isItem);
+        ItemTemplate template = null;
+        if (item instanceof ItemReference.Vanilla(Material material)) {
+            template = ItemLookParser.template(activator, material, problem);
+        } else {
+            String look = ItemReferences.lookKeys(activator);
+            if (look != null) {
+                activator.warn("material", "a CraftEngine item keeps its own look; " + look + " ignored");
+            }
         }
         String customName = reader.string("custom-name", "");
         return new SorterSettings(
-                ItemLookParser.template(activator, material, problem),
+                item,
+                template,
                 activator.bool("require-marked", false),
                 frameTypes(reader),
                 customName.isBlank() ? null : customName,
@@ -50,10 +62,18 @@ public record SorterSettings(ItemTemplate activator, boolean requireMarked, Set<
      */
     public boolean isActivatorFrame(ItemFrame frame, Function<ItemStack, @Nullable String> customId) {
         ItemStack item = frame.getItem();
-        // A custom item is only a vanilla material underneath, so one made from the activator's material isn't one.
-        return frameTypes.contains(frame.getType()) && item.getType() == activator.material()
-                && customId.apply(item) == null
+        return frameTypes.contains(frame.getType()) && activator.matches(item.getType(), customId.apply(item))
                 && (!requireMarked || MarkerCodec.read(item, Keys.ACTIVATOR) != null);
+    }
+
+    private static ItemReference activatorItem(ConfigReader activator, Predicate<Material> isItem) {
+        ItemReference item = ItemReferences.parse(activator.string("material", "ENDER_EYE"),
+                problem -> activator.warn("material", problem + ", using ENDER_EYE"));
+        if (item instanceof ItemReference.Vanilla(Material material) && !isItem.test(material)) {
+            activator.warn("material", material + " is not an item, using ENDER_EYE");
+            return DEFAULT_ACTIVATOR;
+        }
+        return item == null ? DEFAULT_ACTIVATOR : item;
     }
 
     static Set<EntityType> frameTypes(ConfigReader reader) {

@@ -142,6 +142,7 @@ tag:
 give:
   done: '<prefix><green>Entregado <white><amount>× <item></white> a <white><player></white>.</green>'
   players-only: '<prefix><red>Indica un jugador: <usage> ... [jugador]</red>'
+  unavailable: '<prefix><red>CraftEngine no puede crear ese item ahora: revisa su ID en la config o espera a que termine /ce reload.</red>'
   unknown-pad: 'No existe ningún tipo de pad llamado ''<type>'''
 
 sorter:

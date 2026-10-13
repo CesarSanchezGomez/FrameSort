@@ -2,6 +2,7 @@ package com.cesarcosmico.framesort.service;
 
 import com.cesarcosmico.framesort.config.FrameSortSettings;
 import com.cesarcosmico.framesort.config.SorterSettings;
+import com.cesarcosmico.framesort.item.ItemTemplate;
 import com.cesarcosmico.framesort.item.Keys;
 import com.cesarcosmico.framesort.item.MarkerCodec;
 import com.cesarcosmico.framesort.model.BlockKey;
@@ -178,8 +179,12 @@ public final class SorterService {
         return sorters.values().stream().map(sorter -> sorter.block).toList();
     }
 
-    public ItemStack createActivator(int amount) {
-        return MarkerCodec.mark(settings.get().sorter().activator().create(amount), Keys.ACTIVATOR, "sorter");
+    /** {@code null} when CraftEngine can't build the activator now: an ID it doesn't know, or a /ce reload. */
+    public @Nullable ItemStack createActivator(int amount) {
+        SorterSettings sorter = settings.get().sorter();
+        ItemTemplate template = sorter.activatorTemplate();
+        ItemStack item = template != null ? template.create(amount) : customItems.item(sorter.activator(), amount);
+        return item == null ? null : MarkerCodec.mark(item, Keys.ACTIVATOR, "sorter");
     }
 
     public void tick() {

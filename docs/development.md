@@ -21,8 +21,10 @@ Packages depend on each other without cycles: `model` ← `item` ← `config` �
 the integrations. Dependencies are wired by constructor in `FrameSortPlugin`; there are no static instances.
 
 Interfaces exist only with several implementations, as closed sets, or to keep an optional plugin out:
-- `CustomItemResolver`: a custom item as `tags.yml` writes it (`craftengine:<namespace>:<id>`), its name and whether
-  a placed block is CraftEngine's, or `NONE` without CraftEngine, so no other class loads CraftEngine's classes;
+- `CustomItemResolver`: a custom item as `tags.yml` writes it (`craftengine:<namespace>:<id>`), its name, the item
+  built from a reference and whether a placed block is CraftEngine's, or `NONE` without CraftEngine, so no other class
+  loads CraftEngine's classes. Building an item and its name go through `CraftEngineItems.byId`, which returns a type
+  outside CraftEngine's stable `api` package: check them on every CraftEngine update;
 - `DeliveryService.Source`: a sorter slot or a pad item entity;
 - `CommandFeature`: one per command feature;
 - `GiveCommand.ItemSource`: a sorter activator or a pad block;

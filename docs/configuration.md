@@ -22,7 +22,7 @@ The activator, the pad items and tagged items take these keys, all optional: lef
 | `name` | MiniMessage. Not italic unless you write `<i>`. On a tagged item it replaces the item's name. |
 | `lore` | A list of MiniMessage lines, not italic unless you write `<i>`. On a tagged item they go below its own lines. |
 | `glint` | `true` adds the enchantment glint. `false` leaves the item's own glint alone: a nether star still shines. |
-| `components` | Only the activator. Any vanilla item component by its vanilla name, written as YAML in the same shape as in `/give`. |
+| `components` | Only a vanilla activator. Any vanilla item component by its vanilla name, written as YAML in the same shape as in `/give`. |
 
 `name`, `lore` and `glint` win over the same thing in `components`. Examples:
 
@@ -52,15 +52,22 @@ More: `dyed_color: 0xFF0000` (leather armour), `potion_contents: {custom_color: 
 - Not possible: removing a component the item type has (`!component`), typed arrays (`[I;...]`), keys with a dot, and
   a specific number type inside `custom_data` (numbers arrive as int, long or double).
 
+**CraftEngine items and blocks.** With [CraftEngine](https://modrinth.com/plugin/craftengine) installed, wherever a
+material goes you can write one of its items or blocks as `'craftengine:<namespace>:<id>'`, as in
+[`tags.yml`](#tagsyml). Its look is CraftEngine's: these keys are reported and ignored there, so give the item its
+name, lore and model in CraftEngine. FrameSort still marks what it hands out, so an activator from `/framesort give`
+doesn't stack with the same item from `/ce give`. The ID is not checked on load (CraftEngine loads its items later);
+one it doesn't know never matches.
+
 ## config.yml
 
 ### sorter
 
 | Key | Default | Meaning |
 |---|---|---|
-| `activator.material` | `ENDER_EYE` | Item that turns a dispenser into a sorter when placed in a frame on it. A material that is not an item (`WATER`, `AIR`) falls back to the default. A CraftEngine item made from that material is not the activator. |
+| `activator.material` | `ENDER_EYE` | Item that turns a dispenser into a sorter when placed in a frame on it: a material, or a CraftEngine item (`'craftengine:<namespace>:<id>'`, see [CraftEngine items and blocks](#item-look)). A material that is not an item (`WATER`, `AIR`) falls back to the default. A CraftEngine item made from the activator's material is not the activator. |
 | `activator.require-marked` | `false` | `true`: only the activator from `/framesort give sorter` works, not any item of that material. |
-| `activator.name`, `lore`, `glint`, `components` | | *Optional.* Look of the activator FrameSort hands out (see [Item look](#item-look)). Left out, or set to `''`, `[]` or `false`, the activator has none of it: with no name it shows the item's own name. |
+| `activator.name`, `lore`, `glint`, `components` | | *Optional.* Look of a vanilla activator FrameSort hands out (see [Item look](#item-look)); a CraftEngine one keeps its own. Left out, or set to `''`, `[]` or `false`, the activator has none of it: with no name it shows the item's own name. |
 | `frame-types` | `[ITEM_FRAME, GLOW_ITEM_FRAME]` | Frames that can hold the activator. |
 | `custom-name` | `<gradient:#F7B733:#FC4A1A>Item Sorter</gradient>` | *Optional.* Title of a sorter's inventory. Left out or `''` = the dispenser's own name. The dispenser itself is never renamed: once it stops sorting it shows its own name again (from an anvil, or none), and a broken sorter drops it with that name. |
 | `tick-rate` | `20` | Ticks between two turns of the same sorter. |

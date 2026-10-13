@@ -14,7 +14,7 @@
 | `/framesort trace [seconds]` | For a while (`inspect.trace-default-seconds`, at most `inspect.trace-max-seconds`), deliveries from sorters and pads near you show in the action bar, with a streak of particles converging on their destination and a small splash when they arrive. A sorter turn draws one streak per target frame, and at most one delivery shows every 0.15 s, so a busy sorter never floods the screen. |
 | `/framesort trace stop` | Stops tracing. |
 | `/framesort inspect <page>` | Another page of the last inspection list (the page buttons run it). |
-| `/framesort give sorter [player] [amount]` | The sorter activator from `config.yml`. Needed when `sorter.activator.require-marked` is true. |
+| `/framesort give sorter [player] [amount]` | The sorter activator from `config.yml`. Needed when `sorter.activator.require-marked` is true. A CraftEngine activator is built by CraftEngine; while it can't (an ID it doesn't know, or during `/ce reload`) nothing is given and you are told so. |
 | `/framesort give pad <type> [player] [amount]` | The special top block of a pad type. Needed when `pads.yml` has `creation: item`. |
 | `/framesort reload` | Reloads `config.yml`, `pads.yml`, `tags.yml` and the language file. If a file is broken, the previous configuration stays active. |
 

@@ -20,6 +20,7 @@ import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.jspecify.annotations.Nullable;
 
 import java.util.List;
 import java.util.function.Function;
@@ -28,7 +29,9 @@ import java.util.function.Supplier;
 public final class GiveCommand implements CommandFeature {
 
     private interface ItemSource {
-        ItemStack create(CommandContext<CommandSourceStack> context, int amount) throws CommandSyntaxException;
+        /** {@code null} when CraftEngine can't build the item now. */
+        @Nullable ItemStack create(CommandContext<CommandSourceStack> context, int amount)
+                throws CommandSyntaxException;
     }
 
     private final SorterService sorters;
@@ -85,6 +88,10 @@ public final class GiveCommand implements CommandFeature {
             throws CommandSyntaxException {
         CommandSender sender = context.getSource().getSender();
         ItemStack stack = item.create(context, amount);
+        if (stack == null) {
+            sender.sendMessage(messages.get().get("give.unavailable"));
+            return Command.SINGLE_SUCCESS;
+        }
         // Whatever does not fit is dropped at the player's feet instead of being lost.
         for (ItemStack left : target.getInventory().addItem(stack).values()) {
             target.getWorld().dropItem(target.getLocation(), left);

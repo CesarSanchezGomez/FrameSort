@@ -5,6 +5,7 @@ import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.jspecify.annotations.Nullable;
 
+import java.util.List;
 import java.util.Locale;
 import java.util.function.Consumer;
 
@@ -15,7 +16,18 @@ import java.util.function.Consumer;
  */
 final class ItemReferences {
 
+    private static final List<String> LOOK_KEYS = List.of("name", "lore", "glint", "components");
+
     private ItemReferences() {
+    }
+
+    /**
+     * The look keys set in {@code section}, such as {@code "name, lore"}, or {@code null} if it sets none: another
+     * plugin's item keeps the look that plugin gives it, so they are reported as ignored.
+     */
+    static @Nullable String lookKeys(ConfigReader section) {
+        List<String> set = LOOK_KEYS.stream().filter(section::isSet).toList();
+        return set.isEmpty() ? null : String.join(", ", set);
     }
 
     /** The reference, or {@code null} after telling {@code problem} why {@code text} names nothing usable. */

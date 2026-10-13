@@ -1,6 +1,7 @@
 package com.cesarcosmico.framesort.config;
 
 import com.cesarcosmico.framesort.item.ItemLook;
+import com.cesarcosmico.framesort.model.ItemReference;
 import com.cesarcosmico.framesort.model.TargetRegistration;
 import org.bukkit.Color;
 import org.bukkit.Material;
@@ -31,6 +32,7 @@ class FrameSortSettingsTest {
     // Minecraft checks components on a server; these tests reject only the component named "nope".
     static final Function<String, @Nullable String> PROBLEM =
             input -> input.contains("nope=") ? "Unknown item component 'minecraft:nope'" : null;
+    private static final ItemReference EYE = new ItemReference.Vanilla(Material.ENDER_EYE);
 
     static YamlConfiguration bundled(String resource) throws Exception {
         try (InputStream in = FrameSortSettingsTest.class.getResourceAsStream("/" + resource)) {
@@ -49,7 +51,7 @@ class FrameSortSettingsTest {
 
         assertEquals(List.of(), warnings);
         assertEquals("en_US", settings.language());
-        assertEquals(Material.ENDER_EYE, settings.sorter().activator().material());
+        assertEquals(EYE, settings.sorter().activator());
         assertFalse(settings.sorter().requireMarked());
         assertEquals(20, settings.sorter().tickRate());
         assertTrue(settings.sorter().showActivity());
@@ -57,7 +59,7 @@ class FrameSortSettingsTest {
         assertEquals(64, settings.delivery().maxDistance());
         assertTrue(settings.delivery().insertIntoContainers());
         assertEquals(Material.CARROT_ON_A_STICK, settings.delivery().defaultTargetItem());
-        assertEquals(Map.of(), settings.sorter().activator().components());
+        assertEquals(Map.of(), settings.sorter().activatorTemplate().components());
         assertEquals("<gradient:#F7B733:#FC4A1A>#<tag></gradient>", settings.targets().taggedItem().name());
         assertTrue(settings.targets().taggedItem().glint());
         assertEquals(5, settings.inspect().highlightSeconds());
@@ -99,7 +101,7 @@ class FrameSortSettingsTest {
         FrameSortSettings settings = parse(yaml, warnings);
 
         assertEquals("en_US", settings.language());
-        assertEquals(Material.ENDER_EYE, settings.sorter().activator().material());
+        assertEquals(EYE, settings.sorter().activator());
         assertEquals(20, settings.sorter().tickRate());
         assertEquals(Set.of(EntityType.ITEM_FRAME), settings.sorter().frameTypes());
         assertEquals(TargetRegistration.MANUAL, settings.targets().registration());
@@ -142,9 +144,9 @@ class FrameSortSettingsTest {
 
         assertEquals(List.of(), warnings);
         assertEquals(new ItemLook(null, List.of(), false), parse(live, warnings).targets().taggedItem());
-        assertNull(sorter.activator().look().name());
-        assertEquals(List.of(), sorter.activator().look().lore());
-        assertFalse(sorter.activator().look().glint());
+        assertNull(sorter.activatorTemplate().look().name());
+        assertEquals(List.of(), sorter.activatorTemplate().look().lore());
+        assertFalse(sorter.activatorTemplate().look().glint());
         assertNull(sorter.customName());
     }
 
@@ -159,7 +161,7 @@ class FrameSortSettingsTest {
                 FrameSortSettings.OPTIONAL_KEYS, warnings::add);
         assertEquals(List.of(), warnings);
 
-        assertEquals(Set.of("item_model"), parse(live, warnings).sorter().activator().components().keySet());
+        assertEquals(Set.of("item_model"), parse(live, warnings).sorter().activatorTemplate().components().keySet());
         assertEquals(List.of("config.yml > sorter.activator.components.nope: Unknown item component "
                 + "'minecraft:nope', ignored"), warnings);
     }
@@ -195,6 +197,25 @@ class FrameSortSettingsTest {
     }
 
     @Test
+    void aCraftEngineActivatorKeepsItsOwnLook() throws Exception {
+        YamlConfiguration yaml = new YamlConfiguration();
+        yaml.loadFromString("""
+                sorter:
+                  activator:
+                    material: 'CraftEngine:default:Ruby'
+                    name: 'Sorter'
+                    glint: true
+                """);
+        List<String> warnings = new ArrayList<>();
+        SorterSettings sorter = parse(yaml, warnings).sorter();
+
+        assertEquals(new ItemReference.Custom("craftengine:default:Ruby"), sorter.activator());
+        assertNull(sorter.activatorTemplate());
+        assertEquals(List.of("config.yml > sorter.activator.material: a CraftEngine item keeps its own look; "
+                + "name, glint ignored"), warnings);
+    }
+
+    @Test
     void materialsThatAreNotItemsFallBack() throws Exception {
         YamlConfiguration yaml = new YamlConfiguration();
         yaml.loadFromString("""
@@ -206,7 +227,7 @@ class FrameSortSettingsTest {
         List<String> warnings = new ArrayList<>();
         FrameSortSettings settings = parse(yaml, warnings);
 
-        assertEquals(Material.ENDER_EYE, settings.sorter().activator().material());
+        assertEquals(EYE, settings.sorter().activator());
         assertEquals(Material.CARROT_ON_A_STICK, settings.delivery().defaultTargetItem());
         assertEquals(2, warnings.size(), warnings::toString);
     }
