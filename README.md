@@ -59,7 +59,8 @@ and a custom item never goes to a frame for its material. No game tag takes a cu
 the ones it lists, written as inspecting a frame that holds the item shows them (`craftengine:default:topaz_axe`). A
 custom item in a frame is never the default target, even one made from a carrot on a stick, nor the sorter activator,
 even one made from an Eye of Ender, unless the config names that custom item
-(`activator.material: 'craftengine:default:ruby'`); then it keeps the look CraftEngine gives it. Pads are built from
+(`activator.material: 'craftengine:default:ruby'`, and the same in `default-target-item`); then it keeps the look
+CraftEngine gives it. Pads are built from
 vanilla blocks only: a CraftEngine block never counts as one. The ID is read from each item, so `/ce reload` changes
 nothing.
 

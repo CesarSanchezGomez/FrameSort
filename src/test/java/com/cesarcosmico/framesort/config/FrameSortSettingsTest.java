@@ -33,6 +33,7 @@ class FrameSortSettingsTest {
     static final Function<String, @Nullable String> PROBLEM =
             input -> input.contains("nope=") ? "Unknown item component 'minecraft:nope'" : null;
     private static final ItemReference EYE = new ItemReference.Vanilla(Material.ENDER_EYE);
+    private static final ItemReference CARROT = new ItemReference.Vanilla(Material.CARROT_ON_A_STICK);
 
     static YamlConfiguration bundled(String resource) throws Exception {
         try (InputStream in = FrameSortSettingsTest.class.getResourceAsStream("/" + resource)) {
@@ -58,7 +59,7 @@ class FrameSortSettingsTest {
         assertEquals(TargetRegistration.MANUAL, settings.targets().registration());
         assertEquals(64, settings.delivery().maxDistance());
         assertTrue(settings.delivery().insertIntoContainers());
-        assertEquals(Material.CARROT_ON_A_STICK, settings.delivery().defaultTargetItem());
+        assertEquals(CARROT, settings.delivery().defaultTargetItem());
         assertEquals(Map.of(), settings.sorter().activatorTemplate().components());
         assertEquals("<gradient:#F7B733:#FC4A1A>#<tag></gradient>", settings.targets().taggedItem().name());
         assertTrue(settings.targets().taggedItem().glint());
@@ -216,6 +217,17 @@ class FrameSortSettingsTest {
     }
 
     @Test
+    void theDefaultTargetItemMayBeACraftEngineItem() throws Exception {
+        YamlConfiguration yaml = new YamlConfiguration();
+        yaml.loadFromString("delivery:\n  default-target-item: 'craftengine:default:trash_bag'\n");
+        List<String> warnings = new ArrayList<>();
+
+        assertEquals(new ItemReference.Custom("craftengine:default:trash_bag"),
+                parse(yaml, warnings).delivery().defaultTargetItem());
+        assertEquals(List.of(), warnings);
+    }
+
+    @Test
     void materialsThatAreNotItemsFallBack() throws Exception {
         YamlConfiguration yaml = new YamlConfiguration();
         yaml.loadFromString("""
@@ -228,7 +240,7 @@ class FrameSortSettingsTest {
         FrameSortSettings settings = parse(yaml, warnings);
 
         assertEquals(EYE, settings.sorter().activator());
-        assertEquals(Material.CARROT_ON_A_STICK, settings.delivery().defaultTargetItem());
+        assertEquals(CARROT, settings.delivery().defaultTargetItem());
         assertEquals(2, warnings.size(), warnings::toString);
     }
 }
