@@ -1,14 +1,23 @@
-# FrameSort: teleport pads. A pad is created when its top block is placed on its base block.
+# FrameSort: teleport pads. /framesort reload applies this file.
+# Details: https://github.com/CesarSanchezGomez/Framesort/blob/main/docs/configuration.md#padsyml
+#
+# Each type under 'types' is one kind of pad; its key is the <type> of /framesort give pad.
+#   structure  top and base, each a block a player can place or 'craftengine:<namespace>:<id>'.
+#              Items resting on the top go to the targets.
+#   item       optional look of the top block /framesort give pad hands out: name, lore, glint.
+# A pad is created when its top block is placed on its base.
 
 config-version: 1
 
-creation: anyone   # anyone | permission | item
-sweep-interval: 10   # ticks
+# Who creates pads: anyone, permission (framesort.pad.create) or item (only from /framesort give pad).
+creation: anyone
+# Ticks between checks for items resting on pads.
+sweep-interval: 10
 
 types:
   simple:
-    structure: [CRYING_OBSIDIAN, GILDED_BLACKSTONE]   # top, base: two blocks a player can place
-    item:   # optional, and each key in it: leave it out (or set '', [] or false) for none of it
+    structure: [CRYING_OBSIDIAN, GILDED_BLACKSTONE]
+    item:
       name: '<gradient:#F7B733:#FC4A1A>Teleport Pad</gradient>'
       lore:
         - ''

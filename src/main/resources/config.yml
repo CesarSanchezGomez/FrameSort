@@ -1,16 +1,21 @@
-# FrameSort: general settings. See docs/configuration.md.
+# FrameSort: general settings. /framesort reload applies this file.
+# Details: https://github.com/CesarSanchezGomez/Framesort/blob/main/docs/configuration.md#configyml
+# Look keys (name, lore, glint) are optional: leave one out and the item has none of it.
 
 config-version: 1
 
 # File in lang/ that player messages come from: en_US, es_ES or a copy of your own.
 language: 'en_US'
 
+# Sorters: a dispenser with the activator in an item frame on it.
 sorter:
   activator:
+    # Item that makes a sorter: a material or 'craftengine:<namespace>:<id>'.
     material: ENDER_EYE
-    require-marked: false   # true: only the activator from /framesort give sorter
-    # Optional, each one: leave it out (or set '', [] or false) and the activator has none of it.
-    # 'components' adds any vanilla component (a model, a head texture, a colour): see docs/configuration.md.
+    # true: only the activator from /framesort give sorter works.
+    require-marked: false
+    # Look of the activator FrameSort hands out.
+    # 'components' also works on a vanilla activator (a model, a head texture...).
     name: '<gradient:#F7B733:#FC4A1A>Sorter Activator</gradient>'
     lore:
       - ''
@@ -18,34 +23,51 @@ sorter:
       - ' <gray>on a dispenser.</gray> '
       - ''
     glint: true
+  # Frames that can hold the activator.
   frame-types: [ITEM_FRAME, GLOW_ITEM_FRAME]
-  # Optional: left out or '' = the dispenser's own name.
+  # Optional title of a sorter's inventory; '' = the dispenser's own name.
   custom-name: '<gradient:#F7B733:#FC4A1A>Item Sorter</gradient>'
-  tick-rate: 20   # ticks
+  # Ticks between two turns of the same sorter.
+  tick-rate: 20
   disable-when-powered: false
+  # true: hides the frame that holds the activator.
   hide-frame: true
+  # true: rotates the activator after each turn that sends something.
   show-activity: true
 
+# Target frames: where sorters and pads send items.
 targets:
-  registration: manual   # manual | automatic (automatic: only frames on containers and composters)
+  # manual: only frames marked with sneak + right-click (empty hand).
+  # automatic: every frame on a container or composter.
+  registration: manual
   frame-types: [ITEM_FRAME, GLOW_ITEM_FRAME]
-  tagged-item:   # look /framesort tag apply <tag> gives the item in your hand; tag remove gives its own back
-    # Optional, each one: name, lore (added below the item's own) and glint.
-    name: '<gradient:#F7B733:#FC4A1A>#<tag></gradient>'   # <tag> is the tag
+  # Look of an item tagged with /framesort tag apply; <tag> is the tag.
+  tagged-item:
+    name: '<gradient:#F7B733:#FC4A1A>#<tag></gradient>'
     glint: true
 
+# How items reach the targets.
 delivery:
-  max-distance: 64   # blocks
+  # Blocks around a sorter or pad where targets are searched.
+  max-distance: 64
+  # false: frames on containers or composters drop the items instead.
   insert-into-containers: true
-  default-target-item: CARROT_ON_A_STICK   # '' = off
+  # Frames holding it take what no other frame takes; '' = off.
+  default-target-item: CARROT_ON_A_STICK
 
+# Inspection, chat lists and /framesort trace.
 inspect:
+  # Seconds the targets glow for the player who inspected them.
   highlight-seconds: 5
+  # Glow and trace colours (#RRGGBB) of targets that store, drop or destroy items.
   colors:
     container: '#55FF55'
     dropped: '#FFFF55'
     lava: '#FF5555'
+  # Entries per page in chat lists (tags, inspection).
   page-size: 8
-  trace-radius: 32   # blocks
+  # Blocks around you that /framesort trace covers.
+  trace-radius: 32
+  # Default and longest /framesort trace, in seconds.
   trace-default-seconds: 60
   trace-max-seconds: 600

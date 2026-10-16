@@ -1,5 +1,5 @@
-# FrameSort: tags of your own, and replacements for the game's tags. They only change what FrameSort's frames
-# accept, never the game's tags, recipes or anything else. /framesort reload applies this file.
+# FrameSort: tags of your own, and replacements for the game's tags. /framesort reload applies this file.
+# They only change what FrameSort's frames accept, never the game's tags, recipes or anything else.
 #
 # Each tag under 'tags' is a list of members:
 #   'diamond_axe' or 'minecraft:diamond_axe'   a vanilla item

@@ -108,7 +108,7 @@ composter is a target.
 | Key | Default | Meaning |
 |---|---|---|
 | `max-distance` | `64` | Targets are searched within this many blocks of the sorter or pad. |
-| `insert-into-containers` | `true` | `true`: items go into the container behind the frame, or are composted by a composter. `false`: items are always dropped in front of the frame. |
+| `insert-into-containers` | `true` | `true`: items go into the container behind the frame, or are composted by a composter. `false`: frames on containers or composters drop the items in front of them instead; frames on lava cauldrons still destroy them. |
 | `default-target-item` | `CARROT_ON_A_STICK` | Frames holding it take whatever matches no other frame, and whatever the other targets have no room for: a material (but not a CraftEngine item made from it) or a CraftEngine item (`'craftengine:<namespace>:<id>'`). `''` = off. A material that is not an item falls back to the default. |
 
 How a destination is chosen:
