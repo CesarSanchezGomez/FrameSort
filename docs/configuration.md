@@ -64,6 +64,8 @@ the rest are CraftEngine's (they are reported and ignored).
 - Better still, give the activator or the pad block an item of its own in CraftEngine, named and described for it,
   rather than reusing a general one.
 - The ID is not checked on load (CraftEngine loads its items later); one it doesn't know never matches.
+- Without CraftEngine installed, such a value is reported on load and treated like any wrong value: the default is
+  used (`activator.material`, `default-target-item`), the pad type is skipped, or the tag member is ignored.
 
 ## config.yml
 
@@ -186,6 +188,8 @@ furniture can't be part of a pad: it is not a block. A pad with a CraftEngine bl
   with the same item from `/ce give`, and breaking the pad gives it back;
 - while `/ce reload` runs, the pad is kept and protected but sends nothing, because CraftEngine's blocks can't be
   told apart until it ends;
+- in `item` mode, a pad whose item CraftEngine can't build (while `/ce reload` runs, or for an ID it no longer knows)
+  can't be broken, so its item is never lost; the player is told why. A player in creative mode can still break it;
 - an ID CraftEngine doesn't know never makes a pad.
 
 ## tags.yml
@@ -218,13 +222,14 @@ tags:
   "tags.yml tag" and lists their custom items after the materials, by the name CraftEngine gives them: CraftEngine
   translates it for each player, as in their inventory (a name written with `<l10n:…>` needs CraftEngine's
   `network.intercept-packets.system-chat`, on by default). Hovering shows the reference, which is also shown instead
-  of the name while CraftEngine doesn't know the item (not installed, a typo, or during `/ce reload`).
+  of the name while CraftEngine doesn't know the item (a typo, or during `/ce reload`).
 - **Warnings.** Each of these is reported with its path (`tags.yml > tags.<name>`) and ignored: a malformed name or
   member, an unknown material or one that is not an item, a `#tag` the game doesn't have, an item plugin FrameSort
-  doesn't read (only `craftengine:` today), a CraftEngine item without its namespace (`craftengine:topaz_axe`; write
-  `craftengine:default:topaz_axe`: two packs can use the same name, so `default` is never assumed), a tag named twice
-  (`logs` and `minecraft:logs`: the first one counts) and a tag left without valid members. The rest of a CraftEngine
-  ID is not checked, because CraftEngine may not have loaded its items yet.
+  doesn't read (only `craftengine:` today), a CraftEngine item while CraftEngine isn't installed, a CraftEngine item
+  without its namespace (`craftengine:topaz_axe`; write `craftengine:default:topaz_axe`: two packs can use the same
+  name, so `default` is never assumed), a tag named twice (`logs` and `minecraft:logs`: the first one counts) and a
+  tag left without valid members. The rest of a CraftEngine ID is not checked, because CraftEngine may not have loaded
+  its items yet.
 
 ## Language
 

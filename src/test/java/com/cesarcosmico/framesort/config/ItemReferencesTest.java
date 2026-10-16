@@ -16,7 +16,7 @@ class ItemReferencesTest {
     private final List<String> problems = new ArrayList<>();
 
     private ItemReference parse(String text) {
-        return ItemReferences.parse(text, problems::add);
+        return ItemReferences.parse(text, true, problems::add);
     }
 
     @Test
@@ -44,5 +44,12 @@ class ItemReferencesTest {
         assertEquals(6, problems.size(), problems::toString);
         assertTrue(problems.get(3).contains("'craftengine:default:topaz_axe'"), problems::toString);
         assertTrue(problems.get(5).contains("FrameSort reads no items from 'nexo'"), problems::toString);
+    }
+
+    @Test
+    void craftEngineReferenceWithoutCraftEngineSaysSo() {
+        assertNull(ItemReferences.parse("craftengine:default:ruby", false, problems::add));
+        assertEquals(List.of("'craftengine:default:ruby' needs CraftEngine, which is not installed"), problems);
+        assertEquals(new ItemReference.Vanilla(Material.STONE), ItemReferences.parse("stone", false, problems::add));
     }
 }

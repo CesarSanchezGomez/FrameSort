@@ -42,7 +42,7 @@ class FrameSortSettingsTest {
     }
 
     private static FrameSortSettings parse(YamlConfiguration yaml, List<String> warnings) {
-        return FrameSortSettings.parse(new ConfigReader(yaml, "config.yml", warnings::add), IS_ITEM, PROBLEM);
+        return FrameSortSettings.parse(new ConfigReader(yaml, "config.yml", warnings::add), IS_ITEM, PROBLEM, true);
     }
 
     @Test
@@ -227,6 +227,29 @@ class FrameSortSettingsTest {
         assertEquals(new ItemReference.Custom("craftengine:default:trash_bag"),
                 parse(yaml, warnings).delivery().defaultTargetItem());
         assertEquals(List.of(), warnings);
+    }
+
+    @Test
+    void craftEngineItemsWithoutCraftEngineFallBack() throws Exception {
+        YamlConfiguration yaml = new YamlConfiguration();
+        yaml.loadFromString("""
+                sorter:
+                  activator:
+                    material: 'craftengine:default:ruby'
+                delivery:
+                  default-target-item: 'craftengine:default:trash_bag'
+                """);
+        List<String> warnings = new ArrayList<>();
+        FrameSortSettings settings = FrameSortSettings.parse(
+                new ConfigReader(yaml, "config.yml", warnings::add), IS_ITEM, PROBLEM, false);
+
+        assertEquals(EYE, settings.sorter().activator());
+        assertEquals(CARROT, settings.delivery().defaultTargetItem());
+        assertEquals(List.of(
+                "config.yml > sorter.activator.material: 'craftengine:default:ruby' needs CraftEngine, which is not "
+                        + "installed, using ENDER_EYE",
+                "config.yml > delivery.default-target-item: 'craftengine:default:trash_bag' needs CraftEngine, which "
+                        + "is not installed, using CARROT_ON_A_STICK"), warnings);
     }
 
     @Test

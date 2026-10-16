@@ -23,7 +23,7 @@ class TagSettingsTest {
 
     private static TagSettings parse(YamlConfiguration yaml, List<String> warnings) {
         return TagSettings.parse(new ConfigReader(yaml, "tags.yml", warnings::add), FrameSortSettingsTest.IS_ITEM,
-                IS_GAME_TAG);
+                IS_GAME_TAG, true);
     }
 
     @Test
@@ -61,6 +61,27 @@ class TagSettingsTest {
         TagSettings.CustomTag gems = settings.tags().get(NamespacedKey.fromString("server:gems"));
         assertNotNull(gems);
         assertEquals(List.of(Material.EMERALD), gems.items());
+    }
+
+    @Test
+    void craftEngineItemsWithoutCraftEngineAreIgnored() throws Exception {
+        YamlConfiguration yaml = new YamlConfiguration();
+        yaml.loadFromString("""
+                tags:
+                  axes:
+                    - 'diamond_axe'
+                    - 'craftengine:default:topaz_axe'
+                """);
+        List<String> warnings = new ArrayList<>();
+        TagSettings settings = TagSettings.parse(new ConfigReader(yaml, "tags.yml", warnings::add),
+                FrameSortSettingsTest.IS_ITEM, IS_GAME_TAG, false);
+
+        TagSettings.CustomTag axes = settings.tags().get(NamespacedKey.minecraft("axes"));
+        assertNotNull(axes);
+        assertEquals(List.of(Material.DIAMOND_AXE), axes.items());
+        assertEquals(List.of(), axes.customItems());
+        assertEquals(List.of("tags.yml > tags.axes: 'craftengine:default:topaz_axe' needs CraftEngine, which is not "
+                + "installed; ignored"), warnings);
     }
 
     @Test
