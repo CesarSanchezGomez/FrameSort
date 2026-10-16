@@ -7,8 +7,9 @@ import org.bukkit.inventory.ItemStack;
 import org.jspecify.annotations.Nullable;
 
 /**
- * How tags.yml refers to an item from a custom item plugin: the plugin's name in lowercase, {@code :} and the ID that
- * plugin gave it, such as {@code craftengine:default:ruby}; also whether a placed block is one of that plugin's.
+ * What FrameSort needs from a custom item plugin: an item's reference as tags.yml writes it (the plugin's name in
+ * lowercase, {@code :} and the ID that plugin gave it, such as {@code craftengine:default:ruby}) and its name, which
+ * placed blocks are the plugin's and which one, and the items the plugin builds for a reference or a block.
  * {@link #NONE} when no such plugin is installed.
  */
 @FunctionalInterface
@@ -30,10 +31,10 @@ public interface CustomItemResolver {
     }
 
     /**
-     * The item of a custom {@code reference} as the plugin builds it, or {@code null} for an ID it doesn't know or
-     * while it reloads. A vanilla reference is FrameSort's to build, so it gives {@code null} too.
+     * The item of {@code reference} as the plugin builds it, or {@code null} for an ID it doesn't know or while it
+     * reloads.
      */
-    default @Nullable ItemStack item(ItemReference reference, int amount) {
+    default @Nullable ItemStack item(ItemReference.Custom reference, int amount) {
         return null;
     }
 
@@ -46,7 +47,7 @@ public interface CustomItemResolver {
     }
 
     /** The item that places the plugin's {@code block}, as {@link #item} builds it, or {@code null}. */
-    default @Nullable ItemStack blockItem(ItemReference block, int amount) {
+    default @Nullable ItemStack blockItem(ItemReference.Custom block, int amount) {
         return null;
     }
 }

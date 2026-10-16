@@ -34,12 +34,9 @@ public final class CraftEngineItemResolver implements CustomItemResolver {
     }
 
     @Override
-    public @Nullable ItemStack item(ItemReference reference, int amount) {
-        if (!(reference instanceof ItemReference.Custom(String id))) {
-            return null;
-        }
+    public @Nullable ItemStack item(ItemReference.Custom reference, int amount) {
         // Null before CraftEngine has loaded its items, during /ce reload, and for an ID it doesn't know.
-        BukkitItemDefinition item = CraftEngineItems.byId(id.substring(PREFIX.length()));
+        BukkitItemDefinition item = CraftEngineItems.byId(reference.reference().substring(PREFIX.length()));
         if (item == null) {
             return null;
         }
@@ -56,11 +53,8 @@ public final class CraftEngineItemResolver implements CustomItemResolver {
     }
 
     @Override
-    public @Nullable ItemStack blockItem(ItemReference block, int amount) {
-        if (!(block instanceof ItemReference.Custom(String id))) {
-            return null;
-        }
-        BlockDefinition definition = CraftEngineBlocks.byId(Key.of(id.substring(PREFIX.length())));
+    public @Nullable ItemStack blockItem(ItemReference.Custom block, int amount) {
+        BlockDefinition definition = CraftEngineBlocks.byId(Key.of(block.reference().substring(PREFIX.length())));
         // The block's own ID unless its settings name another item; there may be no item with that ID.
         Key item = definition == null ? null : definition.defaultState().settings().itemId();
         return item == null ? null : item(new ItemReference.Custom(PREFIX + item.asString()), amount);
