@@ -4,7 +4,7 @@ main: com.cesarcosmico.framesort.FrameSortPlugin
 api-version: '26.2'
 authors: [ CesarCosmico ]
 description: 'Send items to item frames from sorter dispensers and teleport pads, without hopper chains.'
-website: 'https://github.com/CesarSanchezGomez/Framesort'
+website: 'https://github.com/CesarSanchezGomez/FrameSort'
 
 dependencies:
   server:

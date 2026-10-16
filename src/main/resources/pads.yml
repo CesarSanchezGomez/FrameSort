@@ -1,5 +1,5 @@
 # FrameSort: teleport pads. /framesort reload applies this file.
-# Details: https://github.com/CesarSanchezGomez/Framesort/blob/main/docs/configuration.md#padsyml
+# Details: https://github.com/CesarSanchezGomez/FrameSort/blob/main/docs/configuration.md#padsyml
 #
 # Each type under 'types' is one kind of pad; its key is the <type> of /framesort give pad.
 #   structure  top and base, each a block a player can place or 'craftengine:<namespace>:<id>'.

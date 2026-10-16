@@ -1,5 +1,5 @@
 # FrameSort: general settings. /framesort reload applies this file.
-# Details: https://github.com/CesarSanchezGomez/Framesort/blob/main/docs/configuration.md#configyml
+# Details: https://github.com/CesarSanchezGomez/FrameSort/blob/main/docs/configuration.md#configyml
 # Look keys (name, lore, glint) are optional: leave one out and the item has none of it.
 
 config-version: 1
