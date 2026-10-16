@@ -5,10 +5,10 @@
 ```
 com.cesarcosmico.framesort
 ├── FrameSortPlugin   composition root: wires everything, one tick task, reload
-├── model/            plain rules: priorities, ranking by priority, delivery, composting, paging
+├── model/            plain rules: priorities, ranking by priority, delivery, composting, paging, item references
 ├── service/          target index and resolver, delivery, sorters, pads, inspection, tracing, tags
 ├── config/           typed settings, pads.yml, tags.yml, commands.yml, strict loading, validation, reload holder
-├── item/             persistent data keys, item templates, the pad codec for chunks
+├── item/             persistent data keys, item templates, the overlay on items FrameSort doesn't build, codecs
 ├── text/             messages and the chat pager
 ├── command/          one class per command feature; CommandTree builds the roots from commands.yml
 ├── listener/         Bukkit listeners, one per feature
@@ -29,6 +29,7 @@ Interfaces exist only with several implementations, as closed sets, or to keep a
 - `DeliveryService.Source`: a sorter slot or a pad item entity;
 - `CommandFeature`: one per command feature;
 - `GiveCommand.ItemSource`: a sorter activator or a pad block;
+- sealed `model.ItemReference`: an item or block named in the config, a vanilla material or a CraftEngine reference;
 - sealed `PadService.Placement`: what placing a pad block did;
 - sealed `PadService.Breaking`: what breaking a pad's top block did;
 - sealed `SorterService.Slot`: an inventory slot, or one inside a shulker box or bundle.
@@ -91,8 +92,8 @@ Tracing ends on a timer per player, so the "tracing ended" message arrives on ti
 
 [`api-status.txt`](../api-status.txt) lists the Paper API FrameSort uses that may change: the registry tag API
 (`@ApiStatus.Experimental`), through which `TagCatalog` reads item and block tags, and the data components
-(`@MinecraftVersionDependent`) behind item templates, tagged items and shulker box and bundle contents. Check them
-again whenever Paper or Minecraft changes.
+(`@MinecraftVersionDependent`) behind item templates, the overlay on tagged and CraftEngine items, and shulker box
+and bundle contents. Check them again whenever Paper or Minecraft changes.
 
 The activator's `components` reach Minecraft as `/give` syntax through `ItemFactory#createItemStack`, which checks
 them on load and reload with the server's registries (main thread). Component names belong to Minecraft: one that a
