@@ -3,12 +3,14 @@ package com.cesarcosmico.framesort.config;
 import org.bukkit.Color;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.junit.jupiter.api.Test;
 
 import java.time.DayOfWeek;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -97,6 +99,15 @@ class ConfigReaderTest {
         assertEquals(Set.of(DayOfWeek.MONDAY), reader.enumSet("days", DayOfWeek.class, Set.of(DayOfWeek.SUNDAY)));
         assertEquals(DayOfWeek.SUNDAY, reader.enumValue("bad", DayOfWeek.class, DayOfWeek.SUNDAY));
         assertEquals(2, warnings.size());
+    }
+
+    @Test
+    void valueReturnsTheRawValueOrNull() throws Exception {
+        ConfigReader reader = reader("a: 1\nb:\n  c: 'x'\nlist: [{k: 'v'}]\n");
+        assertEquals(1, reader.value("a"));
+        assertTrue(reader.value("b") instanceof ConfigurationSection);
+        assertEquals(List.of(Map.of("k", "v")), reader.value("list"));
+        assertNull(reader.value("missing"));
     }
 
     @Test

@@ -27,7 +27,8 @@ public final class ConfigValidator {
 
     /**
      * Same as {@link #check(Plugin, ConfigurationSection, String, Consumer)}, but keys under the {@code open}
-     * sections are user-defined (pad types, for example) and are neither missing nor unknown.
+     * sections are user-defined (pad types, for example) and are neither missing nor unknown. An open section may be
+     * absent from the bundled file.
      */
     public static void check(Plugin plugin, ConfigurationSection live, String resource, Set<String> open,
                              Consumer<String> warn) {
@@ -36,7 +37,8 @@ public final class ConfigValidator {
 
     /**
      * Same as {@link #check(Plugin, ConfigurationSection, String, Set, Consumer)}, and the {@code optional} keys (full
-     * paths) may be missing without a warning: leaving one out means "without it", such as an item with no lore.
+     * paths) may be missing without a warning: leaving one out means "without it", such as an item with no lore. They
+     * are known even when the bundled file leaves them out.
      */
     public static void check(Plugin plugin, ConfigurationSection live, String resource, Set<String> open,
                              Set<String> optional, Consumer<String> warn) {
@@ -64,7 +66,7 @@ public final class ConfigValidator {
         }
         Set<String> unknown = new HashSet<>();
         for (String key : live.getKeys(true)) {
-            if (!bundled.contains(key) && !isOpen(key, open)) {
+            if (!bundled.contains(key) && !isOpen(key, open) && !optional.contains(key)) {
                 unknown.add(key);
             }
         }
@@ -81,7 +83,7 @@ public final class ConfigValidator {
 
     private static boolean isOpen(String key, Set<String> open) {
         for (String section : open) {
-            if (key.startsWith(section + ".")) {
+            if (key.equals(section) || key.startsWith(section + ".")) {
                 return true;
             }
         }

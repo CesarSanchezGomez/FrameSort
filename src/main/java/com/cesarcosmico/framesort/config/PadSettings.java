@@ -68,7 +68,11 @@ public record PadSettings(PadMode creation, int sweepInterval, Map<String, PadTy
             }
         }
         Material top = structure.getFirst();
-        ItemTemplate item = SorterSettings.itemTemplate(reader.sectionOrEmpty("item"), top, null);
-        return new PadType(id.toLowerCase(Locale.ROOT), top, structure.get(1), item);
+        ConfigReader item = reader.sectionOrEmpty("item");
+        if (item.isSet("components")) {
+            item.warn("components", "a pad item looks like the block it places, ignored");
+        }
+        ItemTemplate template = new ItemTemplate(top, Map.of(), ItemLookParser.look(item));
+        return new PadType(id.toLowerCase(Locale.ROOT), top, structure.get(1), template);
     }
 }

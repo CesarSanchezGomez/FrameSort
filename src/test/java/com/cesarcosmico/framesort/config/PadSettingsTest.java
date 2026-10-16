@@ -7,11 +7,11 @@ import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Predicate;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class PadSettingsTest {
@@ -40,18 +40,22 @@ class PadSettingsTest {
     }
 
     @Test
-    void padItemsKeepTheBlockModel() throws Exception {
+    void padItemsTakeNoComponents() throws Exception {
         YamlConfiguration yaml = new YamlConfiguration();
         yaml.loadFromString("""
                 types:
                   simple:
                     structure: [CRYING_OBSIDIAN, GILDED_BLACKSTONE]
-                    item: {item-model: 'minecraft:stick'}
+                    item: {name: 'Pad', components: {item_model: 'minecraft:stick'}}
                 """);
-        PadType simple = parse(yaml, new ArrayList<>()).type("simple");
+        List<String> warnings = new ArrayList<>();
+        PadType simple = parse(yaml, warnings).type("simple");
 
         assertNotNull(simple);
-        assertNull(simple.item().itemModel());
+        assertEquals("Pad", simple.item().look().name());
+        assertEquals(Map.of(), simple.item().components());
+        assertEquals(List.of("pads.yml > types.simple.item.components: a pad item looks like the block it places, "
+                + "ignored"), warnings);
     }
 
     @Test

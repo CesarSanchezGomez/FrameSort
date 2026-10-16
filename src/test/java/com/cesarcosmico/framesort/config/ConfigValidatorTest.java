@@ -66,6 +66,28 @@ class ConfigValidatorTest {
     }
 
     @Test
+    void optionalKeysMissingFromTheBundledFileAreKnown() throws Exception {
+        String live = BUNDLED.replace("  per-tick: 4\n", "  per-tick: 4\n  burst: 2\n");
+        assertEquals(List.of(), compare(live, Set.of(), Set.of("limits.burst")));
+        List<String> warnings = compare(live, Set.of());
+        assertEquals(1, warnings.size());
+        assertTrue(warnings.getFirst().contains("[limits.burst]"));
+    }
+
+    @Test
+    void openSectionsMissingFromTheBundledFileAreKnown() throws Exception {
+        String section = "  per-tick: 4\n  components:\n    item_model: 'a:b'\n    profile:\n      name: x\n";
+        assertEquals(List.of(), compare(BUNDLED.replace("  per-tick: 4\n", section), Set.of("limits.components")));
+        // Not a section: the open path is still known, and whoever reads it reports the value.
+        String scalar = "  per-tick: 4\n  components: 5\n";
+        assertEquals(List.of(), compare(BUNDLED.replace("  per-tick: 4\n", scalar), Set.of("limits.components")));
+        String typo = section.replace("components", "componets");
+        List<String> warnings = compare(BUNDLED.replace("  per-tick: 4\n", typo), Set.of("limits.components"));
+        assertEquals(1, warnings.size());
+        assertTrue(warnings.getFirst().contains("[limits.componets]"));
+    }
+
+    @Test
     void onlyTheTopMostUnknownKeyIsReported() throws Exception {
         List<String> warnings = compare(BUNDLED + "typo:\n  nested:\n    deeper: 1\n", Set.of());
         assertEquals(1, warnings.size());

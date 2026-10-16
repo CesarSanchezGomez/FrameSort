@@ -198,6 +198,11 @@ public final class ConfigReader {
         return Set.copyOf(values);
     }
 
+    /** The value as YAML gives it, a {@link ConfigurationSection} for a nested map, or {@code null} when missing. */
+    public @Nullable Object value(String path) {
+        return root.get(path);
+    }
+
     public @Nullable ConfigReader section(String path) {
         ConfigurationSection section = root.getConfigurationSection(path);
         return section == null ? null : new ConfigReader(section, file, warn);

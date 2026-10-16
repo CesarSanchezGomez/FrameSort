@@ -1,19 +1,29 @@
 package com.cesarcosmico.framesort.config;
 
 import org.bukkit.Material;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Set;
+import java.util.function.Function;
 import java.util.function.Predicate;
 
 public record FrameSortSettings(String language, SorterSettings sorter, TargetSettings targets,
                                 DeliverySettings delivery, InspectSettings inspect) {
 
-    /** Keys whose absence means "without it": the activator's look and the sorter's title. */
+    /** Keys whose absence means "without it": the activator's and a tagged item's look, and the sorter's title. */
     public static final Set<String> OPTIONAL_KEYS = Set.of("sorter.custom-name", "sorter.activator.name",
-            "sorter.activator.lore", "sorter.activator.glint", "sorter.activator.item-model");
+            "sorter.activator.lore", "sorter.activator.glint", "targets.tagged-item.name", "targets.tagged-item.lore",
+            "targets.tagged-item.glint");
 
-    /** {@code isItem} accepts what a stack can hold; it needs the registries on a server, so tests pass their own. */
-    public static FrameSortSettings parse(ConfigReader config, Predicate<Material> isItem) {
+    /** Sections of vanilla component names, which only Minecraft knows. */
+    public static final Set<String> OPEN_KEYS = Set.of("sorter.activator.components");
+
+    /**
+     * {@code isItem} accepts what a stack can hold, and {@code problem} says why Minecraft rejects an item in /give
+     * syntax; both need a server, so tests pass their own.
+     */
+    public static FrameSortSettings parse(ConfigReader config, Predicate<Material> isItem,
+                                          Function<String, @Nullable String> problem) {
         String language = config.string("language", "en_US");
         if (language.isBlank()) {
             config.warn("language", "empty, using en_US");
@@ -21,7 +31,7 @@ public record FrameSortSettings(String language, SorterSettings sorter, TargetSe
         }
         return new FrameSortSettings(
                 language,
-                SorterSettings.parse(config.sectionOrEmpty("sorter"), isItem),
+                SorterSettings.parse(config.sectionOrEmpty("sorter"), isItem, problem),
                 TargetSettings.parse(config.sectionOrEmpty("targets")),
                 DeliverySettings.parse(config.sectionOrEmpty("delivery"), isItem),
                 InspectSettings.parse(config.sectionOrEmpty("inspect")));

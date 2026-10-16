@@ -1,54 +1,67 @@
 package com.cesarcosmico.framesort.item;
 
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import io.papermc.paper.datacomponent.DataComponentTypes;
 import io.papermc.paper.datacomponent.item.ItemLore;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.TextDecoration;
-import net.kyori.adventure.text.minimessage.MiniMessage;
+import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
-import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.persistence.PersistentDataType;
 import org.jspecify.annotations.Nullable;
 
-import java.util.List;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.StringJoiner;
 
-public record ItemTemplate(Material material, @Nullable String name, List<String> lore, boolean glint,
-                           @Nullable NamespacedKey itemModel) {
-
-    private static final MiniMessage MINI_MESSAGE = MiniMessage.miniMessage();
+/**
+ * An item the plugin creates: a material, vanilla components (name to value in /give syntax) and a look. The
+ * components were checked when the config loaded, so building never fails. Main thread only.
+ */
+public record ItemTemplate(Material material, Map<String, String> components, ItemLook look) {
 
     public ItemTemplate {
-        lore = List.copyOf(lore);
+        components = Collections.unmodifiableMap(new LinkedHashMap<>(components));
     }
 
-    public ItemStack create(NamespacedKey marker, String value, int amount) {
-        ItemStack item = ItemStack.of(material, amount);
+    /** The item in /give syntax, such as {@code minecraft:paper[item_model="minecraft:stick"]}. */
+    public static String input(Material material, Map<String, String> components) {
+        String id = material.getKey().asString();
+        if (components.isEmpty()) {
+            return id;
+        }
+        StringJoiner joined = new StringJoiner(",", id + "[", "]");
+        components.forEach((name, value) -> joined.add(name + "=" + value));
+        return joined.toString();
+    }
+
+    /** Why Minecraft rejects {@code input}, or {@code null} if it accepts it. Needs a running server. */
+    public static @Nullable String problem(String input) {
+        try {
+            Bukkit.getItemFactory().createItemStack(input);
+            return null;
+        } catch (IllegalArgumentException e) {
+            // The cause carries the reason without the "Could not parse ItemStack: <input>" wrapper.
+            return e.getCause() instanceof CommandSyntaxException syntax
+                    ? syntax.getRawMessage().getString() : e.getMessage();
+        }
+    }
+
+    /** The name goes in as {@code item_name}, so an anvil rename still shows over it. */
+    public ItemStack create(int amount, TagResolver... resolvers) {
+        ItemStack item = Bukkit.getItemFactory().createItemStack(input(material, components));
+        item.setAmount(amount);
+        Component name = look.renderName(resolvers);
         if (name != null) {
-            item.setData(DataComponentTypes.ITEM_NAME, MINI_MESSAGE.deserialize(name));
+            item.setData(DataComponentTypes.ITEM_NAME, name);
         }
-        if (!lore.isEmpty()) {
-            item.setData(DataComponentTypes.LORE, ItemLore.lore(lore.stream().map(ItemTemplate::loreLine).toList()));
+        if (!look.lore().isEmpty()) {
+            item.setData(DataComponentTypes.LORE, ItemLore.lore(look.renderLore(resolvers)));
         }
-        if (glint) {
+        if (look.glint()) {
             item.setData(DataComponentTypes.ENCHANTMENT_GLINT_OVERRIDE, true);
         }
-        if (itemModel != null) {
-            item.setData(DataComponentTypes.ITEM_MODEL, itemModel);
-        }
-        item.editPersistentDataContainer(pdc -> pdc.set(marker, PersistentDataType.STRING, value));
         return item;
-    }
-
-    public static @Nullable String marker(ItemStack item, NamespacedKey marker) {
-        if (item.isEmpty()) {
-            return null;
-        }
-        return item.getPersistentDataContainer().get(marker, PersistentDataType.STRING);
-    }
-
-    // Lore is italic by default in vanilla; only keep the italics the owner asked for.
-    private static Component loreLine(String line) {
-        return MINI_MESSAGE.deserialize(line).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE);
     }
 }

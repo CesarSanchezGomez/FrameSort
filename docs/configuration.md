@@ -12,6 +12,46 @@ Text values are written in single quotes; an apostrophe inside one is written tw
 several lines (help, lore, the page layout) is a YAML list, one line per entry. Item lore starts and ends with an
 empty line (`''`) and keeps each line short.
 
+## Item look
+
+The activator, the pad items and tagged items take these keys, all optional: left out, or set to `''`, `[]` or
+`false`, the item has none of it.
+
+| Key | Meaning |
+|---|---|
+| `name` | MiniMessage. Not italic unless you write `<i>`. On a tagged item it replaces the item's name. |
+| `lore` | A list of MiniMessage lines, not italic unless you write `<i>`. On a tagged item they go below its own lines. |
+| `glint` | `true` adds the enchantment glint. `false` leaves the item's own glint alone: a nether star still shines. |
+| `components` | Only the activator. Any vanilla item component by its vanilla name, written as YAML in the same shape as in `/give`. |
+
+`name`, `lore` and `glint` win over the same thing in `components`. Examples:
+
+```yaml
+sorter:
+  activator:
+    material: PLAYER_HEAD
+    components:
+      item_model: 'mypack:sorter'   # a model from your resource pack
+      profile:                      # a player head's texture
+        properties:
+          - {name: textures, value: 'eyJ0ZXh0dXJlcyI6...'}
+      tooltip_display: {hidden_components: ['minecraft:enchantments']}
+      custom_model_data: {floats: [1]}
+```
+
+More: `dyed_color: 0xFF0000` (leather armour), `potion_contents: {custom_color: 0x3366FF}` (a potion's colour),
+`trim: {pattern: 'minecraft:host', material: 'minecraft:emerald'}` (an armour trim), and
+`enchantment_glint_override: false` to take away an item's own glint.
+
+- `components` is meant for the look, but any component works (food, a tool…): what it does to the activator is up to
+  you. Whatever it looks like, any item of the activator's `material` still works as one unless `require-marked` is
+  `true`.
+- A component Minecraft rejects is reported on load and reload with its path and Minecraft's reason, and left out;
+  the rest still apply. For example: `config.yml > sorter.activator.components.nope: Unknown item component
+  'minecraft:nope', ignored`. A component that a later Minecraft version renames or removes is reported the same way.
+- Not possible: removing a component the item type has (`!component`), typed arrays (`[I;...]`), keys with a dot, and
+  a specific number type inside `custom_data` (numbers arrive as int, long or double).
+
 ## config.yml
 
 ### sorter
@@ -20,7 +60,7 @@ empty line (`''`) and keeps each line short.
 |---|---|---|
 | `activator.material` | `ENDER_EYE` | Item that turns a dispenser into a sorter when placed in a frame on it. A material that is not an item (`WATER`, `AIR`) falls back to the default. A CraftEngine item made from that material is not the activator. |
 | `activator.require-marked` | `false` | `true`: only the activator from `/framesort give sorter` works, not any item of that material. |
-| `activator.name`, `lore`, `glint`, `item-model` | | *Optional.* Look of the activator FrameSort hands out: `name` (MiniMessage), `lore` (one line per entry), `glint` and `item-model` (a model from a resource pack). Left out, or set to `''`, `[]` or `false`, the activator has none of it: with no name it shows the item's own name. |
+| `activator.name`, `lore`, `glint`, `components` | | *Optional.* Look of the activator FrameSort hands out (see [Item look](#item-look)). Left out, or set to `''`, `[]` or `false`, the activator has none of it: with no name it shows the item's own name. |
 | `frame-types` | `[ITEM_FRAME, GLOW_ITEM_FRAME]` | Frames that can hold the activator. |
 | `custom-name` | `<gradient:#F7B733:#FC4A1A>Item Sorter</gradient>` | *Optional.* Title of a sorter's inventory. Left out or `''` = the dispenser's own name. The dispenser itself is never renamed: once it stops sorting it shows its own name again (from an anvil, or none), and a broken sorter drops it with that name. |
 | `tick-rate` | `20` | Ticks between two turns of the same sorter. |
@@ -42,8 +82,7 @@ targets that accept it.
 |---|---|---|
 | `registration` | `manual` | `manual`: only frames marked by sneak + right-clicking them with an empty hand. `automatic`: every frame of `frame-types` on a container or composter; frames anywhere else (walls, lava cauldrons) are never targets, so marking is the only way to make a drop spot or a trash can. |
 | `frame-types` | `[ITEM_FRAME, GLOW_ITEM_FRAME]` | Frames that can be targets. |
-| `tagged-item.name` | `'<gradient:#F7B733:#FC4A1A>#<tag></gradient>'` | Name a tagged item gets (MiniMessage); `<tag>` is the tag, without `minecraft:` for vanilla tags. |
-| `tagged-item.glint` | `true` | Tagged items get the enchantment glint, so they stand out in inventories and frames. |
+| `tagged-item.name`, `lore`, `glint` | `'<gradient:#F7B733:#FC4A1A>#<tag></gradient>'`, none, `true` | *Optional.* Look a tagged item gets (see [Item look](#item-look)); in `name` and `lore`, `<tag>` is the tag, without `minecraft:` for vanilla tags. Left out, or set to `''`, `[]` or `false`, the item has none of it: `tagged-item: {}` tags items without changing how they look. |
 
 A target frame may hang on any face of its block, whichever way the block faces: the lid of an upright barrel, the
 side of a chest or the bottom of one in a ceiling. With `automatic`, that means every frame on a container or
@@ -79,11 +118,13 @@ onto a pad, which would pick them up and send them again. Hoppers can still lead
 that items don't go round.
 
 **Tagged items.** `/framesort tag apply <tag>` (or the [Apply] button in `/framesort tag show <tag>`) applies a tag
-to the item in your hand: the tag is stored inside the item, and its name and glint come from `targets.tagged-item`.
+to the item in your hand: the tag is stored inside the item, which takes the look of `targets.tagged-item`.
 In a frame, a tagged item accepts everything in its tag, never itself or its own material; a tagged shulker box or
 bundle with contents also accepts what it holds. Inside a shulker box or bundle in the frame, a tagged item adds its
 tag to what the frame accepts. Renaming the item in an anvil never changes its
-tag, and a plain renamed item never has one. `/framesort tag remove` takes the tag off.
+tag, and a plain renamed item never has one. Applying a tag to a tagged item replaces the tag. `/framesort tag remove`
+takes the tag off and gives the item back the name, lore and glint it had when it was tagged, so it stacks with
+untagged ones again; a name given in an anvil after tagging is lost then.
 
 **Composters compost.** A target frame on a composter takes only compostable items and composts them as a hopper
 feeding it would: every item is used up, the level rises with that item's vanilla chance, and a full composter turns
@@ -113,7 +154,7 @@ frame, it destroys whatever has no other target or no room left in one. An empty
 | `creation` | `anyone` | `anyone`: any player who places the top block on its base. `permission`: only players with `framesort.pad.create`. `item`: only by placing the pad's special item (from `/framesort give pad`) as the top block. |
 | `sweep-interval` | `10` | Ticks between checks for items resting on pads. Items that arrive by water or fall onto a pad are picked up then. |
 | `types.<id>.structure` | | Exactly two blocks: the top, where items rest, then its base. Players build pads by hand, so both must be blocks a player can place (not `STICK`, `WATER` or `AIR`); otherwise the type is skipped with a warning. |
-| `types.<id>.item` | | *Optional*, and so is each key in it: `name` (MiniMessage), `lore` (one line per entry) and `glint` of the special top block. Left out, or set to `''`, `[]` or `false`, the block has none of it. Its material is the top block of the structure, and it keeps that block's model. |
+| `types.<id>.item` | | *Optional*, and so is each key in it: `name`, `lore` and `glint` of the special top block (see [Item look](#item-look)). Left out, or set to `''`, `[]` or `false`, the block has none of it. Its material is the top block of the structure and it looks like that block, so it takes no `components` (they are reported and ignored). |
 
 A pad is created when its top block is placed on its base, so place the base first. It counts as long as both
 blocks stay; breaking the top block removes it. If the top block goes any other way (WorldEdit, a command, gravity),

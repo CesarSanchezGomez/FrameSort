@@ -24,6 +24,7 @@ import com.cesarcosmico.framesort.config.PadSettings;
 import com.cesarcosmico.framesort.config.TagSettings;
 import com.cesarcosmico.framesort.integration.craftengine.CraftEngineItemResolver;
 import com.cesarcosmico.framesort.integration.worldguard.WorldGuardTargetListener;
+import com.cesarcosmico.framesort.item.ItemTemplate;
 import com.cesarcosmico.framesort.listener.InspectListener;
 import com.cesarcosmico.framesort.listener.PadListener;
 import com.cesarcosmico.framesort.listener.SorterListener;
@@ -199,8 +200,10 @@ public final class FrameSortPlugin extends JavaPlugin {
 
     private FrameSortSettings loadSettings(Consumer<String> warn) throws IOException, InvalidConfigurationException {
         YamlConfiguration yaml = ConfigFiles.load(this, "config.yml");
-        ConfigValidator.check(this, yaml, "config.yml", Set.of(), FrameSortSettings.OPTIONAL_KEYS, warn);
-        return FrameSortSettings.parse(new ConfigReader(yaml, "config.yml", warn), FrameSortPlugin::isItem);
+        ConfigValidator.check(this, yaml, "config.yml", FrameSortSettings.OPEN_KEYS, FrameSortSettings.OPTIONAL_KEYS,
+                warn);
+        return FrameSortSettings.parse(new ConfigReader(yaml, "config.yml", warn), FrameSortPlugin::isItem,
+                ItemTemplate::problem);
     }
 
     private PadSettings loadPads(Consumer<String> warn) throws IOException, InvalidConfigurationException {

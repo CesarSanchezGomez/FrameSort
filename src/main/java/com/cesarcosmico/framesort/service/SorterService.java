@@ -3,6 +3,7 @@ package com.cesarcosmico.framesort.service;
 import com.cesarcosmico.framesort.config.FrameSortSettings;
 import com.cesarcosmico.framesort.config.SorterSettings;
 import com.cesarcosmico.framesort.item.Keys;
+import com.cesarcosmico.framesort.item.MarkerCodec;
 import com.cesarcosmico.framesort.model.BlockKey;
 import io.papermc.paper.datacomponent.DataComponentTypes;
 import io.papermc.paper.datacomponent.item.BundleContents;
@@ -178,7 +179,7 @@ public final class SorterService {
     }
 
     public ItemStack createActivator(int amount) {
-        return settings.get().sorter().activator().create(Keys.ACTIVATOR, "sorter", amount);
+        return MarkerCodec.mark(settings.get().sorter().activator().create(amount), Keys.ACTIVATOR, "sorter");
     }
 
     public void tick() {

@@ -12,6 +12,7 @@ public final class Keys {
     public static final NamespacedKey PADS = new NamespacedKey(NAMESPACE, "pads");
     public static final NamespacedKey SORTED = new NamespacedKey(NAMESPACE, "sorted");
     public static final NamespacedKey ITEM_TAG = new NamespacedKey(NAMESPACE, "item-tag");
+    public static final NamespacedKey ITEM_TAG_ORIGINAL = new NamespacedKey(NAMESPACE, "item-tag-original");
 
     private Keys() {
     }
