@@ -6,6 +6,7 @@ import com.cesarcosmico.framesort.config.InspectSettings;
 import com.cesarcosmico.framesort.item.ItemTagCodec;
 import com.cesarcosmico.framesort.item.PadCodec;
 import com.cesarcosmico.framesort.model.BlockKey;
+import com.cesarcosmico.framesort.model.ItemReference;
 import com.cesarcosmico.framesort.model.MatchTier;
 import com.cesarcosmico.framesort.model.Ranking;
 import com.cesarcosmico.framesort.model.TargetRegistration;
@@ -178,8 +179,8 @@ public final class TargetResolver {
 
     /** Whether a frame holding {@code frameItem} takes whatever matches no other frame. */
     public boolean isDefaultTarget(ItemStack frameItem) {
-        return frameItem.getType() == settings.get().delivery().defaultTargetItem()
-                && customItems.id(frameItem) == null;
+        ItemReference target = settings.get().delivery().defaultTargetItem();
+        return target != null && target.matches(frameItem.getType(), customItems.id(frameItem));
     }
 
     /** The tag a tagged item stands for, or {@code null} when the item has none. */

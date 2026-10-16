@@ -1,5 +1,6 @@
 package com.cesarcosmico.framesort.config;
 
+import com.cesarcosmico.framesort.model.ItemReference;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.jspecify.annotations.Nullable;
@@ -24,8 +25,6 @@ public record TagSettings(Map<NamespacedKey, CustomTag> tags) {
             customItems = List.copyOf(customItems);
         }
     }
-
-    private static final String CRAFT_ENGINE = "craftengine";
 
     public TagSettings {
         tags = Map.copyOf(tags);
@@ -77,32 +76,15 @@ public record TagSettings(Map<NamespacedKey, CustomTag> tags) {
                 }
                 continue;
             }
-            int colon = member.indexOf(':');
-            String plugin = colon < 0 ? NamespacedKey.MINECRAFT : member.substring(0, colon).toLowerCase(Locale.ROOT);
-            String id = member.substring(colon + 1);
-            if (plugin.isEmpty() || id.isEmpty()) {
-                tags.warn(name, "'" + entry + "' is not an item or a tag; ignored");
-            } else if (plugin.equals(NamespacedKey.MINECRAFT)) {
-                Material material = Material.matchMaterial(id);
-                if (material == null) {
-                    tags.warn(name, "unknown material '" + entry + "', ignored");
-                } else if (!isItem.test(material)) {
-                    tags.warn(name, "'" + entry + "' is not an item, ignored");
-                } else {
+            ItemReference reference = ItemReferences.parse(member, problem -> tags.warn(name, problem + "; ignored"));
+            if (reference instanceof ItemReference.Custom(String id)) {
+                customItems.add(id);
+            } else if (reference instanceof ItemReference.Vanilla(Material material)) {
+                if (isItem.test(material)) {
                     items.add(material);
-                }
-            } else if (plugin.equals(CRAFT_ENGINE)) {
-                int split = id.indexOf(':');
-                // Every CraftEngine ID has a namespace and two packs can share a value, so 'default' is never assumed.
-                if (split <= 0 || split == id.length() - 1) {
-                    tags.warn(name, "'" + entry + "' needs the item's namespace, such as "
-                            + "'craftengine:default:topaz_axe'; ignored");
                 } else {
-                    customItems.add(CRAFT_ENGINE + ":" + id);
+                    tags.warn(name, "'" + entry + "' is not an item; ignored");
                 }
-            } else {
-                tags.warn(name, "'" + entry + "': FrameSort reads no items from '" + plugin
-                        + "', only 'craftengine:<namespace>:<id>'; ignored");
             }
         }
         if (items.isEmpty() && includes.isEmpty() && customItems.isEmpty()) {

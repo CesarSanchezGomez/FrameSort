@@ -2,16 +2,12 @@ package com.cesarcosmico.framesort.item;
 
 import io.papermc.paper.datacomponent.DataComponentType;
 import io.papermc.paper.datacomponent.DataComponentTypes;
-import io.papermc.paper.datacomponent.item.ItemLore;
-import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
 import org.jspecify.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Set;
 
 // The tag lives in the item's data, not in its name, so renaming a tagged item never changes what it accepts.
@@ -33,20 +29,7 @@ public final class ItemTagCodec {
         ItemStack own = ItemStack.of(item.getType());
         own.copyDataFrom(item, LOOK::contains);
         byte[] snapshot = own.serializeAsBytes();
-
-        Component name = look.renderName(resolvers);
-        if (name != null) {
-            item.setData(DataComponentTypes.CUSTOM_NAME, name);
-        }
-        if (!look.lore().isEmpty()) {
-            ItemLore ownLore = item.getData(DataComponentTypes.LORE);
-            List<Component> lines = new ArrayList<>(ownLore == null ? List.of() : ownLore.lines());
-            lines.addAll(look.renderLore(resolvers));
-            item.setData(DataComponentTypes.LORE, ItemLore.lore(lines));
-        }
-        if (look.glint()) {
-            item.setData(DataComponentTypes.ENCHANTMENT_GLINT_OVERRIDE, true);
-        }
+        ItemOverlay.applyBelowOwnLore(item, look, resolvers);
         item.editPersistentDataContainer(pdc -> {
             pdc.set(Keys.ITEM_TAG, PersistentDataType.STRING, tag.asString());
             pdc.set(Keys.ITEM_TAG_ORIGINAL, PersistentDataType.BYTE_ARRAY, snapshot);

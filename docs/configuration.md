@@ -20,9 +20,9 @@ The activator, the pad items and tagged items take these keys, all optional: lef
 | Key | Meaning |
 |---|---|
 | `name` | MiniMessage. Not italic unless you write `<i>`. On a tagged item it replaces the item's name. |
-| `lore` | A list of MiniMessage lines, not italic unless you write `<i>`. On a tagged item they go below its own lines. |
+| `lore` | A list of MiniMessage lines, not italic unless you write `<i>`. On a tagged item they go below its own lines; on a CraftEngine item FrameSort hands out, they replace its lore. |
 | `glint` | `true` adds the enchantment glint. `false` leaves the item's own glint alone: a nether star still shines. |
-| `components` | Only the activator. Any vanilla item component by its vanilla name, written as YAML in the same shape as in `/give`. |
+| `components` | Only a vanilla activator. Any vanilla item component by its vanilla name, written as YAML in the same shape as in `/give`. |
 
 `name`, `lore` and `glint` win over the same thing in `components`. Examples:
 
@@ -52,15 +52,28 @@ More: `dyed_color: 0xFF0000` (leather armour), `potion_contents: {custom_color: 
 - Not possible: removing a component the item type has (`!component`), typed arrays (`[I;...]`), keys with a dot, and
   a specific number type inside `custom_data` (numbers arrive as int, long or double).
 
+**CraftEngine items and blocks.** With [CraftEngine](https://modrinth.com/plugin/craftengine) installed, wherever a
+material goes you can write one of its items or blocks as `'craftengine:<namespace>:<id>'`, as in
+[`tags.yml`](#tagsyml). CraftEngine builds the item; FrameSort lays `name`, `lore` and `glint` over it when it hands
+it out: its name and its lore show instead of CraftEngine's, and the glint is added. Each one you leave out keeps
+CraftEngine's, so with none of them the item looks as CraftEngine makes it. `components` don't apply: the model and
+the rest are CraftEngine's (they are reported and ignored).
+
+- With `require-marked: true` or `creation: item`, only the item from `/framesort give` works. FrameSort's mark
+  can't be seen, so its look is what tells it apart from the same item from `/ce give`; the two don't stack.
+- Better still, give the activator or the pad block an item of its own in CraftEngine, named and described for it,
+  rather than reusing a general one.
+- The ID is not checked on load (CraftEngine loads its items later); one it doesn't know never matches.
+
 ## config.yml
 
 ### sorter
 
 | Key | Default | Meaning |
 |---|---|---|
-| `activator.material` | `ENDER_EYE` | Item that turns a dispenser into a sorter when placed in a frame on it. A material that is not an item (`WATER`, `AIR`) falls back to the default. A CraftEngine item made from that material is not the activator. |
+| `activator.material` | `ENDER_EYE` | Item that turns a dispenser into a sorter when placed in a frame on it: a material, or a CraftEngine item (`'craftengine:<namespace>:<id>'`, see [CraftEngine items and blocks](#item-look)). A material that is not an item (`WATER`, `AIR`) falls back to the default. A CraftEngine item made from the activator's material is not the activator. |
 | `activator.require-marked` | `false` | `true`: only the activator from `/framesort give sorter` works, not any item of that material. |
-| `activator.name`, `lore`, `glint`, `components` | | *Optional.* Look of the activator FrameSort hands out (see [Item look](#item-look)). Left out, or set to `''`, `[]` or `false`, the activator has none of it: with no name it shows the item's own name. |
+| `activator.name`, `lore`, `glint`, `components` | | *Optional.* Look of the activator FrameSort hands out (see [Item look](#item-look)); over a CraftEngine one, `name`, `lore` and `glint` only. Left out, or set to `''`, `[]` or `false`, the activator has none of it: with no name it shows the item's own name. |
 | `frame-types` | `[ITEM_FRAME, GLOW_ITEM_FRAME]` | Frames that can hold the activator. |
 | `custom-name` | `<gradient:#F7B733:#FC4A1A>Item Sorter</gradient>` | *Optional.* Title of a sorter's inventory. Left out or `''` = the dispenser's own name. The dispenser itself is never renamed: once it stops sorting it shows its own name again (from an anvil, or none), and a broken sorter drops it with that name. |
 | `tick-rate` | `20` | Ticks between two turns of the same sorter. |
@@ -94,7 +107,7 @@ composter is a target.
 |---|---|---|
 | `max-distance` | `64` | Targets are searched within this many blocks of the sorter or pad. |
 | `insert-into-containers` | `true` | `true`: items go into the container behind the frame, or are composted by a composter. `false`: items are always dropped in front of the frame. |
-| `default-target-item` | `CARROT_ON_A_STICK` | Frames holding it (but not a CraftEngine custom item made from it) take whatever matches no other frame, and whatever the other targets have no room for. `''` = off. A material that is not an item falls back to the default. |
+| `default-target-item` | `CARROT_ON_A_STICK` | Frames holding it take whatever matches no other frame, and whatever the other targets have no room for: a material (but not a CraftEngine item made from it) or a CraftEngine item (`'craftengine:<namespace>:<id>'`). `''` = off. A material that is not an item falls back to the default. |
 
 How a destination is chosen:
 
@@ -153,8 +166,8 @@ frame, it destroys whatever has no other target or no room left in one. An empty
 |---|---|---|
 | `creation` | `anyone` | `anyone`: any player who places the top block on its base. `permission`: only players with `framesort.pad.create`. `item`: only by placing the pad's special item (from `/framesort give pad`) as the top block. |
 | `sweep-interval` | `10` | Ticks between checks for items resting on pads. Items that arrive by water or fall onto a pad are picked up then. |
-| `types.<id>.structure` | | Exactly two blocks: the top, where items rest, then its base. Players build pads by hand, so both must be blocks a player can place (not `STICK`, `WATER` or `AIR`); otherwise the type is skipped with a warning. |
-| `types.<id>.item` | | *Optional*, and so is each key in it: `name`, `lore` and `glint` of the special top block (see [Item look](#item-look)). Left out, or set to `''`, `[]` or `false`, the block has none of it. Its material is the top block of the structure and it looks like that block, so it takes no `components` (they are reported and ignored). |
+| `types.<id>.structure` | | Exactly two blocks: the top, where items rest, then its base. Each one is a material or a CraftEngine block (`'craftengine:<namespace>:<id>'`). Players build pads by hand, so a material must be a block a player can place (not `STICK`, `WATER` or `AIR`); otherwise the type is skipped with a warning. |
+| `types.<id>.item` | | *Optional*, and so is each key in it: `name`, `lore` and `glint` of the special top block (see [Item look](#item-look)). Left out, or set to `''`, `[]` or `false`, the block has none of it. Its material is the top block of the structure and it looks like that block, so it takes no `components` (they are reported and ignored). With a CraftEngine top block the item is CraftEngine's, and `name`, `lore` and `glint` are laid over it (see [CraftEngine items and blocks](#item-look)). |
 
 A pad is created when its top block is placed on its base, so place the base first. It counts as long as both
 blocks stay; breaking the top block removes it. If the top block goes any other way (WorldEdit, a command, gravity),
@@ -164,8 +177,16 @@ or blown up.
 
 Items resting up to one block above the top block count, so carpets or slabs on the pad are fine.
 
-Pads are built from vanilla blocks. A CraftEngine block never counts as one, whatever vanilla block it shows as to
-the server (bricks by default), and one put in place of a pad's top block ends the pad at the next sweep.
+A vanilla block in `structure` is only that block: a CraftEngine block never counts as it, whatever vanilla block it
+shows as to the server (bricks by default), and one put in place of a pad's top block ends the pad at the next
+sweep. A CraftEngine block in `structure` is only that CraftEngine block, whatever it looks like or does. Its
+furniture can't be part of a pad: it is not a block. A pad with a CraftEngine block works like any other:
+- it is created when that block is placed on the base;
+- in `item` mode, the special item is CraftEngine's item for that block with FrameSort's mark, so it doesn't stack
+  with the same item from `/ce give`, and breaking the pad gives it back;
+- while `/ce reload` runs, the pad is kept and protected but sends nothing, because CraftEngine's blocks can't be
+  told apart until it ends;
+- an ID CraftEngine doesn't know never makes a pad.
 
 ## tags.yml
 

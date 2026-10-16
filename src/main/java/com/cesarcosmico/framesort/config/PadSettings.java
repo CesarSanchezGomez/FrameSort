@@ -1,10 +1,11 @@
 package com.cesarcosmico.framesort.config;
 
-import com.cesarcosmico.framesort.item.ItemTemplate;
+import com.cesarcosmico.framesort.model.ItemReference;
 import com.cesarcosmico.framesort.model.PadMode;
 import org.bukkit.Material;
 import org.jspecify.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -54,25 +55,32 @@ public record PadSettings(PadMode creation, int sweepInterval, Map<String, PadTy
             types.warn(id, "expected a section with a 'structure' list");
             return null;
         }
-        List<Material> structure = reader.materials("structure");
-        if (structure.size() != 2) {
-            reader.warn("structure", "needs exactly two blocks, top then base; pad type '" + id + "' is skipped");
-            return null;
-        }
-        // Players build a pad by hand, and /framesort give pad hands out its top block.
-        for (Material block : structure) {
-            if (!isBlock.test(block) || !isItem.test(block)) {
-                reader.warn("structure", block + " is not a block a player can place; pad type '" + id
-                        + "' is skipped");
+        String skipped = "; pad type '" + id + "' is skipped";
+        List<ItemReference> structure = new ArrayList<>();
+        for (String entry : reader.strings("structure")) {
+            ItemReference block = ItemReferences.parse(entry, problem -> reader.warn("structure", problem + skipped));
+            if (block == null) {
                 return null;
             }
+            // Players build a pad by hand, and /framesort give pad hands out its top block.
+            if (block instanceof ItemReference.Vanilla(Material material)
+                    && (!isBlock.test(material) || !isItem.test(material))) {
+                reader.warn("structure", material + " is not a block a player can place" + skipped);
+                return null;
+            }
+            structure.add(block);
         }
-        Material top = structure.getFirst();
+        if (structure.size() != 2) {
+            reader.warn("structure", "needs exactly two blocks, top then base" + skipped);
+            return null;
+        }
+        ItemReference top = structure.getFirst();
         ConfigReader item = reader.sectionOrEmpty("item");
-        if (item.isSet("components")) {
+        if (top instanceof ItemReference.Custom) {
+            ItemReferences.ignoreComponents(item);
+        } else if (item.isSet("components")) {
             item.warn("components", "a pad item looks like the block it places, ignored");
         }
-        ItemTemplate template = new ItemTemplate(top, Map.of(), ItemLookParser.look(item));
-        return new PadType(id.toLowerCase(Locale.ROOT), top, structure.get(1), template);
+        return new PadType(id.toLowerCase(Locale.ROOT), top, structure.get(1), ItemLookParser.look(item));
     }
 }
