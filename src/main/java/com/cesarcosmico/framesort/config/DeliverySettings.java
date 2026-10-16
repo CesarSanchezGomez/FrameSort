@@ -9,7 +9,7 @@ import java.util.function.Predicate;
 public record DeliverySettings(int maxDistance, boolean insertIntoContainers,
                                @Nullable ItemReference defaultTargetItem) {
 
-    private static final ItemReference DEFAULT_TARGET = new ItemReference.Vanilla(Material.CARROT_ON_A_STICK);
+    private static final ItemReference.Vanilla DEFAULT_TARGET = new ItemReference.Vanilla(Material.CARROT_ON_A_STICK);
 
     static DeliverySettings parse(ConfigReader reader, Predicate<Material> isItem) {
         return new DeliverySettings(
@@ -19,16 +19,8 @@ public record DeliverySettings(int maxDistance, boolean insertIntoContainers,
     }
 
     private static @Nullable ItemReference defaultTarget(ConfigReader reader, Predicate<Material> isItem) {
-        String text = reader.string("default-target-item", "CARROT_ON_A_STICK");
-        if (text.isBlank()) {
-            return null;
-        }
-        ItemReference item = ItemReferences.parse(text,
-                problem -> reader.warn("default-target-item", problem + ", using CARROT_ON_A_STICK"));
-        if (item instanceof ItemReference.Vanilla(Material material) && !isItem.test(material)) {
-            reader.warn("default-target-item", material + " is not an item, using CARROT_ON_A_STICK");
-            return DEFAULT_TARGET;
-        }
-        return item == null ? DEFAULT_TARGET : item;
+        String text = reader.string("default-target-item", DEFAULT_TARGET.material().name());
+        return text.isBlank() ? null
+                : ItemReferences.item(reader, "default-target-item", text, DEFAULT_TARGET, isItem);
     }
 }

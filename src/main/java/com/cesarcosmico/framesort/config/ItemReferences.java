@@ -7,6 +7,7 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.Locale;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 /**
  * Reads an item or block named in the config. The plugin name before the first {@code :} is matched ignoring case;
@@ -23,6 +24,21 @@ final class ItemReferences {
         if (section.isSet("components")) {
             section.warn("components", "a CraftEngine item keeps its own model and components, ignored");
         }
+    }
+
+    /**
+     * The item {@code text} names at {@code path}, or {@code fallback} after a warning when it names nothing usable or
+     * a material that is not an item.
+     */
+    static ItemReference item(ConfigReader reader, String path, String text, ItemReference.Vanilla fallback,
+                              Predicate<Material> isItem) {
+        String using = ", using " + fallback.material();
+        ItemReference item = parse(text, problem -> reader.warn(path, problem + using));
+        if (item instanceof ItemReference.Vanilla(Material material) && !isItem.test(material)) {
+            reader.warn(path, material + " is not an item" + using);
+            return fallback;
+        }
+        return item == null ? fallback : item;
     }
 
     /** The reference, or {@code null} after telling {@code problem} why {@code text} names nothing usable. */

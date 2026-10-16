@@ -28,7 +28,7 @@ public record SorterSettings(ItemReference activator, ItemLook activatorLook, Ma
                              int tickRate, boolean disableWhenPowered, boolean hideFrame, boolean showActivity) {
 
     private static final Set<EntityType> ITEM_FRAMES = Set.of(EntityType.ITEM_FRAME, EntityType.GLOW_ITEM_FRAME);
-    private static final ItemReference DEFAULT_ACTIVATOR = new ItemReference.Vanilla(Material.ENDER_EYE);
+    private static final ItemReference.Vanilla DEFAULT_ACTIVATOR = new ItemReference.Vanilla(Material.ENDER_EYE);
 
     public SorterSettings {
         activatorComponents = Collections.unmodifiableMap(new LinkedHashMap<>(activatorComponents));
@@ -38,7 +38,8 @@ public record SorterSettings(ItemReference activator, ItemLook activatorLook, Ma
     static SorterSettings parse(ConfigReader reader, Predicate<Material> isItem,
                                 Function<String, @Nullable String> problem) {
         ConfigReader activator = reader.sectionOrEmpty("activator");
-        ItemReference item = activatorItem(activator, isItem);
+        ItemReference item = ItemReferences.item(activator, "material",
+                activator.string("material", DEFAULT_ACTIVATOR.material().name()), DEFAULT_ACTIVATOR, isItem);
         ItemLook look;
         Map<String, String> components;
         if (item instanceof ItemReference.Vanilla(Material material)) {
@@ -72,16 +73,6 @@ public record SorterSettings(ItemReference activator, ItemLook activatorLook, Ma
         ItemStack item = frame.getItem();
         return frameTypes.contains(frame.getType()) && activator.matches(item.getType(), customId.apply(item))
                 && (!requireMarked || MarkerCodec.read(item, Keys.ACTIVATOR) != null);
-    }
-
-    private static ItemReference activatorItem(ConfigReader activator, Predicate<Material> isItem) {
-        ItemReference item = ItemReferences.parse(activator.string("material", "ENDER_EYE"),
-                problem -> activator.warn("material", problem + ", using ENDER_EYE"));
-        if (item instanceof ItemReference.Vanilla(Material material) && !isItem.test(material)) {
-            activator.warn("material", material + " is not an item, using ENDER_EYE");
-            return DEFAULT_ACTIVATOR;
-        }
-        return item == null ? DEFAULT_ACTIVATOR : item;
     }
 
     static Set<EntityType> frameTypes(ConfigReader reader) {
