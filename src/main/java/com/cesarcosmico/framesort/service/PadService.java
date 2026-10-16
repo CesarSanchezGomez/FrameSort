@@ -77,9 +77,11 @@ public final class PadService {
     public Placement placed(Player player, Block block, ItemStack hand) {
         PadSettings current = settings.get();
         String marker = MarkerCodec.read(hand, Keys.PAD_ITEM);
+        PadBlock top = read(block);
+        PadBlock base = read(block.getRelative(BlockFace.DOWN));
         boolean blocked = false;
         for (PadType type : current.types().values()) {
-            if (!matches(block, type)) {
+            if (!matches(top, base, type)) {
                 continue;
             }
             boolean allowed = switch (current.creation()) {
@@ -115,8 +117,8 @@ public final class PadService {
 
     /** The pad whose top block this is, if it is registered and its column is still complete. */
     public @Nullable PadType padAt(Block top) {
-        PadType type = registered(top);
-        return type != null && matches(top, type) ? type : null;
+        PadType type = stored(top);
+        return type != null && matches(read(top), read(top.getRelative(BlockFace.DOWN)), type) ? type : null;
     }
 
     /** The top blocks of the registered pads within {@code radius} of {@code center}, in its world. */
@@ -171,11 +173,12 @@ public final class PadService {
         }
         // A player's break unregisters the pad at once; one by WorldEdit, a command, gravity or another block put in
         // its place is only seen here.
-        if (!isTop(top, type)) {
+        PadBlock seen = read(top);
+        if (!isTop(seen, type)) {
             unregister(top);
             return;
         }
-        if (!matches(top, type)) {
+        if (!matches(seen, read(top.getRelative(BlockFace.DOWN)), type)) {
             return;
         }
         // Items count when resting up to one block above the pad, like a hopper's pickup area.
@@ -187,29 +190,30 @@ public final class PadService {
         }
     }
 
-    private boolean matches(Block top, PadType type) {
-        return is(top, type.top()) && is(top.getRelative(BlockFace.DOWN), type.base());
-    }
-
-    // A CraftEngine block shows to the server as a vanilla one (bricks by default), so it never counts as that block;
-    // while /ce reload has it unbound, it counts as no block at all.
-    private boolean is(Block block, ItemReference reference) {
-        String id = customItems.blockId(block);
-        return (id != null || !customItems.isCustomBlock(block)) && reference.matches(block.getType(), id);
+    private static boolean matches(PadBlock top, PadBlock base, PadType type) {
+        return top.is(type.top()) && base.is(type.base());
     }
 
     // While /ce reload has CraftEngine's blocks unbound, a pad's CraftEngine top block can't be told from another:
     // the pad is kept, and protected, until the reload ends.
-    private boolean isTop(Block block, PadType type) {
-        return is(block, type.top()) || type.top() instanceof ItemReference.Custom
-                && customItems.isCustomBlock(block) && customItems.blockId(block) == null;
+    private static boolean isTop(PadBlock block, PadType type) {
+        return block.is(type.top()) || type.top() instanceof ItemReference.Custom && block.unbound();
+    }
+
+    private PadBlock read(Block block) {
+        String id = customItems.blockId(block);
+        return new PadBlock(block.getType(), id, id == null && customItems.isCustomBlock(block));
     }
 
     private @Nullable PadType registered(Block block) {
+        PadType type = stored(block);
+        return type != null && isTop(read(block), type) ? type : null;
+    }
+
+    private @Nullable PadType stored(Block block) {
         Map<BlockKey, String> inChunk = pads.get(FrameGeometry.key(block.getChunk()));
         String typeId = inChunk == null ? null : inChunk.get(FrameGeometry.key(block));
-        PadType type = typeId == null ? null : settings.get().type(typeId);
-        return type != null && isTop(block, type) ? type : null;
+        return typeId == null ? null : settings.get().type(typeId);
     }
 
     private void register(Block block, PadType type) {
@@ -230,6 +234,14 @@ public final class PadService {
             }
         }
         return typeId;
+    }
+
+    // A CraftEngine block shows to the server as a vanilla one (bricks by default), so it never counts as that block;
+    // while /ce reload has it unbound, it counts as no block at all.
+    private record PadBlock(Material type, @Nullable String customId, boolean unbound) {
+        boolean is(ItemReference reference) {
+            return !unbound && reference.matches(type, customId);
+        }
     }
 
     private record EntitySource(Item item) implements DeliveryService.Source {
