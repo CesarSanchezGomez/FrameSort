@@ -47,6 +47,19 @@ public final class PadService {
         }
     }
 
+    public sealed interface Breaking {
+        /** The pad is gone; {@code item} is the special item to drop instead of the block, if any. */
+        record Removed(@Nullable ItemStack item) implements Breaking {
+        }
+
+        /** The pad stays, so the special item it would give back is never lost. */
+        record Kept() implements Breaking {
+        }
+
+        record NotAPad() implements Breaking {
+        }
+    }
+
     private final Server server;
     private final Supplier<PadSettings> settings;
     private final DeliveryService delivery;
@@ -100,14 +113,25 @@ public final class PadService {
         return blocked && !silent ? new Placement.NotAllowed() : new Placement.NotAPad();
     }
 
-    /** Returns the special item to drop instead of the block when pads are made from items, or {@code null}. */
-    public @Nullable ItemStack broken(Block block) {
-        String typeId = unregister(block);
-        if (typeId == null || settings.get().creation() != PadMode.ITEM) {
-            return null;
+    /**
+     * What breaking {@code block} does. When pads are made from items and the breaker {@code drops} items, the pad
+     * gives its special item back, so it is kept while CraftEngine can't build that item (during /ce reload, or for
+     * an ID it no longer knows).
+     */
+    public Breaking broken(Block block, boolean drops) {
+        PadType type = registered(block);
+        if (type == null) {
+            return new Breaking.NotAPad();
         }
-        PadType type = settings.get().type(typeId);
-        return type == null ? null : createItem(type, 1);
+        ItemStack item = null;
+        if (drops && settings.get().creation() == PadMode.ITEM) {
+            item = createItem(type, 1);
+            if (item == null) {
+                return new Breaking.Kept();
+            }
+        }
+        unregister(block);
+        return new Breaking.Removed(item);
     }
 
     /** Whether {@code block} is the top block of a registered pad. */
@@ -223,17 +247,15 @@ public final class PadService {
         PadCodec.write(block.getChunk(), inChunk);
     }
 
-    private @Nullable String unregister(Block block) {
+    private void unregister(Block block) {
         ChunkKey chunk = FrameGeometry.key(block.getChunk());
         Map<BlockKey, String> inChunk = pads.get(chunk);
-        String typeId = inChunk == null ? null : inChunk.remove(FrameGeometry.key(block));
-        if (typeId != null) {
+        if (inChunk != null && inChunk.remove(FrameGeometry.key(block)) != null) {
             PadCodec.write(block.getChunk(), inChunk);
             if (inChunk.isEmpty()) {
                 pads.remove(chunk);
             }
         }
-        return typeId;
     }
 
     // A CraftEngine block shows to the server as a vanilla one (bricks by default), so it never counts as that block;

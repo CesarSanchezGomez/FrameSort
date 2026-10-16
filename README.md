@@ -63,7 +63,7 @@ even one made from an Eye of Ender, unless the config names that custom item
 CraftEngine blocks too, named the same way in `pads.yml`; otherwise a CraftEngine block never counts as a vanilla one.
 What FrameSort hands out (the activator, a pad block) shows its name and lore instead of CraftEngine's, if set. The
 ID is read from each item, so `/ce reload` changes nothing for items; a pad made of CraftEngine blocks waits until the
-reload ends.
+reload ends, and in `item` mode it can't be broken meanwhile, so its item is never lost.
 
 Containers are looked up the moment items go in, so a container that was moved or broken is skipped: items are
 never duplicated.

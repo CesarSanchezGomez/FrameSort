@@ -30,6 +30,7 @@ Interfaces exist only with several implementations, as closed sets, or to keep a
 - `CommandFeature`: one per command feature;
 - `GiveCommand.ItemSource`: a sorter activator or a pad block;
 - sealed `PadService.Placement`: what placing a pad block did;
+- sealed `PadService.Breaking`: what breaking a pad's top block did;
 - sealed `SorterService.Slot`: an inventory slot, or one inside a shulker box or bundle.
 
 `commands.yml` only places features: `CommandTree` joins every enabled path into Brigadier literals, makes a literal

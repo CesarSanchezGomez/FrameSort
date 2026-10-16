@@ -152,3 +152,4 @@ sorter:
 pad:
   created: '<prefix><green>Teleport pad <white><type></white> creado.</green>'
   not-allowed: '<prefix><red>No puedes crear teleport pads aquí.</red>'
+  unavailable: '<prefix><red>CraftEngine no puede crear ahora el item de este pad, así que aún no se puede romper: espera a que termine /ce reload o avisa a un admin.</red>'

@@ -186,6 +186,8 @@ furniture can't be part of a pad: it is not a block. A pad with a CraftEngine bl
   with the same item from `/ce give`, and breaking the pad gives it back;
 - while `/ce reload` runs, the pad is kept and protected but sends nothing, because CraftEngine's blocks can't be
   told apart until it ends;
+- in `item` mode, a pad whose item CraftEngine can't build (while `/ce reload` runs, or for an ID it no longer knows)
+  can't be broken, so its item is never lost; the player is told why. A player in creative mode can still break it;
 - an ID CraftEngine doesn't know never makes a pad.
 
 ## tags.yml

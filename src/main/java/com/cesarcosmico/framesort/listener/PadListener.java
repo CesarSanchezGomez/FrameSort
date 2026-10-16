@@ -6,6 +6,7 @@ import com.cesarcosmico.framesort.text.Messages;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import org.bukkit.GameMode;
 import org.bukkit.block.Block;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -55,17 +56,25 @@ public final class PadListener implements Listener {
         }
     }
 
-    // HIGHEST, not MONITOR: it changes the drops. Protection plugins cancel earlier, and cancelled breaks are skipped.
+    // HIGHEST, not MONITOR: it changes the drops or cancels the break. Protection plugins cancel earlier, and cancelled
+    // breaks are skipped.
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onBreak(BlockBreakEvent event) {
         Block block = event.getBlock();
-        if (!pads.isPad(block)) {
-            return;
-        }
-        ItemStack special = pads.broken(block);
-        if (special != null && event.getPlayer().getGameMode() != GameMode.CREATIVE) {
-            event.setDropItems(false);
-            block.getWorld().dropItemNaturally(block.getLocation().toCenterLocation(), special);
+        Player player = event.getPlayer();
+        switch (pads.broken(block, player.getGameMode() != GameMode.CREATIVE)) {
+            case PadService.Breaking.Removed(ItemStack item) -> {
+                if (item != null) {
+                    event.setDropItems(false);
+                    block.getWorld().dropItemNaturally(block.getLocation().toCenterLocation(), item);
+                }
+            }
+            case PadService.Breaking.Kept() -> {
+                event.setCancelled(true);
+                player.sendMessage(messages.get().get("pad.unavailable"));
+            }
+            case PadService.Breaking.NotAPad() -> {
+            }
         }
     }
 
