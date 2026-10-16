@@ -11,8 +11,8 @@ import java.util.function.Predicate;
 
 /**
  * Reads an item or block named in the config. The plugin name before the first {@code :} is matched ignoring case;
- * what follows is CraftEngine's ID, exactly as written. Only the syntax is checked: CraftEngine may not have loaded
- * its items yet.
+ * what follows is CraftEngine's ID, exactly as written. Only the syntax is checked, and that CraftEngine is installed:
+ * it may not have loaded its items yet.
  */
 final class ItemReferences {
 
@@ -31,9 +31,9 @@ final class ItemReferences {
      * a material that is not an item.
      */
     static ItemReference item(ConfigReader reader, String path, String text, ItemReference.Vanilla fallback,
-                              Predicate<Material> isItem) {
+                              Predicate<Material> isItem, boolean craftEngine) {
         String using = ", using " + fallback.material();
-        ItemReference item = parse(text, problem -> reader.warn(path, problem + using));
+        ItemReference item = parse(text, craftEngine, problem -> reader.warn(path, problem + using));
         if (item instanceof ItemReference.Vanilla(Material material) && !isItem.test(material)) {
             reader.warn(path, material + " is not an item" + using);
             return fallback;
@@ -41,8 +41,11 @@ final class ItemReferences {
         return item == null ? fallback : item;
     }
 
-    /** The reference, or {@code null} after telling {@code problem} why {@code text} names nothing usable. */
-    static @Nullable ItemReference parse(String text, Consumer<String> problem) {
+    /**
+     * The reference, or {@code null} after telling {@code problem} why {@code text} names nothing usable;
+     * {@code craftEngine} says whether CraftEngine is enabled.
+     */
+    static @Nullable ItemReference parse(String text, boolean craftEngine, Consumer<String> problem) {
         String value = text.trim();
         int colon = value.indexOf(':');
         String plugin = colon < 0 ? NamespacedKey.MINECRAFT : value.substring(0, colon).toLowerCase(Locale.ROOT);
@@ -60,6 +63,10 @@ final class ItemReferences {
             return new ItemReference.Vanilla(material);
         }
         if (plugin.equals(ItemReference.CRAFT_ENGINE)) {
+            if (!craftEngine) {
+                problem.accept("'" + text + "' needs CraftEngine, which is not installed");
+                return null;
+            }
             int split = id.indexOf(':');
             // Every CraftEngine ID has a namespace and two packs can share a value, so 'default' is never assumed.
             if (split <= 0 || split == id.length() - 1) {

@@ -20,10 +20,10 @@ public record FrameSortSettings(String language, SorterSettings sorter, TargetSe
 
     /**
      * {@code isItem} accepts what a stack can hold, and {@code problem} says why Minecraft rejects an item in /give
-     * syntax; both need a server, so tests pass their own.
+     * syntax; both need a server, so tests pass their own. {@code craftEngine} says whether CraftEngine is enabled.
      */
     public static FrameSortSettings parse(ConfigReader config, Predicate<Material> isItem,
-                                          Function<String, @Nullable String> problem) {
+                                          Function<String, @Nullable String> problem, boolean craftEngine) {
         String language = config.string("language", "en_US");
         if (language.isBlank()) {
             config.warn("language", "empty, using en_US");
@@ -31,9 +31,9 @@ public record FrameSortSettings(String language, SorterSettings sorter, TargetSe
         }
         return new FrameSortSettings(
                 language,
-                SorterSettings.parse(config.sectionOrEmpty("sorter"), isItem, problem),
+                SorterSettings.parse(config.sectionOrEmpty("sorter"), isItem, problem, craftEngine),
                 TargetSettings.parse(config.sectionOrEmpty("targets")),
-                DeliverySettings.parse(config.sectionOrEmpty("delivery"), isItem),
+                DeliverySettings.parse(config.sectionOrEmpty("delivery"), isItem, craftEngine),
                 InspectSettings.parse(config.sectionOrEmpty("inspect")));
     }
 }

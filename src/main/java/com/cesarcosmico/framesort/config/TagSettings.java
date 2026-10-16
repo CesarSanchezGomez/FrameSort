@@ -32,10 +32,10 @@ public record TagSettings(Map<NamespacedKey, CustomTag> tags) {
 
     /**
      * {@code isItem} and {@code isGameTag} need the registries on a server, so tests pass their own; {@code isItem}
-     * leaves out air.
+     * leaves out air. {@code craftEngine} says whether CraftEngine is enabled.
      */
     public static TagSettings parse(ConfigReader reader, Predicate<Material> isItem,
-                                    Predicate<NamespacedKey> isGameTag) {
+                                    Predicate<NamespacedKey> isGameTag, boolean craftEngine) {
         ConfigReader section = reader.section("tags");
         if (section == null) {
             return new TagSettings(Map.of());
@@ -49,7 +49,7 @@ public record TagSettings(Map<NamespacedKey, CustomTag> tags) {
             } else if (!seen.add(key)) {
                 section.warn(name, "names " + key.asString() + " again; only the first one counts");
             } else {
-                CustomTag tag = parseTag(section, name, isItem, isGameTag);
+                CustomTag tag = parseTag(section, name, isItem, isGameTag, craftEngine);
                 if (tag != null) {
                     tags.put(key, tag);
                 }
@@ -59,7 +59,7 @@ public record TagSettings(Map<NamespacedKey, CustomTag> tags) {
     }
 
     private static @Nullable CustomTag parseTag(ConfigReader tags, String name, Predicate<Material> isItem,
-                                                Predicate<NamespacedKey> isGameTag) {
+                                                Predicate<NamespacedKey> isGameTag, boolean craftEngine) {
         List<Material> items = new ArrayList<>();
         List<NamespacedKey> includes = new ArrayList<>();
         List<String> customItems = new ArrayList<>();
@@ -76,7 +76,8 @@ public record TagSettings(Map<NamespacedKey, CustomTag> tags) {
                 }
                 continue;
             }
-            ItemReference reference = ItemReferences.parse(member, problem -> tags.warn(name, problem + "; ignored"));
+            ItemReference reference = ItemReferences.parse(member, craftEngine,
+                    problem -> tags.warn(name, problem + "; ignored"));
             if (reference instanceof ItemReference.Custom(String id)) {
                 customItems.add(id);
             } else if (reference instanceof ItemReference.Vanilla(Material material)) {

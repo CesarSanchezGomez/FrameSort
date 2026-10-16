@@ -36,10 +36,11 @@ public record SorterSettings(ItemReference activator, ItemLook activatorLook, Ma
     }
 
     static SorterSettings parse(ConfigReader reader, Predicate<Material> isItem,
-                                Function<String, @Nullable String> problem) {
+                                Function<String, @Nullable String> problem, boolean craftEngine) {
         ConfigReader activator = reader.sectionOrEmpty("activator");
         ItemReference item = ItemReferences.item(activator, "material",
-                activator.string("material", DEFAULT_ACTIVATOR.material().name()), DEFAULT_ACTIVATOR, isItem);
+                activator.string("material", DEFAULT_ACTIVATOR.material().name()), DEFAULT_ACTIVATOR, isItem,
+                craftEngine);
         ItemLook look;
         Map<String, String> components;
         if (item instanceof ItemReference.Vanilla(Material material)) {

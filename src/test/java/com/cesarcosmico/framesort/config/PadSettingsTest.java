@@ -22,7 +22,7 @@ class PadSettingsTest {
 
     private static PadSettings parse(YamlConfiguration yaml, List<String> warnings) {
         return PadSettings.parse(new ConfigReader(yaml, "pads.yml", warnings::add), IS_BLOCK,
-                FrameSortSettingsTest.IS_ITEM);
+                FrameSortSettingsTest.IS_ITEM, true);
     }
 
     @Test
@@ -87,6 +87,25 @@ class PadSettingsTest {
                 + "ignored", warnings.get(0));
         assertTrue(warnings.get(1).startsWith("pads.yml > types.nameless.structure: 'craftengine:ruby_pad' needs"),
                 warnings::toString);
+    }
+
+    @Test
+    void craftEngineBlocksWithoutCraftEngineSkipTheirType() throws Exception {
+        YamlConfiguration yaml = new YamlConfiguration();
+        yaml.loadFromString("""
+                types:
+                  ruby:
+                    structure: ['craftengine:default:ruby_pad', GILDED_BLACKSTONE]
+                  plain:
+                    structure: [CRYING_OBSIDIAN, GILDED_BLACKSTONE]
+                """);
+        List<String> warnings = new ArrayList<>();
+        PadSettings settings = PadSettings.parse(new ConfigReader(yaml, "pads.yml", warnings::add), IS_BLOCK,
+                FrameSortSettingsTest.IS_ITEM, false);
+
+        assertEquals(List.of("plain"), List.copyOf(settings.types().keySet()));
+        assertEquals(List.of("pads.yml > types.ruby.structure: 'craftengine:default:ruby_pad' needs CraftEngine, "
+                + "which is not installed; pad type 'ruby' is skipped"), warnings);
     }
 
     @Test

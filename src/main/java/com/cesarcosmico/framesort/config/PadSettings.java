@@ -22,14 +22,15 @@ public record PadSettings(PadMode creation, int sweepInterval, Map<String, PadTy
 
     /**
      * {@code isBlock} and {@code isItem} need the registries on a server, so tests pass their own; {@code isItem}
-     * leaves out air.
+     * leaves out air. {@code craftEngine} says whether CraftEngine is enabled.
      */
-    public static PadSettings parse(ConfigReader reader, Predicate<Material> isBlock, Predicate<Material> isItem) {
+    public static PadSettings parse(ConfigReader reader, Predicate<Material> isBlock, Predicate<Material> isItem,
+                                    boolean craftEngine) {
         Map<String, PadType> types = new LinkedHashMap<>();
         ConfigReader section = reader.section("types");
         if (section != null) {
             for (String id : section.childKeys()) {
-                PadType type = parseType(section, id, isBlock, isItem);
+                PadType type = parseType(section, id, isBlock, isItem, craftEngine);
                 if (type != null) {
                     types.put(type.id(), type);
                 }
@@ -49,7 +50,7 @@ public record PadSettings(PadMode creation, int sweepInterval, Map<String, PadTy
     }
 
     private static @Nullable PadType parseType(ConfigReader types, String id, Predicate<Material> isBlock,
-                                               Predicate<Material> isItem) {
+                                               Predicate<Material> isItem, boolean craftEngine) {
         ConfigReader reader = types.section(id);
         if (reader == null) {
             types.warn(id, "expected a section with a 'structure' list");
@@ -58,7 +59,8 @@ public record PadSettings(PadMode creation, int sweepInterval, Map<String, PadTy
         String skipped = "; pad type '" + id + "' is skipped";
         List<ItemReference> structure = new ArrayList<>();
         for (String entry : reader.strings("structure")) {
-            ItemReference block = ItemReferences.parse(entry, problem -> reader.warn("structure", problem + skipped));
+            ItemReference block = ItemReferences.parse(entry, craftEngine,
+                    problem -> reader.warn("structure", problem + skipped));
             if (block == null) {
                 return null;
             }

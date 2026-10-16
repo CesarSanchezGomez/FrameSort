@@ -78,9 +78,12 @@ public final class FrameSortPlugin extends JavaPlugin {
     private InspectService inspect;
     // Null in onDisable when the plugin failed to start.
     private @Nullable BukkitTask ticker;
+    // Read once on enable: CraftEngine loads before FrameSort, and a reload checks the config against it too.
+    private boolean craftEngine;
 
     @Override
     public void onEnable() {
+        craftEngine = getServer().getPluginManager().isPluginEnabled("CraftEngine");
         Consumer<String> warn = getLogger()::warning;
         CommandsConfig commands;
         try {
@@ -98,9 +101,7 @@ public final class FrameSortPlugin extends JavaPlugin {
         tags = new TagCatalog(tagSettings);
         index = new TargetIndex(settings);
         // Only this check loads the integration's classes, so FrameSort runs without CraftEngine installed.
-        CustomItemResolver customItems = getServer().getPluginManager().isPluginEnabled("CraftEngine")
-                ? new CraftEngineItemResolver()
-                : CustomItemResolver.NONE;
+        CustomItemResolver customItems = craftEngine ? new CraftEngineItemResolver() : CustomItemResolver.NONE;
         resolver = new TargetResolver(settings, index, tags, customItems);
         TraceService trace = new TraceService(this, settings, messages);
         DeliveryService delivery = new DeliveryService(this, resolver, trace::report);
@@ -203,20 +204,21 @@ public final class FrameSortPlugin extends JavaPlugin {
         ConfigValidator.check(this, yaml, "config.yml", FrameSortSettings.OPEN_KEYS, FrameSortSettings.OPTIONAL_KEYS,
                 warn);
         return FrameSortSettings.parse(new ConfigReader(yaml, "config.yml", warn), FrameSortPlugin::isItem,
-                ItemTemplate::problem);
+                ItemTemplate::problem, craftEngine);
     }
 
     private PadSettings loadPads(Consumer<String> warn) throws IOException, InvalidConfigurationException {
         YamlConfiguration yaml = ConfigFiles.load(this, "pads.yml");
         ConfigValidator.check(this, yaml, "pads.yml", Set.of("types"), warn);
-        return PadSettings.parse(new ConfigReader(yaml, "pads.yml", warn), Material::isBlock, FrameSortPlugin::isItem);
+        return PadSettings.parse(new ConfigReader(yaml, "pads.yml", warn), Material::isBlock, FrameSortPlugin::isItem,
+                craftEngine);
     }
 
     private TagSettings loadTags(Consumer<String> warn) throws IOException, InvalidConfigurationException {
         YamlConfiguration yaml = ConfigFiles.load(this, "tags.yml");
         ConfigValidator.check(this, yaml, "tags.yml", Set.of("tags"), warn);
         return TagSettings.parse(new ConfigReader(yaml, "tags.yml", warn), FrameSortPlugin::isItem,
-                TagCatalog::isGameTag);
+                TagCatalog::isGameTag, craftEngine);
     }
 
     // Air is an item type too (ItemType.AIR), but no stack can hold it.
