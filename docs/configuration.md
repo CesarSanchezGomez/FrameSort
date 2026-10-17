@@ -6,7 +6,7 @@ without a warning: leaving one out means none of it, such as an activator with n
 on their own (see [Language](#language)). Invalid values are reported with their path and replaced by the default.
 `/framesort reload` applies `config.yml`, `pads.yml`, `tags.yml` and the language file and tells you how many values
 fell back to their defaults. A file that is not valid YAML stops the reload and the previous configuration stays active.
-`commands.yml` needs a restart.
+`commands.yml` and `database.yml` need a restart.
 
 Text values are written in single quotes; an apostrophe inside one is written twice (`'can''t'`). Text with
 several lines (help, lore, the page layout) is a YAML list, one line per entry. Item lore starts and ends with an
@@ -152,6 +152,18 @@ on containers. If a container with the same or a better priority also takes that
 doesn't fit; containers with a worse priority get nothing. With the default target item (a carrot on a stick) in the
 frame, it destroys whatever has no other target or no room left in one. An empty frame does nothing.
 
+### ownership
+
+| Key | Default | Meaning |
+|---|---|---|
+| `enabled` | `true` | `true`: a sorter or pad sends only to frames of its owner and of the players its owner trusts (`/framesort trust`), and only they inspect it or see its deliveries in `/framesort trace`. `false`: it sends to any frame and anyone inspects it, as without owners. A reload applies it. |
+
+Whatever a player places is theirs: a frame belongs to whoever hung it, a sorter to the owner of its activator's frame,
+a pad to whoever placed its top block. Owners are recorded even with `enabled: false`, so turning it on later finds
+them. What has no owner (built before owners existed, or pasted without its data) only sends to frames that have none
+either, and only admins inspect it; marking a frame nobody owns, putting the activator in one, or breaking and placing
+a pad's top block again gives it an owner. More in [docs/commands.md](commands.md#owners-and-trust).
+
 ### inspect
 
 | Key | Default | Meaning |
@@ -168,7 +180,7 @@ frame, it destroys whatever has no other target or no room left in one. An empty
 |---|---|---|
 | `creation` | `anyone` | `anyone`: any player who places the top block on its base. `permission`: only players with `framesort.pad.create`. `item`: only by placing the pad's special item (from `/framesort give pad`) as the top block. |
 | `sweep-interval` | `10` | Ticks between checks for items resting on pads. Items that arrive by water or fall onto a pad are picked up then. |
-| `types.<id>.structure` | | Exactly two blocks: the top, where items rest, then its base. Each one is a material or a CraftEngine block (`'craftengine:<namespace>:<id>'`). Players build pads by hand, so a material must be a block a player can place (not `STICK`, `WATER` or `AIR`); otherwise the type is skipped with a warning. |
+| `types.<id>.structure` | | Exactly two blocks: the top, where items rest, then its base. The `<id>` can't contain `,`: each pad keeps it in its chunk between commas. Each one is a material or a CraftEngine block (`'craftengine:<namespace>:<id>'`). Players build pads by hand, so a material must be a block a player can place (not `STICK`, `WATER` or `AIR`); otherwise the type is skipped with a warning. |
 | `types.<id>.item` | | *Optional*, and so is each key in it: `name`, `lore` and `glint` of the special top block (see [Item look](#item-look)). Left out, or set to `''`, `[]` or `false`, the block has none of it. Its material is the top block of the structure and it looks like that block, so it takes no `components` (they are reported and ignored). With a CraftEngine top block the item is CraftEngine's, and `name`, `lore` and `glint` are laid over it (see [CraftEngine items and blocks](#item-look)). |
 
 A pad is created when its top block is placed on its base, so place the base first. It counts as long as both
@@ -230,6 +242,22 @@ tags:
   name, so `default` is never assumed), a tag named twice (`logs` and `minecraft:logs`: the first one counts) and a
   tag left without valid members. The rest of a CraftEngine ID is not checked, because CraftEngine may not have loaded
   its items yet.
+
+## database.yml
+
+Where FrameSort keeps who trusts whom. Everything else stays in the world. Read on start only.
+
+| Key | Default | Meaning |
+|---|---|---|
+| `type` | `sqlite` | `sqlite`: a file in `plugins/FrameSort/`, nothing to set up. `mysql` or `mariadb`: the `remote` server, so several servers share the trust list. An unknown type stops FrameSort from starting. |
+| `sqlite.file` | `data.db` | The SQLite file, inside `plugins/FrameSort/`. |
+| `remote.host`, `port`, `database`, `username`, `password` | `localhost`, `3306`, `framesort`, `root`, `''` | The MySQL or MariaDB server. FrameSort's tables start with `framesort_`, so it can share a database with other plugins. |
+| `remote.properties` | `useSSL=false` | Extra JDBC URL parameters. |
+
+FrameSort reads the whole list when it starts; if the database can't be reached, FrameSort does not start. Each
+`/framesort trust` or `untrust` is saved before it applies. With MySQL or MariaDB, each server reads the list again
+every minute, so trust given on another server applies here within a minute; one given on this server applies at once.
+MariaDB's driver is downloaded on the first start, like HikariCP; the SQLite and MySQL drivers come with the server.
 
 ## Language
 

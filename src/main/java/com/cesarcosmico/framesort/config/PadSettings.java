@@ -51,6 +51,11 @@ public record PadSettings(PadMode creation, int sweepInterval, Map<String, PadTy
 
     private static @Nullable PadType parseType(ConfigReader types, String id, Predicate<Material> isBlock,
                                                Predicate<Material> isItem, boolean craftEngine) {
+        // A pad keeps its type id in its chunk, between commas.
+        if (id.contains(",")) {
+            types.warn(id, "a pad type id can't contain ','; pad type '" + id + "' is skipped");
+            return null;
+        }
         ConfigReader reader = types.section(id);
         if (reader == null) {
             types.warn(id, "expected a section with a 'structure' list");

@@ -15,6 +15,9 @@ command:
     tag-remove: '<gray>• <white><usage></white> <dark_gray>-</dark_gray> quita el tag del item de tu mano.</gray>'
     where: '<gray>• <white><usage></white> <dark_gray>-</dark_gray> adónde iría el item de tu mano desde el sorter o pad más cercano.</gray>'
     trace: '<gray>• <white><usage> [segundos|stop]</white> <dark_gray>-</dark_gray> muestra las entregas a tu alrededor.</gray>'
+    trust: '<gray>• <white><usage> \<jugador></white> <dark_gray>-</dark_gray> deja que los marcos de un jugador reciban de tus sorters y pads.</gray>'
+    untrust: '<gray>• <white><usage> \<jugador></white> <dark_gray>-</dark_gray> deja de confiar en un jugador.</gray>'
+    trust-list: '<gray>• <white><usage> [página]</white> <dark_gray>-</dark_gray> en quién confías y quién confía en ti.</gray>'
     give: '<gray>• <white><usage> sorter|pad \<tipo> [jugador] [cantidad]</white> <dark_gray>-</dark_gray> da activadores de sorter y bloques de pad.</gray>'
     reload: '<gray>• <white><usage></white> <dark_gray>-</dark_gray> recarga la configuración.</gray>'
   reloaded: '<prefix><green>Configuración recargada.</green>'
@@ -45,9 +48,10 @@ inspect:
   source:
     sorter: 'sorter'
     pad: 'teleport pad'
-  title: 'Destinos de este <source> (<x>, <y>, <z>)<sorted>'
-  title-item: 'Adónde va <item> desde este <source><sorted>'
+  title: 'Destinos de este <source> (<x>, <y>, <z>)<sorted><owner>'
+  title-item: 'Adónde va <item> desde este <source><sorted><owner>'
   sorted: ' <dark_gray>· <count> enviados</dark_gray>'
+  owner: ' <dark_gray>· de <player></dark_gray>'
   level:
     first: '  <color:#F7B733><number>.</color> <white>Primera opción</white>'
     next: '  <color:#F7B733><number>.</color> <white>Cuando se llenen</white>'
@@ -63,6 +67,8 @@ inspect:
   line: '  <color:#F7B733>•</color> <entry>'
   entry: '<white><item></white> <dark_gray>→</dark_gray> <hover:show_text:"<gray><x>, <y>, <z></gray>"><target></hover> <dark_gray><distance> m</dark_gray>'
   no-listing: '<prefix><gray>Primero haz shift + clic derecho a un sorter o pad con la mano vacía.</gray>'
+  not-trusted: '<prefix><red>Este <source> es de <white><player></white>, que no confía en ti.</red>'
+  no-owner: '<prefix><red>Este <source> todavía no es de nadie: rehazlo para que sea tuyo.</red>'
   opens: '<prefix><gray>Un sorter abre <white><item></white> primero y envía lo de dentro; cuando nada de dentro puede ir a ningún sitio, va entero, como se lista abajo.</gray>'
 
 frame:
@@ -81,6 +87,8 @@ frame:
     target: '  <green>✔</green> <gray>Es un destino</gray>'
     unmarked: '  <yellow>✘</yellow> <gray>Aún no es destino: shift + clic derecho con la mano vacía</gray>'
     wrong-type: '  <red>✘</red> <gray>Este tipo de marco no puede ser destino</gray>'
+  owner: '  <color:#F7B733>•</color> <gray>Dueño:</gray> <white><player></white>'
+  no-owner: '  <color:#F7B733>•</color> <gray>Sin dueño todavía: será de quien lo marque primero</gray>'
   into:
     container: '  <color:#F7B733>•</color> <gray>Los items van a</gray> <white><block></white>'
     dropped: '  <color:#F7B733>•</color> <gray>Los items</gray> <yellow>se sueltan delante</yellow>'
@@ -101,6 +109,7 @@ mark:
   automatic: '<prefix><gray>En este servidor todos los marcos ya son destinos.</gray>'
   no-permission: '<prefix><red>No puedes marcar marcos como destino.</red>'
   wrong-type: '<prefix><red>Este tipo de marco no puede ser destino.</red>'
+  not-yours: '<prefix><red>Este marco es de <white><player></white>: solo su dueño puede marcarlo o desmarcarlo.</red>'
 
 tag-item:
   applied: '<prefix><green>El item de tu mano ahora representa <white>#<tag></white> en los marcos.</green>'
@@ -110,7 +119,7 @@ tag-item:
 
 where:
   empty-hand: '<prefix><gray>Sujeta el item que quieres consultar.</gray>'
-  no-source: '<prefix><gray>No hay ningún sorter ni pad a menos de <radius> bloques.</gray>'
+  no-source: '<prefix><gray>No hay ningún sorter ni pad tuyo, ni de alguien que confíe en ti, a menos de <radius> bloques.</gray>'
 
 trace:
   started: '<prefix><green>Rastreando entregas a menos de <radius> bloques durante <seconds> segundos.</green> <gray>Para con <stop>.</gray>'
@@ -144,6 +153,20 @@ give:
   players-only: '<prefix><red>Indica un jugador: <usage> ... [jugador]</red>'
   unavailable: '<prefix><red>CraftEngine no puede crear ese item ahora: revisa su ID en la config o espera a que termine /ce reload.</red>'
   unknown-pad: 'No existe ningún tipo de pad llamado ''<type>'''
+
+trust:
+  granted: '<prefix><green>Tus sorters y pads ahora también envían a los marcos de <white><player></white>.</green>'
+  revoked: '<prefix><yellow>Tus sorters y pads ya no envían a los marcos de <white><player></white>.</yellow>'
+  already: '<prefix><gray>Ya confías en <white><player></white>.</gray>'
+  not-trusted: '<prefix><gray>No confías en <white><player></white>.</gray>'
+  unknown-player: '<prefix><red><white><player></white> nunca ha jugado en este servidor.</red>'
+  self: '<prefix><gray>Tus propios marcos ya reciben de tus sorters y pads.</gray>'
+  failed: '<prefix><red>No se pudo guardar. Inténtalo de nuevo, o pide a un admin que mire la consola.</red>'
+  disabled: '<prefix><gray>En este servidor los sorters y pads no tienen dueño: envían a cualquier marco.</gray>'
+  list:
+    title: 'Confianza'
+    trusted: '  <color:#F7B733>→</color> <white><player></white> <dark_gray>tiene tu confianza desde el <date></dark_gray>'
+    trusting: '  <color:#F7B733>←</color> <white><player></white> <dark_gray>confía en ti</dark_gray>'
 
 sorter:
   created: '<prefix><green>Sorter creado.</green> <gray>Lo que haya en este dispensador irá ahora a sus marcos destino.</gray>'

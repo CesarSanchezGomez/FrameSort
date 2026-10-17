@@ -10,6 +10,7 @@ import com.cesarcosmico.framesort.item.PadCodec;
 import com.cesarcosmico.framesort.model.BlockKey;
 import com.cesarcosmico.framesort.model.ChunkKey;
 import com.cesarcosmico.framesort.model.ItemReference;
+import com.cesarcosmico.framesort.model.PadEntry;
 import com.cesarcosmico.framesort.model.PadMode;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
@@ -29,6 +30,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.function.Supplier;
 
 /** Pads live in their chunk's data, so only loaded pads are swept; sweeping also catches items that arrive late. */
@@ -64,7 +66,7 @@ public final class PadService {
     private final Supplier<PadSettings> settings;
     private final DeliveryService delivery;
     private final CustomItemResolver customItems;
-    private final Map<ChunkKey, Map<BlockKey, String>> pads = new HashMap<>();
+    private final Map<ChunkKey, Map<BlockKey, PadEntry>> pads = new HashMap<>();
     private long tick;
 
     public PadService(Server server, Supplier<PadSettings> settings, DeliveryService delivery,
@@ -76,7 +78,7 @@ public final class PadService {
     }
 
     public void load(Chunk chunk) {
-        Map<BlockKey, String> stored = PadCodec.read(chunk);
+        Map<BlockKey, PadEntry> stored = PadCodec.read(chunk);
         if (!stored.isEmpty()) {
             pads.put(FrameGeometry.key(chunk), new LinkedHashMap<>(stored));
         }
@@ -103,7 +105,7 @@ public final class PadService {
                 case ITEM -> type.id().equals(marker);
             };
             if (allowed) {
-                register(block, type);
+                register(block, type, player.getUniqueId());
                 return new Placement.Created(type);
             }
             blocked = true;
@@ -145,12 +147,18 @@ public final class PadService {
         return type != null && matches(read(top), read(top.getRelative(BlockFace.DOWN)), type) ? type : null;
     }
 
+    /** The owner of the pad whose top block this is, or {@code null} when nobody owns it. */
+    public @Nullable UUID ownerOf(Block top) {
+        PadEntry entry = entry(top);
+        return entry == null ? null : entry.owner();
+    }
+
     /** The top blocks of the registered pads within {@code radius} of {@code center}, in its world. */
     public List<Block> near(Block center, int radius) {
         BlockKey here = FrameGeometry.key(center);
         long radiusSquared = (long) radius * radius;
         List<Block> found = new ArrayList<>();
-        for (Map<BlockKey, String> inChunk : pads.values()) {
+        for (Map<BlockKey, PadEntry> inChunk : pads.values()) {
             for (BlockKey key : inChunk.keySet()) {
                 if (key.distanceSquared(here) <= radiusSquared) {
                     found.add(center.getWorld().getBlockAt(key.x(), key.y(), key.z()));
@@ -178,8 +186,8 @@ public final class PadService {
         if (tick % settings.get().sweepInterval() != 0) {
             return;
         }
-        for (Map<BlockKey, String> inChunk : List.copyOf(pads.values())) {
-            for (Map.Entry<BlockKey, String> pad : Map.copyOf(inChunk).entrySet()) {
+        for (Map<BlockKey, PadEntry> inChunk : List.copyOf(pads.values())) {
+            for (Map.Entry<BlockKey, PadEntry> pad : Map.copyOf(inChunk).entrySet()) {
                 BlockKey key = pad.getKey();
                 World world = server.getWorld(key.world());
                 if (world != null) {
@@ -189,8 +197,8 @@ public final class PadService {
         }
     }
 
-    private void sweep(Block top, String typeId) {
-        PadType type = settings.get().type(typeId);
+    private void sweep(Block top, PadEntry pad) {
+        PadType type = settings.get().type(pad.type());
         // A type taken out of pads.yml, or mistyped, keeps its pads: they work again once it is back.
         if (type == null) {
             return;
@@ -209,7 +217,7 @@ public final class PadService {
         Location above = top.getLocation().add(0.5, 1.5, 0.5);
         for (Item item : top.getWorld().getNearbyEntitiesByType(Item.class, above, 0.5, 0.5, 0.5)) {
             if (item.isValid()) {
-                delivery.deliver(top, new EntitySource(item));
+                delivery.deliver(top, pad.owner(), new EntitySource(item));
             }
         }
     }
@@ -235,21 +243,25 @@ public final class PadService {
     }
 
     private @Nullable PadType stored(Block block) {
-        Map<BlockKey, String> inChunk = pads.get(FrameGeometry.key(block.getChunk()));
-        String typeId = inChunk == null ? null : inChunk.get(FrameGeometry.key(block));
-        return typeId == null ? null : settings.get().type(typeId);
+        PadEntry entry = entry(block);
+        return entry == null ? null : settings.get().type(entry.type());
     }
 
-    private void register(Block block, PadType type) {
-        Map<BlockKey, String> inChunk = pads.computeIfAbsent(FrameGeometry.key(block.getChunk()),
+    private @Nullable PadEntry entry(Block block) {
+        Map<BlockKey, PadEntry> inChunk = pads.get(FrameGeometry.key(block.getChunk()));
+        return inChunk == null ? null : inChunk.get(FrameGeometry.key(block));
+    }
+
+    private void register(Block block, PadType type, UUID owner) {
+        Map<BlockKey, PadEntry> inChunk = pads.computeIfAbsent(FrameGeometry.key(block.getChunk()),
                 key -> new LinkedHashMap<>());
-        inChunk.put(FrameGeometry.key(block), type.id());
+        inChunk.put(FrameGeometry.key(block), new PadEntry(type.id(), owner));
         PadCodec.write(block.getChunk(), inChunk);
     }
 
     private void unregister(Block block) {
         ChunkKey chunk = FrameGeometry.key(block.getChunk());
-        Map<BlockKey, String> inChunk = pads.get(chunk);
+        Map<BlockKey, PadEntry> inChunk = pads.get(chunk);
         if (inChunk != null && inChunk.remove(FrameGeometry.key(block)) != null) {
             PadCodec.write(block.getChunk(), inChunk);
             if (inChunk.isEmpty()) {

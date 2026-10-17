@@ -12,11 +12,13 @@ import org.bukkit.entity.ItemFrame;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
+import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Consumer;
 
@@ -37,7 +39,9 @@ public final class DeliveryService {
         void destroy();
     }
 
-    public record Delivered(Location from, ItemStack item, int amount, Location to, Destination destination) {
+    /** {@code owner} is the source's owner, so a trace shows a delivery only to those who may see that source. */
+    public record Delivered(Location from, @Nullable UUID owner, ItemStack item, int amount, Location to,
+                            Destination destination) {
     }
 
     // The delay vanilla gives a full composter before it turns ready.
@@ -53,20 +57,23 @@ public final class DeliveryService {
         this.observer = observer;
     }
 
-    /** Returns how many items left the source, whether into containers, dropped or destroyed. */
-    public int deliver(Block origin, Source source) {
+    /**
+     * Returns how many items left the source, whether into containers, dropped or destroyed. {@code owner} owns the
+     * source, or is {@code null} when nobody does.
+     */
+    public int deliver(Block origin, @Nullable UUID owner, Source source) {
         ItemStack stack = source.stack().clone();
         if (stack.isEmpty()) {
             return 0;
         }
-        TargetResolver.Plan plan = resolver.plan(origin, stack);
+        TargetResolver.Plan plan = resolver.plan(origin, owner, stack);
         int amount = stack.getAmount();
         List<Delivery.Level<ItemFrame, End>> levels = plan.levels().stream().map(DeliveryService::level).toList();
         Location from = source.location();
         Delivery.Outcome<ItemFrame, End> outcome = Delivery.deliver(amount, levels,
-                (frame, offered) -> offer(frame, stack, offered, from), source::commit);
+                (frame, offered) -> offer(frame, stack, offered, from, owner), source::commit);
         if (plan.stale() || !outcome.gone().isEmpty()) {
-            resolver.forget(origin, stack);
+            resolver.forget(origin, owner, stack);
         }
 
         int remaining = outcome.remaining();
@@ -76,11 +83,12 @@ public final class DeliveryService {
         }
         if (end.destination() == Destination.DESTROYED) {
             source.destroy();
-            observer.accept(new Delivered(from, stack, remaining, end.frame().getLocation(), Destination.DESTROYED));
+            observer.accept(new Delivered(from, owner, stack, remaining, end.frame().getLocation(),
+                    Destination.DESTROYED));
         } else {
             Location to = FrameGeometry.dropPoint(end.frame());
             source.moveTo(to);
-            observer.accept(new Delivered(from, stack, remaining, to, Destination.DROPPED));
+            observer.accept(new Delivered(from, owner, stack, remaining, to, Destination.DROPPED));
         }
         return amount;
     }
@@ -99,7 +107,7 @@ public final class DeliveryService {
     private record End(ItemFrame frame, Destination destination) {
     }
 
-    private int offer(ItemFrame frame, ItemStack stack, int amount, Location from) {
+    private int offer(ItemFrame frame, ItemStack stack, int amount, Location from, @Nullable UUID owner) {
         if (!frame.isValid() || !FrameGeometry.attachedLoaded(frame)) {
             return Delivery.GONE;
         }
@@ -117,7 +125,7 @@ public final class DeliveryService {
         }
         if (notAccepted < amount) {
             int accepted = amount - notAccepted;
-            observer.accept(new Delivered(from, stack, accepted, frame.getLocation(), Destination.CONTAINER));
+            observer.accept(new Delivered(from, owner, stack, accepted, frame.getLocation(), Destination.CONTAINER));
         }
         return notAccepted;
     }

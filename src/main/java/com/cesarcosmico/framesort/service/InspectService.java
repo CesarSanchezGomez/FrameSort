@@ -4,6 +4,7 @@ import com.cesarcosmico.framesort.config.CommandsConfig;
 import com.cesarcosmico.framesort.config.FrameSortSettings;
 import com.cesarcosmico.framesort.config.InspectSettings;
 import com.cesarcosmico.framesort.config.TargetSettings;
+import com.cesarcosmico.framesort.item.FrameCodec;
 import com.cesarcosmico.framesort.item.ItemTagCodec;
 import com.cesarcosmico.framesort.model.BlockKey;
 import com.cesarcosmico.framesort.model.TargetRegistration;
@@ -41,10 +42,14 @@ public final class InspectService {
     private record Target(ItemFrame frame, Destination destination) {
     }
 
+    private record Source(Block block, boolean pad, @Nullable UUID owner) {
+    }
+
     private final Supplier<FrameSortSettings> settings;
     private final Supplier<Messages> messages;
     private final TargetIndex index;
     private final TargetResolver resolver;
+    private final TrustService trust;
     private final SorterService sorters;
     private final PadService pads;
     private final CommandsConfig commands;
@@ -52,35 +57,58 @@ public final class InspectService {
     private final HighlightService highlights;
 
     public InspectService(HighlightService highlights, Supplier<FrameSortSettings> settings,
-                          Supplier<Messages> messages, TargetIndex index, TargetResolver resolver,
+                          Supplier<Messages> messages, TargetIndex index, TargetResolver resolver, TrustService trust,
                           SorterService sorters, PadService pads, CommandsConfig commands) {
         this.highlights = highlights;
         this.settings = settings;
         this.messages = messages;
         this.index = index;
         this.resolver = resolver;
+        this.trust = trust;
         this.sorters = sorters;
         this.pads = pads;
         this.commands = commands;
     }
 
-    /** With an item in {@code filter}, only where that item would go, chosen like a real delivery. */
+    /**
+     * With an item in {@code filter}, only where that item would go, chosen like a real delivery. Only those the
+     * owner trusts see it: the glow shows the owner's chests through walls.
+     */
     public void inspectSource(Player player, Block source, boolean pad, ItemStack filter) {
+        UUID owner = pad ? pads.ownerOf(source) : sorters.ownerOf(source);
+        if (trust.canView(player, owner)) {
+            show(player, new Source(source, pad, owner), filter);
+            return;
+        }
         Messages text = messages.get();
+        Component kind = text.get(pad ? "inspect.source.pad" : "inspect.source.sorter");
+        player.sendMessage(owner == null
+                ? text.get("inspect.no-owner", Placeholder.component("source", kind))
+                : text.get("inspect.not-trusted", Placeholder.component("source", kind),
+                        Placeholder.unparsed("player", trust.name(owner))));
+    }
+
+    private void show(Player player, Source shown, ItemStack filter) {
+        Block source = shown.block();
+        boolean pad = shown.pad();
+        UUID owner = shown.owner();
+        Messages text = messages.get();
+        Component kind = text.get(pad ? "inspect.source.pad" : "inspect.source.sorter");
         if (!pad && SorterService.opens(filter)) {
             player.sendMessage(text.get("inspect.opens", Placeholder.component("item", filter.effectiveName())));
         }
-        Component kind = text.get(pad ? "inspect.source.pad" : "inspect.source.sorter");
         BlockKey center = FrameGeometry.key(source);
         List<Component> lines = new ArrayList<>();
         List<HighlightService.Highlight> marks = new ArrayList<>();
         TagResolver sorted = Placeholder.component("sorted", pad ? Component.empty()
                 : text.get("inspect.sorted", Placeholder.unparsed("count", String.valueOf(sorters.sorted(source)))));
+        TagResolver ownerTag = Placeholder.component("owner", owner == null ? Component.empty()
+                : text.get("inspect.owner", Placeholder.unparsed("player", trust.name(owner))));
         Component title;
         if (filter.isEmpty()) {
             title = text.get("inspect.title", Placeholder.component("source", kind), coordinates(source.getLocation()),
-                    sorted);
-            List<ItemFrame> frames = new ArrayList<>(resolver.targets(source));
+                    sorted, ownerTag);
+            List<ItemFrame> frames = new ArrayList<>(resolver.targets(source, owner));
             frames.sort(Comparator.comparingLong(frame -> distanceSquared(frame, center)));
             for (ItemFrame frame : frames) {
                 Destination destination = resolver.destination(frame);
@@ -90,23 +118,27 @@ public final class InspectService {
             }
         } else {
             title = text.get("inspect.title-item", Placeholder.component("source", kind),
-                    Placeholder.component("item", filter.effectiveName()), coordinates(source.getLocation()), sorted);
-            filtered(text, source, center, filter, lines, marks);
+                    Placeholder.component("item", filter.effectiveName()), coordinates(source.getLocation()), sorted,
+                    ownerTag);
+            filtered(text, source, owner, center, filter, lines, marks);
         }
         listings.put(player.getUniqueId(), new Listing(title, List.copyOf(lines)));
         ChatPager.send(player, text, title, lines, 1, settings.get().inspect().pageSize(), pageCommand(player));
         highlight(player, marks);
     }
 
-    /** Inspects the nearest sorter or pad in delivery range as if {@code item} were in the off hand; false if none. */
+    /**
+     * Inspects the nearest sorter or pad in delivery range that {@code player} may see, as if {@code item} were in
+     * the off hand; false if there is none.
+     */
     public boolean inspectNearest(Player player, ItemStack item) {
         Block here = player.getLocation().getBlock();
         BlockKey key = FrameGeometry.key(here);
         long best = Long.MAX_VALUE;
-        Block nearest = null;
-        for (Block source : sourcesNear(here)) {
-            long distance = FrameGeometry.key(source).distanceSquared(key);
-            if (distance <= best) {
+        Source nearest = null;
+        for (Source source : sourcesNear(here)) {
+            long distance = FrameGeometry.key(source.block()).distanceSquared(key);
+            if (distance <= best && trust.canView(player, source.owner())) {
                 best = distance;
                 nearest = source;
             }
@@ -114,7 +146,7 @@ public final class InspectService {
         if (nearest == null) {
             return false;
         }
-        inspectSource(player, nearest, !sorters.isSorter(nearest), item);
+        show(player, nearest, item);
         return true;
     }
 
@@ -132,6 +164,9 @@ public final class InspectService {
         Messages text = messages.get();
         List<Component> lines = new ArrayList<>();
         lines.add(status(text, frame));
+        UUID owner = FrameCodec.owner(frame);
+        lines.add(owner == null ? text.get("frame.no-owner")
+                : text.get("frame.owner", Placeholder.unparsed("player", trust.name(owner))));
 
         lines.add(switch (resolver.destination(frame)) {
             case CONTAINER -> text.get("frame.into.container",
@@ -175,7 +210,7 @@ public final class InspectService {
         }
 
         long sources = sourcesNear(frame.getLocation().getBlock()).stream()
-                .filter(source -> resolver.reaches(source, frame))
+                .filter(source -> resolver.reaches(source.block(), source.owner(), frame))
                 .count();
         lines.add(text.get("frame.sources", Placeholder.unparsed("count", String.valueOf(sources))));
         // One message, like a page of a list, so the card stays together in chat.
@@ -200,7 +235,16 @@ public final class InspectService {
             player.sendMessage(text.get("mark.wrong-type"));
             return;
         }
+        // Unmarking someone else's frame would send their items down a level, maybe into lava.
+        UUID owner = FrameCodec.owner(frame);
+        if (settings.get().ownership() && owner != null && !owner.equals(player.getUniqueId())) {
+            player.sendMessage(text.get("mark.not-yours", Placeholder.unparsed("player", trust.name(owner))));
+            return;
+        }
         boolean mark = !index.isMarked(frame);
+        if (mark && owner == null) {
+            index.own(frame, player.getUniqueId());
+        }
         index.setMarked(frame, mark);
         player.sendMessage(text.get(mark ? "mark.marked" : "mark.unmarked"));
         InspectSettings.Colors colors = settings.get().inspect().colors();
@@ -216,9 +260,9 @@ public final class InspectService {
         listings.clear();
     }
 
-    private void filtered(Messages text, Block source, BlockKey center, ItemStack filter,
+    private void filtered(Messages text, Block source, @Nullable UUID owner, BlockKey center, ItemStack filter,
                           List<Component> lines, List<HighlightService.Highlight> marks) {
-        List<TargetResolver.Level> levels = resolver.plan(source, filter).levels();
+        List<TargetResolver.Level> levels = resolver.plan(source, owner, filter).levels();
         for (int i = 0; i < levels.size(); i++) {
             TargetResolver.Level level = levels.get(i);
             // In the order a delivery uses them: containers, then a drop spot or lava takes the rest.
@@ -282,14 +326,15 @@ public final class InspectService {
     }
 
     /** The sorters and pads within delivery range of {@code center}. */
-    private List<Block> sourcesNear(Block center) {
+    private List<Source> sourcesNear(Block center) {
         int radius = settings.get().delivery().maxDistance();
         long radiusSquared = (long) radius * radius;
         BlockKey key = FrameGeometry.key(center);
         return Stream.concat(
                 sorters.blocks().stream()
-                        .filter(sorter -> FrameGeometry.key(sorter).distanceSquared(key) <= radiusSquared),
-                pads.near(center, radius).stream()).toList();
+                        .filter(sorter -> FrameGeometry.key(sorter).distanceSquared(key) <= radiusSquared)
+                        .map(sorter -> new Source(sorter, false, sorters.ownerOf(sorter))),
+                pads.near(center, radius).stream().map(pad -> new Source(pad, true, pads.ownerOf(pad)))).toList();
     }
 
     private void highlight(Player player, List<HighlightService.Highlight> marks) {

@@ -74,6 +74,30 @@ trace:
     - '/framesort trace'
     - '/fs trace'
 
+# Usage: [COMMAND] <player>
+trust:
+  enabled: true
+  permission: 'framesort.command.trust'
+  usage:
+    - '/framesort trust'
+    - '/fs trust'
+
+# Usage: [COMMAND] <player>
+untrust:
+  enabled: true
+  permission: 'framesort.command.untrust'
+  usage:
+    - '/framesort untrust'
+    - '/fs untrust'
+
+# Usage: [COMMAND] [page]   (whom you trust and who trusts you)
+trust-list:
+  enabled: true
+  permission: 'framesort.command.trust-list'
+  usage:
+    - '/framesort trusted'
+    - '/fs trusted'
+
 # Usage: [COMMAND] <page>
 inspect:
   enabled: true

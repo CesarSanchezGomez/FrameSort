@@ -67,7 +67,7 @@ public final class SorterListener implements Listener {
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onFrameChange(PlayerItemFrameChangeEvent event) {
         Player player = event.getPlayer();
-        sorters.considerLater(event.getItemFrame(), change -> tell(player, change));
+        sorters.considerLater(event.getItemFrame(), player, change -> tell(player, change));
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)

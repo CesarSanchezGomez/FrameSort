@@ -8,6 +8,7 @@ public final class Keys {
 
     public static final NamespacedKey ACTIVATOR = new NamespacedKey(NAMESPACE, "activator");
     public static final NamespacedKey TARGET = new NamespacedKey(NAMESPACE, "target");
+    public static final NamespacedKey OWNER = new NamespacedKey(NAMESPACE, "owner");
     public static final NamespacedKey PAD_ITEM = new NamespacedKey(NAMESPACE, "pad-item");
     public static final NamespacedKey PADS = new NamespacedKey(NAMESPACE, "pads");
     public static final NamespacedKey SORTED = new NamespacedKey(NAMESPACE, "sorted");

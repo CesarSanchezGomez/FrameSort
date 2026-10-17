@@ -54,15 +54,18 @@ public final class TraceService {
     private final Server server;
     private final Supplier<FrameSortSettings> settings;
     private final Supplier<Messages> messages;
+    private final TrustService trust;
     // Keyed by the player, not the UUID: the retired callback of start() drops them when they leave.
     private final Map<Player, Long> until = new HashMap<>();
     private final Map<Player, Turn> lastShown = new HashMap<>();
 
-    public TraceService(Plugin plugin, Supplier<FrameSortSettings> settings, Supplier<Messages> messages) {
+    public TraceService(Plugin plugin, Supplier<FrameSortSettings> settings, Supplier<Messages> messages,
+                        TrustService trust) {
         this.plugin = plugin;
         this.server = plugin.getServer();
         this.settings = settings;
         this.messages = messages;
+        this.trust = trust;
     }
 
     public int start(Player player, int seconds) {
@@ -100,8 +103,10 @@ public final class TraceService {
                 continue;
             }
             Location from = delivered.from();
+            // A trail ends at the chest it fills, so only those who may inspect the source see it.
             if (!player.getWorld().equals(from.getWorld())
-                    || player.getLocation().distanceSquared(from) > (double) radius * radius) {
+                    || player.getLocation().distanceSquared(from) > (double) radius * radius
+                    || !trust.canView(player, delivered.owner())) {
                 continue;
             }
             Turn last = lastShown.get(player);

@@ -5,8 +5,10 @@
 ```
 com.cesarcosmico.framesort
 ├── FrameSortPlugin   composition root: wires everything, one tick task, reload
-├── model/            plain rules: priorities, ranking by priority, delivery, composting, paging, item references
-├── service/          target index and resolver, delivery, sorters, pads, inspection, tracing, tags
+├── FrameSortLoader   downloads HikariCP and the MariaDB driver on first start
+├── model/            plain rules: priorities, ranking, delivery, composting, paging, item references, trust
+├── service/          target index and resolver, delivery, sorters, pads, inspection, tracing, tags, trust
+├── storage/          the database and the trust table
 ├── config/           typed settings, pads.yml, tags.yml, commands.yml, strict loading, validation, reload holder
 ├── item/             persistent data keys, item templates, the overlay on items FrameSort doesn't build, codecs
 ├── text/             messages and the chat pager
@@ -17,7 +19,8 @@ com.cesarcosmico.framesort
 ```
 
 Packages depend on each other without cycles: `model` ← `item` ← `config` ← `text` ← `service` ← `command`,
-`listener` and `integration`. `api` is used only by `service` and `integration`, and only `FrameSortPlugin` creates
+`listener` and `integration`, with `storage` between `config` and `service` (it uses only `model` and `config`).
+`api` is used only by `service` and `integration`, and only `FrameSortPlugin` creates
 the integrations. Dependencies are wired by constructor in `FrameSortPlugin`; there are no static instances.
 
 Interfaces exist only with several implementations, as closed sets, or to keep an optional plugin out:
@@ -40,17 +43,25 @@ arguments.
 
 ## Data
 
-Nothing is stored outside the world:
+What belongs to a block or an entity stays in the world, so breaking it, pasting it or copying the world can't leave
+it out of step:
 
 | Where | Key | Content |
 |---|---|---|
 | Item frame entity | `framesort:target` | Present while the frame is a target (manual registration). |
-| Chunk | `framesort:pads` | The pads registered in the chunk, as `"x,y,z,type"`. |
+| Item frame entity | `framesort:owner` | The UUID, as text, of the player who hung the frame or first used it; a sorter's owner is its frame's. |
+| Chunk | `framesort:pads` | The pads registered in the chunk, as `"x,y,z,type"` or `"x,y,z,type,owner"`; one saved before owners existed has none. A type id can't contain `,`. |
 | Item | `framesort:item-tag` | The tag a tagged item stands for, such as `minecraft:logs` (`/framesort tag apply <tag>`). |
 | Item | `framesort:item-tag-original` | The name, lore and glint a tagged item had before its tag, as item bytes, so `/framesort tag remove` gives them back. |
 | Sorter dispenser | `framesort:sorted` | How many items the sorter has sent (a `long`); it goes away with the block. |
 | Item | `framesort:activator` | The sorter activator handed out by FrameSort. |
 | Item | `framesort:pad-item` | The pad type of a special pad block. |
+
+Who trusts whom is read while the player who gave it is offline, so it lives in the database (`database.yml`):
+one table, `framesort_trust`, with a row per trust (`owner`, `trusted`, `created_at`). UUIDs are 16 bytes, most
+significant half first, so one UUID has one form; `created_at` is epoch milliseconds, which MySQL's `TIMESTAMP`
+could not hold past 2038. The primary key is the pair (`WITHOUT ROWID` in SQLite). Migrations are
+`db/<sqlite|mysql>/V<n>.sql`, applied in order, with the applied versions in `framesort_schema_version`.
 
 ## How deliveries stay correct and cheap
 
@@ -72,10 +83,31 @@ Nothing is stored outside the world:
 - **Chunk borders.** A frame on a chunk border can hang on a block of the next chunk. That block is only read when
   its chunk is loaded, so FrameSort never loads chunks.
 - **Tracing.** With nobody tracing, a delivery costs one empty-map check.
+- **Owners.** `TargetResolver.eligible` lets a source send to a frame only if they have the same owner, or the
+  source's owner trusts the frame's (`model.TrustList.allows`); no owner counts as one more. The source's owner is part
+  of the cache key, so a pad rebuilt on the same block by someone else never reuses the old matches. A change of
+  trust raises every world's epoch (`TargetIndex.changedEverywhere`).
+- **Trust in memory.** Sorters work while their owners are offline, so the whole trust list is loaded at enable and
+  kept as an immutable snapshot: a delivery never touches the database.
 
 ## Threading
 
-Everything runs on the main thread: there is no I/O. A single repeating task ticks sorters and pads.
+Everything that touches the world runs on the main thread, and a single repeating task ticks sorters and pads.
+
+The only I/O is the trust table, on the database's single thread (`storage.Database`):
+- at enable, the whole table is read with a timeout before anything else runs; if it fails, FrameSort disables
+  itself instead of starting with nobody trusted;
+- `/framesort trust` and `untrust` write first, and the database thread swaps the snapshot (`TrustService`) in the
+  same task. Being the only thread that changes it, it applies writes and re-reads in the database's order, and a
+  failed write never leaves a trust in memory. The cached matches are then cleared on the main thread through the
+  global scheduler, which runs even if the player who typed the command has left; their message uses theirs;
+- with MySQL or MariaDB, a timer re-reads the whole table every minute, for trust given on another server. A failed
+  read keeps the snapshot and is logged once until a read works again;
+- `onDisable` cancels that timer and the tick task, then closes the database, which waits for queued writes;
+  nothing is scheduled any more once the plugin is disabling.
+
+Players' names come from the server's profile cache (`PlayerProfile#completeFromCache`), never from
+`OfflinePlayer#getName`, which for an offline player reads their file in `playerdata/` on every call.
 
 Highlights are temporary item displays that copy each frame's item, glowing in an exact colour
 (`Display#setGlowColorOverride`). The display's transformation repeats what the vanilla item frame renderer does
