@@ -20,8 +20,6 @@ import org.jspecify.annotations.Nullable;
 // Inspecting needs sneaking with an empty main hand, so every other click stays vanilla.
 public final class InspectListener implements Listener {
 
-    private static final String PERMISSION = "framesort.inspect";
-
     private final InspectService inspect;
     private final SorterService sorters;
     private final PadService pads;
@@ -98,6 +96,6 @@ public final class InspectListener implements Listener {
 
     private static boolean inspects(Player player) {
         return player.isSneaking() && player.getInventory().getItemInMainHand().isEmpty()
-                && player.hasPermission(PERMISSION);
+                && player.hasPermission(InspectService.INSPECT_PERMISSION);
     }
 }

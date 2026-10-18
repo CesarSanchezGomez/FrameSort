@@ -88,12 +88,13 @@ public final class TargetIndex {
         if (wasMarked) {
             unmark(frame);
         }
-        if (settings.get().targets().registration() == TargetRegistration.AUTOMATIC) {
+        boolean automatic = settings.get().targets().registration() == TargetRegistration.AUTOMATIC;
+        if (automatic) {
             FrameCodec.setOwner(frame, placer);
-            changed(frame.getWorld());
-            return false;
         }
-        return wasMarked;
+        // Cached matches remember the frame's item, so a new one changes them even when nothing else did.
+        changed(frame.getWorld());
+        return wasMarked && !automatic;
     }
 
     // Removing and adding again always moves the frame in or out of the index, or out and back in, so the epoch rises.

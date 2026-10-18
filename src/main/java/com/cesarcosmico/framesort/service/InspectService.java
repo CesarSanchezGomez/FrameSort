@@ -35,9 +35,9 @@ import java.util.stream.Stream;
 
 public final class InspectService {
 
-    private static final String INSPECT_PERMISSION = "framesort.inspect";
+    public static final String INSPECT_PERMISSION = "framesort.inspect";
     private static final String MARK_PERMISSION = "framesort.target.create";
-    // A page button can be pressed again and again, as long as the message stays in the chat.
+    // A page button can be pressed again and again, for the callback's default lifetime of 12 hours.
     private static final ClickCallback.Options PAGE_BUTTON = ClickCallback.Options.builder()
             .uses(ClickCallback.UNLIMITED_USES).build();
 
@@ -187,6 +187,10 @@ public final class InspectService {
         long best = Long.MAX_VALUE;
         Source nearest = null;
         for (Source source : sourcesNear(here)) {
+            // Like inspecting by hand, and like its page buttons: only a pad whose column is complete.
+            if (source.pad() && pads.padAt(source.block()) == null) {
+                continue;
+            }
             long distance = FrameGeometry.key(source.block()).distanceSquared(key);
             if (distance <= best && trust.canView(player, source.owner())) {
                 best = distance;

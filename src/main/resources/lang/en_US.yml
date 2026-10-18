@@ -123,7 +123,7 @@ mark:
   no-permission: '<prefix><red>You can''t mark targets</red>'
   wrong-type: '<prefix><red>This frame can''t be a target</red>'
   not-yours: '<prefix><red><hover:show_text:"<gray>Only its owner can unmark it.</gray>">This target is <white><player></white>''s</hover></red>'
-  cleared: '<gray>No longer a target: mark it again</gray>'
+  cleared: '<gray>No longer a target</gray>'
 
 tag-item:
   applied: '<prefix><green><hover:show_text:"<gray>In a frame it stands for the tag.</gray>">Tagged <white>#<tag></white></hover></green>'

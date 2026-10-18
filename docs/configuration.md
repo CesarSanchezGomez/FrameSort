@@ -95,7 +95,7 @@ targets that accept it.
 
 | Key | Default | Meaning |
 |---|---|---|
-| `registration` | `manual` | `manual`: only frames marked by sneak + right-clicking them with an empty hand; putting another item in a marked frame unmarks it. `automatic`: every frame of `frame-types` on a container or composter; frames anywhere else (walls, lava cauldrons) are never targets, so marking is the only way to make a drop spot or a trash can. A frame belongs to whoever marked it, or, under `automatic`, to whoever put its item in: after switching to `automatic`, a frame that wasn't marked has no owner until an item is put in again. |
+| `registration` | `manual` | `manual`: only frames marked by sneak + right-clicking them with an empty hand. `automatic`: every frame of `frame-types` on a container or composter; frames anywhere else (walls, lava cauldrons) are never targets, so marking is the only way to make a drop spot or a trash can. A frame belongs to whoever marked it, or, under `automatic`, to whoever put its item in. In either mode, putting another item in a frame ends its mark: after switching back to `manual`, a frame whose item changed must be marked again. After switching to `automatic`, a frame that wasn't marked has no owner until an item is put in again. |
 | `frame-types` | `[ITEM_FRAME, GLOW_ITEM_FRAME]` | Frames that can be targets. |
 | `tagged-item.name`, `lore`, `glint` | `'<gradient:#F7B733:#FC4A1A>#<tag></gradient>'`, none, `true` | *Optional.* Look a tagged item gets (see [Item look](#item-look)); in `name` and `lore`, `<tag>` is the tag, without `minecraft:` for vanilla tags. Left out, or set to `''`, `[]` or `false`, the item has none of it: `tagged-item: {}` tags items without changing how they look. |
 

@@ -44,11 +44,11 @@ public final class TargetListener implements Listener {
     public void onFrameChange(PlayerItemFrameChangeEvent event) {
         ItemFrame frame = event.getItemFrame();
         Player player = event.getPlayer();
-        if (event.getAction() == PlayerItemFrameChangeEvent.ItemFrameChangeAction.PLACE
-                && index.itemPlaced(frame, player.getUniqueId())) {
+        if (event.getAction() != PlayerItemFrameChangeEvent.ItemFrameChangeAction.PLACE) {
+            index.changed(frame.getWorld());
+        } else if (index.itemPlaced(frame, player.getUniqueId())) {
             player.sendActionBar(messages.get().get("mark.cleared"));
         }
-        index.changed(frame.getWorld());
     }
 
     // Hitting a frame (arrows, explosions) knocks its item out without a frame change event.
