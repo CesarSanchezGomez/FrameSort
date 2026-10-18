@@ -68,6 +68,7 @@ public final class PadListener implements Listener {
                     event.setDropItems(false);
                     block.getWorld().dropItemNaturally(block.getLocation().toCenterLocation(), item);
                 }
+                player.sendMessage(messages.get().get("pad.removed"));
             }
             case PadService.Breaking.Kept() -> {
                 event.setCancelled(true);
