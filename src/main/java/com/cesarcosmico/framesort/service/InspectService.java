@@ -24,6 +24,7 @@ import org.bukkit.block.Block;
 import org.bukkit.entity.ItemFrame;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.plugin.Plugin;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -59,10 +60,12 @@ public final class InspectService {
     private final PadService pads;
     private final CommandsConfig commands;
     private final HighlightService highlights;
+    private final Plugin plugin;
 
-    public InspectService(HighlightService highlights, Supplier<FrameSortSettings> settings,
+    public InspectService(Plugin plugin, HighlightService highlights, Supplier<FrameSortSettings> settings,
                           Supplier<Messages> messages, TargetIndex index, TargetResolver resolver, TrustService trust,
                           SorterService sorters, PadService pads, CommandsConfig commands) {
+        this.plugin = plugin;
         this.highlights = highlights;
         this.settings = settings;
         this.messages = messages;
@@ -148,6 +151,10 @@ public final class InspectService {
     }
 
     private void turnPage(Player viewer, BlockKey key, boolean pad, ItemStack filter, Opened opened, int page) {
+        // Paper keeps the button after FrameSort is disabled without a server stop; nothing may run then.
+        if (!plugin.isEnabled()) {
+            return;
+        }
         Source source = sourceAt(viewer, key, pad);
         if (source == null || !mayView(viewer, opened) || !trust.canView(viewer, source.owner())) {
             viewer.sendMessage(messages.get().get("inspect.gone"));
