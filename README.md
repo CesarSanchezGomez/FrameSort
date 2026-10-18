@@ -93,7 +93,7 @@ never duplicated.
 | `/framesort trace [seconds\|stop]` | `framesort.command.trace` | everyone |
 | `/framesort trust <player>` | `framesort.command.trust` | everyone |
 | `/framesort untrust <player>` | `framesort.command.untrust` | everyone |
-| `/framesort trusted [page]` | `framesort.command.trust-list` | everyone |
+| `/framesort trusted [page]` | `framesort.command.trusted` | everyone |
 | `/framesort give sorter\|pad <type> [player] [amount]` | `framesort.command.give` | op |
 | `/framesort reload` | `framesort.command.reload` | op |
 

@@ -25,7 +25,7 @@ command:
     trace: '  <color:#F7B733>•</color> <hover:show_text:"<gray>Shows the deliveries around you<newline>for a while, or stops showing them.</gray>"><white><usage> [seconds|stop]</white> <dark_gray>watch</dark_gray></hover>'
     trust: '  <color:#F7B733>•</color> <hover:show_text:"<gray>Your sorters and pads also send<newline>to that player''s frames.</gray>"><white><usage> \<player></white> <dark_gray>share</dark_gray></hover>'
     untrust: '  <color:#F7B733>•</color> <hover:show_text:"<gray>Stops trusting a player.</gray>"><white><usage> \<player></white> <dark_gray>stop sharing</dark_gray></hover>'
-    trust-list: '  <color:#F7B733>•</color> <hover:show_text:"<gray>Whom you trust and who trusts you.</gray>"><white><usage> [page]</white> <dark_gray>your trust</dark_gray></hover>'
+    trusted: '  <color:#F7B733>•</color> <hover:show_text:"<gray>Whom you trust and who trusts you.</gray>"><white><usage> [page]</white> <dark_gray>your trust</dark_gray></hover>'
     give: '  <color:#F7B733>•</color> <hover:show_text:"<white><usage> sorter [player] [amount]</white><newline><white><usage> pad \<type> [player] [amount]</white><newline><gray>Gives sorter activators and pad blocks.</gray>"><white><usage> sorter|pad …</white> <dark_gray>give items</dark_gray></hover>'
     reload: '  <color:#F7B733>•</color> <hover:show_text:"<gray>Reloads the configuration.</gray>"><white><usage></white> <dark_gray>reload</dark_gray></hover>'
   reloaded: '<prefix><green>Configuration reloaded.</green>'

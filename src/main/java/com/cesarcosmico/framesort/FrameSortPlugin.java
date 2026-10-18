@@ -13,7 +13,7 @@ import com.cesarcosmico.framesort.command.TagSearchCommand;
 import com.cesarcosmico.framesort.command.TagShowCommand;
 import com.cesarcosmico.framesort.command.TraceCommand;
 import com.cesarcosmico.framesort.command.TrustCommand;
-import com.cesarcosmico.framesort.command.TrustListCommand;
+import com.cesarcosmico.framesort.command.TrustedCommand;
 import com.cesarcosmico.framesort.command.UntrustCommand;
 import com.cesarcosmico.framesort.command.WhereCommand;
 import com.cesarcosmico.framesort.config.CommandsConfig;
@@ -114,7 +114,7 @@ public final class FrameSortPlugin extends JavaPlugin {
             // Trusting players means nothing without owners, so those commands follow the setting.
             BooleanSupplier ownership = () -> settings.get().ownership();
             commands = CommandsConfig.load(this, warn).onlyWhen("trust", ownership).onlyWhen("untrust", ownership)
-                    .onlyWhen("trust-list", ownership);
+                    .onlyWhen("trusted", ownership);
             opened = Database.open(this, DatabaseSettings.parse(
                     new ConfigReader(ConfigFiles.load(this, "database.yml"), "database.yml", warn)));
             database = opened;
@@ -147,7 +147,7 @@ public final class FrameSortPlugin extends JavaPlugin {
             register(new WorldGuardTargetListener());
         }
         List<String> helpLines = List.of("tag-list", "tag-search", "tag-show", "tag-apply", "tag-remove", "where",
-                "trace", "trust", "untrust", "trust-list", "give", "reload");
+                "trace", "trust", "untrust", "trusted", "give", "reload");
         TagListing listing = new TagListing(tags, messages, settings, commands);
         List<CommandFeature> features = List.of(
                 new HelpCommand(messages, commands, helpLines),
@@ -160,7 +160,7 @@ public final class FrameSortPlugin extends JavaPlugin {
                 new WhereCommand(inspect, messages, settings),
                 new TrustCommand(trust, messages),
                 new UntrustCommand(trust, messages),
-                new TrustListCommand(trust, messages, settings),
+                new TrustedCommand(trust, messages, settings),
                 new GiveCommand(sorters, padService, pads, messages),
                 new ReloadCommand(messages, this::reload, getLogger(), getName()));
         getLifecycleManager().registerEventHandler(LifecycleEvents.COMMANDS, event -> {

@@ -94,9 +94,9 @@ untrust:
 
 # Usage: [COMMAND] [page]   (whom you trust and who trusts you)
 # Only while ownership.enabled is true in config.yml.
-trust-list:
+trusted:
   enabled: true
-  permission: 'framesort.command.trust-list'
+  permission: 'framesort.command.trusted'
   usage:
     - '/fs trusted'
     - '/framesort trusted'

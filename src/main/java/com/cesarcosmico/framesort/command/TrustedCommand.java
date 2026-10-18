@@ -27,13 +27,13 @@ import java.util.UUID;
 import java.util.function.Supplier;
 
 // Its own path, not /fs trust with no player: a page number there would read as a player's name.
-public final class TrustListCommand implements CommandFeature {
+public final class TrustedCommand implements CommandFeature {
 
     private final TrustService trust;
     private final Supplier<Messages> messages;
     private final Supplier<FrameSortSettings> settings;
 
-    public TrustListCommand(TrustService trust, Supplier<Messages> messages, Supplier<FrameSortSettings> settings) {
+    public TrustedCommand(TrustService trust, Supplier<Messages> messages, Supplier<FrameSortSettings> settings) {
         this.trust = trust;
         this.messages = messages;
         this.settings = settings;
@@ -41,7 +41,7 @@ public final class TrustListCommand implements CommandFeature {
 
     @Override
     public String id() {
-        return "trust-list";
+        return "trusted";
     }
 
     @Override

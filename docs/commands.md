@@ -82,7 +82,7 @@ owner.
 ## commands.yml
 
 Each section of `commands.yml` is one command feature: `help`, `tag-list`, `tag-search`, `tag-show`, `tag-apply`,
-`tag-remove`, `where`, `trace`, `trust`, `untrust`, `trust-list`, `give` and `reload`. Each tag action is
+`tag-remove`, `where`, `trace`, `trust`, `untrust`, `trusted`, `give` and `reload`. Each tag action is
 its own feature, so it has its own paths, permission and switch. The key is fixed; what can change is:
 
 | Key | Meaning |

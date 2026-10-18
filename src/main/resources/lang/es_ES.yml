@@ -25,7 +25,7 @@ command:
     trace: '  <color:#F7B733>•</color> <hover:show_text:"<gray>Muestra las entregas a tu alrededor<newline>un rato, o deja de mostrarlas.</gray>"><white><usage> [segundos|stop]</white> <dark_gray>ver</dark_gray></hover>'
     trust: '  <color:#F7B733>•</color> <hover:show_text:"<gray>Tus sorters y pads también envían<newline>a los marcos de ese jugador.</gray>"><white><usage> \<jugador></white> <dark_gray>compartir</dark_gray></hover>'
     untrust: '  <color:#F7B733>•</color> <hover:show_text:"<gray>Deja de confiar en un jugador.</gray>"><white><usage> \<jugador></white> <dark_gray>dejar de compartir</dark_gray></hover>'
-    trust-list: '  <color:#F7B733>•</color> <hover:show_text:"<gray>En quién confías y quién confía en ti.</gray>"><white><usage> [página]</white> <dark_gray>tu confianza</dark_gray></hover>'
+    trusted: '  <color:#F7B733>•</color> <hover:show_text:"<gray>En quién confías y quién confía en ti.</gray>"><white><usage> [página]</white> <dark_gray>tu confianza</dark_gray></hover>'
     give: '  <color:#F7B733>•</color> <hover:show_text:"<white><usage> sorter [jugador] [cantidad]</white><newline><white><usage> pad \<tipo> [jugador] [cantidad]</white><newline><gray>Da activadores de sorter y bloques de pad.</gray>"><white><usage> sorter|pad …</white> <dark_gray>dar items</dark_gray></hover>'
     reload: '  <color:#F7B733>•</color> <hover:show_text:"<gray>Recarga la configuración.</gray>"><white><usage></white> <dark_gray>recargar</dark_gray></hover>'
   reloaded: '<prefix><green>Configuración recargada.</green>'
