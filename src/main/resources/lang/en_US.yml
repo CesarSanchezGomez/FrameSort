@@ -9,7 +9,7 @@ command:
       - '<gradient:#F7B733:#FC4A1A>◤<st>                          </st></gradient> <prefix><gradient:#FC4A1A:#F7B733><st>                          </st>◥</gradient>'
       - ''
       - '  <hover:show_text:"<gray>With an empty hand: its targets glow<newline>and are listed. Hold an item in your<newline>off hand to see only where it goes.</gray>"><white>Sneak + right-click</white> <gray>a sorter or pad</gray></hover>'
-      - '  <hover:show_text:"<gray>With an empty hand: marks or<newline>unmarks it as a target, even empty.</gray>"><white>Sneak + right-click</white> <gray>a frame</gray></hover>'
+      - '  <hover:show_text:"<gray>With an empty hand: marks or<newline>unmarks it as a target.</gray>"><white>Sneak + right-click</white> <gray>a frame</gray></hover>'
       - '  <hover:show_text:"<gray>Shows what a frame accepts,<newline>who owns it and where items go.</gray>"><white>Sneak + left-click</white> <gray>a frame</gray></hover>'
       - ''
       - '<entries>'
@@ -100,7 +100,7 @@ frame:
     wrong-type: '  <red>✘</red> <hover:show_text:"<gray>This kind of frame isn''t in<newline>targets.frame-types.</gray>"><gray>Can''t be a target</gray></hover>'
   owner: '  <color:#F7B733>•</color> <gray>Owner:</gray> <white><player></white>'
   no-owner: '  <color:#F7B733>•</color> <hover:show_text:"<gray>Unmark it and mark it again<newline>to make it yours.</gray>"><gray>No owner</gray></hover>'
-  no-owner-hung: '  <color:#F7B733>•</color> <hover:show_text:"<gray>Break it and hang it again<newline>to make it yours.</gray>"><gray>No owner</gray></hover>'
+  no-owner-automatic: '  <color:#F7B733>•</color> <hover:show_text:"<gray>Take its item out and put it<newline>back in to make it yours.</gray>"><gray>No owner</gray></hover>'
   into:
     container: '  <color:#F7B733>•</color> <gray>Into</gray> <white><block></white>'
     dropped: '  <color:#F7B733>•</color> <yellow>Dropped</yellow> <gray>in front of it</gray>'
@@ -123,7 +123,7 @@ mark:
   no-permission: '<prefix><red>You can''t mark targets</red>'
   wrong-type: '<prefix><red>This frame can''t be a target</red>'
   not-yours: '<prefix><red><hover:show_text:"<gray>Only its owner can unmark it.</gray>">This target is <white><player></white>''s</hover></red>'
-  now-takes: '<gray>Target: <white><item></white> goes here</gray>'
+  cleared: '<gray>No longer a target: mark it again</gray>'
 
 tag-item:
   applied: '<prefix><green><hover:show_text:"<gray>In a frame it stands for the tag.</gray>">Tagged <white>#<tag></white></hover></green>'

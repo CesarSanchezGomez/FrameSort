@@ -79,15 +79,24 @@ public final class TargetIndex {
     }
 
     /**
-     * With automatic registration nothing is marked, so a frame belongs to whoever hung it. Recorded under manual
-     * registration too, where marking replaces it, so a switch to automatic finds the frames already owned.
+     * A frame is a target for the item in it, so a new item ends its mark. Under automatic registration nothing is
+     * marked, and the frame belongs to whoever put the item in. True when this ended a mark under manual registration,
+     * where the frame stops being a target.
      */
-    public void hung(ItemFrame frame, UUID owner) {
-        FrameCodec.setOwner(frame, owner);
-        changed(frame.getWorld());
+    public boolean itemPlaced(ItemFrame frame, UUID placer) {
+        boolean wasMarked = isMarked(frame);
+        if (wasMarked) {
+            unmark(frame);
+        }
+        if (settings.get().targets().registration() == TargetRegistration.AUTOMATIC) {
+            FrameCodec.setOwner(frame, placer);
+            changed(frame.getWorld());
+            return false;
+        }
+        return wasMarked;
     }
 
-    // Marking and unmarking only happen under manual registration, where the frame always enters or leaves the index.
+    // Removing and adding again always moves the frame in or out of the index, or out and back in, so the epoch rises.
     private void reindex(ItemFrame frame) {
         remove(frame);
         add(frame);

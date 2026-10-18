@@ -3,7 +3,6 @@ package com.cesarcosmico.framesort.listener;
 import com.cesarcosmico.framesort.service.InspectService;
 import com.cesarcosmico.framesort.service.PadService;
 import com.cesarcosmico.framesort.service.SorterService;
-import io.papermc.paper.event.player.PlayerItemFrameChangeEvent;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.ItemFrame;
@@ -53,26 +52,17 @@ public final class InspectListener implements Listener {
         }
     }
 
-    // Cancelled for both hands, so the frame never rotates its item. An empty frame counts too, so one whose item was
-    // taken out can still be unmarked, unless the off hand holds an item: that click puts it in the frame.
+    // Cancelled for both hands, so the frame never rotates its item. Empty frames are left alone: a mark lives with the
+    // item, and the click can still put the off-hand item in.
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onMark(PlayerInteractAtEntityEvent event) {
         Player player = event.getPlayer();
-        if (!(event.getRightClicked() instanceof ItemFrame frame) || !inspects(player)
-                || frame.getItem().isEmpty() && !player.getInventory().getItemInOffHand().isEmpty()) {
+        if (!(event.getRightClicked() instanceof ItemFrame frame) || frame.getItem().isEmpty() || !inspects(player)) {
             return;
         }
         event.setCancelled(true);
         if (event.getHand() == EquipmentSlot.HAND && !inspectSorterOf(player, frame)) {
             inspect.toggleMark(player, frame);
-        }
-    }
-
-    // MONITOR: only an item that really went in is reported; the event is left alone.
-    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-    public void onItemPlaced(PlayerItemFrameChangeEvent event) {
-        if (event.getAction() == PlayerItemFrameChangeEvent.ItemFrameChangeAction.PLACE) {
-            inspect.itemPlaced(event.getPlayer(), event.getItemFrame(), event.getItemStack());
         }
     }
 

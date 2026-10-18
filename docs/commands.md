@@ -30,15 +30,15 @@ Sneak with an empty main hand; this needs `framesort.inspect`. Standing up, ever
 | Sneak + right-click a sorter or the top block of a pad | Only yours, those of a player who trusts you, or any with `framesort.inspect.others` (see [Owners and trust](#owners-and-trust)). The items in the target frames it can send to glow for you only (green: into a container, yellow: dropped, red: lava; see `inspect.colors`) and those targets are listed, nearest first. Frames that WorldGuard regions (or another plugin cancelling `TargetBindEvent`) keep it from reaching are left out; a sorter's list also shows how many items it has sent. With an item in your off hand, only where that item would go, as numbered levels in order of preference: each level's containers nearest first, then the one drop spot or lava that takes the rest (the nearest, a drop spot before lava); the next level only gets what doesn't fit. From a sorter, a shulker box or bundle with contents comes with a note: the sorter opens it first, and the list shows where it goes whole once nothing inside can go. |
 | Sneak + left-click a frame with an item | Whether it is a target and, if so, who owns it; where its items go, what it accepts, and how many sorters and pads reach it. |
 | Sneak + right- or left-click a sorter's frame | Inspects the sorter, as clicking its dispenser does. That frame is never a target. |
-| Sneak + right-click a frame | Marks or unmarks it as a target (`targets.registration: manual`, needs `framesort.inspect` and `framesort.target.create`), also an empty one, unless your off hand holds an item: that goes into it, as usual. Marking makes it yours, and unmarking frees it; with `ownership.enabled`, only you unmark it then. The item does not rotate. |
+| Sneak + right-click a frame with an item | Marks or unmarks it as a target (`targets.registration: manual`, needs `framesort.inspect` and `framesort.target.create`). Marking makes it yours, and unmarking frees it; with `ownership.enabled`, only you unmark it then. A mark lives with the item: once another item is put in, the frame is no longer a target, and whoever put it in is told so in the action bar. The item does not rotate. |
 
-The frame keeps its item and does not rotate. A left-click leaves empty frames alone, so they can still be broken.
+The frame keeps its item and does not rotate. Empty frames are left alone, so they can still be filled or broken.
 
 ## Owners and trust
 
 With `ownership.enabled` (the default), what a player sets up is theirs: a target frame belongs to whoever marked
-it (with `targets.registration: automatic`, nothing is marked, so to whoever hung it), a sorter to whoever put the
-activator in, and a pad to whoever placed its top block. A sorter or pad sends only to frames of its owner, so
+it (with `targets.registration: automatic`, nothing is marked, so to whoever put its item in), a sorter to whoever
+put the activator in, and a pad to whoever placed its top block. A sorter or pad sends only to frames of its owner, so
 nobody can mark a frame near your sorter and take your items.
 
 `/framesort trust Beto`, typed by Ana, means: Beto's frames count as Ana's for Ana's sorters and pads.
@@ -51,8 +51,9 @@ nobody can mark a frame near your sorter and take your items.
   was delivered stays where it is, and Beto's frames stay his.
 
 Only a target's owner unmarks it: unmarking someone else's frame would send their items to the next level, maybe
-into lava. Unmarking frees the frame, so anyone may mark it next and own it; taking its item out does not, and
-putting another item in a marked frame says so in your action bar. Breaking blocks, opening the dispenser or
+into lava. Unmarking frees the frame, so anyone may mark it next and own it, and so does taking its item out: the
+next item put in leaves the frame unmarked and without an owner. Taking the item out means hitting the frame, which
+the server's protection decides, like breaking it. Breaking blocks, opening the dispenser or
 dropping items on a pad is left to the server's protection (claims, regions, locks): FrameSort only decides where
 items go from afar, and who sees it. Items dropped on someone's pad go to that pad's owner. A frame on someone
 else's chest belongs to whoever marked it, so their sorter can fill that chest unless the chest's protection stops
@@ -63,8 +64,9 @@ links, and can't be run; `/framesort reload` with it back on brings them back. N
 cache: a player it no longer remembers shows as their UUID, which `untrust` also takes.
 
 What has no owner (built before owners existed, or pasted without its data) works only with what has no owner, and
-only admins inspect it. Unmarking and marking a frame again (with `targets.registration: automatic`, breaking and
-hanging it again), putting the activator back, or breaking and placing a pad's top block again gives it an owner.
+only admins inspect it. Unmarking and marking a frame again (with `targets.registration: automatic`, taking its item
+out and putting it back), putting the activator back, or breaking and placing a pad's top block again gives it an
+owner.
 
 ## Permissions
 
