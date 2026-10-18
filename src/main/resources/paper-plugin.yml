@@ -38,7 +38,6 @@ permissions:
       framesort.command.tag-apply: true
       framesort.command.tag-remove: true
       framesort.command.trace: true
-      framesort.command.inspect: true
       framesort.command.where: true
       framesort.command.trust: true
       framesort.command.untrust: true
@@ -83,9 +82,6 @@ permissions:
     default: true
   framesort.command.trace:
     description: 'Trace nearby deliveries with /framesort trace.'
-    default: true
-  framesort.command.inspect:
-    description: 'Page through inspection results with /framesort inspect.'
     default: true
   framesort.command.where:
     description: 'See where the held item would go from the nearest sorter or pad with /framesort where.'

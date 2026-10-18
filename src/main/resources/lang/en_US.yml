@@ -77,7 +77,7 @@ inspect:
     lava: '<red>lava</red>'
   line: '  <color:#F7B733>•</color> <entry>'
   entry: '<white><item></white> <dark_gray>→</dark_gray> <hover:show_text:"<gray><x>, <y>, <z></gray>"><target></hover> <dark_gray><distance> m</dark_gray>'
-  no-listing: '<prefix><gray><hover:show_text:"<gray>Sneak + right-click one<newline>with an empty hand.</gray>">Inspect a sorter or pad first</hover></gray>'
+  gone: '<prefix><gray><hover:show_text:"<gray>It was removed, its chunk isn''t loaded,<newline>or you can''t see it any more.</gray>">Out of date: inspect it again</hover></gray>'
   not-trusted: '<prefix><red><hover:show_text:"<gray>Only its owner and the players<newline>they trust can inspect it.</gray>">This <source> is <white><player></white>''s</hover></red>'
   no-owner: '<prefix><red><hover:show_text:"<gray>Built before owners existed.<newline>Rebuild it to make it yours.</gray>">This <source> has no owner</hover></red>'
   opens: '<prefix><gray><hover:show_text:"<gray>The sorter sends what is inside first;<newline>once nothing inside can go anywhere,<newline>it sends it whole, as listed.</gray>">Opens <white><item></white> first</hover></gray>'

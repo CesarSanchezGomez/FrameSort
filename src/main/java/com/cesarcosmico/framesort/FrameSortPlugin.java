@@ -4,7 +4,6 @@ import com.cesarcosmico.framesort.command.CommandFeature;
 import com.cesarcosmico.framesort.command.CommandTree;
 import com.cesarcosmico.framesort.command.GiveCommand;
 import com.cesarcosmico.framesort.command.HelpCommand;
-import com.cesarcosmico.framesort.command.InspectCommand;
 import com.cesarcosmico.framesort.command.ReloadCommand;
 import com.cesarcosmico.framesort.command.TagApplyCommand;
 import com.cesarcosmico.framesort.command.TagListCommand;
@@ -158,7 +157,6 @@ public final class FrameSortPlugin extends JavaPlugin {
                 new TagApplyCommand(tags, messages, settings, commands),
                 new TagRemoveCommand(messages),
                 new TraceCommand(trace, messages, settings),
-                new InspectCommand(inspect, messages),
                 new WhereCommand(inspect, messages, settings),
                 new TrustCommand(trust, messages),
                 new UntrustCommand(trust, messages),

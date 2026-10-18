@@ -106,6 +106,11 @@ The only I/O is the trust table, on the database's single thread (`storage.Datab
 - `onDisable` cancels that timer and the tick task, then closes the database, which waits for queued writes;
   nothing is scheduled any more once the plugin is disabling.
 
+An inspection's page buttons (`InspectService`) are Adventure click callbacks, not a command: Paper runs them on the
+main thread, and they last 12 hours and any number of clicks. Each keeps the source's position and a copy of the
+inspected item, never live objects, and on a click checks again that the source is there in a loaded chunk and that
+the player may still see it, then lists the targets anew.
+
 Players' names come from the server's profile cache (`PlayerProfile#completeFromCache`), never from
 `OfflinePlayer#getName`, which for an offline player reads their file in `playerdata/` on every call.
 

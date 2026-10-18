@@ -16,7 +16,6 @@
 | `/framesort trust <player>` | Your sorters and pads also send to that player's frames (see [Owners and trust](#owners-and-trust)). Only a player who has played on this server. |
 | `/framesort untrust <player>` | Stops trusting that player. Suggests the players you trust. |
 | `/framesort trusted [page]` | Whom you trust, since when, and who trusts you. |
-| `/framesort inspect <page>` | Another page of the last inspection list (the page buttons run it). |
 | `/framesort give sorter [player] [amount]` | The sorter activator from `config.yml`. Needed when `sorter.activator.require-marked` is true. A CraftEngine activator is built by CraftEngine; while it can't (an ID it doesn't know, or during `/ce reload`) nothing is given and you are told so. |
 | `/framesort give pad <type> [player] [amount]` | The special top block of a pad type. Needed when `pads.yml` has `creation: item`. A CraftEngine top block's item is built by CraftEngine; while it can't, nothing is given and you are told so. |
 | `/framesort reload` | Reloads `config.yml`, `pads.yml`, `tags.yml` and the language file. If a file is broken, the previous configuration stays active. |
@@ -73,7 +72,7 @@ owner.
 | Permission | Default | Grants |
 |---|---|---|
 | `framesort.*` | op | everything |
-| `framesort.use` | everyone | `framesort.inspect`, `framesort.target.create` and the help, tag, where, trace, trust, untrust, trusted and inspect commands (every `framesort.command.tag-*`) |
+| `framesort.use` | everyone | `framesort.inspect`, `framesort.target.create` and the help, tag, where, trace, trust, untrust and trusted commands (every `framesort.command.tag-*`) |
 | `framesort.admin` | op | `framesort.pad.create`, `framesort.inspect.others` and the give and reload commands |
 | `framesort.inspect` | everyone | inspecting sorters, pads and frames |
 | `framesort.inspect.others` | op | inspecting, `/framesort where` and `/framesort trace` on sorters and pads whose owner doesn't trust you |
@@ -83,7 +82,7 @@ owner.
 ## commands.yml
 
 Each section of `commands.yml` is one command feature: `help`, `tag-list`, `tag-search`, `tag-show`, `tag-apply`,
-`tag-remove`, `where`, `trace`, `trust`, `untrust`, `trust-list`, `inspect`, `give` and `reload`. Each tag action is
+`tag-remove`, `where`, `trace`, `trust`, `untrust`, `trust-list`, `give` and `reload`. Each tag action is
 its own feature, so it has its own paths, permission and switch. The key is fixed; what can change is:
 
 | Key | Meaning |
@@ -93,9 +92,9 @@ its own feature, so it has its own paths, permission and switch. The key is fixe
 | `usage` | Every full path that runs it. The first word is the root command; the arguments follow the path. |
 
 Paths that start with the same words share them, so a feature can move under another root or get a command of its
-own. Page buttons repeat the path you typed. Links to another command (a tag's contents, the [Apply] button, the
-pages of an inspection) use that command's first path and only show to players who may run it. Changes need a
-server restart.
+own. Page buttons repeat the path you typed. Links to another command (a tag's contents, the [Apply] button) use
+that command's first path and only show to players who may run it. An inspection's page buttons run no command: each
+click lists the targets again, if you may still inspect that sorter or pad. Changes need a server restart.
 
 ```yaml
 trace:

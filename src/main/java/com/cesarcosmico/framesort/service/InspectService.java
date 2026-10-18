@@ -14,10 +14,12 @@ import com.cesarcosmico.framesort.text.ChatPager;
 import com.cesarcosmico.framesort.text.Messages;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.JoinConfiguration;
+import net.kyori.adventure.text.event.ClickCallback;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.ItemFrame;
 import org.bukkit.entity.Player;
@@ -26,18 +28,23 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 public final class InspectService {
 
+    private static final String INSPECT_PERMISSION = "framesort.inspect";
     private static final String MARK_PERMISSION = "framesort.target.create";
+    // A page button can be pressed again and again, as long as the message stays in the chat.
+    private static final ClickCallback.Options PAGE_BUTTON = ClickCallback.Options.builder()
+            .uses(ClickCallback.UNLIMITED_USES).build();
 
-    private record Listing(Component title, List<Component> lines) {
+    /** How a listing was opened: its page buttons check the same again. */
+    private enum Opened {
+        GESTURE,
+        WHERE
     }
 
     private record Source(Block block, boolean pad, @Nullable UUID owner) {
@@ -51,7 +58,6 @@ public final class InspectService {
     private final SorterService sorters;
     private final PadService pads;
     private final CommandsConfig commands;
-    private final Map<UUID, Listing> listings = new HashMap<>();
     private final HighlightService highlights;
 
     public InspectService(HighlightService highlights, Supplier<FrameSortSettings> settings,
@@ -75,7 +81,7 @@ public final class InspectService {
     public void inspectSource(Player player, Block source, boolean pad, ItemStack filter) {
         UUID owner = pad ? pads.ownerOf(source) : sorters.ownerOf(source);
         if (trust.canView(player, owner)) {
-            show(player, new Source(source, pad, owner), filter);
+            open(player, new Source(source, pad, owner), filter, Opened.GESTURE);
             return;
         }
         Messages text = messages.get();
@@ -86,15 +92,21 @@ public final class InspectService {
                         Placeholder.unparsed("player", trust.name(owner))));
     }
 
-    private void show(Player player, Source shown, ItemStack filter) {
+    private void open(Player player, Source shown, ItemStack filter, Opened opened) {
+        if (!shown.pad() && SorterService.opens(filter)) {
+            player.sendMessage(messages.get().get("inspect.opens",
+                    Placeholder.component("item", filter.effectiveName())));
+        }
+        // A copy: the player keeps using the item in their hand, and the page buttons keep this one.
+        render(player, shown, filter.clone(), opened, 1);
+    }
+
+    private void render(Player player, Source shown, ItemStack filter, Opened opened, int page) {
         Block source = shown.block();
         boolean pad = shown.pad();
         UUID owner = shown.owner();
         Messages text = messages.get();
         Component kind = text.get(pad ? "inspect.source.pad" : "inspect.source.sorter");
-        if (!pad && SorterService.opens(filter)) {
-            player.sendMessage(text.get("inspect.opens", Placeholder.component("item", filter.effectiveName())));
-        }
         BlockKey center = FrameGeometry.key(source);
         List<Component> lines = new ArrayList<>();
         List<HighlightService.Highlight> marks = new ArrayList<>();
@@ -124,9 +136,45 @@ public final class InspectService {
                     Placeholder.component("item", filter.effectiveName()), details);
             filtered(text, source, owner, center, filter, lines, marks);
         }
-        listings.put(player.getUniqueId(), new Listing(title, List.copyOf(lines)));
-        ChatPager.send(player, text, title, lines, 1, settings.get().inspect().pageSize(), pageCommand(player));
+        ChatPager.send(player, text, title, lines, page, settings.get().inspect().pageSize(),
+                target -> pageButton(center, pad, filter, opened, target));
         highlight(player, marks);
+    }
+
+    // The button may be pressed hours later: it keeps only keys and copies, and checks everything again.
+    private ClickEvent<?> pageButton(BlockKey source, boolean pad, ItemStack filter, Opened opened, int page) {
+        return ClickEvent.callback(ClickCallback.widen(viewer -> turnPage(viewer, source, pad, filter, opened, page),
+                Player.class), PAGE_BUTTON);
+    }
+
+    private void turnPage(Player viewer, BlockKey key, boolean pad, ItemStack filter, Opened opened, int page) {
+        Source source = sourceAt(viewer, key, pad);
+        if (source == null || !mayView(viewer, opened) || !trust.canView(viewer, source.owner())) {
+            viewer.sendMessage(messages.get().get("inspect.gone"));
+            return;
+        }
+        render(viewer, source, filter, opened, page);
+    }
+
+    /** The sorter or pad still at {@code key}, or {@code null}; never loads its chunk. */
+    private @Nullable Source sourceAt(Player viewer, BlockKey key, boolean pad) {
+        World world = viewer.getServer().getWorld(key.world());
+        if (world == null || !world.isChunkLoaded(key.x() >> 4, key.z() >> 4)) {
+            return null;
+        }
+        Block block = world.getBlockAt(key.x(), key.y(), key.z());
+        if (pad ? pads.padAt(block) == null : !sorters.isSorter(block)) {
+            return null;
+        }
+        return new Source(block, pad, pad ? pads.ownerOf(block) : sorters.ownerOf(block));
+    }
+
+    // The same checks as when the listing was opened: the gesture's permission, or the where command's.
+    private boolean mayView(Player viewer, Opened opened) {
+        return switch (opened) {
+            case GESTURE -> viewer.hasPermission(INSPECT_PERMISSION);
+            case WHERE -> commands.usageFor("where", viewer::hasPermission) != null;
+        };
     }
 
     /**
@@ -148,17 +196,7 @@ public final class InspectService {
         if (nearest == null) {
             return false;
         }
-        show(player, nearest, item);
-        return true;
-    }
-
-    public boolean showPage(Player player, int page) {
-        Listing listing = listings.get(player.getUniqueId());
-        if (listing == null) {
-            return false;
-        }
-        ChatPager.send(player, messages.get(), listing.title(), listing.lines(), page,
-                settings.get().inspect().pageSize(), pageCommand(player));
+        open(player, nearest, item, Opened.WHERE);
         return true;
     }
 
@@ -259,13 +297,8 @@ public final class InspectService {
         highlight(player, List.of(new HighlightService.Highlight(frame, mark ? colors.container() : colors.lava())));
     }
 
-    public void forget(UUID player) {
-        listings.remove(player);
-    }
-
     public void stopAll() {
         highlights.clearAll();
-        listings.clear();
     }
 
     private void filtered(Messages text, Block source, @Nullable UUID owner, BlockKey center, ItemStack filter,
@@ -345,12 +378,6 @@ public final class InspectService {
 
     private void highlight(Player player, List<HighlightService.Highlight> marks) {
         highlights.show(player, marks, settings.get().inspect().highlightSeconds());
-    }
-
-    // Links follow commands.yml and the viewer's permissions; without them the page buttons are plain text.
-    private @Nullable String pageCommand(Player player) {
-        String inspect = commands.usageFor("inspect", player::hasPermission);
-        return inspect == null ? null : inspect + " %d";
     }
 
     private static Component blockName(Block block) {

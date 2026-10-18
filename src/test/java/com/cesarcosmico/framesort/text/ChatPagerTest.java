@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.IntFunction;
 import java.util.stream.IntStream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -69,6 +70,13 @@ class ChatPagerTest {
         return null;
     }
 
+    private static void collectClicks(Component component, List<String> into) {
+        if (component.clickEvent() != null) {
+            into.add(component.clickEvent().payload().toString());
+        }
+        component.children().forEach(child -> collectClicks(child, into));
+    }
+
     @Test
     void sendsOnePageAsOneMessage() throws Exception {
         Recorder audience = new Recorder();
@@ -90,14 +98,34 @@ class ChatPagerTest {
     @Test
     void withoutACommandTheButtonsAreNotClickable() throws Exception {
         Recorder audience = new Recorder();
-        ChatPager.send(audience, messages(), Component.text("Tags"), lines(5), 1, 2, null);
+        ChatPager.send(audience, messages(), Component.text("Tags"), lines(5), 1, 2, (String) null);
+        assertNull(firstClick(audience.received.getFirst()));
+    }
+
+    @Test
+    void eachButtonTakesTheClickOfItsPage() throws Exception {
+        Recorder audience = new Recorder();
+        ChatPager.send(audience, messages(), Component.text("Tags"), lines(5), 2, 2,
+                target -> ClickEvent.runCommand("/page " + target));
+
+        List<String> clicks = new ArrayList<>();
+        collectClicks(audience.received.getFirst(), clicks);
+        assertEquals(2, clicks.size(), clicks.toString());
+        assertTrue(clicks.get(0).contains("/page 1") && clicks.get(1).contains("/page 3"), clicks.toString());
+    }
+
+    @Test
+    void withoutAClickTheButtonsAreNotClickable() throws Exception {
+        Recorder audience = new Recorder();
+        ChatPager.send(audience, messages(), Component.text("Tags"), lines(5), 2, 2,
+                (IntFunction<ClickEvent<?>>) null);
         assertNull(firstClick(audience.received.getFirst()));
     }
 
     @Test
     void anEmptyListShowsTheEmptyText() throws Exception {
         Recorder audience = new Recorder();
-        ChatPager.send(audience, messages(), Component.text("Tags"), List.of(), 1, 10, null);
+        ChatPager.send(audience, messages(), Component.text("Tags"), List.of(), 1, 10, (String) null);
         assertEquals("Tags (0)\nNothing\n- 01/01 -", plain(audience.received.getFirst()));
     }
 }

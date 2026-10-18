@@ -14,7 +14,6 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.player.PlayerInteractAtEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.jspecify.annotations.Nullable;
 
@@ -81,11 +80,6 @@ public final class InspectListener implements Listener {
         if (!inspectSorterOf(player, frame)) {
             inspect.inspectFrame(player, frame);
         }
-    }
-
-    @EventHandler
-    public void onQuit(PlayerQuitEvent event) {
-        inspect.forget(event.getPlayer().getUniqueId());
     }
 
     // A sorter's frame covers a face of its dispenser, so clicking it inspects the sorter: it is never a target.

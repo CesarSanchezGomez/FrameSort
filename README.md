@@ -94,7 +94,6 @@ never duplicated.
 | `/framesort trust <player>` | `framesort.command.trust` | everyone |
 | `/framesort untrust <player>` | `framesort.command.untrust` | everyone |
 | `/framesort trusted [page]` | `framesort.command.trust-list` | everyone |
-| `/framesort inspect <page>` (page buttons of an inspection) | `framesort.command.inspect` | everyone |
 | `/framesort give sorter\|pad <type> [player] [amount]` | `framesort.command.give` | op |
 | `/framesort reload` | `framesort.command.reload` | op |
 
@@ -108,7 +107,7 @@ Every command also runs as `/fs`. Where each command lives, its permission and w
 | Permission | Default | Grants |
 |---|---|---|
 | `framesort.*` | op | everything |
-| `framesort.use` | everyone | inspecting, marking targets and the help, tag, where, trace, trust, untrust, trusted and inspect commands (every `framesort.command.tag-*`) |
+| `framesort.use` | everyone | inspecting, marking targets and the help, tag, where, trace, trust, untrust and trusted commands (every `framesort.command.tag-*`) |
 | `framesort.admin` | op | creating pads in `permission` mode, inspecting anyone's sorters and pads, and the give and reload commands |
 | `framesort.inspect` | everyone | inspecting sorters, pads and frames |
 | `framesort.inspect.others` | op | inspecting and tracing sorters and pads whose owner doesn't trust you |
