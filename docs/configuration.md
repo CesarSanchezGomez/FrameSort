@@ -287,6 +287,13 @@ Lists (`tag list`, `tag search`, `tag show` and the inspection lists) are built 
 | `pager.previous.enabled`, `pager.next.enabled` | The buttons; `<page>` is the page they open. Clicking is added by FrameSort, the hover is part of the text. |
 | `pager.previous.disabled`, `pager.next.disabled` | Shown when there is no page in that direction. |
 
+### Inspection title
+
+`inspect.title` and `inspect.title-item` stay short; `<details>` in them is the hover with the `inspect.details`
+lines that apply: where the source is (`place`), its owner (`owner`, or `no-owner`) and, for a sorter, how many items
+it has sent (`sorted`). Longer messages work the same way throughout `lang/`: a few words in chat, the rest in a
+hover.
+
 ### Frame card
 
 What a frame accepts is shown as one message built from `frame.layout`, framed like a page: `<title>` is

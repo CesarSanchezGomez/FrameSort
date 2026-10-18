@@ -35,8 +35,8 @@ class CommandsConfigTest {
         CommandsConfig config = CommandsConfig.parse(bundled, bundled, warnings::add);
 
         assertEquals(List.of(), warnings);
-        assertEquals("/framesort", config.primaryUsage("help"));
-        assertEquals("/framesort reload", config.primaryUsage("reload"));
+        assertEquals("/fs", config.primaryUsage("help"));
+        assertEquals("/fs reload", config.primaryUsage("reload"));
     }
 
     @Test

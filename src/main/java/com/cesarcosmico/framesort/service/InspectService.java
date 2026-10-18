@@ -100,14 +100,19 @@ public final class InspectService {
         BlockKey center = FrameGeometry.key(source);
         List<Component> lines = new ArrayList<>();
         List<HighlightService.Highlight> marks = new ArrayList<>();
-        TagResolver sorted = Placeholder.component("sorted", pad ? Component.empty()
-                : text.get("inspect.sorted", Placeholder.unparsed("count", String.valueOf(sorters.sorted(source)))));
-        TagResolver ownerTag = Placeholder.component("owner", owner == null ? Component.empty()
-                : text.get("inspect.owner", Placeholder.unparsed("player", trust.name(owner))));
+        // The title stays short; where the source is, whose it is and what it sent go in its hover.
+        List<Component> facts = new ArrayList<>();
+        facts.add(text.get("inspect.details.place", coordinates(source.getLocation())));
+        facts.add(owner == null ? text.get("inspect.details.no-owner")
+                : text.get("inspect.details.owner", Placeholder.unparsed("player", trust.name(owner))));
+        if (!pad) {
+            facts.add(text.get("inspect.details.sorted",
+                    Placeholder.unparsed("count", String.valueOf(sorters.sorted(source)))));
+        }
+        TagResolver details = Placeholder.component("details", Component.join(JoinConfiguration.newlines(), facts));
         Component title;
         if (filter.isEmpty()) {
-            title = text.get("inspect.title", Placeholder.component("source", kind), coordinates(source.getLocation()),
-                    sorted, ownerTag);
+            title = text.get("inspect.title", Placeholder.component("source", kind), details);
             List<ItemFrame> frames = new ArrayList<>(resolver.targets(source, owner));
             frames.sort(Comparator.comparingLong(frame -> distanceSquared(frame, center)));
             for (ItemFrame frame : frames) {
@@ -118,8 +123,7 @@ public final class InspectService {
             }
         } else {
             title = text.get("inspect.title-item", Placeholder.component("source", kind),
-                    Placeholder.component("item", filter.effectiveName()), coordinates(source.getLocation()), sorted,
-                    ownerTag);
+                    Placeholder.component("item", filter.effectiveName()), details);
             filtered(text, source, owner, center, filter, lines, marks);
         }
         listings.put(player.getUniqueId(), new Listing(title, List.copyOf(lines)));

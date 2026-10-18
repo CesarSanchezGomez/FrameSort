@@ -15,64 +15,64 @@ help:
   enabled: true
   permission: 'framesort.command.help'
   usage:
-    - '/framesort'
     - '/fs'
+    - '/framesort'
 
 # Usage: [COMMAND] [page]
 tag-list:
   enabled: true
   permission: 'framesort.command.tag-list'
   usage:
-    - '/framesort tag list'
     - '/fs tag list'
+    - '/framesort tag list'
 
 # Usage: [COMMAND] <text> [page]
 tag-search:
   enabled: true
   permission: 'framesort.command.tag-search'
   usage:
-    - '/framesort tag search'
     - '/fs tag search'
+    - '/framesort tag search'
 
 # Usage: [COMMAND] <tag> [page]
 tag-show:
   enabled: true
   permission: 'framesort.command.tag-show'
   usage:
-    - '/framesort tag show'
     - '/fs tag show'
+    - '/framesort tag show'
 
 # Usage: [COMMAND] <tag>   (with the item in your main hand)
 tag-apply:
   enabled: true
   permission: 'framesort.command.tag-apply'
   usage:
-    - '/framesort tag apply'
     - '/fs tag apply'
+    - '/framesort tag apply'
 
 # Usage: [COMMAND]   (with the item in your main hand)
 tag-remove:
   enabled: true
   permission: 'framesort.command.tag-remove'
   usage:
-    - '/framesort tag remove'
     - '/fs tag remove'
+    - '/framesort tag remove'
 
 # Usage: [COMMAND] (with the item in your main hand)
 where:
   enabled: true
   permission: 'framesort.command.where'
   usage:
-    - '/framesort where'
     - '/fs where'
+    - '/framesort where'
 
 # Usage: [COMMAND] [seconds] | [COMMAND] stop
 trace:
   enabled: true
   permission: 'framesort.command.trace'
   usage:
-    - '/framesort trace'
     - '/fs trace'
+    - '/framesort trace'
 
 # Usage: [COMMAND] <player>
 # Only while ownership.enabled is true in config.yml.
@@ -80,8 +80,8 @@ trust:
   enabled: true
   permission: 'framesort.command.trust'
   usage:
-    - '/framesort trust'
     - '/fs trust'
+    - '/framesort trust'
 
 # Usage: [COMMAND] <player>
 # Only while ownership.enabled is true in config.yml.
@@ -89,8 +89,8 @@ untrust:
   enabled: true
   permission: 'framesort.command.untrust'
   usage:
-    - '/framesort untrust'
     - '/fs untrust'
+    - '/framesort untrust'
 
 # Usage: [COMMAND] [page]   (whom you trust and who trusts you)
 # Only while ownership.enabled is true in config.yml.
@@ -98,29 +98,29 @@ trust-list:
   enabled: true
   permission: 'framesort.command.trust-list'
   usage:
-    - '/framesort trusted'
     - '/fs trusted'
+    - '/framesort trusted'
 
 # Usage: [COMMAND] <page>
 inspect:
   enabled: true
   permission: 'framesort.command.inspect'
   usage:
-    - '/framesort inspect'
     - '/fs inspect'
+    - '/framesort inspect'
 
 # Usage: [COMMAND] sorter [player] [amount] | [COMMAND] pad <type> [player] [amount]
 give:
   enabled: true
   permission: 'framesort.command.give'
   usage:
-    - '/framesort give'
     - '/fs give'
+    - '/framesort give'
 
 # Usage: [COMMAND]
 reload:
   enabled: true
   permission: 'framesort.command.reload'
   usage:
-    - '/framesort reload'
     - '/fs reload'
+    - '/framesort reload'
