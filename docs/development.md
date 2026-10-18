@@ -63,6 +63,18 @@ significant half first, so one UUID has one form; `created_at` is epoch millisec
 could not hold past 2038. The primary key is the pair (`WITHOUT ROWID` in SQLite). Migrations are
 `db/<sqlite|mysql>/V<n>.sql`, applied in order, with the applied versions in `framesort_schema_version`.
 
+The UUID columns are binary (`BLOB` in SQLite, `BINARY(16)` in MySQL and MariaDB), so database tools show them as
+blobs. In game, `/framesort trusted` lists the names. To read the table by hand:
+
+```sql
+-- SQLite: 32 hex digits per UUID, without dashes
+SELECT hex(owner), hex(trusted), datetime(created_at / 1000, 'unixepoch') FROM framesort_trust;
+-- MySQL 8.0 or later
+SELECT BIN_TO_UUID(owner), BIN_TO_UUID(trusted), FROM_UNIXTIME(created_at / 1000) FROM framesort_trust;
+-- MariaDB: 32 hex digits per UUID, without dashes
+SELECT HEX(owner), HEX(trusted), FROM_UNIXTIME(created_at / 1000) FROM framesort_trust;
+```
+
 ## How deliveries stay correct and cheap
 
 - **Target index.** Target frames are indexed by chunk as entities enter and leave the world (which includes chunk
