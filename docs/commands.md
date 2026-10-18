@@ -27,7 +27,7 @@ Sneak with an empty main hand; this needs `framesort.inspect`. Standing up, ever
 
 | Action | Result |
 |---|---|
-| Sneak + right-click a sorter or the top block of a pad | Only yours, those of a player who trusts you, or any with `framesort.inspect.others` (see [Owners and trust](#owners-and-trust)). The items in the target frames it can send to glow for you only (green: into a container, yellow: dropped, red: lava; see `inspect.colors`) and those targets are listed, nearest first. Frames that WorldGuard regions (or another plugin cancelling `TargetBindEvent`) keep it from reaching are left out; a sorter's list also shows how many items it has sent. With an item in your off hand, only where that item would go, as numbered levels in order of preference: each level's containers first, then its drop spot or lava; the next level only gets what doesn't fit. From a sorter, a shulker box or bundle with contents comes with a note: the sorter opens it first, and the list shows where it goes whole once nothing inside can go. |
+| Sneak + right-click a sorter or the top block of a pad | Only yours, those of a player who trusts you, or any with `framesort.inspect.others` (see [Owners and trust](#owners-and-trust)). The items in the target frames it can send to glow for you only (green: into a container, yellow: dropped, red: lava; see `inspect.colors`) and those targets are listed, nearest first. Frames that WorldGuard regions (or another plugin cancelling `TargetBindEvent`) keep it from reaching are left out; a sorter's list also shows how many items it has sent. With an item in your off hand, only where that item would go, as numbered levels in order of preference: each level's containers nearest first, then its drop spot or lava; the next level only gets what doesn't fit. From a sorter, a shulker box or bundle with contents comes with a note: the sorter opens it first, and the list shows where it goes whole once nothing inside can go. |
 | Sneak + left-click a frame with an item | Whether it is a target, who owns it, where its items go, what it accepts, and how many sorters and pads reach it. |
 | Sneak + right- or left-click a sorter's frame | Inspects the sorter, as clicking its dispenser does. That frame is never a target. |
 | Sneak + right-click a frame with an item | Marks or unmarks it as a target (`targets.registration: manual`, needs `framesort.inspect` and `framesort.target.create`). Only its owner can; marking a frame nobody owns makes it yours. The item does not rotate. |
@@ -42,7 +42,7 @@ frames of its owner, so nobody can hang a frame near your sorter and take your i
 
 `/framesort trust Beto`, typed by Ana, means: Beto's frames count as Ana's for Ana's sorters and pads.
 - **It shares Ana's network.** A sorter can't tell whose item is whose, so any item in Ana's sorter, hers too, can go
-  to a chest of Beto's when his frame asks for it first or is closer.
+  to a chest of Beto's when his frame asks for it first, or as much and nearer to the sorter.
 - **One way.** Beto's sorters still don't send to Ana's frames until Beto trusts Ana: a team trusts both ways.
 - **Not passed on.** If Ana trusts Beto and Beto trusts Carla, Ana's sorters don't send to Carla.
 - **Beto can see it:** he may inspect Ana's sorters and pads and sees their deliveries in `/framesort trace`.

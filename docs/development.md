@@ -72,8 +72,8 @@ could not hold past 2038. The primary key is the pair (`WITHOUT ROWID` in SQLite
   changes with any target change. A cached frame is checked again before use, and so are the loop guards (a frame
   on another sorter, items that would land on a pad): sorters and the blocks below change without touching a frame.
 - **One plan.** `TargetResolver.plan` ranks the targets into levels of preference, each split into containers,
-  drop spots and lava. Deliveries and inspections (`/framesort where`, inspecting with an item in the off hand) both
-  use it, so an inspection shows exactly what a delivery would do.
+  drop spots and lava, nearest to the source first. Deliveries and inspections (`/framesort where`, inspecting with
+  an item in the off hand) both use it, so an inspection shows exactly what a delivery would do, in its order.
 - **No duplication.** Containers are looked up the moment items go in, and the source is updated after each
   container (`model.Delivery`). A container that vanished in between is skipped. `DeliveryTest` covers the case
   where a vanished container used to duplicate items.

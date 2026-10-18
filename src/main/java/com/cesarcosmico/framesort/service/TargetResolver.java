@@ -25,6 +25,7 @@ import org.bukkit.inventory.ItemStack;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
@@ -50,7 +51,7 @@ public final class TargetResolver {
         }
     }
 
-    /** Frames tied at one priority, split by where the items end up. */
+    /** Frames tied at one priority, split by where the items end up, each list nearest to the source first. */
     public record Level(List<ItemFrame> containers, List<ItemFrame> drops, List<ItemFrame> lava) {
         public Level {
             containers = List.copyOf(containers);
@@ -119,10 +120,14 @@ public final class TargetResolver {
             }
             ranking.add(match.priority(), frame);
         }
+        // Nearest first within a level, so filling is predictable and an inspection lists the real order.
+        BlockKey origin = FrameGeometry.key(source);
+        Comparator<ItemFrame> nearest = Comparator.comparingLong(
+                frame -> FrameGeometry.key(frame.getLocation().getBlock()).distanceSquared(origin));
         List<Level> levels = new ArrayList<>();
         for (List<ItemFrame> tied : ranking.levels()) {
             Map<Destination, List<ItemFrame>> split = new EnumMap<>(Destination.class);
-            for (ItemFrame frame : tied) {
+            for (ItemFrame frame : tied.stream().sorted(nearest).toList()) {
                 split.computeIfAbsent(destination(current, frame), key -> new ArrayList<>()).add(frame);
             }
             levels.add(new Level(split.getOrDefault(Destination.CONTAINER, List.of()),

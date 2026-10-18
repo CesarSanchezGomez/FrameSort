@@ -120,9 +120,10 @@ How a destination is chosen:
    installed, a custom item's material is its ID: the material step takes the same custom item, never a vanilla item
    or another custom item of the same base material. No game tag takes a custom item, only a [`tags.yml`](#tagsyml)
    tag that lists it.
-2. Levels are used in order, best first. In each level, the item goes into the containers in random order until it
-   is all in.
-3. Whatever is left is dropped at one random frame of that level without a container. If that level's frames
+2. Levels are used in order, best first. In each level, the item goes into the containers nearest to the sorter or
+   pad first (counting height too), until it is all in. Targets of players the owner trusts take their turn by
+   distance like the owner's own.
+3. Whatever is left is dropped at the nearest frame of that level without a container. If that level's frames
    without a container are all on lava cauldrons, the rest is destroyed. Either way the delivery ends there.
 4. Otherwise, what is left goes on to the next level. If no level has room, it stays.
 

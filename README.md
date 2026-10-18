@@ -38,9 +38,10 @@ out of those sorters.
 
    A shulker box or bundle in the frame stands for what it holds, never for itself, and each of those matches
    ranks just below the same match made directly; to keep shulker boxes or bundles whole, put an empty one in the
-   frame: it takes any of its kind. When the preferred targets are full, the rest goes to the next ones. A frame holding
-   a carrot on a stick comes last: it takes whatever matches nothing else, and whatever the other targets have no
-   room for. A frame on a lava cauldron destroys leftovers.
+   frame: it takes any of its kind. Among targets that want it as much, the nearest fills first; when the preferred
+   targets are full, the rest goes to the next ones. A frame holding a carrot on a stick comes last: it takes whatever
+   matches nothing else, and whatever the other targets have no room for. A frame on a lava cauldron destroys
+   leftovers.
 2. **Sorters.** Put an Eye of Ender in a frame on a dispenser. The frame disappears and every second the dispenser
    sends up to 64 items from its inventory, at random, taking them from inside shulker boxes and bundles too. A
    shulker box or bundle goes whole once nothing inside it can go anywhere.

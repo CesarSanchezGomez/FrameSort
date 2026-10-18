@@ -14,8 +14,6 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 import org.jspecify.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -93,15 +91,11 @@ public final class DeliveryService {
         return amount;
     }
 
-    /** Containers in random order; then one random drop spot takes the rest, or else the lava destroys it. */
+    /** The nearest container first; then the nearest drop spot takes the rest, or else the lava destroys it. */
     private static Delivery.Level<ItemFrame, End> level(TargetResolver.Level level) {
-        List<ItemFrame> containers = new ArrayList<>(level.containers());
-        Collections.shuffle(containers, ThreadLocalRandom.current());
-        List<ItemFrame> drops = level.drops();
-        End end = !drops.isEmpty()
-                ? new End(drops.get(ThreadLocalRandom.current().nextInt(drops.size())), Destination.DROPPED)
+        End end = !level.drops().isEmpty() ? new End(level.drops().getFirst(), Destination.DROPPED)
                 : level.lava().isEmpty() ? null : new End(level.lava().getFirst(), Destination.DESTROYED);
-        return new Delivery.Level<>(containers, end);
+        return new Delivery.Level<>(level.containers(), end);
     }
 
     private record End(ItemFrame frame, Destination destination) {
