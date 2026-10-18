@@ -127,12 +127,12 @@ public final class SorterService {
 
     /**
      * Re-checks a frame on the next tick: when an item-frame event fires, the frame still holds the old item. A
-     * sorter made in a frame nobody owns becomes {@code player}'s.
+     * sorter belongs to whoever put the activator in, whoever hung the frame.
      */
     public void considerLater(ItemFrame frame, Player player, Consumer<Change> then) {
         frame.getScheduler().run(plugin, task -> {
             Change change = consider(frame);
-            if (change == Change.CREATED && FrameCodec.owner(frame) == null) {
+            if (change == Change.CREATED) {
                 FrameCodec.setOwner(frame, player.getUniqueId());
             }
             then.accept(change);

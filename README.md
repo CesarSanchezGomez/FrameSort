@@ -51,8 +51,9 @@ out of those sorters.
    configurable colours) and are listed page by page. Sneak + left-click a target frame to see what it accepts.
    `/framesort trace` shows the deliveries around you live.
 
-5. **Owners and trust.** What you place is yours: your sorters and pads send only to your frames, so nobody can hang
-   a frame near them and take your items, and only you, the players you trust and admins see where they send.
+5. **Owners and trust.** What you set up is yours: the frames you mark, the sorters you put the activator in, the
+   pads you build. Your sorters and pads send only to your frames, so nobody can mark a frame near them and take
+   your items, and only you, the players you trust and admins see where they send.
    `/framesort trust <player>` makes that player's frames count as yours for your sorters and pads, one way: a team
    trusts each other. Breaking blocks or opening chests is still up to the server's protection. See
    [docs/commands.md](docs/commands.md#owners-and-trust).

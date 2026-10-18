@@ -64,14 +64,32 @@ public final class TargetIndex {
         return FrameCodec.isMarked(frame);
     }
 
-    public void setMarked(ItemFrame frame, boolean marked) {
-        FrameCodec.setMarked(frame, marked);
-        remove(frame);
-        add(frame);
+    /** A marked frame belongs to whoever marked it. */
+    public void mark(ItemFrame frame, UUID owner) {
+        FrameCodec.setOwner(frame, owner);
+        FrameCodec.setMarked(frame, true);
+        reindex(frame);
     }
 
-    public void own(ItemFrame frame, UUID owner) {
-        FrameCodec.setOwner(frame, owner);
+    /** Unmarking frees the frame, so anyone may mark it next. */
+    public void unmark(ItemFrame frame) {
+        FrameCodec.clearOwner(frame);
+        FrameCodec.setMarked(frame, false);
+        reindex(frame);
+    }
+
+    /** With automatic registration nothing is marked, so the frame belongs to whoever hung it. */
+    public void hung(ItemFrame frame, UUID owner) {
+        if (settings.get().targets().registration() == TargetRegistration.AUTOMATIC) {
+            FrameCodec.setOwner(frame, owner);
+            changed(frame.getWorld());
+        }
+    }
+
+    private void reindex(ItemFrame frame) {
+        remove(frame);
+        add(frame);
+        // A frame that stays indexed (automatic registration) changes owner without entering or leaving.
         changed(frame.getWorld());
     }
 

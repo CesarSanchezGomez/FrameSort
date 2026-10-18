@@ -49,7 +49,7 @@ it out of step:
 | Where | Key | Content |
 |---|---|---|
 | Item frame entity | `framesort:target` | Present while the frame is a target (manual registration). |
-| Item frame entity | `framesort:owner` | The UUID, as text, of the player who hung the frame or first used it; a sorter's owner is its frame's. |
+| Item frame entity | `framesort:owner` | The UUID, as text, of whoever marked the target (removed on unmarking), hung it under automatic registration, or put a sorter's activator in. |
 | Chunk | `framesort:pads` | The pads registered in the chunk, as `"x,y,z,type"` or `"x,y,z,type,owner"`; one saved before owners existed has none. A type id can't contain `,`. |
 | Item | `framesort:item-tag` | The tag a tagged item stands for, such as `minecraft:logs` (`/framesort tag apply <tag>`). |
 | Item | `framesort:item-tag-original` | The name, lore and glint a tagged item had before its tag, as item bytes, so `/framesort tag remove` gives them back. |

@@ -33,4 +33,8 @@ public final class FrameCodec {
     public static void setOwner(ItemFrame frame, UUID owner) {
         frame.getPersistentDataContainer().set(Keys.OWNER, PersistentDataType.STRING, owner.toString());
     }
+
+    public static void clearOwner(ItemFrame frame) {
+        frame.getPersistentDataContainer().remove(Keys.OWNER);
+    }
 }

@@ -88,7 +88,7 @@ frame:
     unmarked: '  <yellow>✘</yellow> <gray>Not a target yet: sneak + right-click it with an empty hand</gray>'
     wrong-type: '  <red>✘</red> <gray>This kind of frame can''t be a target</gray>'
   owner: '  <color:#F7B733>•</color> <gray>Owner:</gray> <white><player></white>'
-  no-owner: '  <color:#F7B733>•</color> <gray>No owner yet: whoever marks it first gets it</gray>'
+  no-owner: '  <color:#F7B733>•</color> <gray>No owner: unmark it and mark it again to own it</gray>'
   into:
     container: '  <color:#F7B733>•</color> <gray>Items go into</gray> <white><block></white>'
     dropped: '  <color:#F7B733>•</color> <gray>Items are</gray> <yellow>dropped in front of it</yellow>'
@@ -109,7 +109,8 @@ mark:
   automatic: '<prefix><gray>Every frame is a target already on this server.</gray>'
   no-permission: '<prefix><red>You can''t mark target frames.</red>'
   wrong-type: '<prefix><red>This kind of frame can''t be a target.</red>'
-  not-yours: '<prefix><red>This frame belongs to <white><player></white>: only they can mark or unmark it.</red>'
+  not-yours: '<prefix><red>This target is <white><player></white>''s: only they can unmark it.</red>'
+  now-takes: '<gray>Target: <white><item></white> goes here</gray>'
 
 tag-item:
   applied: '<prefix><green>The item in your hand now stands for <white>#<tag></white> in frames.</green>'

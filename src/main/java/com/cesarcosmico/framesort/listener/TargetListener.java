@@ -38,7 +38,7 @@ public final class TargetListener implements Listener {
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onPlace(HangingPlaceEvent event) {
         if (event.getEntity() instanceof ItemFrame frame && event.getPlayer() instanceof Player player) {
-            index.own(frame, player.getUniqueId());
+            index.hung(frame, player.getUniqueId());
         }
     }
 

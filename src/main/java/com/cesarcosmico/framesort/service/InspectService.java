@@ -164,9 +164,12 @@ public final class InspectService {
         Messages text = messages.get();
         List<Component> lines = new ArrayList<>();
         lines.add(status(text, frame));
-        UUID owner = FrameCodec.owner(frame);
-        lines.add(owner == null ? text.get("frame.no-owner")
-                : text.get("frame.owner", Placeholder.unparsed("player", trust.name(owner))));
+        // Only a target's owner means anything: whoever marked it, or hung it under automatic registration.
+        if (index.isTarget(frame)) {
+            UUID owner = FrameCodec.owner(frame);
+            lines.add(owner == null ? text.get("frame.no-owner")
+                    : text.get("frame.owner", Placeholder.unparsed("player", trust.name(owner))));
+        }
 
         lines.add(switch (resolver.destination(frame)) {
             case CONTAINER -> text.get("frame.into.container",
@@ -235,20 +238,33 @@ public final class InspectService {
             player.sendMessage(text.get("mark.wrong-type"));
             return;
         }
+        boolean mark = !index.isMarked(frame);
         // Unmarking someone else's frame would send their items down a level, maybe into lava.
         UUID owner = FrameCodec.owner(frame);
-        if (settings.get().ownership() && owner != null && !owner.equals(player.getUniqueId())) {
+        if (!mark && settings.get().ownership() && owner != null && !owner.equals(player.getUniqueId())) {
             player.sendMessage(text.get("mark.not-yours", Placeholder.unparsed("player", trust.name(owner))));
             return;
         }
-        boolean mark = !index.isMarked(frame);
-        if (mark && owner == null) {
-            index.own(frame, player.getUniqueId());
+        if (mark) {
+            index.mark(frame, player.getUniqueId());
+        } else {
+            index.unmark(frame);
         }
-        index.setMarked(frame, mark);
         player.sendMessage(text.get(mark ? "mark.marked" : "mark.unmarked"));
-        InspectSettings.Colors colors = settings.get().inspect().colors();
-        highlight(player, List.of(new HighlightService.Highlight(frame, mark ? colors.container() : colors.lava())));
+        // An empty frame has no item for the glow to copy.
+        if (!frame.getItem().isEmpty()) {
+            InspectSettings.Colors colors = settings.get().inspect().colors();
+            highlight(player, List.of(new HighlightService.Highlight(frame,
+                    mark ? colors.container() : colors.lava())));
+        }
+    }
+
+    /** Placing an item in a marked frame makes it a target for that item: says so, in case the mark was forgotten. */
+    public void itemPlaced(Player player, ItemFrame frame, ItemStack item) {
+        if (settings.get().targets().registration() == TargetRegistration.MANUAL && index.isMarked(frame)) {
+            player.sendActionBar(messages.get().get("mark.now-takes",
+                    Placeholder.component("item", item.effectiveName())));
+        }
     }
 
     public void forget(UUID player) {

@@ -159,11 +159,12 @@ frame, it destroys whatever has no other target or no room left in one. An empty
 |---|---|---|
 | `enabled` | `true` | `true`: a sorter or pad sends only to frames of its owner and of the players its owner trusts (`/framesort trust`), and only they inspect it or see its deliveries in `/framesort trace`. `false`: it sends to any frame and anyone inspects it, as without owners. A reload applies it. |
 
-Whatever a player places is theirs: a frame belongs to whoever hung it, a sorter to the owner of its activator's frame,
-a pad to whoever placed its top block. Owners are recorded even with `enabled: false`, so turning it on later finds
-them. What has no owner (built before owners existed, or pasted without its data) only sends to frames that have none
-either, and only admins inspect it; marking a frame nobody owns, putting the activator in one, or breaking and placing
-a pad's top block again gives it an owner. More in [docs/commands.md](commands.md#owners-and-trust).
+What a player sets up is theirs: a target frame belongs to whoever marked it (with `registration: automatic`, to
+whoever hung it), a sorter to whoever put the activator in, a pad to whoever placed its top block. Owners are
+recorded even with `enabled: false`, so turning it on later finds them. What has no owner (built before owners
+existed, or pasted without its data) only sends to frames that have none either, and only admins inspect it;
+unmarking and marking a frame again, putting the activator back, or breaking and placing a pad's top block again
+gives it an owner. More in [docs/commands.md](commands.md#owners-and-trust).
 
 ### inspect
 

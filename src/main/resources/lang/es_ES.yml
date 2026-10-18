@@ -88,7 +88,7 @@ frame:
     unmarked: '  <yellow>✘</yellow> <gray>Aún no es destino: shift + clic derecho con la mano vacía</gray>'
     wrong-type: '  <red>✘</red> <gray>Este tipo de marco no puede ser destino</gray>'
   owner: '  <color:#F7B733>•</color> <gray>Dueño:</gray> <white><player></white>'
-  no-owner: '  <color:#F7B733>•</color> <gray>Sin dueño todavía: será de quien lo marque primero</gray>'
+  no-owner: '  <color:#F7B733>•</color> <gray>Sin dueño: desmárcalo y vuelve a marcarlo para que sea tuyo</gray>'
   into:
     container: '  <color:#F7B733>•</color> <gray>Los items van a</gray> <white><block></white>'
     dropped: '  <color:#F7B733>•</color> <gray>Los items</gray> <yellow>se sueltan delante</yellow>'
@@ -109,7 +109,8 @@ mark:
   automatic: '<prefix><gray>En este servidor todos los marcos ya son destinos.</gray>'
   no-permission: '<prefix><red>No puedes marcar marcos como destino.</red>'
   wrong-type: '<prefix><red>Este tipo de marco no puede ser destino.</red>'
-  not-yours: '<prefix><red>Este marco es de <white><player></white>: solo su dueño puede marcarlo o desmarcarlo.</red>'
+  not-yours: '<prefix><red>Este destino es de <white><player></white>: solo su dueño puede desmarcarlo.</red>'
+  now-takes: '<gray>Destino: <white><item></white> irá aquí</gray>'
 
 tag-item:
   applied: '<prefix><green>El item de tu mano ahora representa <white>#<tag></white> en los marcos.</green>'
