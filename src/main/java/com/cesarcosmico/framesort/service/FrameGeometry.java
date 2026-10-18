@@ -45,6 +45,10 @@ public final class FrameGeometry {
         return attachedBlock(frame).getType() == Material.LAVA_CAULDRON;
     }
 
+    public static long distanceSquared(ItemFrame frame, BlockKey to) {
+        return key(frame.getLocation().getBlock()).distanceSquared(to);
+    }
+
     public static BlockKey key(Block block) {
         return new BlockKey(block.getWorld().getUID(), block.getX(), block.getY(), block.getZ());
     }

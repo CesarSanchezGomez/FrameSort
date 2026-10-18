@@ -100,13 +100,15 @@ frame:
     wrong-type: '  <red>✘</red> <hover:show_text:"<gray>Este tipo de marco no está en<newline>targets.frame-types.</gray>"><gray>No puede ser destino</gray></hover>'
   owner: '  <color:#F7B733>•</color> <gray>Dueño:</gray> <white><player></white>'
   no-owner: '  <color:#F7B733>•</color> <hover:show_text:"<gray>Desmárcalo y vuelve a marcarlo<newline>para que sea tuyo.</gray>"><gray>Sin dueño</gray></hover>'
+  no-owner-hung: '  <color:#F7B733>•</color> <hover:show_text:"<gray>Rómpelo y vuelve a colgarlo<newline>para que sea tuyo.</gray>"><gray>Sin dueño</gray></hover>'
   into:
     container: '  <color:#F7B733>•</color> <gray>Van a</gray> <white><block></white>'
     dropped: '  <color:#F7B733>•</color> <yellow>Se sueltan</yellow> <gray>delante</gray>'
     lava: '  <color:#F7B733>•</color> <red>Se destruyen</red> <gray>en la lava</gray>'
   accepts:
     exact: '  <color:#F7B733>•</color> <hover:show_text:"<gray>Primero el item exacto: mismo nombre,<newline>encantamientos y contenido.</gray>"><gray>Acepta</gray> <white><item></white></hover>'
-    tag: '  <color:#F7B733>•</color> <hover:show_text:"<gray><count> items. Clic para verlos.</gray>"><gray>Acepta</gray> <white>#<tag></white> <dark_gray>[<count>]</dark_gray></hover>'
+    tag: '  <color:#F7B733>•</color> <hover:show_text:"<gray><count> items.</gray>"><gray>Acepta</gray> <white>#<tag></white> <dark_gray>[<count>]</dark_gray></hover>'
+    tag-link: '  <color:#F7B733>•</color> <hover:show_text:"<gray><count> items. Clic para verlos.</gray>"><gray>Acepta</gray> <white>#<tag></white> <dark_gray>[<count>]</dark_gray></hover>'
     contents: '  <color:#F7B733>•</color> <hover:show_text:"<gray>Los <count> stacks que tiene dentro.</gray>"><gray>Acepta lo que contiene</gray></hover>'
     similar: '  <color:#F7B733>•</color> <hover:show_text:"<gray>Cuando nada coincide mejor.</gray>"><gray>Después cualquier</gray> <white><material></white></hover>'
     custom: '  <color:#F7B733>•</color> <hover:show_text:"<gray>Cuando nada coincide mejor.</gray>"><gray>Después cualquier</gray> <white><id></white></hover>'

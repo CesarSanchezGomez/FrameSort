@@ -27,10 +27,10 @@ Sneak with an empty main hand; this needs `framesort.inspect`. Standing up, ever
 
 | Action | Result |
 |---|---|
-| Sneak + right-click a sorter or the top block of a pad | Only yours, those of a player who trusts you, or any with `framesort.inspect.others` (see [Owners and trust](#owners-and-trust)). The items in the target frames it can send to glow for you only (green: into a container, yellow: dropped, red: lava; see `inspect.colors`) and those targets are listed, nearest first. Frames that WorldGuard regions (or another plugin cancelling `TargetBindEvent`) keep it from reaching are left out; a sorter's list also shows how many items it has sent. With an item in your off hand, only where that item would go, as numbered levels in order of preference: each level's containers nearest first, then its drop spot or lava; the next level only gets what doesn't fit. From a sorter, a shulker box or bundle with contents comes with a note: the sorter opens it first, and the list shows where it goes whole once nothing inside can go. |
-| Sneak + left-click a frame with an item | Whether it is a target, who owns it, where its items go, what it accepts, and how many sorters and pads reach it. |
+| Sneak + right-click a sorter or the top block of a pad | Only yours, those of a player who trusts you, or any with `framesort.inspect.others` (see [Owners and trust](#owners-and-trust)). The items in the target frames it can send to glow for you only (green: into a container, yellow: dropped, red: lava; see `inspect.colors`) and those targets are listed, nearest first. Frames that WorldGuard regions (or another plugin cancelling `TargetBindEvent`) keep it from reaching are left out; a sorter's list also shows how many items it has sent. With an item in your off hand, only where that item would go, as numbered levels in order of preference: each level's containers nearest first, then the one drop spot or lava that takes the rest (the nearest, a drop spot before lava); the next level only gets what doesn't fit. From a sorter, a shulker box or bundle with contents comes with a note: the sorter opens it first, and the list shows where it goes whole once nothing inside can go. |
+| Sneak + left-click a frame with an item | Whether it is a target and, if so, who owns it; where its items go, what it accepts, and how many sorters and pads reach it. |
 | Sneak + right- or left-click a sorter's frame | Inspects the sorter, as clicking its dispenser does. That frame is never a target. |
-| Sneak + right-click a frame | Marks or unmarks it as a target (`targets.registration: manual`, needs `framesort.inspect` and `framesort.target.create`), also an empty one. Marking makes it yours; only you unmark it then, and unmarking frees it. The item does not rotate. |
+| Sneak + right-click a frame | Marks or unmarks it as a target (`targets.registration: manual`, needs `framesort.inspect` and `framesort.target.create`), also an empty one, unless your off hand holds an item: that goes into it, as usual. Marking makes it yours, and unmarking frees it; with `ownership.enabled`, only you unmark it then. The item does not rotate. |
 
 The frame keeps its item and does not rotate. A left-click leaves empty frames alone, so they can still be broken.
 
@@ -63,8 +63,8 @@ links, and can't be run; `/framesort reload` with it back on brings them back. N
 cache: a player it no longer remembers shows as their UUID, which `untrust` also takes.
 
 What has no owner (built before owners existed, or pasted without its data) works only with what has no owner, and
-only admins inspect it. Unmarking and marking a frame again, putting the activator back, or breaking and placing a pad's
-top block again gives it an owner.
+only admins inspect it. Unmarking and marking a frame again (with `targets.registration: automatic`, breaking and
+hanging it again), putting the activator back, or breaking and placing a pad's top block again gives it an owner.
 
 ## Permissions
 

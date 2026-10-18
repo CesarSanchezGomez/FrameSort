@@ -3,6 +3,7 @@ package com.cesarcosmico.framesort.service;
 import com.cesarcosmico.framesort.model.Composting;
 import com.cesarcosmico.framesort.model.Delivery;
 import com.cesarcosmico.framesort.service.TargetResolver.Destination;
+import com.cesarcosmico.framesort.service.TargetResolver.Target;
 import org.bukkit.Effect;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -66,16 +67,17 @@ public final class DeliveryService {
         }
         TargetResolver.Plan plan = resolver.plan(origin, owner, stack);
         int amount = stack.getAmount();
-        List<Delivery.Level<ItemFrame, End>> levels = plan.levels().stream().map(DeliveryService::level).toList();
+        List<Delivery.Level<ItemFrame, Target>> levels = plan.levels().stream()
+                .map(level -> new Delivery.Level<>(level.containers(), level.end())).toList();
         Location from = source.location();
-        Delivery.Outcome<ItemFrame, End> outcome = Delivery.deliver(amount, levels,
+        Delivery.Outcome<ItemFrame, Target> outcome = Delivery.deliver(amount, levels,
                 (frame, offered) -> offer(frame, stack, offered, from, owner), source::commit);
         if (plan.stale() || !outcome.gone().isEmpty()) {
             resolver.forget(origin, owner, stack);
         }
 
         int remaining = outcome.remaining();
-        End end = outcome.end();
+        Target end = outcome.end();
         if (end == null) {
             return amount - remaining;
         }
@@ -89,16 +91,6 @@ public final class DeliveryService {
             observer.accept(new Delivered(from, owner, stack, remaining, to, Destination.DROPPED));
         }
         return amount;
-    }
-
-    /** The nearest container first; then the nearest drop spot takes the rest, or else the lava destroys it. */
-    private static Delivery.Level<ItemFrame, End> level(TargetResolver.Level level) {
-        End end = !level.drops().isEmpty() ? new End(level.drops().getFirst(), Destination.DROPPED)
-                : level.lava().isEmpty() ? null : new End(level.lava().getFirst(), Destination.DESTROYED);
-        return new Delivery.Level<>(level.containers(), end);
-    }
-
-    private record End(ItemFrame frame, Destination destination) {
     }
 
     private int offer(ItemFrame frame, ItemStack stack, int amount, Location from, @Nullable UUID owner) {

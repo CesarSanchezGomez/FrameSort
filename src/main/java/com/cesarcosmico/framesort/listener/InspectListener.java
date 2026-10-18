@@ -53,12 +53,13 @@ public final class InspectListener implements Listener {
         }
     }
 
-    // Cancelled for both hands, so the frame never rotates its item. An empty frame counts too: with an empty hand a
-    // right-click does nothing to it, and a frame whose item was taken out can still be unmarked.
+    // Cancelled for both hands, so the frame never rotates its item. An empty frame counts too, so one whose item was
+    // taken out can still be unmarked, unless the off hand holds an item: that click puts it in the frame.
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onMark(PlayerInteractAtEntityEvent event) {
         Player player = event.getPlayer();
-        if (!(event.getRightClicked() instanceof ItemFrame frame) || !inspects(player)) {
+        if (!(event.getRightClicked() instanceof ItemFrame frame) || !inspects(player)
+                || frame.getItem().isEmpty() && !player.getInventory().getItemInOffHand().isEmpty()) {
             return;
         }
         event.setCancelled(true);

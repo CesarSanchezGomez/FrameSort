@@ -78,19 +78,19 @@ public final class TargetIndex {
         reindex(frame);
     }
 
-    /** With automatic registration nothing is marked, so the frame belongs to whoever hung it. */
+    /**
+     * With automatic registration nothing is marked, so a frame belongs to whoever hung it. Recorded under manual
+     * registration too, where marking replaces it, so a switch to automatic finds the frames already owned.
+     */
     public void hung(ItemFrame frame, UUID owner) {
-        if (settings.get().targets().registration() == TargetRegistration.AUTOMATIC) {
-            FrameCodec.setOwner(frame, owner);
-            changed(frame.getWorld());
-        }
+        FrameCodec.setOwner(frame, owner);
+        changed(frame.getWorld());
     }
 
+    // Marking and unmarking only happen under manual registration, where the frame always enters or leaves the index.
     private void reindex(ItemFrame frame) {
         remove(frame);
         add(frame);
-        // A frame that stays indexed (automatic registration) changes owner without entering or leaving.
-        changed(frame.getWorld());
     }
 
     public boolean isTarget(ItemFrame frame) {
@@ -108,7 +108,7 @@ public final class TargetIndex {
                     continue;
                 }
                 for (ItemFrame frame : inChunk) {
-                    if (FrameGeometry.key(frame.getLocation().getBlock()).distanceSquared(center) <= radiusSquared) {
+                    if (FrameGeometry.distanceSquared(frame, center) <= radiusSquared) {
                         found.add(frame);
                     }
                 }

@@ -163,8 +163,9 @@ What a player sets up is theirs: a target frame belongs to whoever marked it (wi
 whoever hung it), a sorter to whoever put the activator in, a pad to whoever placed its top block. Owners are
 recorded even with `enabled: false`, so turning it on later finds them. What has no owner (built before owners
 existed, or pasted without its data) only sends to frames that have none either, and only admins inspect it;
-unmarking and marking a frame again, putting the activator back, or breaking and placing a pad's top block again
-gives it an owner. More in [docs/commands.md](commands.md#owners-and-trust).
+unmarking and marking a frame again (with `registration: automatic`, breaking and hanging it again), putting the
+activator back, or breaking and placing a pad's top block again gives it an owner. More in
+[docs/commands.md](commands.md#owners-and-trust).
 
 ### inspect
 
@@ -186,10 +187,10 @@ gives it an owner. More in [docs/commands.md](commands.md#owners-and-trust).
 | `types.<id>.item` | | *Optional*, and so is each key in it: `name`, `lore` and `glint` of the special top block (see [Item look](#item-look)). Left out, or set to `''`, `[]` or `false`, the block has none of it. Its material is the top block of the structure and it looks like that block, so it takes no `components` (they are reported and ignored). With a CraftEngine top block the item is CraftEngine's, and `name`, `lore` and `glint` are laid over it (see [CraftEngine items and blocks](#item-look)). |
 
 A pad is created when its top block is placed on its base, so place the base first. It counts as long as both
-blocks stay; breaking the top block removes it. If the top block goes any other way (WorldEdit, a command, gravity),
-the pad is forgotten at the next sweep. Without its base a pad waits, and works again once the base is back. In
-`item` mode, breaking it gives the special item back. The top block of a registered pad can't be pushed by pistons
-or blown up.
+blocks stay; breaking the top block removes it, and whoever broke it is told so. If the top block goes any other
+way (WorldEdit, a command, gravity), the pad is forgotten at the next sweep. Without its base a pad waits, and works
+again once the base is back. In `item` mode, breaking it gives the special item back. The top block of a registered
+pad can't be pushed by pistons or blown up.
 
 Items resting up to one block above the top block count, so carpets or slabs on the pad are fine.
 
@@ -297,5 +298,6 @@ hover.
 ### Frame card
 
 What a frame accepts is shown as one message built from `frame.layout`, framed like a page: `<title>` is
-`frame.title` and `<lines>` are the `frame.status`, `frame.into`, `frame.on-sorter`, `frame.accepts` and
-`frame.sources` lines that apply.
+`frame.title` and `<lines>` are the `frame.status`, `frame.owner`, `frame.into`, `frame.on-sorter`, `frame.accepts`
+and `frame.sources` lines that apply. A target without an owner shows `frame.no-owner`, or `frame.no-owner-hung` under
+automatic registration. A tag line is `frame.accepts.tag-link` when its click lists the tag, else `frame.accepts.tag`.

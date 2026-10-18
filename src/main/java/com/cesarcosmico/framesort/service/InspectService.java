@@ -9,6 +9,7 @@ import com.cesarcosmico.framesort.item.ItemTagCodec;
 import com.cesarcosmico.framesort.model.BlockKey;
 import com.cesarcosmico.framesort.model.TargetRegistration;
 import com.cesarcosmico.framesort.service.TargetResolver.Destination;
+import com.cesarcosmico.framesort.service.TargetResolver.Target;
 import com.cesarcosmico.framesort.text.ChatPager;
 import com.cesarcosmico.framesort.text.Messages;
 import net.kyori.adventure.text.Component;
@@ -37,9 +38,6 @@ public final class InspectService {
     private static final String MARK_PERMISSION = "framesort.target.create";
 
     private record Listing(Component title, List<Component> lines) {
-    }
-
-    private record Target(ItemFrame frame, Destination destination) {
     }
 
     private record Source(Block block, boolean pad, @Nullable UUID owner) {
@@ -114,7 +112,7 @@ public final class InspectService {
         if (filter.isEmpty()) {
             title = text.get("inspect.title", Placeholder.component("source", kind), details);
             List<ItemFrame> frames = new ArrayList<>(resolver.targets(source, owner));
-            frames.sort(Comparator.comparingLong(frame -> distanceSquared(frame, center)));
+            frames.sort(Comparator.comparingLong(frame -> FrameGeometry.distanceSquared(frame, center)));
             for (ItemFrame frame : frames) {
                 Destination destination = resolver.destination(frame);
                 lines.add(text.get("inspect.line",
@@ -171,8 +169,9 @@ public final class InspectService {
         // Only a target's owner means anything: whoever marked it, or hung it under automatic registration.
         if (index.isTarget(frame)) {
             UUID owner = FrameCodec.owner(frame);
-            lines.add(owner == null ? text.get("frame.no-owner")
-                    : text.get("frame.owner", Placeholder.unparsed("player", trust.name(owner))));
+            boolean automatic = settings.get().targets().registration() == TargetRegistration.AUTOMATIC;
+            lines.add(owner != null ? text.get("frame.owner", Placeholder.unparsed("player", trust.name(owner)))
+                    : text.get(automatic ? "frame.no-owner-hung" : "frame.no-owner"));
         }
 
         lines.add(switch (resolver.destination(frame)) {
@@ -192,7 +191,8 @@ public final class InspectService {
             TagCatalog.TagView view = resolver.tag(shown);
             if (view != null) {
                 String tagCommand = commands.usageFor("tag-show", player::hasPermission);
-                Component accepts = text.get("frame.accepts.tag",
+                // Only a line that has the click says to click it.
+                Component accepts = text.get(tagCommand == null ? "frame.accepts.tag" : "frame.accepts.tag-link",
                         Placeholder.unparsed("tag", view.key().asString()),
                         Placeholder.unparsed("count",
                                 String.valueOf(view.materials().size() + view.customItems().size())));
@@ -263,9 +263,9 @@ public final class InspectService {
         }
     }
 
-    /** Placing an item in a marked frame makes it a target for that item: says so, in case the mark was forgotten. */
+    /** Placing an item in a target frame makes it a target for that item: says so, in case the mark was forgotten. */
     public void itemPlaced(Player player, ItemFrame frame, ItemStack item) {
-        if (settings.get().targets().registration() == TargetRegistration.MANUAL && index.isMarked(frame)) {
+        if (settings.get().targets().registration() == TargetRegistration.MANUAL && index.isTarget(frame)) {
             player.sendActionBar(messages.get().get("mark.now-takes",
                     Placeholder.component("item", item.effectiveName())));
         }
@@ -285,12 +285,11 @@ public final class InspectService {
         List<TargetResolver.Level> levels = resolver.plan(source, owner, filter).levels();
         for (int i = 0; i < levels.size(); i++) {
             TargetResolver.Level level = levels.get(i);
-            // In the order a delivery uses them: containers, then a drop spot or lava takes the rest.
-            List<Target> targets = Stream.of(
-                            level.containers().stream().map(frame -> new Target(frame, Destination.CONTAINER)),
-                            level.drops().stream().map(frame -> new Target(frame, Destination.DROPPED)),
-                            level.lava().stream().map(frame -> new Target(frame, Destination.DESTROYED)))
-                    .flatMap(stream -> stream).toList();
+            // In the order a delivery uses them: the containers, then the one drop spot or lava that takes the rest.
+            Target end = level.end();
+            List<Target> targets = Stream.concat(
+                    level.containers().stream().map(frame -> new Target(frame, Destination.CONTAINER)),
+                    Stream.ofNullable(end)).toList();
             Component header = text.get(i == 0 ? "inspect.level.first" : "inspect.level.next",
                     Placeholder.unparsed("number", String.valueOf(i + 1)));
             for (int j = 0; j < targets.size(); j++) {
@@ -302,11 +301,10 @@ public final class InspectService {
                 marks.add(highlight(target.frame(), target.destination()));
             }
             // A drop spot takes everything left, and lava destroys it: the levels after it never get anything.
-            if (!level.drops().isEmpty()) {
-                return;
-            }
-            if (!level.lava().isEmpty()) {
-                endWith(lines, text.get("inspect.excess.lava"));
+            if (end != null) {
+                if (end.destination() == Destination.DESTROYED) {
+                    endWith(lines, text.get("inspect.excess.lava"));
+                }
                 return;
             }
         }
@@ -331,7 +329,7 @@ public final class InspectService {
                 Placeholder.component("target", target),
                 coordinates(location),
                 Placeholder.unparsed("distance",
-                        String.valueOf(Math.round(Math.sqrt(distanceSquared(frame, center))))));
+                        String.valueOf(Math.round(Math.sqrt(FrameGeometry.distanceSquared(frame, center))))));
     }
 
     private Component status(Messages text, ItemFrame frame) {
@@ -365,10 +363,6 @@ public final class InspectService {
     private @Nullable String pageCommand(Player player) {
         String inspect = commands.usageFor("inspect", player::hasPermission);
         return inspect == null ? null : inspect + " %d";
-    }
-
-    private static long distanceSquared(ItemFrame frame, BlockKey center) {
-        return FrameGeometry.key(frame.getLocation().getBlock()).distanceSquared(center);
     }
 
     private static Component blockName(Block block) {

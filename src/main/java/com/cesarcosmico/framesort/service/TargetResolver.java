@@ -51,12 +51,26 @@ public final class TargetResolver {
         }
     }
 
+    public record Target(ItemFrame frame, Destination destination) {
+    }
+
     /** Frames tied at one priority, split by where the items end up, each list nearest to the source first. */
     public record Level(List<ItemFrame> containers, List<ItemFrame> drops, List<ItemFrame> lava) {
         public Level {
             containers = List.copyOf(containers);
             drops = List.copyOf(drops);
             lava = List.copyOf(lava);
+        }
+
+        /**
+         * Takes whatever the containers leave: the nearest drop spot, else the nearest lava. The other drop spots and
+         * lava of the level never get anything; {@code null} when it has neither.
+         */
+        public @Nullable Target end() {
+            if (!drops.isEmpty()) {
+                return new Target(drops.getFirst(), Destination.DROPPED);
+            }
+            return lava.isEmpty() ? null : new Target(lava.getFirst(), Destination.DESTROYED);
         }
     }
 
@@ -122,8 +136,7 @@ public final class TargetResolver {
         }
         // Nearest first within a level, so filling is predictable and an inspection lists the real order.
         BlockKey origin = FrameGeometry.key(source);
-        Comparator<ItemFrame> nearest = Comparator.comparingLong(
-                frame -> FrameGeometry.key(frame.getLocation().getBlock()).distanceSquared(origin));
+        Comparator<ItemFrame> nearest = Comparator.comparingLong(frame -> FrameGeometry.distanceSquared(frame, origin));
         List<Level> levels = new ArrayList<>();
         for (List<ItemFrame> tied : ranking.levels()) {
             Map<Destination, List<ItemFrame>> split = new EnumMap<>(Destination.class);
