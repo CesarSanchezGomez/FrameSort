@@ -98,6 +98,8 @@ never duplicated.
 | `/framesort give sorter\|pad <type> [player] [amount]` | `framesort.command.give` | op |
 | `/framesort reload` | `framesort.command.reload` | op |
 
+The three trust commands only exist while `ownership.enabled` is on.
+
 Every command also runs as `/fs`. Where each command lives, its permission and whether it is enabled are set in
 `commands.yml`; see [docs/commands.md](docs/commands.md). The help lists only the commands the player may run.
 

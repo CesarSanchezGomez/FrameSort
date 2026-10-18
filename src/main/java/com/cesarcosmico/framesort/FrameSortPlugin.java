@@ -69,6 +69,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 
@@ -111,7 +112,10 @@ public final class FrameSortPlugin extends JavaPlugin {
             pads = new ConfigHolder<>(loadPads(warn));
             tagSettings = new ConfigHolder<>(loadTags(warn));
             messages = new ConfigHolder<>(Messages.load(this, settings.get().language(), warn));
-            commands = CommandsConfig.load(this, warn);
+            // Trusting players means nothing without owners, so those commands follow the setting.
+            BooleanSupplier ownership = () -> settings.get().ownership();
+            commands = CommandsConfig.load(this, warn).onlyWhen("trust", ownership).onlyWhen("untrust", ownership)
+                    .onlyWhen("trust-list", ownership);
             opened = Database.open(this, DatabaseSettings.parse(
                     new ConfigReader(ConfigFiles.load(this, "database.yml"), "database.yml", warn)));
             database = opened;

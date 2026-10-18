@@ -75,6 +75,7 @@ trace:
     - '/fs trace'
 
 # Usage: [COMMAND] <player>
+# Only while ownership.enabled is true in config.yml.
 trust:
   enabled: true
   permission: 'framesort.command.trust'
@@ -83,6 +84,7 @@ trust:
     - '/fs trust'
 
 # Usage: [COMMAND] <player>
+# Only while ownership.enabled is true in config.yml.
 untrust:
   enabled: true
   permission: 'framesort.command.untrust'
@@ -91,6 +93,7 @@ untrust:
     - '/fs untrust'
 
 # Usage: [COMMAND] [page]   (whom you trust and who trusts you)
+# Only while ownership.enabled is true in config.yml.
 trust-list:
   enabled: true
   permission: 'framesort.command.trust-list'

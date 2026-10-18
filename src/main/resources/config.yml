@@ -55,10 +55,10 @@ delivery:
   # Frames holding it take what no other frame takes; '' = off.
   default-target-item: CARROT_ON_A_STICK
 
-# Who sorters and pads belong to: whoever placed them, and their frames to whoever hung them.
+# Who sorters, pads and targets belong to: whoever set them up.
 ownership:
   # true: a sorter or pad sends only to its owner's frames and to those of players the owner trusts
-  # (/framesort trust), and only they inspect it. false: any frame, and anyone inspects.
+  # (/framesort trust), and only they inspect it. false: any frame, anyone inspects, no trust commands.
   enabled: true
 
 # Inspection, chat lists and /framesort trace.

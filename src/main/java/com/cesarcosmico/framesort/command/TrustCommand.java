@@ -50,7 +50,6 @@ public final class TrustCommand implements CommandFeature {
                 case ALREADY -> "trust.already";
                 case SELF -> "trust.self";
                 case UNKNOWN_PLAYER -> "trust.unknown-player";
-                case DISABLED -> "trust.disabled";
                 case FAILED -> "trust.failed";
             };
             player.sendMessage(messages.get().get(key, Placeholder.unparsed("player", name)));

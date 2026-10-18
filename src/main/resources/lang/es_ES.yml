@@ -164,7 +164,6 @@ trust:
   unknown-player: '<prefix><red><white><player></white> nunca ha jugado en este servidor.</red>'
   self: '<prefix><gray>Tus propios marcos ya reciben de tus sorters y pads.</gray>'
   failed: '<prefix><red>No se pudo guardar. Inténtalo de nuevo, o pide a un admin que mire la consola.</red>'
-  disabled: '<prefix><gray>En este servidor los sorters y pads no tienen dueño: envían a cualquier marco.</gray>'
   list:
     title: 'Confianza'
     trusted: '  <color:#F7B733>→</color> <white><player></white> <dark_gray>tiene tu confianza desde el <date></dark_gray>'

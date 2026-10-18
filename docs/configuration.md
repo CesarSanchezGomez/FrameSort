@@ -157,7 +157,7 @@ frame, it destroys whatever has no other target or no room left in one. An empty
 
 | Key | Default | Meaning |
 |---|---|---|
-| `enabled` | `true` | `true`: a sorter or pad sends only to frames of its owner and of the players its owner trusts (`/framesort trust`), and only they inspect it or see its deliveries in `/framesort trace`. `false`: it sends to any frame and anyone inspects it, as without owners. A reload applies it. |
+| `enabled` | `true` | `true`: a sorter or pad sends only to frames of its owner and of the players its owner trusts (`/framesort trust`), and only they inspect it or see its deliveries in `/framesort trace`. `false`: it sends to any frame and anyone inspects it, as without owners, and `/framesort trust`, `untrust` and `trusted` are hidden. A reload applies it, to the commands too. |
 
 What a player sets up is theirs: a target frame belongs to whoever marked it (with `registration: automatic`, to
 whoever hung it), a sorter to whoever put the activator in, a pad to whoever placed its top block. Owners are

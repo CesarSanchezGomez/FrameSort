@@ -58,9 +58,9 @@ items go from afar, and who sees it. Items dropped on someone's pad go to that p
 else's chest belongs to whoever marked it, so their sorter can fill that chest unless the chest's protection stops
 them from touching the frame.
 
-With `ownership.enabled: false`, `/framesort trust` says so and changes nothing; `/framesort trusted` and
-`/framesort untrust` still work. Names come from the server's profile cache: a player it no longer remembers shows
-as their UUID, which `untrust` also takes.
+With `ownership.enabled: false`, `/framesort trust`, `untrust` and `trusted` leave the help, tab completion and
+links, and can't be run; `/framesort reload` with it back on brings them back. Names come from the server's profile
+cache: a player it no longer remembers shows as their UUID, which `untrust` also takes.
 
 What has no owner (built before owners existed, or pasted without its data) works only with what has no owner, and
 only admins inspect it. Unmarking and marking a frame again, putting the activator back, or breaking and placing a pad's

@@ -21,7 +21,7 @@ import java.util.logging.Level;
  */
 public final class TrustService implements Supplier<TrustList> {
 
-    public enum Grant { GRANTED, ALREADY, SELF, UNKNOWN_PLAYER, DISABLED, FAILED }
+    public enum Grant { GRANTED, ALREADY, SELF, UNKNOWN_PLAYER, FAILED }
 
     public enum Revoke { REVOKED, NOT_TRUSTED, FAILED }
 
@@ -75,10 +75,6 @@ public final class TrustService implements Supplier<TrustList> {
      * on the main thread; not at all if {@code owner} leaves first, but the trust is applied anyway.
      */
     public void trust(Player owner, String typed, BiConsumer<Grant, String> then) {
-        if (!settings.get().ownership()) {
-            then.accept(Grant.DISABLED, typed);
-            return;
-        }
         // Only players this server has seen: looking a name up on the web would block the server.
         OfflinePlayer target = plugin.getServer().getOfflinePlayerIfCached(typed);
         if (target == null) {
