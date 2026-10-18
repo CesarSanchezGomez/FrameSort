@@ -20,7 +20,6 @@ import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.Dispenser;
 import org.bukkit.entity.ItemFrame;
-import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataContainer;
@@ -127,13 +126,14 @@ public final class SorterService {
 
     /**
      * Re-checks a frame on the next tick: when an item-frame event fires, the frame still holds the old item. A
-     * sorter belongs to whoever put the activator in, whoever hung the frame.
+     * sorter belongs to whoever put the activator in, not to whoever hung the frame; {@code placer} is {@code null}
+     * when the change was not putting an item in, such as rotating the frame of a sorter not yet created.
      */
-    public void considerLater(ItemFrame frame, Player player, Consumer<Change> then) {
+    public void considerLater(ItemFrame frame, @Nullable UUID placer, Consumer<Change> then) {
         frame.getScheduler().run(plugin, task -> {
             Change change = consider(frame);
-            if (change == Change.CREATED) {
-                FrameCodec.setOwner(frame, player.getUniqueId());
+            if (change == Change.CREATED && placer != null) {
+                FrameCodec.setOwner(frame, placer);
             }
             then.accept(change);
         }, null);
