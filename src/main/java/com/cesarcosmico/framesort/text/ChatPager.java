@@ -9,6 +9,7 @@ import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import org.jspecify.annotations.Nullable;
 
 import java.util.List;
+import java.util.function.IntFunction;
 
 /** The whole page is sent as one message, so it stays together in the chat. */
 public final class ChatPager {
@@ -22,12 +23,24 @@ public final class ChatPager {
      */
     public static void send(Audience audience, Messages messages, Component title, List<Component> lines,
                             int requested, int pageSize, @Nullable String pageCommand) {
+        send(audience, messages, title, lines, requested, pageSize,
+                pageCommand == null ? null : target -> ClickEvent.runCommand(pageCommand.formatted(target)));
+    }
+
+    /**
+     * For a list no command can show again, such as one opened by a click in the world.
+     *
+     * @param pageClick the click of the button that shows a page, usually a {@code ClickEvent.callback}, or
+     *                  {@code null} for buttons that can't be clicked
+     */
+    public static void send(Audience audience, Messages messages, Component title, List<Component> lines,
+                            int requested, int pageSize, @Nullable IntFunction<ClickEvent<?>> pageClick) {
         Page page = Page.of(requested, lines.size(), pageSize);
         Component entries = lines.isEmpty()
                 ? messages.get("pager.empty")
                 : Component.join(JoinConfiguration.newlines(), lines.subList(page.from(), page.to()));
-        Component previous = button(messages, "pager.previous", page.hasPrevious(), pageCommand, page.number() - 1);
-        Component next = button(messages, "pager.next", page.hasNext(), pageCommand, page.number() + 1);
+        Component previous = button(messages, "pager.previous", page.hasPrevious(), pageClick, page.number() - 1);
+        Component next = button(messages, "pager.next", page.hasNext(), pageClick, page.number() + 1);
         audience.sendMessage(messages.get("pager.layout",
                 Placeholder.component("title", title),
                 Placeholder.unparsed("total", String.valueOf(lines.size())),
@@ -38,12 +51,12 @@ public final class ChatPager {
                 Placeholder.unparsed("pages", "%02d".formatted(page.count()))));
     }
 
-    private static Component button(Messages messages, String key, boolean enabled, @Nullable String pageCommand,
-                                    int target) {
+    private static Component button(Messages messages, String key, boolean enabled,
+                                    @Nullable IntFunction<ClickEvent<?>> pageClick, int target) {
         if (!enabled) {
             return messages.get(key + ".disabled");
         }
         Component button = messages.get(key + ".enabled", Placeholder.unparsed("page", String.valueOf(target)));
-        return pageCommand == null ? button : button.clickEvent(ClickEvent.runCommand(pageCommand.formatted(target)));
+        return pageClick == null ? button : button.clickEvent(pageClick.apply(target));
     }
 }

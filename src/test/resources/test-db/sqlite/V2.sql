@@ -1,0 +1,2 @@
+-- V2: amounts
+ALTER TABLE items ADD COLUMN amount INTEGER NOT NULL DEFAULT 0;

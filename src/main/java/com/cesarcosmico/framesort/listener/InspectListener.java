@@ -14,14 +14,11 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.player.PlayerInteractAtEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.jspecify.annotations.Nullable;
 
 // Inspecting needs sneaking with an empty main hand, so every other click stays vanilla.
 public final class InspectListener implements Listener {
-
-    private static final String PERMISSION = "framesort.inspect";
 
     private final InspectService inspect;
     private final SorterService sorters;
@@ -52,16 +49,17 @@ public final class InspectListener implements Listener {
         }
     }
 
-    // Cancelled for both hands, so the frame never rotates its item.
+    // Cancelled for both hands, so the frame never rotates its item. Empty frames are left alone: a mark lives with the
+    // item, and the click can still put the off-hand item in.
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onMark(PlayerInteractAtEntityEvent event) {
-        ItemFrame frame = inspectedFrame(event.getPlayer(), event.getRightClicked());
-        if (frame == null) {
+        Player player = event.getPlayer();
+        if (!(event.getRightClicked() instanceof ItemFrame frame) || frame.getItem().isEmpty() || !inspects(player)) {
             return;
         }
         event.setCancelled(true);
-        if (event.getHand() == EquipmentSlot.HAND && !inspectSorterOf(event.getPlayer(), frame)) {
-            inspect.toggleMark(event.getPlayer(), frame);
+        if (event.getHand() == EquipmentSlot.HAND && !inspectSorterOf(player, frame)) {
+            inspect.toggleMark(player, frame);
         }
     }
 
@@ -82,11 +80,6 @@ public final class InspectListener implements Listener {
         }
     }
 
-    @EventHandler
-    public void onQuit(PlayerQuitEvent event) {
-        inspect.forget(event.getPlayer().getUniqueId());
-    }
-
     // A sorter's frame covers a face of its dispenser, so clicking it inspects the sorter: it is never a target.
     private boolean inspectSorterOf(Player player, ItemFrame frame) {
         Block sorter = sorters.blockOf(frame);
@@ -103,6 +96,6 @@ public final class InspectListener implements Listener {
 
     private static boolean inspects(Player player) {
         return player.isSneaking() && player.getInventory().getItemInMainHand().isEmpty()
-                && player.hasPermission(PERMISSION);
+                && player.hasPermission(InspectService.INSPECT_PERMISSION);
     }
 }

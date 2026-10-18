@@ -3,6 +3,7 @@ package com.cesarcosmico.framesort.service;
 import com.cesarcosmico.framesort.api.TargetBindEvent;
 import com.cesarcosmico.framesort.config.FrameSortSettings;
 import com.cesarcosmico.framesort.config.InspectSettings;
+import com.cesarcosmico.framesort.item.FrameCodec;
 import com.cesarcosmico.framesort.item.ItemTagCodec;
 import com.cesarcosmico.framesort.item.PadCodec;
 import com.cesarcosmico.framesort.model.BlockKey;
@@ -10,6 +11,7 @@ import com.cesarcosmico.framesort.model.ItemReference;
 import com.cesarcosmico.framesort.model.MatchTier;
 import com.cesarcosmico.framesort.model.Ranking;
 import com.cesarcosmico.framesort.model.TargetRegistration;
+import com.cesarcosmico.framesort.model.TrustList;
 import io.papermc.paper.datacomponent.DataComponentTypes;
 import io.papermc.paper.datacomponent.item.BundleContents;
 import io.papermc.paper.datacomponent.item.ItemContainerContents;
@@ -23,10 +25,12 @@ import org.bukkit.inventory.ItemStack;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.function.Supplier;
 
 /** Cached until the world's targets change; callers recheck each frame, which may have changed since. */
@@ -47,12 +51,26 @@ public final class TargetResolver {
         }
     }
 
-    /** Frames tied at one priority, split by where the items end up. */
+    public record Target(ItemFrame frame, Destination destination) {
+    }
+
+    /** Frames tied at one priority, split by where the items end up, each list nearest to the source first. */
     public record Level(List<ItemFrame> containers, List<ItemFrame> drops, List<ItemFrame> lava) {
         public Level {
             containers = List.copyOf(containers);
             drops = List.copyOf(drops);
             lava = List.copyOf(lava);
+        }
+
+        /**
+         * Takes whatever the containers leave: the nearest drop spot, else the nearest lava. The other drop spots and
+         * lava of the level never get anything; {@code null} when it has neither.
+         */
+        public @Nullable Target end() {
+            if (!drops.isEmpty()) {
+                return new Target(drops.getFirst(), Destination.DROPPED);
+            }
+            return lava.isEmpty() ? null : new Target(lava.getFirst(), Destination.DESTROYED);
         }
     }
 
@@ -66,7 +84,8 @@ public final class TargetResolver {
     private record Match(ItemFrame frame, int priority, ItemStack frameItem) {
     }
 
-    private record CacheKey(BlockKey source, ItemStack item) {
+    // The owner is part of the key: a pad rebuilt on the same block by someone else must not reuse its matches.
+    private record CacheKey(BlockKey source, @Nullable UUID owner, ItemStack item) {
     }
 
     private record Entry(long epoch, List<Match> matches) {
@@ -80,22 +99,27 @@ public final class TargetResolver {
     private final TargetIndex index;
     private final TagCatalog tags;
     private final CustomItemResolver customItems;
+    private final Supplier<TrustList> trust;
     private final Map<CacheKey, Entry> cache = new HashMap<>();
 
     public TargetResolver(Supplier<FrameSortSettings> settings, TargetIndex index, TagCatalog tags,
-                          CustomItemResolver customItems) {
+                          CustomItemResolver customItems, Supplier<TrustList> trust) {
         this.settings = settings;
         this.index = index;
         this.tags = tags;
         this.customItems = customItems;
+        this.trust = trust;
     }
 
-    // Deliveries and inspections both plan here, so an inspection always shows what a delivery would do.
-    public Plan plan(Block source, ItemStack item) {
+    /**
+     * Deliveries and inspections both plan here, so an inspection always shows what a delivery would do.
+     * {@code owner} is the source's owner, or {@code null} when nobody owns it.
+     */
+    public Plan plan(Block source, @Nullable UUID owner, ItemStack item) {
         FrameSortSettings current = settings.get();
         Ranking<ItemFrame> ranking = new Ranking<>();
         boolean stale = false;
-        for (Match match : matches(source, item)) {
+        for (Match match : matches(source, owner, item)) {
             ItemFrame frame = match.frame();
             if (!frame.isValid() || !FrameGeometry.attachedLoaded(frame)
                     || !frame.getItem().equals(match.frameItem())) {
@@ -110,10 +134,13 @@ public final class TargetResolver {
             }
             ranking.add(match.priority(), frame);
         }
+        // Nearest first within a level, so filling is predictable and an inspection lists the real order.
+        BlockKey origin = FrameGeometry.key(source);
+        Comparator<ItemFrame> nearest = Comparator.comparingLong(frame -> FrameGeometry.distanceSquared(frame, origin));
         List<Level> levels = new ArrayList<>();
         for (List<ItemFrame> tied : ranking.levels()) {
             Map<Destination, List<ItemFrame>> split = new EnumMap<>(Destination.class);
-            for (ItemFrame frame : tied) {
+            for (ItemFrame frame : tied.stream().sorted(nearest).toList()) {
                 split.computeIfAbsent(destination(current, frame), key -> new ArrayList<>()).add(frame);
             }
             levels.add(new Level(split.getOrDefault(Destination.CONTAINER, List.of()),
@@ -136,15 +163,15 @@ public final class TargetResolver {
                 ? Destination.CONTAINER : Destination.DROPPED;
     }
 
-    private List<Match> matches(Block source, ItemStack item) {
+    private List<Match> matches(Block source, @Nullable UUID owner, ItemStack item) {
         BlockKey key = FrameGeometry.key(source);
-        CacheKey cacheKey = new CacheKey(key, item.asOne());
+        CacheKey cacheKey = new CacheKey(key, owner, item.asOne());
         long epoch = index.epoch(key.world());
         Entry entry = cache.get(cacheKey);
         if (entry != null && entry.epoch() == epoch) {
             return entry.matches();
         }
-        List<Match> matches = compute(source, key, cacheKey.item());
+        List<Match> matches = compute(source, owner, key, cacheKey.item());
         if (cache.size() >= MAX_CACHED) {
             cache.clear();
         }
@@ -152,8 +179,8 @@ public final class TargetResolver {
         return matches;
     }
 
-    public void forget(Block source, ItemStack item) {
-        cache.remove(new CacheKey(FrameGeometry.key(source), item.asOne()));
+    public void forget(Block source, @Nullable UUID owner, ItemStack item) {
+        cache.remove(new CacheKey(FrameGeometry.key(source), owner, item.asOne()));
     }
 
     public void clear() {
@@ -209,29 +236,29 @@ public final class TargetResolver {
     }
 
     /** Whether {@code source} may send to {@code frame} at all, whatever the item; the caller checks the distance. */
-    public boolean reaches(Block source, ItemFrame frame) {
+    public boolean reaches(Block source, @Nullable UUID owner, ItemFrame frame) {
         FrameSortSettings current = settings.get();
-        return eligible(current, source, frame) && !wouldLoop(current, source, frame)
+        return eligible(current, source, owner, frame) && !wouldLoop(current, source, frame)
                 && new TargetBindEvent(source, frame).callEvent();
     }
 
     /** The frames in range that {@code source} may send to, whatever the item. */
-    public List<ItemFrame> targets(Block source) {
+    public List<ItemFrame> targets(Block source, @Nullable UUID owner) {
         List<ItemFrame> found = new ArrayList<>();
         for (ItemFrame frame : index.near(FrameGeometry.key(source), settings.get().delivery().maxDistance())) {
-            if (reaches(source, frame)) {
+            if (reaches(source, owner, frame)) {
                 found.add(frame);
             }
         }
         return List.copyOf(found);
     }
 
-    private List<Match> compute(Block source, BlockKey key, ItemStack item) {
+    private List<Match> compute(Block source, @Nullable UUID owner, BlockKey key, ItemStack item) {
         FrameSortSettings current = settings.get();
         String itemId = customItems.id(item);
         List<Match> matches = new ArrayList<>();
         for (ItemFrame frame : index.near(key, current.delivery().maxDistance())) {
-            if (!eligible(current, source, frame)) {
+            if (!eligible(current, source, owner, frame)) {
                 continue;
             }
             ItemStack shown = frame.getItem();
@@ -245,7 +272,7 @@ public final class TargetResolver {
         return List.copyOf(matches);
     }
 
-    private boolean eligible(FrameSortSettings current, Block source, ItemFrame frame) {
+    private boolean eligible(FrameSortSettings current, Block source, @Nullable UUID owner, ItemFrame frame) {
         ItemStack shown = frame.getItem();
         if (shown.isEmpty() || !FrameGeometry.attachedLoaded(frame)) {
             return false;
@@ -256,9 +283,12 @@ public final class TargetResolver {
             return false;
         }
         // Never send a source's items back into itself, and never treat a sorter's own frame as a target.
-        return !attached.equals(source)
-                && !(attached.getType() == Material.DISPENSER
-                        && current.sorter().isActivatorFrame(frame, customItems::id));
+        if (attached.equals(source) || attached.getType() == Material.DISPENSER
+                && current.sorter().isActivatorFrame(frame, customItems::id)) {
+            return false;
+        }
+        // Anyone can hang a frame near a sorter: it takes the owner's items only if the owner trusts its owner.
+        return !current.ownership() || trust.get().allows(owner, FrameCodec.owner(frame));
     }
 
     // Never cached: sorters come and go, and the blocks below a drop spot change, without touching any target frame.

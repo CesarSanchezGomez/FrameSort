@@ -4,7 +4,6 @@ import com.cesarcosmico.framesort.command.CommandFeature;
 import com.cesarcosmico.framesort.command.CommandTree;
 import com.cesarcosmico.framesort.command.GiveCommand;
 import com.cesarcosmico.framesort.command.HelpCommand;
-import com.cesarcosmico.framesort.command.InspectCommand;
 import com.cesarcosmico.framesort.command.ReloadCommand;
 import com.cesarcosmico.framesort.command.TagApplyCommand;
 import com.cesarcosmico.framesort.command.TagListCommand;
@@ -13,12 +12,17 @@ import com.cesarcosmico.framesort.command.TagRemoveCommand;
 import com.cesarcosmico.framesort.command.TagSearchCommand;
 import com.cesarcosmico.framesort.command.TagShowCommand;
 import com.cesarcosmico.framesort.command.TraceCommand;
+import com.cesarcosmico.framesort.command.TrustCommand;
+import com.cesarcosmico.framesort.command.TrustedCommand;
+import com.cesarcosmico.framesort.command.UntrustCommand;
 import com.cesarcosmico.framesort.command.WhereCommand;
 import com.cesarcosmico.framesort.config.CommandsConfig;
 import com.cesarcosmico.framesort.config.ConfigFiles;
 import com.cesarcosmico.framesort.config.ConfigHolder;
 import com.cesarcosmico.framesort.config.ConfigReader;
 import com.cesarcosmico.framesort.config.ConfigValidator;
+import com.cesarcosmico.framesort.config.DatabaseSettings;
+import com.cesarcosmico.framesort.config.DatabaseType;
 import com.cesarcosmico.framesort.config.FrameSortSettings;
 import com.cesarcosmico.framesort.config.PadSettings;
 import com.cesarcosmico.framesort.config.TagSettings;
@@ -29,6 +33,7 @@ import com.cesarcosmico.framesort.listener.InspectListener;
 import com.cesarcosmico.framesort.listener.PadListener;
 import com.cesarcosmico.framesort.listener.SorterListener;
 import com.cesarcosmico.framesort.listener.TargetListener;
+import com.cesarcosmico.framesort.model.TrustList;
 import com.cesarcosmico.framesort.service.CustomItemResolver;
 import com.cesarcosmico.framesort.service.DeliveryService;
 import com.cesarcosmico.framesort.service.HighlightService;
@@ -39,6 +44,9 @@ import com.cesarcosmico.framesort.service.TagCatalog;
 import com.cesarcosmico.framesort.service.TargetIndex;
 import com.cesarcosmico.framesort.service.TargetResolver;
 import com.cesarcosmico.framesort.service.TraceService;
+import com.cesarcosmico.framesort.service.TrustService;
+import com.cesarcosmico.framesort.storage.Database;
+import com.cesarcosmico.framesort.storage.TrustRepository;
 import com.cesarcosmico.framesort.text.Messages;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
@@ -59,12 +67,18 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
+import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 
 public final class FrameSortPlugin extends JavaPlugin {
 
     private static final String COMMAND_DESCRIPTION = "Sort items into item frames";
+    // The server does not take players before onEnable returns, so a slow database only delays the start.
+    private static final long TRUST_LOAD_SECONDS = 10;
+    // Trust given on another server sharing the database reaches this one within this time.
+    private static final long TRUST_REFRESH_TICKS = 60 * 20L;
 
     private ConfigHolder<FrameSortSettings> settings;
     private ConfigHolder<PadSettings> pads;
@@ -76,8 +90,11 @@ public final class FrameSortPlugin extends JavaPlugin {
     private SorterService sorters;
     private PadService padService;
     private InspectService inspect;
-    // Null in onDisable when the plugin failed to start.
+    // Null in onDisable when the plugin failed to start, or before it got that far.
     private @Nullable BukkitTask ticker;
+    private @Nullable Database database;
+    // Only with MySQL or MariaDB, where another server can change the trust table.
+    private @Nullable BukkitTask trustRefresh;
     // Read once on enable: CraftEngine loads before FrameSort, and a reload checks the config against it too.
     private boolean craftEngine;
 
@@ -86,12 +103,24 @@ public final class FrameSortPlugin extends JavaPlugin {
         craftEngine = getServer().getPluginManager().isPluginEnabled("CraftEngine");
         Consumer<String> warn = getLogger()::warning;
         CommandsConfig commands;
+        Database opened;
+        TrustRepository trustRepository;
+        TrustList trustList;
         try {
             settings = new ConfigHolder<>(loadSettings(warn));
             pads = new ConfigHolder<>(loadPads(warn));
             tagSettings = new ConfigHolder<>(loadTags(warn));
             messages = new ConfigHolder<>(Messages.load(this, settings.get().language(), warn));
-            commands = CommandsConfig.load(this, warn);
+            // Trusting players means nothing without owners, so those commands follow the setting.
+            BooleanSupplier ownership = () -> settings.get().ownership();
+            commands = CommandsConfig.load(this, warn).onlyWhen("trust", ownership).onlyWhen("untrust", ownership)
+                    .onlyWhen("trusted", ownership);
+            opened = Database.open(this, DatabaseSettings.parse(
+                    new ConfigReader(ConfigFiles.load(this, "database.yml"), "database.yml", warn)));
+            database = opened;
+            trustRepository = new TrustRepository(opened.type());
+            // Sorters work while their owners are offline, so the whole list is needed before anything runs.
+            trustList = opened.query(trustRepository::load).get(TRUST_LOAD_SECONDS, TimeUnit.SECONDS);
         } catch (Exception e) {
             getLogger().log(Level.SEVERE, "FrameSort could not start: " + e.getMessage(), e);
             getServer().getPluginManager().disablePlugin(this);
@@ -100,15 +129,16 @@ public final class FrameSortPlugin extends JavaPlugin {
 
         tags = new TagCatalog(tagSettings);
         index = new TargetIndex(settings);
+        TrustService trust = new TrustService(this, opened, trustRepository, trustList, settings, index);
         // Only this check loads the integration's classes, so FrameSort runs without CraftEngine installed.
         CustomItemResolver customItems = craftEngine ? new CraftEngineItemResolver() : CustomItemResolver.NONE;
-        resolver = new TargetResolver(settings, index, tags, customItems);
-        TraceService trace = new TraceService(this, settings, messages);
+        resolver = new TargetResolver(settings, index, tags, customItems, trust);
+        TraceService trace = new TraceService(this, settings, messages, trust);
         DeliveryService delivery = new DeliveryService(this, resolver, trace::report);
         sorters = new SorterService(this, settings, delivery, customItems);
         padService = new PadService(getServer(), pads, delivery, customItems);
-        inspect = new InspectService(new HighlightService(this), settings, messages, index, resolver, sorters,
-                padService, commands);
+        inspect = new InspectService(this, new HighlightService(this), settings, messages, index, resolver, trust,
+                sorters, padService, commands);
 
         register(new TargetListener(index), new SorterListener(sorters, messages),
                 new PadListener(padService, messages), new InspectListener(inspect, sorters, padService));
@@ -117,7 +147,7 @@ public final class FrameSortPlugin extends JavaPlugin {
             register(new WorldGuardTargetListener());
         }
         List<String> helpLines = List.of("tag-list", "tag-search", "tag-show", "tag-apply", "tag-remove", "where",
-                "trace", "give", "reload");
+                "trace", "trust", "untrust", "trusted", "give", "reload");
         TagListing listing = new TagListing(tags, messages, settings, commands);
         List<CommandFeature> features = List.of(
                 new HelpCommand(messages, commands, helpLines),
@@ -127,8 +157,10 @@ public final class FrameSortPlugin extends JavaPlugin {
                 new TagApplyCommand(tags, messages, settings, commands),
                 new TagRemoveCommand(messages),
                 new TraceCommand(trace, messages, settings),
-                new InspectCommand(inspect, messages),
                 new WhereCommand(inspect, messages, settings),
+                new TrustCommand(trust, messages),
+                new UntrustCommand(trust, messages),
+                new TrustedCommand(trust, messages, settings),
                 new GiveCommand(sorters, padService, pads, messages),
                 new ReloadCommand(messages, this::reload, getLogger(), getName()));
         getLifecycleManager().registerEventHandler(LifecycleEvents.COMMANDS, event -> {
@@ -148,16 +180,27 @@ public final class FrameSortPlugin extends JavaPlugin {
             sorters.tick();
             padService.tick();
         }, 1L, 1L);
+        // With SQLite only this server writes the table; a shared MySQL or MariaDB one can change from elsewhere.
+        if (opened.type() != DatabaseType.SQLITE) {
+            trustRefresh = getServer().getScheduler().runTaskTimer(this, trust::refresh, TRUST_REFRESH_TICKS,
+                    TRUST_REFRESH_TICKS);
+        }
     }
 
     @Override
     public void onDisable() {
-        if (ticker == null) {
-            return;
+        if (trustRefresh != null) {
+            trustRefresh.cancel();
         }
-        ticker.cancel();
-        sorters.stopAll();
-        inspect.stopAll();
+        if (ticker != null) {
+            ticker.cancel();
+            sorters.stopAll();
+            inspect.stopAll();
+        }
+        // Also when the start failed after opening it: it waits for queued writes, then closes the pool.
+        if (database != null) {
+            database.close();
+        }
     }
 
     /**

@@ -6,7 +6,7 @@ without a warning: leaving one out means none of it, such as an activator with n
 on their own (see [Language](#language)). Invalid values are reported with their path and replaced by the default.
 `/framesort reload` applies `config.yml`, `pads.yml`, `tags.yml` and the language file and tells you how many values
 fell back to their defaults. A file that is not valid YAML stops the reload and the previous configuration stays active.
-`commands.yml` needs a restart.
+`commands.yml` and `database.yml` need a restart.
 
 Text values are written in single quotes; an apostrophe inside one is written twice (`'can''t'`). Text with
 several lines (help, lore, the page layout) is a YAML list, one line per entry. Item lore starts and ends with an
@@ -95,7 +95,7 @@ targets that accept it.
 
 | Key | Default | Meaning |
 |---|---|---|
-| `registration` | `manual` | `manual`: only frames marked by sneak + right-clicking them with an empty hand. `automatic`: every frame of `frame-types` on a container or composter; frames anywhere else (walls, lava cauldrons) are never targets, so marking is the only way to make a drop spot or a trash can. |
+| `registration` | `manual` | `manual`: only frames marked by sneak + right-clicking them with an empty hand. `automatic`: every frame of `frame-types` on a container or composter; frames anywhere else (walls, lava cauldrons) are never targets, so marking is the only way to make a drop spot or a trash can. A frame belongs to whoever marked it, or, under `automatic`, to whoever put its item in. In either mode, putting another item in a frame ends its mark: after switching back to `manual`, a frame whose item changed must be marked again. After switching to `automatic`, a frame that wasn't marked has no owner until an item is put in again. |
 | `frame-types` | `[ITEM_FRAME, GLOW_ITEM_FRAME]` | Frames that can be targets. |
 | `tagged-item.name`, `lore`, `glint` | `'<gradient:#F7B733:#FC4A1A>#<tag></gradient>'`, none, `true` | *Optional.* Look a tagged item gets (see [Item look](#item-look)); in `name` and `lore`, `<tag>` is the tag, without `minecraft:` for vanilla tags. Left out, or set to `''`, `[]` or `false`, the item has none of it: `tagged-item: {}` tags items without changing how they look. |
 
@@ -120,9 +120,10 @@ How a destination is chosen:
    installed, a custom item's material is its ID: the material step takes the same custom item, never a vanilla item
    or another custom item of the same base material. No game tag takes a custom item, only a [`tags.yml`](#tagsyml)
    tag that lists it.
-2. Levels are used in order, best first. In each level, the item goes into the containers in random order until it
-   is all in.
-3. Whatever is left is dropped at one random frame of that level without a container. If that level's frames
+2. Levels are used in order, best first. In each level, the item goes into the containers nearest to the sorter or
+   pad first (counting height too), until it is all in. Targets of players the owner trusts take their turn by
+   distance like the owner's own.
+3. Whatever is left is dropped at the nearest frame of that level without a container. If that level's frames
    without a container are all on lava cauldrons, the rest is destroyed. Either way the delivery ends there.
 4. Otherwise, what is left goes on to the next level. If no level has room, it stays.
 
@@ -152,6 +153,20 @@ on containers. If a container with the same or a better priority also takes that
 doesn't fit; containers with a worse priority get nothing. With the default target item (a carrot on a stick) in the
 frame, it destroys whatever has no other target or no room left in one. An empty frame does nothing.
 
+### ownership
+
+| Key | Default | Meaning |
+|---|---|---|
+| `enabled` | `true` | `true`: a sorter or pad sends only to frames of its owner and of the players its owner trusts (`/framesort trust`), and only they inspect it or see its deliveries in `/framesort trace`. `false`: it sends to any frame and anyone inspects it, as without owners, and `/framesort trust`, `untrust` and `trusted` are hidden. A reload applies it, to the commands too. |
+
+What a player sets up is theirs: a target frame belongs to whoever marked it (with `registration: automatic`, to
+whoever put its item in), a sorter to whoever put the activator in, a pad to whoever placed its top block. Owners are
+recorded even with `enabled: false`, so turning it on later finds them. What has no owner (built before owners
+existed, or pasted without its data) only sends to frames that have none either, and only admins inspect it;
+unmarking and marking a frame again (with `registration: automatic`, taking its item out and putting it back),
+putting the activator back, or breaking and placing a pad's top block again gives it an owner. More in
+[docs/commands.md](commands.md#owners-and-trust).
+
 ### inspect
 
 | Key | Default | Meaning |
@@ -168,14 +183,14 @@ frame, it destroys whatever has no other target or no room left in one. An empty
 |---|---|---|
 | `creation` | `anyone` | `anyone`: any player who places the top block on its base. `permission`: only players with `framesort.pad.create`. `item`: only by placing the pad's special item (from `/framesort give pad`) as the top block. |
 | `sweep-interval` | `10` | Ticks between checks for items resting on pads. Items that arrive by water or fall onto a pad are picked up then. |
-| `types.<id>.structure` | | Exactly two blocks: the top, where items rest, then its base. Each one is a material or a CraftEngine block (`'craftengine:<namespace>:<id>'`). Players build pads by hand, so a material must be a block a player can place (not `STICK`, `WATER` or `AIR`); otherwise the type is skipped with a warning. |
+| `types.<id>.structure` | | Exactly two blocks: the top, where items rest, then its base. The `<id>` can't contain `,`: each pad keeps it in its chunk between commas. Each one is a material or a CraftEngine block (`'craftengine:<namespace>:<id>'`). Players build pads by hand, so a material must be a block a player can place (not `STICK`, `WATER` or `AIR`); otherwise the type is skipped with a warning. |
 | `types.<id>.item` | | *Optional*, and so is each key in it: `name`, `lore` and `glint` of the special top block (see [Item look](#item-look)). Left out, or set to `''`, `[]` or `false`, the block has none of it. Its material is the top block of the structure and it looks like that block, so it takes no `components` (they are reported and ignored). With a CraftEngine top block the item is CraftEngine's, and `name`, `lore` and `glint` are laid over it (see [CraftEngine items and blocks](#item-look)). |
 
 A pad is created when its top block is placed on its base, so place the base first. It counts as long as both
-blocks stay; breaking the top block removes it. If the top block goes any other way (WorldEdit, a command, gravity),
-the pad is forgotten at the next sweep. Without its base a pad waits, and works again once the base is back. In
-`item` mode, breaking it gives the special item back. The top block of a registered pad can't be pushed by pistons
-or blown up.
+blocks stay; breaking the top block removes it, and whoever broke it is told so. If the top block goes any other
+way (WorldEdit, a command, gravity), the pad is forgotten at the next sweep. Without its base a pad waits, and works
+again once the base is back. In `item` mode, breaking it gives the special item back. The top block of a registered
+pad can't be pushed by pistons or blown up.
 
 Items resting up to one block above the top block count, so carpets or slabs on the pad are fine.
 
@@ -231,6 +246,22 @@ tags:
   tag left without valid members. The rest of a CraftEngine ID is not checked, because CraftEngine may not have loaded
   its items yet.
 
+## database.yml
+
+Where FrameSort keeps who trusts whom. Everything else stays in the world. Read on start only.
+
+| Key | Default | Meaning |
+|---|---|---|
+| `type` | `sqlite` | `sqlite`: a file in `plugins/FrameSort/`, nothing to set up. `mysql` or `mariadb`: the `remote` server, so several servers share the trust list. An unknown type stops FrameSort from starting. |
+| `sqlite.file` | `data.db` | The SQLite file, inside `plugins/FrameSort/`. |
+| `remote.host`, `port`, `database`, `username`, `password` | `localhost`, `3306`, `framesort`, `root`, `''` | The MySQL or MariaDB server. FrameSort's tables start with `framesort_`, so it can share a database with other plugins. |
+| `remote.properties` | `useSSL=false` | Extra JDBC URL parameters. |
+
+FrameSort reads the whole list when it starts; if the database can't be reached, FrameSort does not start. Each
+`/framesort trust` or `untrust` is saved before it applies. With MySQL or MariaDB, each server reads the list again
+every minute, so trust given on another server applies here within a minute; one given on this server applies at once.
+MariaDB's driver is downloaded on the first start, like HikariCP; the SQLite and MySQL drivers come with the server.
+
 ## Language
 
 `language` in `config.yml` picks `lang/<language>.yml` (`en_US`, `es_ES`), written the first time it is used. A
@@ -240,8 +271,9 @@ everywhere shows as the key and is reported once in the console. Messages use
 
 ### Help
 
-`command.help.header` opens the help (a list: one line per entry). Then comes one `command.help.<id>` line for
-each command the player may run, where `<usage>` is the first path of that command in `commands.yml`. If you move a
+The help is one message built from `command.help.layout` (a list: one line per entry). `<entries>` in it is one
+`command.help.<id>` line for each command the player may run, where `<usage>` is the first path of that command in
+`commands.yml`. If you move a
 command, the help follows it, and so do `trace.started` (`<stop>`), `tag.unknown-hint` and `give.players-only`
 (`<usage>`); any path you wrote by hand in the text does not.
 
@@ -256,8 +288,17 @@ Lists (`tag list`, `tag search`, `tag show` and the inspection lists) are built 
 | `pager.previous.enabled`, `pager.next.enabled` | The buttons; `<page>` is the page they open. Clicking is added by FrameSort, the hover is part of the text. |
 | `pager.previous.disabled`, `pager.next.disabled` | Shown when there is no page in that direction. |
 
+### Inspection title
+
+`inspect.title` and `inspect.title-item` stay short; `<details>` in them is the hover with the `inspect.details`
+lines that apply: where the source is (`place`), its owner (`owner`, or `no-owner`) and, for a sorter, how many items
+it has sent (`sorted`). Longer messages work the same way throughout `lang/`: a few words in chat, the rest in a
+hover.
+
 ### Frame card
 
 What a frame accepts is shown as one message built from `frame.layout`, framed like a page: `<title>` is
-`frame.title` and `<lines>` are the `frame.status`, `frame.into`, `frame.on-sorter`, `frame.accepts` and
-`frame.sources` lines that apply.
+`frame.title` and `<lines>` are the `frame.status`, `frame.owner`, `frame.into`, `frame.on-sorter`, `frame.accepts`
+and `frame.sources` lines that apply. A target without an owner shows `frame.no-owner`, or
+`frame.no-owner-automatic` under automatic registration. A tag line is `frame.accepts.tag-link` when its click lists
+the tag, else `frame.accepts.tag`.

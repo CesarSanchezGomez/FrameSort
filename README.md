@@ -9,14 +9,17 @@ container.
 - **Dependencies:** none. With [WorldGuard](https://enginehub.org/worldguard) installed, sorters and pads respect its
   regions; with [CraftEngine](https://github.com/Xiao-MoMi/craft-engine) installed, its custom items are sorted by
   their ID (see below).
-- **Storage:** none to set up. Targets, pads and items keep their data in the world (persistent data containers).
+- **Storage:** none to set up. Targets, pads and items keep their data in the world (persistent data containers);
+  who trusts whom is in `plugins/FrameSort/data.db` (SQLite), or in MySQL or MariaDB to share it between servers
+  (`database.yml`).
 
 ## Installation
 
 1. Put `FrameSort-<version>.jar` in the server's `plugins/` folder.
-2. Start the server once. FrameSort writes `config.yml`, `pads.yml`, `tags.yml`, `commands.yml` and the language
-   file in use (`lang/en_US.yml`) to `plugins/FrameSort/`.
-3. Edit them and run `/framesort reload` (`commands.yml` needs a restart).
+2. Start the server once. FrameSort writes `config.yml`, `pads.yml`, `tags.yml`, `commands.yml`, `database.yml` and
+   the language file in use (`lang/en_US.yml`) to `plugins/FrameSort/`, and downloads HikariCP and the MariaDB driver
+   on that first start.
+3. Edit them and run `/framesort reload` (`commands.yml` and `database.yml` need a restart).
 
 `/version FrameSort` shows the installed version.
 
@@ -27,7 +30,8 @@ out of those sorters.
 ## How it works
 
 1. **Targets.** Put an item in a frame on a container and sneak + right-click the frame with an empty hand to
-   mark it as a target. A frame accepts items in this order of preference:
+   mark it as a target. The mark goes with that item: putting another one in leaves the frame unmarked. A frame
+   accepts items in this order of preference:
    1. the exact item;
    2. a tag, when the frame item has one applied (`/framesort tag apply <tag>`): a game tag, or one of your own in
       `tags.yml`;
@@ -35,9 +39,10 @@ out of those sorters.
 
    A shulker box or bundle in the frame stands for what it holds, never for itself, and each of those matches
    ranks just below the same match made directly; to keep shulker boxes or bundles whole, put an empty one in the
-   frame: it takes any of its kind. When the preferred targets are full, the rest goes to the next ones. A frame holding
-   a carrot on a stick comes last: it takes whatever matches nothing else, and whatever the other targets have no
-   room for. A frame on a lava cauldron destroys leftovers.
+   frame: it takes any of its kind. Among targets that want it as much, the nearest fills first; when the preferred
+   targets are full, the rest goes to the next ones. A frame holding a carrot on a stick comes last: it takes whatever
+   matches nothing else, and whatever the other targets have no room for. A frame on a lava cauldron destroys
+   leftovers.
 2. **Sorters.** Put an Eye of Ender in a frame on a dispenser. The frame disappears and every second the dispenser
    sends up to 64 items from its inventory, at random, taking them from inside shulker boxes and bundles too. A
    shulker box or bundle goes whole once nothing inside it can go anywhere.
@@ -46,6 +51,13 @@ out of those sorters.
 4. **Inspect.** Sneak + right-click a sorter or pad with an empty hand: its targets' items glow (only for you, in
    configurable colours) and are listed page by page. Sneak + left-click a target frame to see what it accepts.
    `/framesort trace` shows the deliveries around you live.
+
+5. **Owners and trust.** What you set up is yours: the frames you mark, the sorters you put the activator in, the
+   pads you build. Your sorters and pads send only to your frames, so nobody can mark a frame near them and take
+   your items, and only you, the players you trust and admins see where they send.
+   `/framesort trust <player>` makes that player's frames count as yours for your sorters and pads, one way: a team
+   trusts each other. Breaking blocks or opening chests is still up to the server's protection. See
+   [docs/commands.md](docs/commands.md#owners-and-trust).
 
 **WorldGuard.** When it is installed, a sorter or pad only sends to target frames on blocks in exactly the same
 regions as itself, whether they hold a container, a drop spot or lava; both outside every region is fine. Nobody can
@@ -80,9 +92,13 @@ never duplicated.
 | `/framesort tag remove` | `framesort.command.tag-remove` | everyone |
 | `/framesort where` | `framesort.command.where` | everyone |
 | `/framesort trace [seconds\|stop]` | `framesort.command.trace` | everyone |
-| `/framesort inspect <page>` (page buttons of an inspection) | `framesort.command.inspect` | everyone |
+| `/framesort trust <player>` | `framesort.command.trust` | everyone |
+| `/framesort untrust <player>` | `framesort.command.untrust` | everyone |
+| `/framesort trusted [page]` | `framesort.command.trusted` | everyone |
 | `/framesort give sorter\|pad <type> [player] [amount]` | `framesort.command.give` | op |
 | `/framesort reload` | `framesort.command.reload` | op |
+
+The three trust commands only exist while `ownership.enabled` is on.
 
 Every command also runs as `/fs`. Where each command lives, its permission and whether it is enabled are set in
 `commands.yml`; see [docs/commands.md](docs/commands.md). The help lists only the commands the player may run.
@@ -92,17 +108,19 @@ Every command also runs as `/fs`. Where each command lives, its permission and w
 | Permission | Default | Grants |
 |---|---|---|
 | `framesort.*` | op | everything |
-| `framesort.use` | everyone | inspecting, marking targets and the help, tag, where, trace and inspect commands (every `framesort.command.tag-*`) |
-| `framesort.admin` | op | creating pads in `permission` mode and the give and reload commands |
+| `framesort.use` | everyone | inspecting, marking targets and the help, tag, where, trace, trust, untrust and trusted commands (every `framesort.command.tag-*`) |
+| `framesort.admin` | op | creating pads in `permission` mode, inspecting anyone's sorters and pads, and the give and reload commands |
 | `framesort.inspect` | everyone | inspecting sorters, pads and frames |
+| `framesort.inspect.others` | op | inspecting and tracing sorters and pads whose owner doesn't trust you |
 | `framesort.target.create` | everyone | marking frames as targets (with `framesort.inspect`) |
 | `framesort.pad.create` | op | creating pads when `pads.yml` has `creation: permission` |
 | `framesort.command.<command>` | as in the table above | each command |
 
 ## Configuration
 
-`config.yml` (sorters, targets, delivery, inspection), `pads.yml` (pad types and who can create them), `tags.yml`
-(tags of your own and replacements for the game's) and `lang/`. See [docs/configuration.md](docs/configuration.md).
+`config.yml` (sorters, targets, delivery, ownership, inspection), `pads.yml` (pad types and who can create them),
+`tags.yml` (tags of your own and replacements for the game's), `database.yml` (where trust is kept) and `lang/`.
+See [docs/configuration.md](docs/configuration.md).
 
 ## Build
 

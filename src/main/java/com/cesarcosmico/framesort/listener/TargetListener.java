@@ -32,9 +32,16 @@ public final class TargetListener implements Listener {
         }
     }
 
+    // MONITOR: only an item that really went in ends the mark; the event is left alone. Every item a player puts in
+    // passes here, while an item can leave a frame with no event that confirms it (an arrow, another plugin).
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onFrameChange(PlayerItemFrameChangeEvent event) {
-        index.changed(event.getItemFrame().getWorld());
+        ItemFrame frame = event.getItemFrame();
+        if (event.getAction() == PlayerItemFrameChangeEvent.ItemFrameChangeAction.PLACE) {
+            index.itemPlaced(frame, event.getPlayer().getUniqueId());
+        } else {
+            index.changed(frame.getWorld());
+        }
     }
 
     // Hitting a frame (arrows, explosions) knocks its item out without a frame change event.

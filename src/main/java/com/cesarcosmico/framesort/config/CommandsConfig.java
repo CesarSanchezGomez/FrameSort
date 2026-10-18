@@ -14,6 +14,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
@@ -37,9 +38,11 @@ public final class CommandsConfig {
     }
 
     private final Map<String, Feature> features;
+    private final Map<String, BooleanSupplier> conditions;
 
-    private CommandsConfig(Map<String, Feature> features) {
+    private CommandsConfig(Map<String, Feature> features, Map<String, BooleanSupplier> conditions) {
         this.features = Map.copyOf(features);
+        this.conditions = Map.copyOf(conditions);
     }
 
     public static CommandsConfig load(Plugin plugin, Consumer<String> warn)
@@ -82,17 +85,34 @@ public final class CommandsConfig {
             }
             features.put(id, new Feature(id, enabled, permission, paths));
         }
-        return new CommandsConfig(features);
+        return new CommandsConfig(features, Map.of());
+    }
+
+    /**
+     * A copy where {@code id} is available only while {@code condition} holds: for a feature that makes sense only
+     * with a setting a reload can change. The command tree, the help and chat links follow it.
+     */
+    public CommandsConfig onlyWhen(String id, BooleanSupplier condition) {
+        Map<String, BooleanSupplier> all = new HashMap<>(conditions);
+        all.put(id, condition);
+        return new CommandsConfig(features, all);
+    }
+
+    /** Whether {@code id} is enabled in the file and its condition, if it has one, holds now. */
+    public boolean available(String id) {
+        Feature feature = features.get(id);
+        BooleanSupplier condition = conditions.get(id);
+        return feature != null && feature.enabled() && (condition == null || condition.getAsBoolean());
     }
 
     public @Nullable Feature feature(String id) {
         return features.get(id);
     }
 
-    /** The first path of an enabled feature, such as {@code /plugin tag}, for clickable chat links. */
+    /** The first path of an available feature, such as {@code /plugin tag}, for clickable chat links. */
     public @Nullable String primaryUsage(String id) {
         Feature feature = features.get(id);
-        if (feature == null || !feature.enabled() || feature.paths().isEmpty()) {
+        if (feature == null || !available(id) || feature.paths().isEmpty()) {
             return null;
         }
         return "/" + String.join(" ", feature.paths().getFirst());

@@ -253,6 +253,19 @@ class FrameSortSettingsTest {
     }
 
     @Test
+    void ownershipIsOnByDefaultAndCanBeTurnedOff() throws Exception {
+        List<String> warnings = new ArrayList<>();
+        assertTrue(parse(bundled("config.yml"), warnings).ownership());
+
+        YamlConfiguration yaml = new YamlConfiguration();
+        yaml.loadFromString("ownership: {enabled: false}");
+        assertFalse(parse(yaml, warnings).ownership());
+        yaml.loadFromString("ownership: {enabled: 'nope'}");
+        assertTrue(parse(yaml, warnings).ownership());
+        assertEquals(List.of("config.yml > ownership.enabled: expected true or false, using true"), warnings);
+    }
+
+    @Test
     void materialsThatAreNotItemsFallBack() throws Exception {
         YamlConfiguration yaml = new YamlConfiguration();
         yaml.loadFromString("""

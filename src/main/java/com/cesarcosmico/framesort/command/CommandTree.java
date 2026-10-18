@@ -12,11 +12,9 @@ import io.papermc.paper.command.brigadier.Commands;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.function.Predicate;
 
 /**
@@ -29,7 +27,8 @@ public final class CommandTree {
         private final String name;
         private final Map<String, Node> children = new LinkedHashMap<>();
         private @Nullable CommandFeature feature;
-        private String permission = "";
+        // Whether a source may see and run the feature here: its permission, and its condition if it has one.
+        private Predicate<CommandSourceStack> usable = source -> false;
 
         private Node(String name) {
             this.name = name;
@@ -39,6 +38,10 @@ public final class CommandTree {
     private CommandTree() {
     }
 
+    /**
+     * Registers every enabled feature, also one whose condition is false now ({@link CommandsConfig#onlyWhen}): a
+     * reload can make it true, and until then nobody sees or runs it.
+     */
     public static List<LiteralCommandNode<CommandSourceStack>> build(List<CommandFeature> features,
                                                                      CommandsConfig config) {
         Map<String, Node> roots = new LinkedHashMap<>();
@@ -53,7 +56,9 @@ public final class CommandTree {
                     node = node.children.computeIfAbsent(word, Node::new);
                 }
                 node.feature = feature;
-                node.permission = spec.permission();
+                String id = feature.id();
+                String permission = spec.permission();
+                node.usable = source -> config.available(id) && allowed(source, permission);
             }
         }
         List<LiteralCommandNode<CommandSourceStack>> built = new ArrayList<>();
@@ -65,11 +70,11 @@ public final class CommandTree {
 
     private static LiteralArgumentBuilder<CommandSourceStack> literal(Node node, String path) {
         LiteralArgumentBuilder<CommandSourceStack> builder = Commands.literal(node.name);
-        Set<String> permissions = new HashSet<>();
-        collectPermissions(node, permissions);
-        builder.requires(source -> permissions.stream().anyMatch(permission -> allowed(source, permission)));
+        List<Predicate<CommandSourceStack>> below = new ArrayList<>();
+        collectUsable(node, below);
+        builder.requires(source -> below.stream().anyMatch(usable -> usable.test(source)));
         if (node.feature != null) {
-            attach(builder, node.feature, node.permission, path);
+            attach(builder, node.feature, node.usable, path);
         }
         for (Node child : node.children.values()) {
             builder.then(literal(child, path + " " + child.name));
@@ -77,10 +82,9 @@ public final class CommandTree {
         return builder;
     }
 
-    // A literal is visible to anyone allowed below it, so the feature's own command and arguments check its permission.
+    // A literal is visible to anyone allowed below it, so the feature's own command and arguments check it again.
     private static void attach(LiteralArgumentBuilder<CommandSourceStack> builder, CommandFeature feature,
-                               String permission, String path) {
-        Predicate<CommandSourceStack> allowed = source -> allowed(source, permission);
+                               Predicate<CommandSourceStack> allowed, String path) {
         LiteralArgumentBuilder<CommandSourceStack> own = Commands.literal(builder.getLiteral());
         feature.attach(own, path);
         Command<CommandSourceStack> command = own.getCommand();
@@ -107,12 +111,12 @@ public final class CommandTree {
         return builder;
     }
 
-    private static void collectPermissions(Node node, Set<String> into) {
+    private static void collectUsable(Node node, List<Predicate<CommandSourceStack>> into) {
         if (node.feature != null) {
-            into.add(node.permission);
+            into.add(node.usable);
         }
         for (Node child : node.children.values()) {
-            collectPermissions(child, into);
+            collectUsable(child, into);
         }
     }
 

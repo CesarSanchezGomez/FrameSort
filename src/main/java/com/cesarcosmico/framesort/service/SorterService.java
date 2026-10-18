@@ -2,6 +2,7 @@ package com.cesarcosmico.framesort.service;
 
 import com.cesarcosmico.framesort.config.FrameSortSettings;
 import com.cesarcosmico.framesort.config.SorterSettings;
+import com.cesarcosmico.framesort.item.FrameCodec;
 import com.cesarcosmico.framesort.item.ItemOverlay;
 import com.cesarcosmico.framesort.item.ItemTemplate;
 import com.cesarcosmico.framesort.item.Keys;
@@ -123,9 +124,25 @@ public final class SorterService {
         return Change.UNCHANGED;
     }
 
-    /** Re-checks a frame on the next tick: when an item-frame event fires, the frame still holds the old item. */
-    public void considerLater(ItemFrame frame, Consumer<Change> then) {
-        frame.getScheduler().run(plugin, task -> then.accept(consider(frame)), null);
+    /**
+     * Re-checks a frame on the next tick: when an item-frame event fires, the frame still holds the old item. A
+     * sorter belongs to whoever put the activator in, not to whoever hung the frame; {@code placer} is {@code null}
+     * when the change was not putting an item in, such as rotating the frame of a sorter not yet created.
+     */
+    public void considerLater(ItemFrame frame, @Nullable UUID placer, Consumer<Change> then) {
+        frame.getScheduler().run(plugin, task -> {
+            Change change = consider(frame);
+            if (change == Change.CREATED && placer != null) {
+                FrameCodec.setOwner(frame, placer);
+            }
+            then.accept(change);
+        }, null);
+    }
+
+    /** The owner of the sorter on {@code block}: the owner of its frame, or {@code null} when nobody owns it. */
+    public @Nullable UUID ownerOf(Block block) {
+        Sorter sorter = sorters.get(FrameGeometry.key(block));
+        return sorter == null ? null : FrameCodec.owner(sorter.frame);
     }
 
     /** The frame left the world because its chunk unloaded; the sorter comes back with the chunk. */
@@ -228,6 +245,7 @@ public final class SorterService {
 
     private void dispense(Sorter sorter) {
         Location location = sorter.block.getLocation().toCenterLocation();
+        UUID owner = FrameCodec.owner(sorter.frame);
         int sent = 0;
         // What found nowhere to go this turn is not tried again.
         List<ItemStack> missed = new ArrayList<>();
@@ -242,7 +260,7 @@ public final class SorterService {
             }
             ItemStack tried = slot.get();
             int kept = Math.max(0, tried.getAmount() - (PER_TURN - sent));
-            int moved = delivery.deliver(sorter.block, new SlotSource(slot, location, kept));
+            int moved = delivery.deliver(sorter.block, owner, new SlotSource(slot, location, kept));
             if (moved == 0) {
                 missed.add(tried);
             }

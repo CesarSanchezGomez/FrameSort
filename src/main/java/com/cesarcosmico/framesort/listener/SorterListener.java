@@ -19,6 +19,7 @@ import org.bukkit.event.hanging.HangingBreakEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
 
+import java.util.UUID;
 import java.util.function.Supplier;
 
 public final class SorterListener implements Listener {
@@ -67,7 +68,9 @@ public final class SorterListener implements Listener {
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onFrameChange(PlayerItemFrameChangeEvent event) {
         Player player = event.getPlayer();
-        sorters.considerLater(event.getItemFrame(), change -> tell(player, change));
+        UUID placer = event.getAction() == PlayerItemFrameChangeEvent.ItemFrameChangeAction.PLACE
+                ? player.getUniqueId() : null;
+        sorters.considerLater(event.getItemFrame(), placer, change -> tell(player, change));
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)

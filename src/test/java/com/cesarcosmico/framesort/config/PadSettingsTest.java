@@ -41,6 +41,25 @@ class PadSettingsTest {
     }
 
     @Test
+    void aTypeIdWithACommaIsSkipped() throws Exception {
+        YamlConfiguration yaml = new YamlConfiguration();
+        yaml.loadFromString("""
+                types:
+                  'a,b':
+                    structure: [CRYING_OBSIDIAN, GILDED_BLACKSTONE]
+                  simple:
+                    structure: [CRYING_OBSIDIAN, GILDED_BLACKSTONE]
+                """);
+        List<String> warnings = new ArrayList<>();
+        PadSettings settings = parse(yaml, warnings);
+
+        assertEquals(1, settings.types().size());
+        assertNotNull(settings.type("simple"));
+        assertEquals(List.of("pads.yml > types.a,b: a pad type id can't contain ','; pad type 'a,b' is skipped"),
+                warnings);
+    }
+
+    @Test
     void padItemsTakeNoComponents() throws Exception {
         YamlConfiguration yaml = new YamlConfiguration();
         yaml.loadFromString("""

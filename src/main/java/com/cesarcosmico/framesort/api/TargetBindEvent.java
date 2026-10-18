@@ -8,10 +8,13 @@ import org.bukkit.event.entity.EntityEvent;
 
 /**
  * Fired when FrameSort considers an item frame as a target for a sorter or teleport pad. Cancel it to keep that
- * source from sending items to the frame, for example when the frame is inside a claim the source's owner
- * cannot access.
+ * source from sending items to the frame, for example when the frame is inside a claim you protect.
  *
- * <p>Results are cached, so the event fires again only after targets near the source change.</p>
+ * <p>It only fires for a frame the source may send to by owner: with ownership on, a frame of the source's owner or
+ * of a player that owner trusts.</p>
+ *
+ * <p>Results are cached, so the event fires again only after targets near the source change, or after a change of
+ * trust.</p>
  */
 public final class TargetBindEvent extends EntityEvent implements Cancellable {
 

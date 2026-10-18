@@ -2,13 +2,12 @@ package com.cesarcosmico.framesort.service;
 
 import com.cesarcosmico.framesort.config.FrameSortSettings;
 import com.cesarcosmico.framesort.config.TargetSettings;
-import com.cesarcosmico.framesort.item.Keys;
+import com.cesarcosmico.framesort.item.FrameCodec;
 import com.cesarcosmico.framesort.model.BlockKey;
 import com.cesarcosmico.framesort.model.ChunkKey;
 import com.cesarcosmico.framesort.model.TargetRegistration;
 import org.bukkit.World;
 import org.bukkit.entity.ItemFrame;
-import org.bukkit.persistence.PersistentDataType;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -25,6 +24,8 @@ public final class TargetIndex {
     private final Supplier<FrameSortSettings> settings;
     private final Map<ChunkKey, Set<ItemFrame>> frames = new HashMap<>();
     private final Map<UUID, Long> epochs = new HashMap<>();
+    // Added to every world's epoch: a change of trust can change any world's matches, even one with no epoch yet.
+    private long everywhere;
 
     public TargetIndex(Supplier<FrameSortSettings> settings) {
         this.settings = settings;
@@ -51,20 +52,49 @@ public final class TargetIndex {
         epochs.merge(world.getUID(), 1L, Long::sum);
     }
 
+    public void changedEverywhere() {
+        everywhere++;
+    }
+
     public long epoch(UUID world) {
-        return epochs.getOrDefault(world, 0L);
+        return epochs.getOrDefault(world, 0L) + everywhere;
     }
 
     public boolean isMarked(ItemFrame frame) {
-        return frame.getPersistentDataContainer().has(Keys.TARGET);
+        return FrameCodec.isMarked(frame);
     }
 
-    public void setMarked(ItemFrame frame, boolean marked) {
-        if (marked) {
-            frame.getPersistentDataContainer().set(Keys.TARGET, PersistentDataType.BOOLEAN, true);
-        } else {
-            frame.getPersistentDataContainer().remove(Keys.TARGET);
+    /** A marked frame belongs to whoever marked it. */
+    public void mark(ItemFrame frame, UUID owner) {
+        FrameCodec.setOwner(frame, owner);
+        FrameCodec.setMarked(frame, true);
+        reindex(frame);
+    }
+
+    /** Unmarking frees the frame, so anyone may mark it next. */
+    public void unmark(ItemFrame frame) {
+        FrameCodec.clearOwner(frame);
+        FrameCodec.setMarked(frame, false);
+        reindex(frame);
+    }
+
+    /**
+     * A frame is a target for the item in it, so a new item ends its mark. Under automatic registration nothing is
+     * marked, and the frame belongs to whoever put the item in.
+     */
+    public void itemPlaced(ItemFrame frame, UUID placer) {
+        if (isMarked(frame)) {
+            unmark(frame);
         }
+        if (settings.get().targets().registration() == TargetRegistration.AUTOMATIC) {
+            FrameCodec.setOwner(frame, placer);
+        }
+        // Cached matches remember the frame's item, so a new one changes them even when nothing else did.
+        changed(frame.getWorld());
+    }
+
+    // Removing and adding again always moves the frame in or out of the index, or out and back in, so the epoch rises.
+    private void reindex(ItemFrame frame) {
         remove(frame);
         add(frame);
     }
@@ -84,7 +114,7 @@ public final class TargetIndex {
                     continue;
                 }
                 for (ItemFrame frame : inChunk) {
-                    if (FrameGeometry.key(frame.getLocation().getBlock()).distanceSquared(center) <= radiusSquared) {
+                    if (FrameGeometry.distanceSquared(frame, center) <= radiusSquared) {
                         found.add(frame);
                     }
                 }

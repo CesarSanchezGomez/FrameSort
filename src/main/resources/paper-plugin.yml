@@ -1,6 +1,7 @@
 name: FrameSort
 version: '${version}'
 main: com.cesarcosmico.framesort.FrameSortPlugin
+loader: com.cesarcosmico.framesort.FrameSortLoader
 api-version: '26.2'
 authors: [ CesarCosmico ]
 description: 'Send items to item frames from sorter dispensers and teleport pads, without hopper chains.'
@@ -25,7 +26,7 @@ permissions:
       framesort.use: true
       framesort.admin: true
   framesort.use:
-    description: 'Player access (inspecting, target marking, tags, tracing).'
+    description: 'Player access (inspecting, target marking, tags, tracing, trust).'
     default: true
     children:
       framesort.inspect: true
@@ -37,18 +38,24 @@ permissions:
       framesort.command.tag-apply: true
       framesort.command.tag-remove: true
       framesort.command.trace: true
-      framesort.command.inspect: true
       framesort.command.where: true
+      framesort.command.trust: true
+      framesort.command.untrust: true
+      framesort.command.trusted: true
   framesort.admin:
-    description: 'Administrator access (give items, reload, pads in permission mode).'
+    description: 'Administrator access (give items, reload, pads in permission mode, anyone''s sorters and pads).'
     default: op
     children:
       framesort.pad.create: true
+      framesort.inspect.others: true
       framesort.command.give: true
       framesort.command.reload: true
   framesort.inspect:
     description: 'Inspect sorters, pads and target frames by sneaking with an empty hand.'
     default: true
+  framesort.inspect.others:
+    description: 'Inspect and trace sorters and pads whose owner does not trust you.'
+    default: op
   framesort.target.create:
     description: 'Mark item frames as targets (targets.registration manual).'
     default: true
@@ -76,11 +83,17 @@ permissions:
   framesort.command.trace:
     description: 'Trace nearby deliveries with /framesort trace.'
     default: true
-  framesort.command.inspect:
-    description: 'Page through inspection results with /framesort inspect.'
-    default: true
   framesort.command.where:
     description: 'See where the held item would go from the nearest sorter or pad with /framesort where.'
+    default: true
+  framesort.command.trust:
+    description: 'Let a player''s frames receive from your sorters and pads with /framesort trust.'
+    default: true
+  framesort.command.untrust:
+    description: 'Stop trusting a player with /framesort untrust.'
+    default: true
+  framesort.command.trusted:
+    description: 'List whom you trust and who trusts you with /framesort trusted.'
     default: true
   framesort.command.give:
     description: 'Give sorter activators and pad blocks with /framesort give.'

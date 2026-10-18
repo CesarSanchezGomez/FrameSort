@@ -6,13 +6,18 @@ import com.mojang.brigadier.Command;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.JoinConfiguration;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import org.bukkit.command.CommandSender;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
 
-/** Lists one line per feature ({@code command.help.<id>}), only those enabled that the sender may run. */
+/**
+ * One message from {@code command.help.layout}, whose {@code <entries>} is one line per feature
+ * ({@code command.help.<id>}), only those available that the sender may run.
+ */
 public final class HelpCommand implements CommandFeature {
 
     private final Supplier<Messages> messages;
@@ -35,15 +40,15 @@ public final class HelpCommand implements CommandFeature {
     public void attach(LiteralArgumentBuilder<CommandSourceStack> node, String path) {
         node.executes(context -> {
             CommandSender sender = context.getSource().getSender();
-            Component help = messages.get().get("command.help.header");
+            List<Component> lines = new ArrayList<>();
             for (String id : listed) {
                 String usage = commands.usageFor(id, sender::hasPermission);
                 if (usage != null) {
-                    help = help.appendNewline().append(messages.get().get("command.help." + id,
-                            Placeholder.unparsed("usage", usage)));
+                    lines.add(messages.get().get("command.help." + id, Placeholder.unparsed("usage", usage)));
                 }
             }
-            sender.sendMessage(help);
+            sender.sendMessage(messages.get().get("command.help.layout",
+                    Placeholder.component("entries", Component.join(JoinConfiguration.newlines(), lines))));
             return Command.SINGLE_SUCCESS;
         });
     }
