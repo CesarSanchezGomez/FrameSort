@@ -51,6 +51,18 @@ class CommandTreeTest {
     }
 
     @Test
+    void aFeatureWhoseConditionIsFalseIsStillRegistered() throws Exception {
+        CommandsConfig config = config("""
+                help: {permission: 'h', usage: ['/p']}
+                trust: {permission: 't', usage: ['/p trust']}
+                """).onlyWhen("trust", () -> false);
+        List<LiteralCommandNode<CommandSourceStack>> roots = CommandTree.build(
+                List.of(new Feature("help"), new Feature("trust")), config);
+
+        assertNotNull(roots.getFirst().getChild("trust"));
+    }
+
+    @Test
     void disabledFeaturesAreLeftOut() throws Exception {
         CommandsConfig config = config("""
                 help: {permission: 'h', usage: ['/p']}

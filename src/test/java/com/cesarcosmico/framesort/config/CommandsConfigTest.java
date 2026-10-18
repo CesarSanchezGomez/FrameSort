@@ -8,11 +8,13 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class CommandsConfigTest {
 
@@ -95,6 +97,30 @@ class CommandsConfigTest {
         assertEquals("/p open", config.usageFor("open", permission -> false));
         assertNull(config.usageFor("off", permission -> true));
         assertNull(config.usageFor("missing", permission -> true));
+    }
+
+    @Test
+    void aConditionHidesTheFeatureWhileItIsFalse() throws Exception {
+        YamlConfiguration bundled = yaml("trust: {permission: 'p.trust', usage: ['/p trust']}\n");
+        CommandsConfig plain = CommandsConfig.parse(bundled, bundled, warning -> { });
+        AtomicBoolean on = new AtomicBoolean(false);
+        CommandsConfig config = plain.onlyWhen("trust", on::get);
+
+        assertFalse(config.available("trust"));
+        assertNull(config.primaryUsage("trust"));
+        assertNull(config.usageFor("trust", permission -> true));
+        on.set(true);
+        assertTrue(config.available("trust"));
+        assertEquals("/p trust", config.usageFor("trust", permission -> true));
+        assertTrue(plain.available("trust"));
+    }
+
+    @Test
+    void aConditionCannotEnableAFeatureTheFileTurnsOff() throws Exception {
+        YamlConfiguration bundled = yaml("trust: {enabled: false, usage: ['/p trust']}\n");
+        CommandsConfig config = CommandsConfig.parse(bundled, bundled, warning -> { }).onlyWhen("trust", () -> true);
+
+        assertFalse(config.available("trust"));
     }
 
     @Test

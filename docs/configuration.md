@@ -270,8 +270,9 @@ everywhere shows as the key and is reported once in the console. Messages use
 
 ### Help
 
-`command.help.header` opens the help (a list: one line per entry). Then comes one `command.help.<id>` line for
-each command the player may run, where `<usage>` is the first path of that command in `commands.yml`. If you move a
+The help is one message built from `command.help.layout` (a list: one line per entry). `<entries>` in it is one
+`command.help.<id>` line for each command the player may run, where `<usage>` is the first path of that command in
+`commands.yml`. If you move a
 command, the help follows it, and so do `trace.started` (`<stop>`), `tag.unknown-hint` and `give.players-only`
 (`<usage>`); any path you wrote by hand in the text does not.
 

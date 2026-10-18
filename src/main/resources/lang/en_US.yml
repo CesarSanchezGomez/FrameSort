@@ -4,10 +4,11 @@ prefix: '<white>[</white><gradient:#F7B733:#FC4A1A>FrameSort</gradient><white>]<
 
 command:
   help:
-    header:
+    layout:
       - '<prefix><gray>Sort items into item frames.</gray>'
       - '<gray>• <white>Sneak + right-click</white> a sorter or pad with an empty hand to see its targets (hold an item in your off hand to see only its targets).</gray>'
       - '<gray>• <white>Sneak + right-click</white> a frame with an empty hand to mark it as a target; <white>sneak + left-click</white> it to see what it accepts.</gray>'
+      - '<entries>'
     tag-list: '<gray>• <white><usage> [page]</white> <dark_gray>-</dark_gray> every item and block tag, and those in tags.yml.</gray>'
     tag-search: '<gray>• <white><usage> \<text> [page]</white> <dark_gray>-</dark_gray> tags whose name contains a text.</gray>'
     tag-show: '<gray>• <white><usage> \<tag> [page]</white> <dark_gray>-</dark_gray> what a tag contains.</gray>'

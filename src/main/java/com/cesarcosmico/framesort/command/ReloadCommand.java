@@ -7,6 +7,7 @@ import com.mojang.brigadier.context.CommandContext;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
 
 import java.util.concurrent.Callable;
 import java.util.function.Supplier;
@@ -48,6 +49,10 @@ public final class ReloadCommand implements CommandFeature {
             sender.sendMessage(messages.get().get("command.reload-failed",
                     Placeholder.unparsed("error", String.valueOf(e.getMessage()))));
             return Command.SINGLE_SUCCESS;
+        }
+        // A command may follow a setting the reload just changed, so each player's command list is sent again.
+        for (Player player : sender.getServer().getOnlinePlayers()) {
+            player.updateCommands();
         }
         sender.sendMessage(warnings == 0
                 ? messages.get().get("command.reloaded")
