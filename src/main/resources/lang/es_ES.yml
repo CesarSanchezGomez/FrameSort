@@ -123,7 +123,6 @@ mark:
   no-permission: '<prefix><red>No puedes marcar destinos</red>'
   wrong-type: '<prefix><red>Este marco no puede ser destino</red>'
   not-yours: '<prefix><red><hover:show_text:"<gray>Solo su dueño puede desmarcarlo.</gray>">Este destino es de <white><player></white></hover></red>'
-  cleared: '<gray>Ya no es destino</gray>'
 
 tag-item:
   applied: '<prefix><green><hover:show_text:"<gray>En un marco representa el tag.</gray>">Etiquetado <white>#<tag></white></hover></green>'

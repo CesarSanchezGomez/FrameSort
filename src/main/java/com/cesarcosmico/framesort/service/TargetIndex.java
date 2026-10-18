@@ -80,21 +80,17 @@ public final class TargetIndex {
 
     /**
      * A frame is a target for the item in it, so a new item ends its mark. Under automatic registration nothing is
-     * marked, and the frame belongs to whoever put the item in. True when this ended a mark under manual registration,
-     * where the frame stops being a target.
+     * marked, and the frame belongs to whoever put the item in.
      */
-    public boolean itemPlaced(ItemFrame frame, UUID placer) {
-        boolean wasMarked = isMarked(frame);
-        if (wasMarked) {
+    public void itemPlaced(ItemFrame frame, UUID placer) {
+        if (isMarked(frame)) {
             unmark(frame);
         }
-        boolean automatic = settings.get().targets().registration() == TargetRegistration.AUTOMATIC;
-        if (automatic) {
+        if (settings.get().targets().registration() == TargetRegistration.AUTOMATIC) {
             FrameCodec.setOwner(frame, placer);
         }
         // Cached matches remember the frame's item, so a new one changes them even when nothing else did.
         changed(frame.getWorld());
-        return wasMarked && !automatic;
     }
 
     // Removing and adding again always moves the frame in or out of the index, or out and back in, so the epoch rises.

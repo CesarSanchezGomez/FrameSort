@@ -1,27 +1,21 @@
 package com.cesarcosmico.framesort.listener;
 
 import com.cesarcosmico.framesort.service.TargetIndex;
-import com.cesarcosmico.framesort.text.Messages;
 import com.destroystokyo.paper.event.entity.EntityAddToWorldEvent;
 import com.destroystokyo.paper.event.entity.EntityRemoveFromWorldEvent;
 import io.papermc.paper.event.player.PlayerItemFrameChangeEvent;
 import org.bukkit.entity.ItemFrame;
-import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
 
-import java.util.function.Supplier;
-
 public final class TargetListener implements Listener {
 
     private final TargetIndex index;
-    private final Supplier<Messages> messages;
 
-    public TargetListener(TargetIndex index, Supplier<Messages> messages) {
+    public TargetListener(TargetIndex index) {
         this.index = index;
-        this.messages = messages;
     }
 
     @EventHandler
@@ -43,11 +37,10 @@ public final class TargetListener implements Listener {
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onFrameChange(PlayerItemFrameChangeEvent event) {
         ItemFrame frame = event.getItemFrame();
-        Player player = event.getPlayer();
-        if (event.getAction() != PlayerItemFrameChangeEvent.ItemFrameChangeAction.PLACE) {
+        if (event.getAction() == PlayerItemFrameChangeEvent.ItemFrameChangeAction.PLACE) {
+            index.itemPlaced(frame, event.getPlayer().getUniqueId());
+        } else {
             index.changed(frame.getWorld());
-        } else if (index.itemPlaced(frame, player.getUniqueId())) {
-            player.sendActionBar(messages.get().get("mark.cleared"));
         }
     }
 
