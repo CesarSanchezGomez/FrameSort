@@ -275,18 +275,18 @@ public final class InspectService {
     public void toggleMark(Player player, ItemFrame frame) {
         Messages text = messages.get();
         if (!player.hasPermission(TargetIndex.MARK_PERMISSION)) {
-            player.sendMessage(text.get("mark.no-permission"));
+            player.sendActionBar(text.get("mark.no-permission"));
             return;
         }
         if (!index.markable(frame)) {
-            player.sendMessage(text.get("mark.wrong-type"));
+            player.sendActionBar(text.get("mark.wrong-type"));
             return;
         }
         boolean mark = !index.isMarked(frame);
         // Unmarking someone else's frame would send their items down a level, maybe into lava.
         UUID owner = FrameCodec.owner(frame);
         if (!mark && settings.get().ownership() && owner != null && !owner.equals(player.getUniqueId())) {
-            player.sendMessage(text.get("mark.not-yours", Placeholder.unparsed("player", trust.name(owner))));
+            player.sendActionBar(text.get("mark.not-yours", Placeholder.unparsed("player", trust.name(owner))));
             return;
         }
         if (mark) {
@@ -294,9 +294,14 @@ public final class InspectService {
         } else {
             index.unmark(frame);
         }
-        player.sendMessage(text.get(mark ? "mark.marked" : "mark.unmarked"));
+        showMark(player, frame, mark);
+    }
+
+    /** How marking or unmarking a frame answers, by hand or by automark: the action bar, and the item glowing. */
+    public void showMark(Player player, ItemFrame frame, boolean marked) {
+        player.sendActionBar(messages.get().get(marked ? "mark.marked" : "mark.unmarked"));
         InspectSettings.Colors colors = settings.get().inspect().colors();
-        highlight(player, List.of(new HighlightService.Highlight(frame, mark ? colors.container() : colors.lava())));
+        highlight(player, List.of(new HighlightService.Highlight(frame, marked ? colors.container() : colors.lava())));
     }
 
     public void stopAll() {

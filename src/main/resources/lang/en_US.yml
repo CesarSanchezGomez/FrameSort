@@ -121,8 +121,7 @@ mark:
   unmarked: '<prefix><yellow>Frame unmarked</yellow>'
   no-permission: '<prefix><red>You can''t mark targets</red>'
   wrong-type: '<prefix><red>This frame can''t be a target</red>'
-  not-yours: '<prefix><red><hover:show_text:"<gray>Only its owner can unmark it.</gray>">This target is <white><player></white>''s</hover></red>'
-  auto: '<green>Marked as a target:</green> <white><item></white>'
+  not-yours: '<prefix><red>Only <white><player></white> can unmark this target</red>'
 
 automark:
   enabled: '<prefix><green><hover:show_text:"<gray>An item you put in a frame on a<newline>container or composter marks it.<newline>Walls and lava: sneak + right-click.</gray>">Automark on</hover></green>'

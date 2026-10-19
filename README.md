@@ -30,9 +30,9 @@ keeps its hidden frame until it loads with FrameSort installed, so before removi
 ## How it works
 
 1. **Targets.** Put an item in a frame on a container and sneak + right-click the frame with an empty hand to
-   mark it as a target. With `/framesort automark` on, putting the item in is enough, and the action bar says so.
-   The mark goes with that item: putting another one in leaves the frame unmarked, or, with automark, marked for
-   whoever put it in. A frame accepts items in this order of preference:
+   mark it as a target: it glows and the action bar says so. With `/framesort automark` on, putting the item in is
+   enough. The mark goes with that item: putting another one in leaves the frame unmarked, or, with automark,
+   marked for whoever put it in. A frame accepts items in this order of preference:
    1. the exact item;
    2. a tag, when the frame item has one applied (`/framesort tag apply <tag>`): a game tag, or one of your own in
       `tags.yml`;

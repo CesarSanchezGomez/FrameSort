@@ -121,8 +121,7 @@ mark:
   unmarked: '<prefix><yellow>Marco desmarcado</yellow>'
   no-permission: '<prefix><red>No puedes marcar destinos</red>'
   wrong-type: '<prefix><red>Este marco no puede ser destino</red>'
-  not-yours: '<prefix><red><hover:show_text:"<gray>Solo su dueño puede desmarcarlo.</gray>">Este destino es de <white><player></white></hover></red>'
-  auto: '<green>Marcado como destino:</green> <white><item></white>'
+  not-yours: '<prefix><red>Solo <white><player></white> puede desmarcar este destino</red>'
 
 automark:
   enabled: '<prefix><green><hover:show_text:"<gray>Un item que metes en un marco sobre<newline>un contenedor o compostador lo marca.<newline>Paredes y lava: shift + clic derecho.</gray>">Automarcado activado</hover></green>'

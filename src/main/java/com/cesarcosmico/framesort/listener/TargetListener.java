@@ -2,30 +2,23 @@ package com.cesarcosmico.framesort.listener;
 
 import com.cesarcosmico.framesort.service.AutomarkService;
 import com.cesarcosmico.framesort.service.TargetIndex;
-import com.cesarcosmico.framesort.text.Messages;
 import com.destroystokyo.paper.event.entity.EntityAddToWorldEvent;
 import com.destroystokyo.paper.event.entity.EntityRemoveFromWorldEvent;
 import io.papermc.paper.event.player.PlayerItemFrameChangeEvent;
-import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import org.bukkit.entity.ItemFrame;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
-import org.bukkit.inventory.ItemStack;
-
-import java.util.function.Supplier;
 
 public final class TargetListener implements Listener {
 
     private final TargetIndex index;
     private final AutomarkService automark;
-    private final Supplier<Messages> messages;
 
-    public TargetListener(TargetIndex index, AutomarkService automark, Supplier<Messages> messages) {
+    public TargetListener(TargetIndex index, AutomarkService automark) {
         this.index = index;
         this.automark = automark;
-        this.messages = messages;
     }
 
     @EventHandler
@@ -49,11 +42,7 @@ public final class TargetListener implements Listener {
     public void onFrameChange(PlayerItemFrameChangeEvent event) {
         ItemFrame frame = event.getItemFrame();
         if (event.getAction() == PlayerItemFrameChangeEvent.ItemFrameChangeAction.PLACE) {
-            ItemStack item = event.getItemStack();
-            if (automark.itemPlaced(event.getPlayer(), frame, item)) {
-                event.getPlayer().sendActionBar(messages.get().get("mark.auto",
-                        Placeholder.component("item", item.effectiveName())));
-            }
+            automark.itemPlaced(event.getPlayer(), frame, event.getItemStack());
         } else {
             index.changed(frame.getWorld());
         }

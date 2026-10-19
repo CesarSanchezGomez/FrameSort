@@ -143,10 +143,10 @@ public final class FrameSortPlugin extends JavaPlugin {
                 sorters, padService, commands);
 
         // Without the command a player could not switch it off, so it only acts while they may run it.
-        AutomarkService automark = new AutomarkService(index, sorters,
+        AutomarkService automark = new AutomarkService(this, index, sorters, inspect,
                 player -> commands.usageFor("automark", player::hasPermission) != null);
 
-        register(new TargetListener(index, automark, messages), new SorterListener(sorters, messages),
+        register(new TargetListener(index, automark), new SorterListener(sorters, messages),
                 new PadListener(padService, messages), new InspectListener(inspect, sorters, padService));
         // Only this check loads the integration's classes, so FrameSort runs without WorldGuard installed.
         if (getServer().getPluginManager().isPluginEnabled("WorldGuard")) {
