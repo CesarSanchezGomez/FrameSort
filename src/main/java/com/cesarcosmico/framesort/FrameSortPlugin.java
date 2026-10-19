@@ -36,7 +36,7 @@ import com.cesarcosmico.framesort.listener.SorterListener;
 import com.cesarcosmico.framesort.listener.TargetListener;
 import com.cesarcosmico.framesort.model.TrustList;
 import com.cesarcosmico.framesort.service.ActivityPulse;
-import com.cesarcosmico.framesort.service.AutoMarkService;
+import com.cesarcosmico.framesort.service.AutomarkService;
 import com.cesarcosmico.framesort.service.CustomItemResolver;
 import com.cesarcosmico.framesort.service.DeliveryService;
 import com.cesarcosmico.framesort.service.HighlightService;
@@ -145,10 +145,10 @@ public final class FrameSortPlugin extends JavaPlugin {
                 sorters, padService, commands);
 
         // Without the command a player could not switch it off, so it only acts while they may run it.
-        AutoMarkService autoMark = new AutoMarkService(index, sorters,
+        AutomarkService automark = new AutomarkService(index, sorters,
                 player -> commands.usageFor("automark", player::hasPermission) != null);
 
-        register(new TargetListener(index, autoMark, messages), new SorterListener(sorters, messages),
+        register(new TargetListener(index, automark, messages), new SorterListener(sorters, messages),
                 new PadListener(padService, messages), new InspectListener(inspect, sorters, padService));
         // Only this check loads the integration's classes, so FrameSort runs without WorldGuard installed.
         if (getServer().getPluginManager().isPluginEnabled("WorldGuard")) {
@@ -159,7 +159,7 @@ public final class FrameSortPlugin extends JavaPlugin {
         TagListing listing = new TagListing(tags, messages, settings, commands);
         List<CommandFeature> features = List.of(
                 new HelpCommand(messages, commands, helpLines),
-                new AutomarkCommand(autoMark, messages),
+                new AutomarkCommand(automark, messages),
                 new TagListCommand(listing),
                 new TagSearchCommand(listing),
                 new TagShowCommand(tags, messages, settings, commands, customItems),

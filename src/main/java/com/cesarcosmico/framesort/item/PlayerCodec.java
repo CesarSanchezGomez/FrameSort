@@ -10,16 +10,16 @@ public final class PlayerCodec {
     private PlayerCodec() {
     }
 
-    public static boolean autoMark(Player player) {
-        return player.getPersistentDataContainer().has(Keys.AUTO_MARK);
+    public static boolean automark(Player player) {
+        return player.getPersistentDataContainer().has(Keys.AUTOMARK);
     }
 
-    public static void setAutoMark(Player player, boolean on) {
+    public static void setAutomark(Player player, boolean on) {
         PersistentDataContainer data = player.getPersistentDataContainer();
         if (on) {
-            data.set(Keys.AUTO_MARK, PersistentDataType.BOOLEAN, true);
+            data.set(Keys.AUTOMARK, PersistentDataType.BOOLEAN, true);
         } else {
-            data.remove(Keys.AUTO_MARK);
+            data.remove(Keys.AUTOMARK);
         }
     }
 }

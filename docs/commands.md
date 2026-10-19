@@ -5,7 +5,7 @@
 | Command | What it does |
 |---|---|
 | `/framesort` | Help: how to inspect, then one line for each command you may run. |
-| `/framesort automark` | Switches between marking frames by hand and automark. With automark on, an item you put in a frame on a container or composter marks the frame as your target, and the action bar says so; frames on walls or lava cauldrons are still marked by hand, and putting the sorter activator in never marks its frame. Your choice stays with you on this server, also after leaving, and only acts while you may run this command and mark targets (`framesort.target.create`). Off by default. |
+| `/framesort automark` | Switches between marking frames by hand and automark. With automark on, an item you put in a frame on a container or composter marks the frame as your target, and the action bar says so; frames on walls or lava cauldrons are still marked by hand, and putting the sorter activator in never marks its frame. Your choice stays with you on this server, also after leaving, and only acts while you may run this command and mark targets (`framesort.target.create`); without the latter the command says you can't mark targets. Off by default. |
 | `/framesort tag show <tag> [page]` | The items or blocks in a tag, 8 per page (`inspect.page-size`), in a framed list with « » buttons. Hover an entry to see its id. A tag from `tags.yml` lists its custom items after them, by their CraftEngine name, translated as in your inventory; hovering one shows its reference. Vanilla tags can be written without `minecraft:`. |
 | `/framesort tag list [page]` | Every item and block tag, and the tags in `tags.yml`. Click a tag to show its contents. |
 | `/framesort tag search <text> [page]` | Only the tags whose name contains `<text>`. |
@@ -30,7 +30,7 @@ Sneak with an empty main hand; this needs `framesort.inspect`. Standing up, ever
 | Sneak + right-click a sorter or the top block of a pad | Only yours, those of a player who trusts you, or any with `framesort.inspect.others` (see [Owners and trust](#owners-and-trust)). The items in the target frames it can send to glow for you only (green: into a container, yellow: dropped, red: lava; see `inspect.colors`) and those targets are listed, nearest first. Frames that WorldGuard regions (or another plugin cancelling `TargetBindEvent`) keep it from reaching are left out; a sorter's list also shows how many items it has sent. With an item in your off hand, only where that item would go, as numbered levels in order of preference: each level's containers nearest first, then the one drop spot or lava that takes the rest (the nearest, a drop spot before lava); the next level only gets what doesn't fit. From a sorter, a shulker box or bundle with contents comes with a note: the sorter opens it first, and the list shows where it goes whole once nothing inside can go. |
 | Sneak + left-click a frame with an item | Whether it is a target and, if so, who owns it; where its items go, what it accepts, and how many sorters and pads reach it. |
 | Sneak + right- or left-click a sorter's frame | Inspects the sorter, as clicking its dispenser does. That frame is never a target. |
-| Sneak + right-click a frame with an item | Marks or unmarks it as a target (needs `framesort.inspect` and `framesort.target.create`). Marking makes it yours, and unmarking frees it; with `ownership.enabled`, only you unmark it then. A mark lives with the item: once another item is put in, the frame is no longer a target, without a message (with `/framesort automark` on, the new item marks it for whoever put it in); its card (sneak + left-click) says whether it is one. The item does not rotate. |
+| Sneak + right-click a frame with an item | Marks or unmarks it as a target (needs `framesort.inspect` and `framesort.target.create`). Marking makes it yours, and unmarking frees it; with `ownership.enabled`, only you unmark it then. A mark lives with the item: once another item is put in, the frame is no longer a target, without a message (with `/framesort automark` on, the new item marks a frame on a container or composter for whoever put it in); its card (sneak + left-click) says whether it is one. The item does not rotate. |
 
 The frame keeps its item and does not rotate. Empty frames are left alone, so they can still be filled or broken.
 
@@ -51,7 +51,8 @@ to frames of its owner, so nobody can mark a frame near your sorter and take you
 
 Only a target's owner unmarks it: unmarking someone else's frame would send their items to the next level, maybe
 into lava. Unmarking frees the frame, so anyone may mark it next and own it, and so does taking its item out: the
-next item put in leaves the frame unmarked and without an owner, or, with automark, marks it for whoever put it in.
+next item put in leaves the frame unmarked and without an owner, or, with automark and on a container or composter,
+marks it for whoever put it in.
 Taking the item out means hitting the frame, which the server's protection decides, like breaking it. Breaking
 blocks, opening the dispenser or dropping items on a pad is left to the server's protection (claims, regions, locks):
 FrameSort only decides where items go from afar, and who sees it. Items dropped on someone's pad go to that pad's

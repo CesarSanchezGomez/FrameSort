@@ -356,7 +356,7 @@ public final class InspectService {
     }
 
     private Component status(Messages text, ItemFrame frame) {
-        if (!settings.get().targets().frameTypes().contains(frame.getType())) {
+        if (!index.markable(frame)) {
             return text.get("frame.status.wrong-type");
         }
         return text.get(index.isTarget(frame) ? "frame.status.target" : "frame.status.unmarked");

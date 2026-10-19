@@ -1,6 +1,6 @@
 package com.cesarcosmico.framesort.command;
 
-import com.cesarcosmico.framesort.service.AutoMarkService;
+import com.cesarcosmico.framesort.service.AutomarkService;
 import com.cesarcosmico.framesort.text.Messages;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
@@ -12,11 +12,11 @@ import java.util.function.Supplier;
 
 public final class AutomarkCommand implements CommandFeature {
 
-    private final AutoMarkService autoMark;
+    private final AutomarkService automark;
     private final Supplier<Messages> messages;
 
-    public AutomarkCommand(AutoMarkService autoMark, Supplier<Messages> messages) {
-        this.autoMark = autoMark;
+    public AutomarkCommand(AutomarkService automark, Supplier<Messages> messages) {
+        this.automark = automark;
         this.messages = messages;
     }
 
@@ -35,7 +35,12 @@ public final class AutomarkCommand implements CommandFeature {
             context.getSource().getSender().sendMessage(messages.get().get("command.players-only"));
             return Command.SINGLE_SUCCESS;
         }
-        player.sendMessage(messages.get().get(autoMark.toggle(player) ? "automark.on" : "automark.off"));
+        String key = switch (automark.toggle(player)) {
+            case ON -> "automark.on";
+            case OFF -> "automark.off";
+            case CANNOT_MARK -> "mark.no-permission";
+        };
+        player.sendMessage(messages.get().get(key));
         return Command.SINGLE_SUCCESS;
     }
 }

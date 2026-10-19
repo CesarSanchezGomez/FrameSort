@@ -7,25 +7,30 @@ import org.bukkit.inventory.ItemStack;
 
 import java.util.function.Predicate;
 
-/** Whether putting an item in a frame marks it: each player chooses, and marking by hand works either way. */
-public final class AutoMarkService {
+public final class AutomarkService {
+
+    /** What switching did; {@code CANNOT_MARK}: the player may not mark targets, so automark would do nothing. */
+    public enum Toggle { ON, OFF, CANNOT_MARK }
 
     private final TargetIndex index;
     private final SorterService sorters;
     // Whether the player may still switch it off: their choice is kept, but does nothing while they can't.
     private final Predicate<Player> available;
 
-    public AutoMarkService(TargetIndex index, SorterService sorters, Predicate<Player> available) {
+    public AutomarkService(TargetIndex index, SorterService sorters, Predicate<Player> available) {
         this.index = index;
         this.sorters = sorters;
         this.available = available;
     }
 
-    /** Switches {@code player} between marking by hand and marking what they fill; returns whether it is now on. */
-    public boolean toggle(Player player) {
-        boolean on = !PlayerCodec.autoMark(player);
-        PlayerCodec.setAutoMark(player, on);
-        return on;
+    /** Switches {@code player} between marking by hand and marking what they fill. */
+    public Toggle toggle(Player player) {
+        if (!player.hasPermission(TargetIndex.MARK_PERMISSION)) {
+            return Toggle.CANNOT_MARK;
+        }
+        boolean on = !PlayerCodec.automark(player);
+        PlayerCodec.setAutomark(player, on);
+        return on ? Toggle.ON : Toggle.OFF;
     }
 
     /**
@@ -36,7 +41,7 @@ public final class AutoMarkService {
     public boolean itemPlaced(Player player, ItemFrame frame, ItemStack item) {
         index.itemPlaced(frame);
         // Another plugin can empty the item before it goes in.
-        if (item.isEmpty() || !PlayerCodec.autoMark(player) || !player.hasPermission(TargetIndex.MARK_PERMISSION)
+        if (item.isEmpty() || !PlayerCodec.automark(player) || !player.hasPermission(TargetIndex.MARK_PERMISSION)
                 || !available.test(player) || !index.markable(frame)
                 || !FrameGeometry.isContainer(FrameGeometry.attachedBlock(frame)) || sorters.makesSorter(frame, item)) {
             return false;
