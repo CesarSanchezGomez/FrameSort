@@ -81,7 +81,7 @@ the rest are CraftEngine's (they are reported and ignored).
 | `tick-rate` | `20` | Ticks between two turns of the same sorter. |
 | `disable-when-powered` | `false` | A powered sorter stops sending. |
 | `hide-frame` | `true` | Hides the activator's frame while the sorter works. A reload applies a change to every sorter. |
-| `show-activity` | `true` | Rotates the activator after every turn that sends something. |
+| `show-activity` | `true` | After every turn that sends something, the activator turns and gives off a pulse of particles that everyone near sees (colours: [`activity`](#activity)). |
 
 Whoever creates or removes a sorter (placing or taking the activator, or breaking its frame or dispenser) is told
 so. A sorter never dispenses like a plain dispenser. Each turn it sends up to 64 items from random stacks (only part of
@@ -175,12 +175,19 @@ breaking and placing a pad's top block again gives it an owner. More in
 | `trace-radius` | `32` | `/framesort trace` shows deliveries from sorters and pads within this radius. |
 | `trace-default-seconds`, `trace-max-seconds` | `60`, `600` | Tracing duration. A default above the maximum is lowered to it, with a warning. |
 
+### activity
+
+| Key | Default | Meaning |
+|---|---|---|
+| `from`, `to` | `#F7B733`, `#FC4A1A` | Colours (`#RRGGBB`) the pulse of a sorter or pad fades between when it sends (`sorter.show-activity`, and `show-activity` in `pads.yml`). The defaults are the gradient of FrameSort's name in `lang/`. |
+
 ## pads.yml
 
 | Key | Default | Meaning |
 |---|---|---|
 | `creation` | `anyone` | `anyone`: any player who places the top block on its base. `permission`: only players with `framesort.pad.create`. `item`: only by placing the pad's special item (from `/framesort give pad`) as the top block. |
 | `sweep-interval` | `10` | Ticks between checks for items resting on pads. Items that arrive by water or fall onto a pad are picked up then. |
+| `show-activity` | `true` | A pad gives off a pulse of particles after every check that sends something (colours: [`activity`](#activity) in `config.yml`). |
 | `types.<id>.structure` | | Exactly two blocks: the top, where items rest, then its base. The `<id>` can't contain `,`: each pad keeps it in its chunk between commas. Each one is a material or a CraftEngine block (`'craftengine:<namespace>:<id>'`). Players build pads by hand, so a material must be a block a player can place (not `STICK`, `WATER` or `AIR`); otherwise the type is skipped with a warning. |
 | `types.<id>.item` | | *Optional*, and so is each key in it: `name`, `lore` and `glint` of the special top block (see [Item look](#item-look)). Left out, or set to `''`, `[]` or `false`, the block has none of it. Its material is the top block of the structure and it looks like that block, so it takes no `components` (they are reported and ignored). With a CraftEngine top block the item is CraftEngine's, and `name`, `lore` and `glint` are laid over it (see [CraftEngine items and blocks](#item-look)). |
 

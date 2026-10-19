@@ -55,6 +55,7 @@ public final class SorterService {
     // A turn sends a stack's worth however the items are packed, so bundles of single items don't crawl; the same
     // bound caps the tries when items have nowhere to go, so one that doesn't fit never stalls the rest.
     private static final int PER_TURN = 64;
+    private static final double PULSE_OFFSET = 0.25;
 
     private static final class Sorter {
         private final ItemFrame frame;
@@ -72,6 +73,7 @@ public final class SorterService {
     private final Supplier<FrameSortSettings> settings;
     private final DeliveryService delivery;
     private final CustomItemResolver customItems;
+    private final ActivityPulse pulse;
     private final Map<BlockKey, Sorter> sorters = new HashMap<>();
     // Frames with a retry pending; every load, reload or frame change would otherwise start another retry chain.
     private final Set<UUID> waiting = new HashSet<>();
@@ -79,11 +81,12 @@ public final class SorterService {
     private int nextPhase;
 
     public SorterService(Plugin plugin, Supplier<FrameSortSettings> settings, DeliveryService delivery,
-                         CustomItemResolver customItems) {
+                         CustomItemResolver customItems, ActivityPulse pulse) {
         this.plugin = plugin;
         this.settings = settings;
         this.delivery = delivery;
         this.customItems = customItems;
+        this.pulse = pulse;
     }
 
     public Change consider(ItemFrame frame) {
@@ -273,7 +276,11 @@ public final class SorterService {
         long total = data.getOrDefault(Keys.SORTED, PersistentDataType.LONG, 0L) + sent;
         data.set(Keys.SORTED, PersistentDataType.LONG, total);
         if (settings.get().sorter().showActivity()) {
-            sorter.frame.setRotation(sorter.frame.getRotation().rotateClockwise());
+            ItemFrame frame = sorter.frame;
+            frame.setRotation(frame.getRotation().rotateClockwise());
+            // Out from the dispenser's face, where the activator floats.
+            pulse.show(frame.getWorld(),
+                    frame.getLocation().add(frame.getFacing().getDirection().multiply(PULSE_OFFSET)));
         }
     }
 

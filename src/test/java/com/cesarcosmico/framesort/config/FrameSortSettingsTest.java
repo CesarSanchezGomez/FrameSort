@@ -64,6 +64,8 @@ class FrameSortSettingsTest {
         assertEquals(5, settings.inspect().highlightSeconds());
         assertEquals(Color.fromRGB(0x55FF55), settings.inspect().colors().container());
         assertEquals(Color.fromRGB(0xFF5555), settings.inspect().colors().lava());
+        assertEquals(Color.fromRGB(0xF7B733), settings.activity().from());
+        assertEquals(Color.fromRGB(0xFC4A1A), settings.activity().to());
     }
 
     @Test
@@ -93,6 +95,7 @@ class FrameSortSettingsTest {
                   default-target-item: ""
                 inspect:
                   colors: { dropped: "#ABC", lava: "#00ff7f" }
+                activity: { from: orange }
                 """);
         List<String> warnings = new ArrayList<>();
         FrameSortSettings settings = parse(yaml, warnings);
@@ -105,8 +108,9 @@ class FrameSortSettingsTest {
         assertNull(settings.delivery().defaultTargetItem());
         assertEquals(Color.fromRGB(0xFFFF55), settings.inspect().colors().dropped());
         assertEquals(Color.fromRGB(0x00FF7F), settings.inspect().colors().lava());
+        assertEquals(Color.fromRGB(0xF7B733), settings.activity().from());
         // default-target-item "" is a valid "off", so it does not warn.
-        assertEquals(6, warnings.size(), warnings::toString);
+        assertEquals(7, warnings.size(), warnings::toString);
         assertTrue(warnings.stream().allMatch(w -> w.startsWith("config.yml > ")), warnings::toString);
     }
 

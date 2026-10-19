@@ -33,6 +33,7 @@ class PadSettingsTest {
         assertEquals(List.of(), warnings);
         assertEquals(PadMode.ANYONE, settings.creation());
         assertEquals(10, settings.sweepInterval());
+        assertTrue(settings.showActivity());
         PadType copper = settings.type("COPPER");
         assertNotNull(copper);
         assertEquals(new ItemReference.Vanilla(Material.WAXED_COPPER_GRATE), copper.top());
@@ -41,6 +42,21 @@ class PadSettingsTest {
         PadType oxidized = settings.type("oxidized");
         assertNotNull(oxidized);
         assertEquals(new ItemReference.Vanilla(Material.WAXED_OXIDIZED_COPPER_GRATE), oxidized.top());
+    }
+
+    @Test
+    void anInvalidShowActivityWarnsAndStaysOn() throws Exception {
+        YamlConfiguration yaml = new YamlConfiguration();
+        yaml.loadFromString("""
+                show-activity: sometimes
+                types:
+                  simple:
+                    structure: [CRYING_OBSIDIAN, GILDED_BLACKSTONE]
+                """);
+        List<String> warnings = new ArrayList<>();
+
+        assertTrue(parse(yaml, warnings).showActivity());
+        assertEquals(List.of("pads.yml > show-activity: expected true or false, using true"), warnings);
     }
 
     @Test

@@ -32,7 +32,7 @@ sorter:
   disable-when-powered: false
   # true: hides the frame that holds the activator.
   hide-frame: true
-  # true: rotates the activator after each turn that sends something.
+  # true: after each turn that sends something, the activator turns and gives off a pulse.
   show-activity: true
 
 # Target frames: where sorters and pads send items.
@@ -74,3 +74,8 @@ inspect:
   # Default and longest /framesort trace, in seconds.
   trace-default-seconds: 60
   trace-max-seconds: 600
+
+# Pulse a sorter or pad gives off when it sends (show-activity), fading from one colour (#RRGGBB) to the other.
+activity:
+  from: '#F7B733'
+  to: '#FC4A1A'

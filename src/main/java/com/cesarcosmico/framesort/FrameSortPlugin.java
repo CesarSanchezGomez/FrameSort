@@ -35,6 +35,7 @@ import com.cesarcosmico.framesort.listener.PadListener;
 import com.cesarcosmico.framesort.listener.SorterListener;
 import com.cesarcosmico.framesort.listener.TargetListener;
 import com.cesarcosmico.framesort.model.TrustList;
+import com.cesarcosmico.framesort.service.ActivityPulse;
 import com.cesarcosmico.framesort.service.AutoMarkService;
 import com.cesarcosmico.framesort.service.CustomItemResolver;
 import com.cesarcosmico.framesort.service.DeliveryService;
@@ -137,8 +138,9 @@ public final class FrameSortPlugin extends JavaPlugin {
         resolver = new TargetResolver(settings, index, tags, customItems, trust);
         TraceService trace = new TraceService(this, settings, messages, trust);
         DeliveryService delivery = new DeliveryService(this, resolver, trace::report);
-        sorters = new SorterService(this, settings, delivery, customItems);
-        padService = new PadService(getServer(), pads, delivery, customItems);
+        ActivityPulse pulse = new ActivityPulse(settings);
+        sorters = new SorterService(this, settings, delivery, customItems, pulse);
+        padService = new PadService(getServer(), pads, delivery, customItems, pulse);
         inspect = new InspectService(this, new HighlightService(this), settings, messages, index, resolver, trust,
                 sorters, padService, commands);
 

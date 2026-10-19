@@ -66,15 +66,17 @@ public final class PadService {
     private final Supplier<PadSettings> settings;
     private final DeliveryService delivery;
     private final CustomItemResolver customItems;
+    private final ActivityPulse pulse;
     private final Map<ChunkKey, Map<BlockKey, PadEntry>> pads = new HashMap<>();
     private long tick;
 
     public PadService(Server server, Supplier<PadSettings> settings, DeliveryService delivery,
-                      CustomItemResolver customItems) {
+                      CustomItemResolver customItems, ActivityPulse pulse) {
         this.server = server;
         this.settings = settings;
         this.delivery = delivery;
         this.customItems = customItems;
+        this.pulse = pulse;
     }
 
     public void load(Chunk chunk) {
@@ -215,10 +217,14 @@ public final class PadService {
         }
         // Items count when resting up to one block above the pad, like a hopper's pickup area.
         Location above = top.getLocation().add(0.5, 1.5, 0.5);
+        boolean sent = false;
         for (Item item : top.getWorld().getNearbyEntitiesByType(Item.class, above, 0.5, 0.5, 0.5)) {
-            if (item.isValid()) {
-                delivery.deliver(top, pad.owner(), new EntitySource(item));
+            if (item.isValid() && delivery.deliver(top, pad.owner(), new EntitySource(item)) > 0) {
+                sent = true;
             }
+        }
+        if (sent && settings.get().showActivity()) {
+            pulse.show(top.getWorld(), top.getLocation().add(0.5, 1.2, 0.5));
         }
     }
 
