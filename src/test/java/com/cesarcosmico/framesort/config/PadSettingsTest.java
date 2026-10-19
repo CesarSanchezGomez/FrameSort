@@ -37,11 +37,12 @@ class PadSettingsTest {
         PadType copper = settings.type("COPPER");
         assertNotNull(copper);
         assertEquals(new ItemReference.Vanilla(Material.WAXED_COPPER_GRATE), copper.top());
-        assertEquals(new ItemReference.Vanilla(Material.LODESTONE), copper.base());
-        assertEquals("<gradient:#F7B733:#FC4A1A>Sorting Pad</gradient>", copper.look().name());
-        PadType oxidized = settings.type("oxidized");
-        assertNotNull(oxidized);
-        assertEquals(new ItemReference.Vanilla(Material.WAXED_OXIDIZED_COPPER_GRATE), oxidized.top());
+        assertEquals(new ItemReference.Vanilla(Material.WAXED_COPPER_BLOCK), copper.base());
+        assertEquals("<gradient:#F7B733:#FC4A1A>Copper Sorting Pad</gradient>", copper.look().name());
+        PadType lodestone = settings.type("lodestone");
+        assertNotNull(lodestone);
+        assertEquals(new ItemReference.Vanilla(Material.LODESTONE), lodestone.top());
+        assertEquals(new ItemReference.Vanilla(Material.SMOOTH_STONE), lodestone.base());
     }
 
     @Test

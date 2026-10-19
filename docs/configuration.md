@@ -200,9 +200,9 @@ block, nor a mob change it.
 
 Items resting up to one block above the top block count, so carpets or slabs on the pad are fine.
 
-The bundled types are a waxed copper grate on a lodestone (`copper`) and its oxidized look (`oxidized`). Copper ages
-into another block, so a pad of plain copper would end once it did: the grate has to be waxed (honeycomb) before it
-is placed, and `/framesort give pad` hands it out waxed.
+The bundled types are a waxed copper grate on a waxed block of copper (`copper`) and a lodestone on smooth stone
+(`lodestone`). Copper ages into another block, so a pad of plain copper would end once it did: both copper blocks
+have to be waxed (honeycomb) before they are placed, and `/framesort give pad copper` hands the grate out waxed.
 
 A vanilla block in `structure` is only that block: a CraftEngine block never counts as it, whatever vanilla block it
 shows as to the server (bricks by default), and one put in place of a pad's top block ends the pad at the next

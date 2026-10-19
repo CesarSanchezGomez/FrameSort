@@ -16,25 +16,25 @@ sweep-interval: 10
 # true: a pad gives off a pulse after each check that sends something (its colours: activity in config.yml).
 show-activity: true
 
-# Copper turns into another block as it ages, which would end the pad: these use waxed copper.
+# Copper turns into another block as it ages, which would end the pad: the copper pad uses waxed copper.
 types:
   copper:
-    structure: [WAXED_COPPER_GRATE, LODESTONE]
+    structure: [WAXED_COPPER_GRATE, WAXED_COPPER_BLOCK]
     item:
-      name: '<gradient:#F7B733:#FC4A1A>Sorting Pad</gradient>'
+      name: '<gradient:#F7B733:#FC4A1A>Copper Sorting Pad</gradient>'
       lore:
         - ''
-        - ' <gray>Place it on top of</gray> '
-        - ' <gray>a lodestone.</gray> '
+        - ' <gray>Place it on top of a</gray> '
+        - ' <gray>waxed block of copper.</gray> '
         - ''
       glint: true
-  oxidized:
-    structure: [WAXED_OXIDIZED_COPPER_GRATE, LODESTONE]
+  lodestone:
+    structure: [LODESTONE, SMOOTH_STONE]
     item:
-      name: '<gradient:#F7B733:#FC4A1A>Oxidized Sorting Pad</gradient>'
+      name: '<gradient:#F7B733:#FC4A1A>Lodestone Sorting Pad</gradient>'
       lore:
         - ''
         - ' <gray>Place it on top of</gray> '
-        - ' <gray>a lodestone.</gray> '
+        - ' <gray>smooth stone.</gray> '
         - ''
       glint: true

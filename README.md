@@ -1,9 +1,9 @@
 # FrameSort
 
 Item sorting without hopper chains. A **sorter** (a dispenser with a hopper in an item frame on it) and **sorting
-pads** (a waxed copper grate on a lodestone) send items straight to the **target frames** that ask for them: into
-the chest, barrel or hopper behind the frame, composted by a composter, or dropped in front of the frame when there
-is no container.
+pads** (a waxed copper grate on a waxed block of copper, or a lodestone on smooth stone) send items straight to the
+**target frames** that ask for them: into the chest, barrel or hopper behind the frame, composted by a composter, or
+dropped in front of the frame when there is no container.
 
 - **Server:** Paper 26.2 or newer, Java 25.
 - **Dependencies:** none. With [WorldGuard](https://enginehub.org/worldguard) installed, sorters and pads respect its
@@ -48,8 +48,9 @@ keeps its hidden frame until it loads with FrameSort installed, so before removi
    sends up to 64 items from its inventory, at random, taking them from inside shulker boxes and bundles too. A
    shulker box or bundle goes whole once nothing inside it can go anywhere. Each time it sends, the hopper turns and
    gives off a pulse in FrameSort's colours.
-3. **Sorting pads.** Place a waxed copper grate on a lodestone. Items resting on top are sent to targets, with the
-   same pulse. Who can create pads is configurable: anyone, players with a permission, or only with a special pad block.
+3. **Sorting pads.** Place a waxed copper grate on a waxed block of copper, or a lodestone on smooth stone. Items
+   resting on top are sent to targets, with the same pulse. Who can create pads is configurable: anyone, players
+   with a permission, or only with a special pad block.
 4. **Inspect.** Sneak + right-click a sorter or pad with an empty hand: its targets' items glow (only for you, in
    configurable colours) and are listed page by page. Sneak + left-click a target frame to see what it accepts.
    `/framesort trace` shows the deliveries around you live.
