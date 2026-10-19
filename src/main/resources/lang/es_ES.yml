@@ -100,7 +100,6 @@ frame:
     wrong-type: '  <red>✘</red> <hover:show_text:"<gray>Este tipo de marco no está en<newline>targets.frame-types.</gray>"><gray>No puede ser destino</gray></hover>'
   owner: '  <color:#F7B733>•</color> <gray>Dueño:</gray> <white><player></white>'
   no-owner: '  <color:#F7B733>•</color> <hover:show_text:"<gray>Desmárcalo y vuelve a marcarlo<newline>para que sea tuyo.</gray>"><gray>Sin dueño</gray></hover>'
-  no-owner-automatic: '  <color:#F7B733>•</color> <hover:show_text:"<gray>Saca su item y vuelve a meterlo<newline>para que sea tuyo.</gray>"><gray>Sin dueño</gray></hover>'
   into:
     container: '  <color:#F7B733>•</color> <gray>Van a</gray> <white><block></white>'
     dropped: '  <color:#F7B733>•</color> <yellow>Se sueltan</yellow> <gray>delante</gray>'
@@ -119,7 +118,6 @@ frame:
 mark:
   marked: '<prefix><green>Marco marcado como destino</green>'
   unmarked: '<prefix><yellow>Marco desmarcado</yellow>'
-  automatic: '<prefix><gray><hover:show_text:"<gray>targets.registration es automatic.</gray>">Aquí todo marco ya es destino</hover></gray>'
   no-permission: '<prefix><red>No puedes marcar destinos</red>'
   wrong-type: '<prefix><red>Este marco no puede ser destino</red>'
   not-yours: '<prefix><red><hover:show_text:"<gray>Solo su dueño puede desmarcarlo.</gray>">Este destino es de <white><player></white></hover></red>'

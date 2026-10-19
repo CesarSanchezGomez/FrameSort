@@ -2,7 +2,6 @@ package com.cesarcosmico.framesort.config;
 
 import com.cesarcosmico.framesort.item.ItemLook;
 import com.cesarcosmico.framesort.model.ItemReference;
-import com.cesarcosmico.framesort.model.TargetRegistration;
 import org.bukkit.Color;
 import org.bukkit.Material;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -56,7 +55,6 @@ class FrameSortSettingsTest {
         assertFalse(settings.sorter().requireMarked());
         assertEquals(20, settings.sorter().tickRate());
         assertTrue(settings.sorter().showActivity());
-        assertEquals(TargetRegistration.MANUAL, settings.targets().registration());
         assertEquals(64, settings.delivery().maxDistance());
         assertTrue(settings.delivery().insertIntoContainers());
         assertEquals(CARROT, settings.delivery().defaultTargetItem());
@@ -90,8 +88,6 @@ class FrameSortSettingsTest {
                   activator: { material: NOT_A_THING }
                   tick-rate: 0
                   frame-types: [ITEM_FRAME, ZOMBIE]
-                targets:
-                  registration: sometimes
                 delivery:
                   max-distance: lots
                   default-target-item: ""
@@ -105,13 +101,12 @@ class FrameSortSettingsTest {
         assertEquals(EYE, settings.sorter().activator());
         assertEquals(20, settings.sorter().tickRate());
         assertEquals(Set.of(EntityType.ITEM_FRAME), settings.sorter().frameTypes());
-        assertEquals(TargetRegistration.MANUAL, settings.targets().registration());
         assertEquals(64, settings.delivery().maxDistance());
         assertNull(settings.delivery().defaultTargetItem());
         assertEquals(Color.fromRGB(0xFFFF55), settings.inspect().colors().dropped());
         assertEquals(Color.fromRGB(0x00FF7F), settings.inspect().colors().lava());
         // default-target-item "" is a valid "off", so it does not warn.
-        assertEquals(7, warnings.size(), warnings::toString);
+        assertEquals(6, warnings.size(), warnings::toString);
         assertTrue(warnings.stream().allMatch(w -> w.startsWith("config.yml > ")), warnings::toString);
     }
 

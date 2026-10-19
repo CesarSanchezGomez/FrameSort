@@ -3,11 +3,9 @@ package com.cesarcosmico.framesort.service;
 import com.cesarcosmico.framesort.config.CommandsConfig;
 import com.cesarcosmico.framesort.config.FrameSortSettings;
 import com.cesarcosmico.framesort.config.InspectSettings;
-import com.cesarcosmico.framesort.config.TargetSettings;
 import com.cesarcosmico.framesort.item.FrameCodec;
 import com.cesarcosmico.framesort.item.ItemTagCodec;
 import com.cesarcosmico.framesort.model.BlockKey;
-import com.cesarcosmico.framesort.model.TargetRegistration;
 import com.cesarcosmico.framesort.service.TargetResolver.Destination;
 import com.cesarcosmico.framesort.service.TargetResolver.Target;
 import com.cesarcosmico.framesort.text.ChatPager;
@@ -37,7 +35,6 @@ import java.util.stream.Stream;
 public final class InspectService {
 
     public static final String INSPECT_PERMISSION = "framesort.inspect";
-    private static final String MARK_PERMISSION = "framesort.target.create";
     // A page button can be pressed again and again, for the callback's default lifetime of 12 hours.
     private static final ClickCallback.Options PAGE_BUTTON = ClickCallback.Options.builder()
             .uses(ClickCallback.UNLIMITED_USES).build();
@@ -215,12 +212,11 @@ public final class InspectService {
         Messages text = messages.get();
         List<Component> lines = new ArrayList<>();
         lines.add(status(text, frame));
-        // Only a target's owner means anything: whoever marked it, or put its item in under automatic registration.
+        // Only a target's owner means anything: whoever marked it.
         if (index.isTarget(frame)) {
             UUID owner = FrameCodec.owner(frame);
-            boolean automatic = settings.get().targets().registration() == TargetRegistration.AUTOMATIC;
             lines.add(owner != null ? text.get("frame.owner", Placeholder.unparsed("player", trust.name(owner)))
-                    : text.get(automatic ? "frame.no-owner-automatic" : "frame.no-owner"));
+                    : text.get("frame.no-owner"));
         }
 
         lines.add(switch (resolver.destination(frame)) {
@@ -278,16 +274,11 @@ public final class InspectService {
 
     public void toggleMark(Player player, ItemFrame frame) {
         Messages text = messages.get();
-        TargetSettings targets = settings.get().targets();
-        if (targets.registration() == TargetRegistration.AUTOMATIC) {
-            player.sendMessage(text.get("mark.automatic"));
-            return;
-        }
-        if (!player.hasPermission(MARK_PERMISSION)) {
+        if (!player.hasPermission(TargetIndex.MARK_PERMISSION)) {
             player.sendMessage(text.get("mark.no-permission"));
             return;
         }
-        if (!targets.frameTypes().contains(frame.getType())) {
+        if (!index.markable(frame)) {
             player.sendMessage(text.get("mark.wrong-type"));
             return;
         }

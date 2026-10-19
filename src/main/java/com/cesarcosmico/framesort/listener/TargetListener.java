@@ -38,7 +38,7 @@ public final class TargetListener implements Listener {
     public void onFrameChange(PlayerItemFrameChangeEvent event) {
         ItemFrame frame = event.getItemFrame();
         if (event.getAction() == PlayerItemFrameChangeEvent.ItemFrameChangeAction.PLACE) {
-            index.itemPlaced(frame, event.getPlayer().getUniqueId());
+            index.itemPlaced(frame);
         } else {
             index.changed(frame.getWorld());
         }

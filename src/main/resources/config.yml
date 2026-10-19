@@ -37,9 +37,6 @@ sorter:
 
 # Target frames: where sorters and pads send items.
 targets:
-  # manual: only frames marked with sneak + right-click (empty hand).
-  # automatic: every frame on a container or composter.
-  registration: manual
   frame-types: [ITEM_FRAME, GLOW_ITEM_FRAME]
   # Look of an item tagged with /framesort tag apply; <tag> is the tag.
   tagged-item:

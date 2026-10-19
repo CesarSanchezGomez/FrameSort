@@ -95,13 +95,12 @@ targets that accept it.
 
 | Key | Default | Meaning |
 |---|---|---|
-| `registration` | `manual` | `manual`: only frames marked by sneak + right-clicking them with an empty hand. `automatic`: every frame of `frame-types` on a container or composter; frames anywhere else (walls, lava cauldrons) are never targets, so marking is the only way to make a drop spot or a trash can. A frame belongs to whoever marked it, or, under `automatic`, to whoever put its item in. In either mode, putting another item in a frame ends its mark: after switching back to `manual`, a frame whose item changed must be marked again. After switching to `automatic`, a frame that wasn't marked has no owner until an item is put in again. |
 | `frame-types` | `[ITEM_FRAME, GLOW_ITEM_FRAME]` | Frames that can be targets. |
 | `tagged-item.name`, `lore`, `glint` | `'<gradient:#F7B733:#FC4A1A>#<tag></gradient>'`, none, `true` | *Optional.* Look a tagged item gets (see [Item look](#item-look)); in `name` and `lore`, `<tag>` is the tag, without `minecraft:` for vanilla tags. Left out, or set to `''`, `[]` or `false`, the item has none of it: `tagged-item: {}` tags items without changing how they look. |
 
-A target frame may hang on any face of its block, whichever way the block faces: the lid of an upright barrel, the
-side of a chest or the bottom of one in a ceiling. With `automatic`, that means every frame on a container or
-composter is a target.
+Only marked frames are targets (see [docs/commands.md](commands.md#inspecting)). A target frame may hang on any face
+of its block, whichever way the block faces: the lid of an upright barrel, the side of a chest or the bottom of one
+in a ceiling.
 
 ### delivery
 
@@ -148,10 +147,10 @@ ready a second later and takes nothing more until it is emptied. A hopper under 
 vanilla. Items it doesn't take go on to the other targets as usual.
 
 **Lava cauldrons are trash cans.** A target frame on a lava cauldron holds the item to destroy and is chosen like
-any other frame (exact item, tag, material); it must be marked, because `registration: automatic` only uses frames
-on containers. If a container with the same or a better priority also takes that item, the lava only gets what
-doesn't fit; containers with a worse priority get nothing. With the default target item (a carrot on a stick) in the
-frame, it destroys whatever has no other target or no room left in one. An empty frame does nothing.
+any other frame (exact item, tag, material). If a container with the same or a better priority also takes that
+item, the lava only gets what doesn't fit; containers with a worse priority get nothing. With the default target
+item (a carrot on a stick) in the frame, it destroys whatever has no other target or no room left in one. An empty
+frame does nothing.
 
 ### ownership
 
@@ -159,12 +158,11 @@ frame, it destroys whatever has no other target or no room left in one. An empty
 |---|---|---|
 | `enabled` | `true` | `true`: a sorter or pad sends only to frames of its owner and of the players its owner trusts (`/framesort trust`), and only they inspect it or see its deliveries in `/framesort trace`. `false`: it sends to any frame and anyone inspects it, as without owners, and `/framesort trust`, `untrust` and `trusted` are hidden. A reload applies it, to the commands too. |
 
-What a player sets up is theirs: a target frame belongs to whoever marked it (with `registration: automatic`, to
-whoever put its item in), a sorter to whoever put the activator in, a pad to whoever placed its top block. Owners are
-recorded even with `enabled: false`, so turning it on later finds them. What has no owner (built before owners
-existed, or pasted without its data) only sends to frames that have none either, and only admins inspect it;
-unmarking and marking a frame again (with `registration: automatic`, taking its item out and putting it back),
-putting the activator back, or breaking and placing a pad's top block again gives it an owner. More in
+What a player sets up is theirs: a target frame belongs to whoever marked it, a sorter to whoever put the activator
+in, a pad to whoever placed its top block. Owners are recorded even with `enabled: false`, so turning it on later
+finds them. What has no owner (built before owners existed, or pasted without its data) only sends to frames that
+have none either, and only admins inspect it; unmarking and marking a frame again, putting the activator back, or
+breaking and placing a pad's top block again gives it an owner. More in
 [docs/commands.md](commands.md#owners-and-trust).
 
 ### inspect
@@ -299,6 +297,5 @@ hover.
 
 What a frame accepts is shown as one message built from `frame.layout`, framed like a page: `<title>` is
 `frame.title` and `<lines>` are the `frame.status`, `frame.owner`, `frame.into`, `frame.on-sorter`, `frame.accepts`
-and `frame.sources` lines that apply. A target without an owner shows `frame.no-owner`, or
-`frame.no-owner-automatic` under automatic registration. A tag line is `frame.accepts.tag-link` when its click lists
-the tag, else `frame.accepts.tag`.
+and `frame.sources` lines that apply. A target without an owner shows `frame.no-owner`. A tag line is
+`frame.accepts.tag-link` when its click lists the tag, else `frame.accepts.tag`.

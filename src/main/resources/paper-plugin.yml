@@ -57,7 +57,7 @@ permissions:
     description: 'Inspect and trace sorters and pads whose owner does not trust you.'
     default: op
   framesort.target.create:
-    description: 'Mark item frames as targets (targets.registration manual).'
+    description: 'Mark item frames as targets.'
     default: true
   framesort.pad.create:
     description: 'Create teleport pads when pads.yml has creation set to permission.'

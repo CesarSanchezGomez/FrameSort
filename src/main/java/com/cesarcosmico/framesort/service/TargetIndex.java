@@ -1,11 +1,9 @@
 package com.cesarcosmico.framesort.service;
 
 import com.cesarcosmico.framesort.config.FrameSortSettings;
-import com.cesarcosmico.framesort.config.TargetSettings;
 import com.cesarcosmico.framesort.item.FrameCodec;
 import com.cesarcosmico.framesort.model.BlockKey;
 import com.cesarcosmico.framesort.model.ChunkKey;
-import com.cesarcosmico.framesort.model.TargetRegistration;
 import org.bukkit.World;
 import org.bukkit.entity.ItemFrame;
 
@@ -20,6 +18,8 @@ import java.util.function.Supplier;
 
 /** Indexed by chunk so a lookup only scans the chunks in range; the per-world epoch invalidates cached matches. */
 public final class TargetIndex {
+
+    public static final String MARK_PERMISSION = "framesort.target.create";
 
     private final Supplier<FrameSortSettings> settings;
     private final Map<ChunkKey, Set<ItemFrame>> frames = new HashMap<>();
@@ -78,16 +78,10 @@ public final class TargetIndex {
         reindex(frame);
     }
 
-    /**
-     * A frame is a target for the item in it, so a new item ends its mark. Under automatic registration nothing is
-     * marked, and the frame belongs to whoever put the item in.
-     */
-    public void itemPlaced(ItemFrame frame, UUID placer) {
+    /** A frame is a target for the item in it, so a new item ends its mark. */
+    public void itemPlaced(ItemFrame frame) {
         if (isMarked(frame)) {
             unmark(frame);
-        }
-        if (settings.get().targets().registration() == TargetRegistration.AUTOMATIC) {
-            FrameCodec.setOwner(frame, placer);
         }
         // Cached matches remember the frame's item, so a new one changes them even when nothing else did.
         changed(frame.getWorld());
@@ -128,10 +122,13 @@ public final class TargetIndex {
         epochs.replaceAll((world, epoch) -> epoch + 1);
     }
 
+    /** Whether this kind of frame can be a target at all. */
+    public boolean markable(ItemFrame frame) {
+        return settings.get().targets().frameTypes().contains(frame.getType());
+    }
+
     private boolean qualifies(ItemFrame frame) {
-        TargetSettings targets = settings.get().targets();
-        return targets.frameTypes().contains(frame.getType())
-                && (targets.registration() == TargetRegistration.AUTOMATIC || isMarked(frame));
+        return markable(frame) && isMarked(frame);
     }
 
     private static ChunkKey chunk(ItemFrame frame) {
