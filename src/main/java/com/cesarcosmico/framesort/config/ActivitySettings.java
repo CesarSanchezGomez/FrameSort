@@ -2,7 +2,6 @@ package com.cesarcosmico.framesort.config;
 
 import org.bukkit.Color;
 
-/** The colours a sorter's or pad's pulse fades between when it sends. */
 public record ActivitySettings(Color from, Color to) {
 
     static ActivitySettings parse(ConfigReader reader) {

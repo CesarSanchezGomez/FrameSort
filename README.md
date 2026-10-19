@@ -121,8 +121,9 @@ Every command also runs as `/fs`. Where each command lives, its permission and w
 
 ## Configuration
 
-`config.yml` (sorters, targets, delivery, ownership, inspection), `pads.yml` (pad types and who can create them),
-`tags.yml` (tags of your own and replacements for the game's), `database.yml` (where trust is kept) and `lang/`.
+`config.yml` (sorters, targets, delivery, ownership, inspection, activity colours), `pads.yml` (pad types and who
+can create them), `tags.yml` (tags of your own and replacements for the game's), `database.yml` (where trust is
+kept) and `lang/`.
 See [docs/configuration.md](docs/configuration.md).
 
 ## Build
