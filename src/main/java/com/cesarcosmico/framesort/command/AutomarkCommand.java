@@ -36,8 +36,8 @@ public final class AutomarkCommand implements CommandFeature {
             return Command.SINGLE_SUCCESS;
         }
         String key = switch (automark.toggle(player)) {
-            case ON -> "automark.on";
-            case OFF -> "automark.off";
+            case ON -> "automark.enabled";
+            case OFF -> "automark.disabled";
             case CANNOT_MARK -> "mark.no-permission";
         };
         player.sendMessage(messages.get().get(key));

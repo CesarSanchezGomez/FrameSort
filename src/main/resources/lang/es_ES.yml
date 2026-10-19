@@ -125,8 +125,8 @@ mark:
   auto: '<green>Marcado como destino:</green> <white><item></white>'
 
 automark:
-  on: '<prefix><green><hover:show_text:"<gray>Un item que metes en un marco sobre<newline>un contenedor o compostador lo marca.<newline>Paredes y lava: shift + clic derecho.</gray>">Automarcado activado</hover></green>'
-  off: '<prefix><yellow><hover:show_text:"<gray>Shift + clic derecho a un marco<newline>con la mano vacía para marcarlo.</gray>">Automarcado desactivado</hover></yellow>'
+  enabled: '<prefix><green><hover:show_text:"<gray>Un item que metes en un marco sobre<newline>un contenedor o compostador lo marca.<newline>Paredes y lava: shift + clic derecho.</gray>">Automarcado activado</hover></green>'
+  disabled: '<prefix><yellow><hover:show_text:"<gray>Shift + clic derecho a un marco<newline>con la mano vacía para marcarlo.</gray>">Automarcado desactivado</hover></yellow>'
 
 tag-item:
   applied: '<prefix><green><hover:show_text:"<gray>En un marco representa el tag.</gray>">Etiquetado <white>#<tag></white></hover></green>'

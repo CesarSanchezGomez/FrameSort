@@ -125,8 +125,8 @@ mark:
   auto: '<green>Marked as a target:</green> <white><item></white>'
 
 automark:
-  on: '<prefix><green><hover:show_text:"<gray>An item you put in a frame on a<newline>container or composter marks it.<newline>Walls and lava: sneak + right-click.</gray>">Automark on</hover></green>'
-  off: '<prefix><yellow><hover:show_text:"<gray>Sneak + right-click a frame<newline>with an empty hand to mark it.</gray>">Automark off</hover></yellow>'
+  enabled: '<prefix><green><hover:show_text:"<gray>An item you put in a frame on a<newline>container or composter marks it.<newline>Walls and lava: sneak + right-click.</gray>">Automark on</hover></green>'
+  disabled: '<prefix><yellow><hover:show_text:"<gray>Sneak + right-click a frame<newline>with an empty hand to mark it.</gray>">Automark off</hover></yellow>'
 
 tag-item:
   applied: '<prefix><green><hover:show_text:"<gray>In a frame it stands for the tag.</gray>">Tagged <white>#<tag></white></hover></green>'
