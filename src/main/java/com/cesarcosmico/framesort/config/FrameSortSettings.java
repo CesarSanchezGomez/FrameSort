@@ -9,8 +9,7 @@ import java.util.function.Predicate;
 
 /** {@code ownership} false makes every source send to any target and lets anyone inspect any source. */
 public record FrameSortSettings(String language, SorterSettings sorter, TargetSettings targets,
-                                DeliverySettings delivery, InspectSettings inspect, ActivitySettings activity,
-                                boolean ownership) {
+                                DeliverySettings delivery, InspectSettings inspect, boolean ownership) {
 
     /** Keys whose absence means "without it": the activator's and a tagged item's look, and the sorter's title. */
     public static final Set<String> OPTIONAL_KEYS = Set.of("sorter.custom-name", "sorter.activator.name",
@@ -37,7 +36,6 @@ public record FrameSortSettings(String language, SorterSettings sorter, TargetSe
                 TargetSettings.parse(config.sectionOrEmpty("targets")),
                 DeliverySettings.parse(config.sectionOrEmpty("delivery"), isItem, craftEngine),
                 InspectSettings.parse(config.sectionOrEmpty("inspect")),
-                ActivitySettings.parse(config.sectionOrEmpty("activity")),
                 config.bool("ownership.enabled", true));
     }
 }

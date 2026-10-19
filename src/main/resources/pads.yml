@@ -13,8 +13,6 @@ config-version: 1
 creation: anyone
 # Ticks between checks for items resting on pads.
 sweep-interval: 10
-# true: a pad gives off a pulse after each check that sends something (its colours: activity in config.yml).
-show-activity: true
 
 # Copper turns into another block as it ages, which would end the pad: the copper pad uses waxed copper.
 types:

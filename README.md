@@ -46,11 +46,10 @@ keeps its hidden frame until it loads with FrameSort installed, so before removi
    leftovers.
 2. **Sorters.** Put a hopper in a frame on a dispenser. The frame disappears and every second the dispenser
    sends up to 64 items from its inventory, at random, taking them from inside shulker boxes and bundles too. A
-   shulker box or bundle goes whole once nothing inside it can go anywhere. Each time it sends, the hopper turns and
-   gives off a pulse in FrameSort's colours.
+   shulker box or bundle goes whole once nothing inside it can go anywhere.
 3. **Sorting pads.** Place a waxed copper grate on a waxed block of copper, or a lodestone on smooth stone. Items
-   resting on top are sent to targets, with the same pulse. Who can create pads is configurable: anyone, players
-   with a permission, or only with a special pad block.
+   resting on top are sent to targets. Who can create pads is configurable: anyone, players with a permission, or
+   only with a special pad block.
 4. **Inspect.** Sneak + right-click a sorter or pad with an empty hand: its targets' items glow (only for you, in
    configurable colours) and are listed page by page. Sneak + left-click a target frame to see what it accepts.
    `/framesort trace` shows the deliveries around you live.
@@ -122,9 +121,8 @@ Every command also runs as `/fs`. Where each command lives, its permission and w
 
 ## Configuration
 
-`config.yml` (sorters, targets, delivery, ownership, inspection, activity colours), `pads.yml` (pad types and who
-can create them), `tags.yml` (tags of your own and replacements for the game's), `database.yml` (where trust is
-kept) and `lang/`.
+`config.yml` (sorters, targets, delivery, ownership, inspection), `pads.yml` (pad types and who can create them),
+`tags.yml` (tags of your own and replacements for the game's), `database.yml` (where trust is kept) and `lang/`.
 See [docs/configuration.md](docs/configuration.md).
 
 ## Build
