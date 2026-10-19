@@ -245,7 +245,6 @@ public final class SorterService {
     }
 
     private void dispense(Sorter sorter) {
-        Location location = sorter.block.getLocation().toCenterLocation();
         UUID owner = FrameCodec.owner(sorter.frame);
         int sent = 0;
         // What found nowhere to go this turn is not tried again.
@@ -261,7 +260,7 @@ public final class SorterService {
             }
             ItemStack tried = slot.get();
             int kept = Math.max(0, tried.getAmount() - (PER_TURN - sent));
-            int moved = delivery.deliver(sorter.block, owner, new SlotSource(slot, location, kept));
+            int moved = delivery.deliver(sorter.block, owner, new SlotSource(slot, kept));
             if (moved == 0) {
                 missed.add(tried);
             }
@@ -409,7 +408,7 @@ public final class SorterService {
     }
 
     /** Offers all of the slot but {@code kept} items, which stay in it whatever happens: a turn never goes past 64. */
-    private record SlotSource(Slot slot, Location location, int kept) implements DeliveryService.Source {
+    private record SlotSource(Slot slot, int kept) implements DeliveryService.Source {
         @Override
         public ItemStack stack() {
             ItemStack item = slot.get();

@@ -285,11 +285,6 @@ public final class PadService {
         }
 
         @Override
-        public Location location() {
-            return item.getLocation();
-        }
-
-        @Override
         public void commit(int remaining) {
             if (remaining <= 0) {
                 item.remove();

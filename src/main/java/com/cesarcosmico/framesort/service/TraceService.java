@@ -36,7 +36,7 @@ public final class TraceService {
         }
     }
 
-    // At most one sorter turn or pad item per player this often, so a busy sorter does not flood the screen. Every
+    // At most one sorter turn or pad sweep per player this often, so a busy sorter does not flood the screen. Every
     // target of the turn that is shown still shows once: a turn is the same source in the same tick.
     private static final long MIN_INTERVAL_MILLIS = 150;
     // The trail runs straight from the source to the frame, so it stays readable in tunnels.

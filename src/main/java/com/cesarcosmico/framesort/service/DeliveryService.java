@@ -28,8 +28,6 @@ public final class DeliveryService {
 
         ItemStack stack();
 
-        Location location();
-
         /** Leaves {@code remaining} items in the source; 0 empties it. */
         void commit(int remaining);
 
@@ -69,7 +67,8 @@ public final class DeliveryService {
         int amount = stack.getAmount();
         List<Delivery.Level<ItemFrame, Target>> levels = plan.levels().stream()
                 .map(level -> new Delivery.Level<>(level.containers(), level.end())).toList();
-        Location from = source.location();
+        // From the source block, not the item: a pad's items rest anywhere on it, and one sweep is one turn.
+        Location from = origin.getLocation().toCenterLocation();
         Delivery.Outcome<ItemFrame, Target> outcome = Delivery.deliver(amount, levels,
                 (frame, offered) -> offer(frame, stack, offered, from, owner), source::commit);
         if (plan.stale() || !outcome.gone().isEmpty()) {
