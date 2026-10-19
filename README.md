@@ -9,9 +9,9 @@ container.
 - **Dependencies:** none. With [WorldGuard](https://enginehub.org/worldguard) installed, sorters and pads respect its
   regions; with [CraftEngine](https://github.com/Xiao-MoMi/craft-engine) installed, its custom items are sorted by
   their ID (see below).
-- **Storage:** none to set up. Targets, pads and items keep their data in the world (persistent data containers);
-  who trusts whom is in `plugins/FrameSort/data.db` (SQLite), or in MySQL or MariaDB to share it between servers
-  (`database.yml`).
+- **Storage:** none to set up. Targets, pads and items keep their data in the world, and each player's
+  `/framesort automark` choice is kept with the player (persistent data containers); who trusts whom is in
+  `plugins/FrameSort/data.db` (SQLite), or in MySQL or MariaDB to share it between servers (`database.yml`).
 
 ## Installation
 
@@ -30,8 +30,9 @@ out of those sorters.
 ## How it works
 
 1. **Targets.** Put an item in a frame on a container and sneak + right-click the frame with an empty hand to
-   mark it as a target. The mark goes with that item: putting another one in leaves the frame unmarked. A frame
-   accepts items in this order of preference:
+   mark it as a target. With `/framesort automark` on, putting the item in is enough, and the action bar says so.
+   The mark goes with that item: putting another one in leaves the frame unmarked, or, with automark, marked for
+   whoever put it in. A frame accepts items in this order of preference:
    1. the exact item;
    2. a tag, when the frame item has one applied (`/framesort tag apply <tag>`): a game tag, or one of your own in
       `tags.yml`;
@@ -85,6 +86,7 @@ never duplicated.
 | Command | Permission | Default |
 |---|---|---|
 | `/framesort` (help) | `framesort.command.help` | everyone |
+| `/framesort automark` | `framesort.command.automark` | everyone |
 | `/framesort tag list [page]` | `framesort.command.tag-list` | everyone |
 | `/framesort tag search <text> [page]` | `framesort.command.tag-search` | everyone |
 | `/framesort tag show <tag> [page]` | `framesort.command.tag-show` | everyone |
@@ -108,11 +110,11 @@ Every command also runs as `/fs`. Where each command lives, its permission and w
 | Permission | Default | Grants |
 |---|---|---|
 | `framesort.*` | op | everything |
-| `framesort.use` | everyone | inspecting, marking targets and the help, tag, where, trace, trust, untrust and trusted commands (every `framesort.command.tag-*`) |
+| `framesort.use` | everyone | inspecting, marking targets and the help, automark, tag, where, trace, trust, untrust and trusted commands (every `framesort.command.tag-*`) |
 | `framesort.admin` | op | creating pads in `permission` mode, inspecting anyone's sorters and pads, and the give and reload commands |
 | `framesort.inspect` | everyone | inspecting sorters, pads and frames |
 | `framesort.inspect.others` | op | inspecting and tracing sorters and pads whose owner doesn't trust you |
-| `framesort.target.create` | everyone | marking frames as targets (with `framesort.inspect`) |
+| `framesort.target.create` | everyone | marking frames as targets, by hand (with `framesort.inspect`) or with automark |
 | `framesort.pad.create` | op | creating pads when `pads.yml` has `creation: permission` |
 | `framesort.command.<command>` | as in the table above | each command |
 

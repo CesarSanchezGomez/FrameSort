@@ -279,7 +279,7 @@ public final class TargetResolver {
         Block attached = FrameGeometry.attachedBlock(frame);
         // Never send a source's items back into itself, and never treat a sorter's own frame as a target.
         if (attached.equals(source) || attached.getType() == Material.DISPENSER
-                && current.sorter().isActivatorFrame(frame, customItems::id)) {
+                && current.sorter().isActivatorFrame(frame, shown, customItems::id)) {
             return false;
         }
         // Anyone can hang a frame near a sorter: it takes the owner's items only if the owner trusts its owner.
@@ -317,7 +317,7 @@ public final class TargetResolver {
         for (ItemFrame frame : block.getWorld().getNearbyEntitiesByType(ItemFrame.class,
                 block.getLocation().toCenterLocation(), 1)) {
             if (FrameGeometry.attachedBlock(frame).equals(block)
-                    && current.sorter().isActivatorFrame(frame, customItems::id)) {
+                    && current.sorter().isActivatorFrame(frame, frame.getItem(), customItems::id)) {
                 return true;
             }
         }

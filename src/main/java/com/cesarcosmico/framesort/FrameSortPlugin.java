@@ -1,5 +1,6 @@
 package com.cesarcosmico.framesort;
 
+import com.cesarcosmico.framesort.command.AutomarkCommand;
 import com.cesarcosmico.framesort.command.CommandFeature;
 import com.cesarcosmico.framesort.command.CommandTree;
 import com.cesarcosmico.framesort.command.GiveCommand;
@@ -34,6 +35,7 @@ import com.cesarcosmico.framesort.listener.PadListener;
 import com.cesarcosmico.framesort.listener.SorterListener;
 import com.cesarcosmico.framesort.listener.TargetListener;
 import com.cesarcosmico.framesort.model.TrustList;
+import com.cesarcosmico.framesort.service.AutoMarkService;
 import com.cesarcosmico.framesort.service.CustomItemResolver;
 import com.cesarcosmico.framesort.service.DeliveryService;
 import com.cesarcosmico.framesort.service.HighlightService;
@@ -140,17 +142,22 @@ public final class FrameSortPlugin extends JavaPlugin {
         inspect = new InspectService(this, new HighlightService(this), settings, messages, index, resolver, trust,
                 sorters, padService, commands);
 
-        register(new TargetListener(index), new SorterListener(sorters, messages),
+        // Without the command a player could not switch it off, so it only acts while they may run it.
+        AutoMarkService autoMark = new AutoMarkService(index, sorters,
+                player -> commands.usageFor("automark", player::hasPermission) != null);
+
+        register(new TargetListener(index, autoMark, messages), new SorterListener(sorters, messages),
                 new PadListener(padService, messages), new InspectListener(inspect, sorters, padService));
         // Only this check loads the integration's classes, so FrameSort runs without WorldGuard installed.
         if (getServer().getPluginManager().isPluginEnabled("WorldGuard")) {
             register(new WorldGuardTargetListener());
         }
-        List<String> helpLines = List.of("tag-list", "tag-search", "tag-show", "tag-apply", "tag-remove", "where",
-                "trace", "trust", "untrust", "trusted", "give", "reload");
+        List<String> helpLines = List.of("automark", "tag-list", "tag-search", "tag-show", "tag-apply", "tag-remove",
+                "where", "trace", "trust", "untrust", "trusted", "give", "reload");
         TagListing listing = new TagListing(tags, messages, settings, commands);
         List<CommandFeature> features = List.of(
                 new HelpCommand(messages, commands, helpLines),
+                new AutomarkCommand(autoMark, messages),
                 new TagListCommand(listing),
                 new TagSearchCommand(listing),
                 new TagShowCommand(tags, messages, settings, commands, customItems),

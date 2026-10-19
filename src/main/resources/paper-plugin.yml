@@ -32,6 +32,7 @@ permissions:
       framesort.inspect: true
       framesort.target.create: true
       framesort.command.help: true
+      framesort.command.automark: true
       framesort.command.tag-list: true
       framesort.command.tag-search: true
       framesort.command.tag-show: true
@@ -64,6 +65,9 @@ permissions:
     default: op
   framesort.command.help:
     description: 'Show the help with /framesort.'
+    default: true
+  framesort.command.automark:
+    description: 'Switch between marking frames by hand and when you put an item in with /framesort automark.'
     default: true
   framesort.command.tag-list:
     description: 'List every item and block tag with /framesort tag list.'

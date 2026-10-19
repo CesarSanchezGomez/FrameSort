@@ -16,6 +16,7 @@ command:
       - ''
       - '<gradient:#F7B733:#FC4A1A>◣<st>                                   </st></gradient><gradient:#FC4A1A:#F7B733><st>                                   </st>◢</gradient>'
       - ''
+    automark: '  <color:#F7B733>•</color> <hover:show_text:"<gray>Si un item que metes en un marco<newline>sobre un contenedor lo marca.</gray>"><white><usage></white> <dark_gray>automarcado sí/no</dark_gray></hover>'
     tag-list: '  <color:#F7B733>•</color> <hover:show_text:"<gray>Todos los tags de items y bloques,<newline>y los de tags.yml.</gray>"><white><usage> [página]</white> <dark_gray>todos</dark_gray></hover>'
     tag-search: '  <color:#F7B733>•</color> <hover:show_text:"<gray>Tags cuyo nombre contiene un texto.</gray>"><white><usage> \<texto> [página]</white> <dark_gray>buscar</dark_gray></hover>'
     tag-show: '  <color:#F7B733>•</color> <hover:show_text:"<gray>Los items o bloques de un tag.</gray>"><white><usage> \<tag> [página]</white> <dark_gray>contenido</dark_gray></hover>'
@@ -121,6 +122,11 @@ mark:
   no-permission: '<prefix><red>No puedes marcar destinos</red>'
   wrong-type: '<prefix><red>Este marco no puede ser destino</red>'
   not-yours: '<prefix><red><hover:show_text:"<gray>Solo su dueño puede desmarcarlo.</gray>">Este destino es de <white><player></white></hover></red>'
+  auto: '<green>Marcado como destino:</green> <white><item></white>'
+
+automark:
+  on: '<prefix><green><hover:show_text:"<gray>Un item que metes en un marco sobre<newline>un contenedor o compostador lo marca.<newline>Paredes y lava: shift + clic derecho.</gray>">Automarcado activado</hover></green>'
+  off: '<prefix><yellow><hover:show_text:"<gray>Shift + clic derecho a un marco<newline>con la mano vacía para marcarlo.</gray>">Automarcado desactivado</hover></yellow>'
 
 tag-item:
   applied: '<prefix><green><hover:show_text:"<gray>En un marco representa el tag.</gray>">Etiquetado <white>#<tag></white></hover></green>'

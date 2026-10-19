@@ -16,6 +16,7 @@ command:
       - ''
       - '<gradient:#F7B733:#FC4A1A>◣<st>                                   </st></gradient><gradient:#FC4A1A:#F7B733><st>                                   </st>◢</gradient>'
       - ''
+    automark: '  <color:#F7B733>•</color> <hover:show_text:"<gray>Whether an item you put in a frame<newline>on a container marks it.</gray>"><white><usage></white> <dark_gray>automark on/off</dark_gray></hover>'
     tag-list: '  <color:#F7B733>•</color> <hover:show_text:"<gray>Every item and block tag,<newline>and the tags in tags.yml.</gray>"><white><usage> [page]</white> <dark_gray>all tags</dark_gray></hover>'
     tag-search: '  <color:#F7B733>•</color> <hover:show_text:"<gray>Tags whose name contains a text.</gray>"><white><usage> \<text> [page]</white> <dark_gray>find</dark_gray></hover>'
     tag-show: '  <color:#F7B733>•</color> <hover:show_text:"<gray>The items or blocks in a tag.</gray>"><white><usage> \<tag> [page]</white> <dark_gray>contents</dark_gray></hover>'
@@ -121,6 +122,11 @@ mark:
   no-permission: '<prefix><red>You can''t mark targets</red>'
   wrong-type: '<prefix><red>This frame can''t be a target</red>'
   not-yours: '<prefix><red><hover:show_text:"<gray>Only its owner can unmark it.</gray>">This target is <white><player></white>''s</hover></red>'
+  auto: '<green>Marked as a target:</green> <white><item></white>'
+
+automark:
+  on: '<prefix><green><hover:show_text:"<gray>An item you put in a frame on a<newline>container or composter marks it.<newline>Walls and lava: sneak + right-click.</gray>">Automark on</hover></green>'
+  off: '<prefix><yellow><hover:show_text:"<gray>Sneak + right-click a frame<newline>with an empty hand to mark it.</gray>">Automark off</hover></yellow>'
 
 tag-item:
   applied: '<prefix><green><hover:show_text:"<gray>In a frame it stands for the tag.</gray>">Tagged <white>#<tag></white></hover></green>'

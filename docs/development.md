@@ -7,7 +7,7 @@ com.cesarcosmico.framesort
 ├── FrameSortPlugin   composition root: wires everything, one tick task, reload
 ├── FrameSortLoader   downloads HikariCP and the MariaDB driver on first start
 ├── model/            plain rules: priorities, ranking, delivery, composting, paging, item references, trust
-├── service/          target index and resolver, delivery, sorters, pads, inspection, tracing, tags, trust
+├── service/          target index and resolver, automark, delivery, sorters, pads, inspection, tracing, tags, trust
 ├── storage/          the database and the trust table
 ├── config/           typed settings, pads.yml, tags.yml, commands.yml, strict loading, validation, reload holder
 ├── item/             persistent data keys, item templates, the overlay on items FrameSort doesn't build, codecs
@@ -56,6 +56,7 @@ it out of step:
 | Sorter dispenser | `framesort:sorted` | How many items the sorter has sent (a `long`); it goes away with the block. |
 | Item | `framesort:activator` | The sorter activator handed out by FrameSort. |
 | Item | `framesort:pad-item` | The pad type of a special pad block. |
+| Player | `framesort:auto-mark` | Present while the player has `/framesort automark` on. Saved with the player's data on this server, so each server of a network keeps its own, and read only while the player is online. |
 
 Who trusts whom is read while the player who gave it is offline, so it lives in the database (`database.yml`):
 one table, `framesort_trust`, with a row per trust (`owner`, `trusted`, `created_at`). UUIDs are 16 bytes, most

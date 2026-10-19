@@ -87,7 +87,7 @@ public final class SorterService {
     }
 
     public Change consider(ItemFrame frame) {
-        boolean holdsActivator = settings.get().sorter().isActivatorFrame(frame, customItems::id);
+        boolean holdsActivator = settings.get().sorter().isActivatorFrame(frame, frame.getItem(), customItems::id);
         if (!FrameGeometry.attachedLoaded(frame)) {
             // Only frames that could make a sorter wait for the neighbouring chunk; the rest are never sorters.
             if (holdsActivator && waiting.add(frame.getUniqueId())) {
@@ -224,7 +224,7 @@ public final class SorterService {
                 current.due = tick + sorter.tickRate();
                 continue;
             }
-            if (!makesSorter(current.frame, current.block)) {
+            if (!makesSorter(current.frame, current.frame.getItem())) {
                 sorters.remove(entry.getKey());
                 applyLook(current.frame, false);
                 continue;
@@ -238,9 +238,10 @@ public final class SorterService {
         }
     }
 
-    private boolean makesSorter(ItemFrame frame, Block block) {
-        return block.getType() == Material.DISPENSER
-                && settings.get().sorter().isActivatorFrame(frame, customItems::id);
+    /** Whether {@code item} in {@code frame} makes a sorter of the block the frame hangs on. */
+    public boolean makesSorter(ItemFrame frame, ItemStack item) {
+        return FrameGeometry.attachedBlock(frame).getType() == Material.DISPENSER
+                && settings.get().sorter().isActivatorFrame(frame, item, customItems::id);
     }
 
     private void dispense(Sorter sorter) {

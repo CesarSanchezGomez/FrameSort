@@ -98,9 +98,9 @@ targets that accept it.
 | `frame-types` | `[ITEM_FRAME, GLOW_ITEM_FRAME]` | Frames that can be targets. |
 | `tagged-item.name`, `lore`, `glint` | `'<gradient:#F7B733:#FC4A1A>#<tag></gradient>'`, none, `true` | *Optional.* Look a tagged item gets (see [Item look](#item-look)); in `name` and `lore`, `<tag>` is the tag, without `minecraft:` for vanilla tags. Left out, or set to `''`, `[]` or `false`, the item has none of it: `tagged-item: {}` tags items without changing how they look. |
 
-Only marked frames are targets (see [docs/commands.md](commands.md#inspecting)). A target frame may hang on any face
-of its block, whichever way the block faces: the lid of an upright barrel, the side of a chest or the bottom of one
-in a ceiling.
+Only marked frames are targets: marked by hand, or by putting the item in with `/framesort automark` on (see
+[docs/commands.md](commands.md)). A target frame may hang on any face of its block, whichever way the block faces:
+the lid of an upright barrel, the side of a chest or the bottom of one in a ceiling.
 
 ### delivery
 

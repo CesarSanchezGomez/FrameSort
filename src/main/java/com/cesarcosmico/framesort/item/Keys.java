@@ -14,6 +14,7 @@ public final class Keys {
     public static final NamespacedKey SORTED = new NamespacedKey(NAMESPACE, "sorted");
     public static final NamespacedKey ITEM_TAG = new NamespacedKey(NAMESPACE, "item-tag");
     public static final NamespacedKey ITEM_TAG_ORIGINAL = new NamespacedKey(NAMESPACE, "item-tag-original");
+    public static final NamespacedKey AUTO_MARK = new NamespacedKey(NAMESPACE, "auto-mark");
 
     private Keys() {
     }
