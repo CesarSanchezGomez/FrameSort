@@ -4,7 +4,7 @@ main: com.cesarcosmico.framesort.FrameSortPlugin
 loader: com.cesarcosmico.framesort.FrameSortLoader
 api-version: '26.2'
 authors: [ CesarCosmico ]
-description: 'Send items to item frames from sorter dispensers and teleport pads, without hopper chains.'
+description: 'Send items to item frames from sorter dispensers and sorting pads, without hopper chains.'
 website: 'https://github.com/CesarSanchezGomez/FrameSort'
 
 dependencies:
@@ -61,7 +61,7 @@ permissions:
     description: 'Mark item frames as targets.'
     default: true
   framesort.pad.create:
-    description: 'Create teleport pads when pads.yml has creation set to permission.'
+    description: 'Create sorting pads when pads.yml has creation set to permission.'
     default: op
   framesort.command.help:
     description: 'Show the help with /framesort.'

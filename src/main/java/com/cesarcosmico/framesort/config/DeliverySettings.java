@@ -9,7 +9,7 @@ import java.util.function.Predicate;
 public record DeliverySettings(int maxDistance, boolean insertIntoContainers,
                                @Nullable ItemReference defaultTargetItem) {
 
-    private static final ItemReference.Vanilla DEFAULT_TARGET = new ItemReference.Vanilla(Material.CARROT_ON_A_STICK);
+    private static final ItemReference.Vanilla DEFAULT_TARGET = new ItemReference.Vanilla(Material.ITEM_FRAME);
 
     static DeliverySettings parse(ConfigReader reader, Predicate<Material> isItem, boolean craftEngine) {
         return new DeliverySettings(

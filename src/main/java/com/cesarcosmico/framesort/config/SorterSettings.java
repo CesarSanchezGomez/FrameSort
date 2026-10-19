@@ -28,7 +28,7 @@ public record SorterSettings(ItemReference activator, ItemLook activatorLook, Ma
                              int tickRate, boolean disableWhenPowered, boolean hideFrame, boolean showActivity) {
 
     private static final Set<EntityType> ITEM_FRAMES = Set.of(EntityType.ITEM_FRAME, EntityType.GLOW_ITEM_FRAME);
-    private static final ItemReference.Vanilla DEFAULT_ACTIVATOR = new ItemReference.Vanilla(Material.ENDER_EYE);
+    private static final ItemReference.Vanilla DEFAULT_ACTIVATOR = new ItemReference.Vanilla(Material.HOPPER);
 
     public SorterSettings {
         activatorComponents = Collections.unmodifiableMap(new LinkedHashMap<>(activatorComponents));

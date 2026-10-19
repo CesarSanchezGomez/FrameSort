@@ -56,7 +56,7 @@ pager:
 inspect:
   source:
     sorter: 'sorter'
-    pad: 'teleport pad'
+    pad: 'pad clasificador'
   title: '<hover:show_text:"<details>">Destinos de este <source></hover>'
   title-item: '<hover:show_text:"<details>">Adónde va <item></hover>'
   details:
@@ -189,7 +189,7 @@ sorter:
   removed: '<prefix><yellow>Sorter eliminado</yellow>'
 
 pad:
-  created: '<prefix><green>Teleport pad <white><type></white> creado</green>'
-  removed: '<prefix><yellow>Teleport pad eliminado</yellow>'
+  created: '<prefix><green>Pad clasificador <white><type></white> creado</green>'
+  removed: '<prefix><yellow>Pad clasificador eliminado</yellow>'
   not-allowed: '<prefix><red>No puedes crear pads aquí</red>'
   unavailable: '<prefix><red><hover:show_text:"<gray>CraftEngine no puede crear su item ahora.<newline>Espera a que termine /ce reload<newline>o avisa a un admin.</gray>">Aún no se puede romper este pad</hover></red>'

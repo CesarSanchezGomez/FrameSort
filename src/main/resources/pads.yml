@@ -1,4 +1,4 @@
-# FrameSort: teleport pads. /framesort reload applies this file.
+# FrameSort: sorting pads. /framesort reload applies this file.
 # Details: https://github.com/CesarSanchezGomez/FrameSort/blob/main/docs/configuration.md#padsyml
 #
 # Each type under 'types' is one kind of pad; its key is the <type> of /framesort give pad.
@@ -14,24 +14,25 @@ creation: anyone
 # Ticks between checks for items resting on pads.
 sweep-interval: 10
 
+# Copper turns into another block as it ages, which would end the pad: these use waxed copper.
 types:
-  simple:
-    structure: [CRYING_OBSIDIAN, GILDED_BLACKSTONE]
+  copper:
+    structure: [WAXED_COPPER_GRATE, LODESTONE]
     item:
-      name: '<gradient:#F7B733:#FC4A1A>Teleport Pad</gradient>'
+      name: '<gradient:#F7B733:#FC4A1A>Sorting Pad</gradient>'
       lore:
         - ''
         - ' <gray>Place it on top of</gray> '
-        - ' <gray>gilded blackstone.</gray> '
+        - ' <gray>a lodestone.</gray> '
         - ''
       glint: true
-  magma:
-    structure: [MAGMA_BLOCK, GILDED_BLACKSTONE]
+  oxidized:
+    structure: [WAXED_OXIDIZED_COPPER_GRATE, LODESTONE]
     item:
-      name: '<gradient:#F7B733:#FC4A1A>Magma Teleport Pad</gradient>'
+      name: '<gradient:#F7B733:#FC4A1A>Oxidized Sorting Pad</gradient>'
       lore:
         - ''
         - ' <gray>Place it on top of</gray> '
-        - ' <gray>gilded blackstone.</gray> '
+        - ' <gray>a lodestone.</gray> '
         - ''
       glint: true

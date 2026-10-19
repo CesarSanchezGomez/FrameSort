@@ -7,7 +7,7 @@ import org.bukkit.event.HandlerList;
 import org.bukkit.event.entity.EntityEvent;
 
 /**
- * Fired when FrameSort considers an item frame as a target for a sorter or teleport pad. Cancel it to keep that
+ * Fired when FrameSort considers an item frame as a target for a sorter or sorting pad. Cancel it to keep that
  * source from sending items to the frame, for example when the frame is inside a claim you protect.
  *
  * <p>It only fires for a frame the source may send to by owner: with ownership on, a frame of the source's owner or

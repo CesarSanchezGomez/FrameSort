@@ -73,11 +73,11 @@ the rest are CraftEngine's (they are reported and ignored).
 
 | Key | Default | Meaning |
 |---|---|---|
-| `activator.material` | `ENDER_EYE` | Item that turns a dispenser into a sorter when placed in a frame on it: a material, or a CraftEngine item (`'craftengine:<namespace>:<id>'`, see [CraftEngine items and blocks](#item-look)). A material that is not an item (`WATER`, `AIR`) falls back to the default. A CraftEngine item made from the activator's material is not the activator. |
+| `activator.material` | `HOPPER` | Item that turns a dispenser into a sorter when placed in a frame on it: a material, or a CraftEngine item (`'craftengine:<namespace>:<id>'`, see [CraftEngine items and blocks](#item-look)). A material that is not an item (`WATER`, `AIR`) falls back to the default. A CraftEngine item made from the activator's material is not the activator. |
 | `activator.require-marked` | `false` | `true`: only the activator from `/framesort give sorter` works, not any item of that material. |
 | `activator.name`, `lore`, `glint`, `components` | | *Optional.* Look of the activator FrameSort hands out (see [Item look](#item-look)); over a CraftEngine one, `name`, `lore` and `glint` only. Left out, or set to `''`, `[]` or `false`, the activator has none of it: with no name it shows the item's own name. |
 | `frame-types` | `[ITEM_FRAME, GLOW_ITEM_FRAME]` | Frames that can hold the activator. |
-| `custom-name` | `<gradient:#F7B733:#FC4A1A>Item Sorter</gradient>` | *Optional.* Title of a sorter's inventory. Left out or `''` = the dispenser's own name. The dispenser itself is never renamed: once it stops sorting it shows its own name again (from an anvil, or none), and a broken sorter drops it with that name. |
+| `custom-name` | `<gradient:#F7B733:#FC4A1A>Sorter</gradient>` | *Optional.* Title of a sorter's inventory. Left out or `''` = the dispenser's own name. The dispenser itself is never renamed: once it stops sorting it shows its own name again (from an anvil, or none), and a broken sorter drops it with that name. |
 | `tick-rate` | `20` | Ticks between two turns of the same sorter. |
 | `disable-when-powered` | `false` | A powered sorter stops sending. |
 | `hide-frame` | `true` | Hides the activator's frame while the sorter works. A reload applies a change to every sorter. |
@@ -108,7 +108,7 @@ the lid of an upright barrel, the side of a chest or the bottom of one in a ceil
 |---|---|---|
 | `max-distance` | `64` | Targets are searched within this many blocks of the sorter or pad. |
 | `insert-into-containers` | `true` | `true`: items go into the container behind the frame, or are composted by a composter. `false`: frames on containers or composters drop the items in front of them instead; frames on lava cauldrons still destroy them. |
-| `default-target-item` | `CARROT_ON_A_STICK` | Frames holding it take whatever matches no other frame, and whatever the other targets have no room for: a material (but not a CraftEngine item made from it) or a CraftEngine item (`'craftengine:<namespace>:<id>'`). `''` = off. A material that is not an item falls back to the default. |
+| `default-target-item` | `ITEM_FRAME` | Frames holding it (an item frame inside the frame) take whatever matches no other frame, and whatever the other targets have no room for: a material (but not a CraftEngine item made from it) or a CraftEngine item (`'craftengine:<namespace>:<id>'`). `''` = off. A material that is not an item falls back to the default. |
 
 How a destination is chosen:
 
@@ -149,7 +149,7 @@ vanilla. Items it doesn't take go on to the other targets as usual.
 **Lava cauldrons are trash cans.** A target frame on a lava cauldron holds the item to destroy and is chosen like
 any other frame (exact item, tag, material). If a container with the same or a better priority also takes that
 item, the lava only gets what doesn't fit; containers with a worse priority get nothing. With the default target
-item (a carrot on a stick) in the frame, it destroys whatever has no other target or no room left in one. An empty
+item (an item frame) in the frame, it destroys whatever has no other target or no room left in one. An empty
 frame does nothing.
 
 ### ownership
@@ -188,9 +188,14 @@ A pad is created when its top block is placed on its base, so place the base fir
 blocks stay; breaking the top block removes it, and whoever broke it is told so. If the top block goes any other
 way (WorldEdit, a command, gravity), the pad is forgotten at the next sweep. Without its base a pad waits, and works
 again once the base is back. In `item` mode, breaking it gives the special item back. The top block of a registered
-pad can't be pushed by pistons or blown up.
+pad can't be pushed by pistons, blown up or changed where it stands: an axe can't scrape the wax off a copper top
+block, nor a mob change it.
 
 Items resting up to one block above the top block count, so carpets or slabs on the pad are fine.
+
+The bundled types are a waxed copper grate on a lodestone (`copper`) and its oxidized look (`oxidized`). Copper ages
+into another block, so a pad of plain copper would end once it did: the grate has to be waxed (honeycomb) before it
+is placed, and `/framesort give pad` hands it out waxed.
 
 A vanilla block in `structure` is only that block: a CraftEngine block never counts as it, whatever vanilla block it
 shows as to the server (bricks by default), and one put in place of a pad's top block ends the pad at the next

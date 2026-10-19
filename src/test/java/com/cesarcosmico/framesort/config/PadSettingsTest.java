@@ -33,11 +33,14 @@ class PadSettingsTest {
         assertEquals(List.of(), warnings);
         assertEquals(PadMode.ANYONE, settings.creation());
         assertEquals(10, settings.sweepInterval());
-        PadType magma = settings.type("MAGMA");
-        assertNotNull(magma);
-        assertEquals(new ItemReference.Vanilla(Material.MAGMA_BLOCK), magma.top());
-        assertEquals(new ItemReference.Vanilla(Material.GILDED_BLACKSTONE), magma.base());
-        assertEquals("<gradient:#F7B733:#FC4A1A>Magma Teleport Pad</gradient>", magma.look().name());
+        PadType copper = settings.type("COPPER");
+        assertNotNull(copper);
+        assertEquals(new ItemReference.Vanilla(Material.WAXED_COPPER_GRATE), copper.top());
+        assertEquals(new ItemReference.Vanilla(Material.LODESTONE), copper.base());
+        assertEquals("<gradient:#F7B733:#FC4A1A>Sorting Pad</gradient>", copper.look().name());
+        PadType oxidized = settings.type("oxidized");
+        assertNotNull(oxidized);
+        assertEquals(new ItemReference.Vanilla(Material.WAXED_OXIDIZED_COPPER_GRATE), oxidized.top());
     }
 
     @Test

@@ -31,8 +31,8 @@ class FrameSortSettingsTest {
     // Minecraft checks components on a server; these tests reject only the component named "nope".
     static final Function<String, @Nullable String> PROBLEM =
             input -> input.contains("nope=") ? "Unknown item component 'minecraft:nope'" : null;
-    private static final ItemReference EYE = new ItemReference.Vanilla(Material.ENDER_EYE);
-    private static final ItemReference CARROT = new ItemReference.Vanilla(Material.CARROT_ON_A_STICK);
+    private static final ItemReference HOPPER = new ItemReference.Vanilla(Material.HOPPER);
+    private static final ItemReference FRAME = new ItemReference.Vanilla(Material.ITEM_FRAME);
 
     static YamlConfiguration bundled(String resource) throws Exception {
         try (InputStream in = FrameSortSettingsTest.class.getResourceAsStream("/" + resource)) {
@@ -51,13 +51,13 @@ class FrameSortSettingsTest {
 
         assertEquals(List.of(), warnings);
         assertEquals("en_US", settings.language());
-        assertEquals(EYE, settings.sorter().activator());
+        assertEquals(HOPPER, settings.sorter().activator());
         assertFalse(settings.sorter().requireMarked());
         assertEquals(20, settings.sorter().tickRate());
         assertTrue(settings.sorter().showActivity());
         assertEquals(64, settings.delivery().maxDistance());
         assertTrue(settings.delivery().insertIntoContainers());
-        assertEquals(CARROT, settings.delivery().defaultTargetItem());
+        assertEquals(FRAME, settings.delivery().defaultTargetItem());
         assertEquals(Map.of(), settings.sorter().activatorComponents());
         assertEquals("<gradient:#F7B733:#FC4A1A>#<tag></gradient>", settings.targets().taggedItem().name());
         assertTrue(settings.targets().taggedItem().glint());
@@ -98,7 +98,7 @@ class FrameSortSettingsTest {
         FrameSortSettings settings = parse(yaml, warnings);
 
         assertEquals("en_US", settings.language());
-        assertEquals(EYE, settings.sorter().activator());
+        assertEquals(HOPPER, settings.sorter().activator());
         assertEquals(20, settings.sorter().tickRate());
         assertEquals(Set.of(EntityType.ITEM_FRAME), settings.sorter().frameTypes());
         assertEquals(64, settings.delivery().maxDistance());
@@ -238,13 +238,13 @@ class FrameSortSettingsTest {
         FrameSortSettings settings = FrameSortSettings.parse(
                 new ConfigReader(yaml, "config.yml", warnings::add), IS_ITEM, PROBLEM, false);
 
-        assertEquals(EYE, settings.sorter().activator());
-        assertEquals(CARROT, settings.delivery().defaultTargetItem());
+        assertEquals(HOPPER, settings.sorter().activator());
+        assertEquals(FRAME, settings.delivery().defaultTargetItem());
         assertEquals(List.of(
                 "config.yml > sorter.activator.material: 'craftengine:default:ruby' needs CraftEngine, which is not "
-                        + "installed, using ENDER_EYE",
+                        + "installed, using HOPPER",
                 "config.yml > delivery.default-target-item: 'craftengine:default:trash_bag' needs CraftEngine, which "
-                        + "is not installed, using CARROT_ON_A_STICK"), warnings);
+                        + "is not installed, using ITEM_FRAME"), warnings);
     }
 
     @Test
@@ -272,8 +272,8 @@ class FrameSortSettingsTest {
         List<String> warnings = new ArrayList<>();
         FrameSortSettings settings = parse(yaml, warnings);
 
-        assertEquals(EYE, settings.sorter().activator());
-        assertEquals(CARROT, settings.delivery().defaultTargetItem());
+        assertEquals(HOPPER, settings.sorter().activator());
+        assertEquals(FRAME, settings.delivery().defaultTargetItem());
         assertEquals(2, warnings.size(), warnings::toString);
     }
 }

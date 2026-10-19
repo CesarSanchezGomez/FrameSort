@@ -37,7 +37,7 @@ public record PadSettings(PadMode creation, int sweepInterval, Map<String, PadTy
             }
         }
         if (types.isEmpty()) {
-            reader.warn("types", "no valid pad types; teleport pads are disabled");
+            reader.warn("types", "no valid pad types; pads are disabled");
         }
         return new PadSettings(
                 reader.enumValue("creation", PadMode.class, PadMode.ANYONE),

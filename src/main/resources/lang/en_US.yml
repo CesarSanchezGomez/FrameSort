@@ -56,7 +56,7 @@ pager:
 inspect:
   source:
     sorter: 'sorter'
-    pad: 'teleport pad'
+    pad: 'sorting pad'
   title: '<hover:show_text:"<details>">Targets of this <source></hover>'
   title-item: '<hover:show_text:"<details>">Where <item> goes</hover>'
   details:
@@ -189,7 +189,7 @@ sorter:
   removed: '<prefix><yellow>Sorter removed</yellow>'
 
 pad:
-  created: '<prefix><green>Teleport pad <white><type></white> created</green>'
-  removed: '<prefix><yellow>Teleport pad removed</yellow>'
+  created: '<prefix><green>Sorting pad <white><type></white> created</green>'
+  removed: '<prefix><yellow>Sorting pad removed</yellow>'
   not-allowed: '<prefix><red>You can''t create pads here</red>'
   unavailable: '<prefix><red><hover:show_text:"<gray>CraftEngine can''t build its item now.<newline>Wait for /ce reload to finish,<newline>or ask an admin.</gray>">Can''t break this pad yet</hover></red>'
