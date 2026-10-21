@@ -33,6 +33,18 @@ class BundledYamlTest {
         }
     }
 
+    // YAML 1.1 reads a key named on, off, yes or no as a boolean: the entry ends up under true or false, and the code
+    // that asks for the written key finds nothing.
+    @Test
+    void noKeyIsReadAsABoolean() throws Exception {
+        for (Path file : yamlFiles()) {
+            for (String key : keys(file)) {
+                String last = key.substring(key.lastIndexOf('.') + 1);
+                assertFalse(last.equals("true") || last.equals("false"), file + ": " + key);
+            }
+        }
+    }
+
     @Test
     void everyLanguageHasTheSameKeys() throws Exception {
         Set<String> english = keys(RESOURCES.resolve("lang/en_US.yml"));

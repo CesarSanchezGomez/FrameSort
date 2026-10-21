@@ -11,7 +11,6 @@ import java.util.Set;
 import java.util.TreeSet;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 
 // BundledYamlTest checks that every language has the same keys; this checks that every message parses.
 class LangFilesTest {
@@ -42,18 +41,6 @@ class LangFilesTest {
                         ? String.join("<newline>", yaml.getStringList(key))
                         : yaml.getString(key, "");
                 assertDoesNotThrow(() -> strict.deserialize(value), locale + " " + key);
-            }
-        }
-    }
-
-    // YAML 1.1 reads a key named on, off, yes or no as a boolean, so the message ends up under true or false and the
-    // code's key finds nothing.
-    @Test
-    void noKeyIsReadAsABoolean() throws Exception {
-        for (String locale : new String[]{"en_US", "es_ES"}) {
-            for (String key : lang(locale).getKeys(true)) {
-                String last = key.substring(key.lastIndexOf('.') + 1);
-                assertFalse(last.equals("true") || last.equals("false"), locale + " " + key);
             }
         }
     }
