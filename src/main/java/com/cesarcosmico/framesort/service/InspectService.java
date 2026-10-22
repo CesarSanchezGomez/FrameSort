@@ -304,10 +304,6 @@ public final class InspectService {
         highlight(player, List.of(new HighlightService.Highlight(frame, marked ? colors.container() : colors.lava())));
     }
 
-    public void stopAll() {
-        highlights.clearAll();
-    }
-
     private void filtered(Messages text, Block source, @Nullable UUID owner, BlockKey center, ItemStack filter,
                           List<Component> lines, List<HighlightService.Highlight> marks) {
         List<TargetResolver.Level> levels = resolver.plan(source, owner, filter).levels();

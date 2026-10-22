@@ -91,7 +91,7 @@ public final class FrameSortPlugin extends JavaPlugin {
     private TargetResolver resolver;
     private SorterService sorters;
     private PadService padService;
-    private InspectService inspect;
+    private HighlightService highlights;
     // Null in onDisable when the plugin failed to start, or before it got that far.
     private @Nullable BukkitTask ticker;
     private @Nullable Database database;
@@ -139,8 +139,8 @@ public final class FrameSortPlugin extends JavaPlugin {
         DeliveryService delivery = new DeliveryService(this, resolver, trace::report);
         sorters = new SorterService(this, settings, delivery, customItems);
         padService = new PadService(this, pads, delivery, customItems);
-        HighlightService highlights = new HighlightService(this);
-        inspect = new InspectService(this, highlights, settings, messages, index, resolver, trust,
+        highlights = new HighlightService(this);
+        InspectService inspect = new InspectService(this, highlights, settings, messages, index, resolver, trust,
                 sorters, padService, commands);
 
         // Without the command a player could not switch it off, so it only acts while they may run it.
@@ -148,8 +148,7 @@ public final class FrameSortPlugin extends JavaPlugin {
                 player -> commands.usageFor("automark", player::hasPermission) != null);
 
         register(new TargetListener(index, automark), new SorterListener(sorters, messages),
-                new PadListener(padService, messages), new InspectListener(inspect, sorters, padService,
-                highlights));
+                new PadListener(padService, messages), new InspectListener(inspect, sorters, padService));
         // Only this check loads the integration's classes, so FrameSort runs without WorldGuard installed.
         if (getServer().getPluginManager().isPluginEnabled("WorldGuard")) {
             register(new WorldGuardListener());
@@ -204,7 +203,7 @@ public final class FrameSortPlugin extends JavaPlugin {
         if (ticker != null) {
             ticker.cancel();
             sorters.stopAll();
-            inspect.stopAll();
+            highlights.clearAll();
         }
         // Also when the start failed after opening it: it waits for queued writes, then closes the pool.
         if (database != null) {

@@ -139,7 +139,8 @@ Highlights are temporary item displays that copy each frame's item, glowing in a
 (`ItemFrameRenderer#submit` in 26.2: offset, facing, rotation, half scale, minus the half turn the item display
 renderer adds), so the copy lands exactly on the real item. They are hidden from
 everyone but the inspecting player (`setVisibleByDefault(false)` + `Player#showEntity`), never saved, and removed
-after `highlight-seconds`, when the player leaves or when the plugin disables. Making the frame itself glow would
+after `highlight-seconds`, each on its own scheduler, or when the plugin disables; a player who leaves first
+just stops seeing them, since nobody else can. Making the frame itself glow would
 show it to every player, in a colour that depends on scoreboard teams, and Paper has no per-player glow without
 packets.
 
