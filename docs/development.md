@@ -95,8 +95,11 @@ SELECT HEX(owner), HEX(trusted), FROM_UNIXTIME(created_at / 1000) FROM framesort
   exactly as in vanilla and Paper can skip that event.
 - **Pads.** Pads are registered in their chunk, so only loaded pads are checked, every `sweep-interval` ticks. With
   `pull-radius` on, a check also looks for loose items within it; each one that passes the cheap checks (on the
-  ground, not dropped by FrameSort, not on a pad) costs one ray and one `PadPullEvent`. `model.Pull` gives the
-  starting velocity that lands the item on the pad in ten ticks under the game's item physics; `PullTest` pins it.
+  ground, not dropped by FrameSort, not on a pad, in sight) costs one `PadPullEvent`, and every one in range one
+  ray. `model.Pull` gives the starting velocity that carries the item to a point over the pad in ten ticks under the
+  game's item physics; a task on the item's own scheduler stops it there so it drops onto the pad. `PullTest` pins
+  the landing and that the arc clears the pad's edge. An item dropped at a drop spot that merges with an unmarked
+  one can lose the mark and be pulled back once; the drop that sends it there again marks it.
 - **Chunk borders.** A frame on a chunk border can hang on a block of the next chunk. That block is only read when
   its chunk is loaded, so FrameSort never loads chunks.
 - **Tracing.** With nobody tracing, a delivery costs one empty-map check.

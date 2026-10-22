@@ -19,13 +19,13 @@ import org.bukkit.Chunk;
 import org.bukkit.FluidCollisionMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.Server;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.util.RayTraceResult;
 import org.bukkit.util.Vector;
 import org.jspecify.annotations.Nullable;
@@ -67,16 +67,21 @@ public final class PadService {
         }
     }
 
-    private final Server server;
+    // Pulled items aim this high over the pad's surface, so their arc clears its edge; then they drop onto it.
+    private static final double AIM_ABOVE = 1.5;
+    // The line of sight starts just off the block an item lies on, so it doesn't graze that block.
+    private static final double RAY_LIFT = 0.05;
+
+    private final Plugin plugin;
     private final Supplier<PadSettings> settings;
     private final DeliveryService delivery;
     private final CustomItemResolver customItems;
     private final Map<ChunkKey, Map<BlockKey, PadEntry>> pads = new HashMap<>();
     private long tick;
 
-    public PadService(Server server, Supplier<PadSettings> settings, DeliveryService delivery,
+    public PadService(Plugin plugin, Supplier<PadSettings> settings, DeliveryService delivery,
                       CustomItemResolver customItems) {
-        this.server = server;
+        this.plugin = plugin;
         this.settings = settings;
         this.delivery = delivery;
         this.customItems = customItems;
@@ -194,7 +199,7 @@ public final class PadService {
         for (Map<BlockKey, PadEntry> inChunk : List.copyOf(pads.values())) {
             for (Map.Entry<BlockKey, PadEntry> pad : Map.copyOf(inChunk).entrySet()) {
                 BlockKey key = pad.getKey();
-                World world = server.getWorld(key.world());
+                World world = plugin.getServer().getWorld(key.world());
                 if (world != null) {
                     sweep(world.getBlockAt(key.x(), key.y(), key.z()), pad.getValue());
                 }
@@ -233,36 +238,42 @@ public final class PadService {
 
     /** Throws the loose items around the pad onto it, so a later sweep sends them. */
     private void pull(Block top, int radius) {
-        Location target = top.getLocation().add(0.5, 1, 0.5);
-        for (Item item : top.getWorld().getNearbyEntitiesByType(Item.class, target, radius, radius, radius)) {
-            // This sweep's deliveries and the event's handlers can remove items. One in the air is already on its
-            // way, and one on a pad goes with that pad's own sweep.
+        Location surface = top.getLocation().add(0.5, 1, 0.5);
+        Location target = surface.clone().add(0, AIM_ABOVE, 0);
+        for (Item item : top.getWorld().getNearbyEntitiesByType(Item.class, surface, radius, radius, radius)) {
+            Location from = item.getLocation();
+            // Handlers of an earlier PadPullEvent may remove items. One in the air is already on its way; one over or
+            // under this pad is on it or can't get there, and one on another pad goes with that pad's sweep.
             if (!item.isValid() || !item.isOnGround() || DropCodec.isMarked(item)
-                    || item.getLocation().distanceSquared(target) > (double) radius * radius
-                    || isPad(item.getLocation().getBlock().getRelative(BlockFace.DOWN))
-                    || !inSight(item, top, target) || !new PadPullEvent(item, top).callEvent()) {
+                    || from.distanceSquared(surface) > (double) radius * radius
+                    || Math.abs(from.getX() - surface.getX()) < 0.5 && Math.abs(from.getZ() - surface.getZ()) < 0.5
+                    || isPad(from.getBlock().getRelative(BlockFace.DOWN)) || !inSight(item, top, target)) {
                 continue;
             }
-            Location from = item.getLocation();
             Pull.Velocity velocity = Pull.velocity(target.getX() - from.getX(), target.getY() - from.getY(),
                     target.getZ() - from.getZ());
+            if (velocity == null || !new PadPullEvent(item, top).callEvent()) {
+                continue;
+            }
             item.setVelocity(new Vector(velocity.x(), velocity.y(), velocity.z()));
+            // It reaches the point over the pad still moving sideways; stopped there, it drops straight onto the pad.
+            item.getScheduler().runDelayed(plugin, task -> item.setVelocity(new Vector()), null, Pull.FLIGHT_TICKS);
         }
     }
 
-    // Through a wall the item would be thrown against it on every sweep. Hitting the pad itself, or the carpet or slab
-    // resting on it, still reaches the pad.
+    // The arc passes above the straight line, so a clear line means a clear flight. Anything in the way, the pad's own
+    // blocks included, stops it, except a carpet or slab lying on the pad.
     private static boolean inSight(Item item, Block top, Location target) {
-        Location start = item.getLocation().add(0, 0.25, 0);
-        Vector toPad = target.toVector().subtract(start.toVector());
-        RayTraceResult hit = item.getWorld().rayTraceBlocks(start, toPad.clone().normalize(), toPad.length(),
+        Location start = item.getLocation().add(0, RAY_LIFT, 0);
+        Vector toTarget = target.toVector().subtract(start.toVector());
+        RayTraceResult hit = item.getWorld().rayTraceBlocks(start, toTarget.clone().normalize(), toTarget.length(),
                 FluidCollisionMode.NEVER, true);
         if (hit == null) {
             return true;
         }
         Block blocked = hit.getHitBlock();
-        return blocked != null && (blocked.equals(top) || blocked.equals(top.getRelative(BlockFace.UP))
-                || blocked.equals(top.getRelative(BlockFace.DOWN)));
+        return blocked != null && blocked.equals(top.getRelative(BlockFace.UP))
+                && hit.getHitBlockFace() != BlockFace.DOWN && blocked.getBoundingBox().getHeight() < 1;
     }
 
     private static boolean matches(PadBlock top, PadBlock base, PadType type) {
