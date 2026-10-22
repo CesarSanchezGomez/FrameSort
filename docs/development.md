@@ -136,6 +136,11 @@ after `highlight-seconds`, when the player leaves or when the plugin disables. M
 show it to every player, in a colour that depends on scoreboard teams, and Paper has no per-player glow without
 packets.
 
+A sorter's wobble is a temporary block display: a copy of the dispenser, 1.1 times bigger so it covers the real
+block while it turns, that shakes in three two-tick steps and goes. It is never saved, there is at most one per
+sorter, it takes the light of the dispenser's brightest neighbour (inside the block it would show black), and the
+copies still wobbling are removed when the plugin disables.
+
 Tracing ends on a timer per player, so the "tracing ended" message arrives on time even when nothing is delivered.
 
 ## Paper API to recheck

@@ -18,7 +18,11 @@ import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
 import org.bukkit.block.Dispenser;
+import org.bukkit.entity.BlockDisplay;
+import org.bukkit.entity.Display;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.ItemFrame;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
@@ -26,6 +30,7 @@ import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.util.Vector;
+import org.joml.Matrix4f;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -55,6 +60,13 @@ public final class SorterService {
     // A turn sends a stack's worth however the items are packed, so bundles of single items don't crawl; the same
     // bound caps the tries when items have nowhere to go, so one that doesn't fit never stalls the rest.
     private static final int PER_TURN = 64;
+    // Turned by up to 5°, a copy this much bigger still covers the real block: it needs cos 5° + sin 5° ≈ 1.083.
+    private static final float WOBBLE_SCALE = 1.1f;
+    // The angles the copy turns to, one step each: a short shake that ends where it started.
+    private static final List<Float> WOBBLE_DEGREES = List.of(5f, -5f, 0f);
+    private static final int WOBBLE_STEP_TICKS = 2;
+    private static final List<BlockFace> NEIGHBOURS = List.of(BlockFace.NORTH, BlockFace.EAST, BlockFace.SOUTH,
+            BlockFace.WEST, BlockFace.UP, BlockFace.DOWN);
 
     private static final class Sorter {
         private final ItemFrame frame;
@@ -75,6 +87,8 @@ public final class SorterService {
     private final Map<BlockKey, Sorter> sorters = new HashMap<>();
     // Frames with a retry pending; every load, reload or frame change would otherwise start another retry chain.
     private final Set<UUID> waiting = new HashSet<>();
+    // Kept apart from the sorters, so a copy still goes away when its sorter is broken while it wobbles.
+    private final Map<BlockKey, BlockDisplay> wobbling = new HashMap<>();
     private long tick;
     private int nextPhase;
 
@@ -172,9 +186,15 @@ public final class SorterService {
         return sorter != null && sorter.frame.equals(frame) ? sorter : null;
     }
 
-    /** Shows every loaded sorter's frame again, so nothing stays hidden while FrameSort is off. */
+    /**
+     * Shows every loaded sorter's frame again, so nothing stays hidden while FrameSort is off, and removes the copies
+     * that are still wobbling.
+     */
     public void stopAll() {
         sorters.values().forEach(sorter -> applyLook(sorter.frame, false));
+        // Removing one retires its scheduler, whose callback takes it out of the map.
+        List.copyOf(wobbling.values()).forEach(Entity::remove);
+        wobbling.clear();
     }
 
     public boolean isSorter(Block block) {
@@ -274,7 +294,66 @@ public final class SorterService {
         data.set(Keys.SORTED, PersistentDataType.LONG, total);
         if (settings.get().sorter().showActivity()) {
             sorter.frame.setRotation(sorter.frame.getRotation().rotateClockwise());
+            wobble(sorter.block);
         }
+    }
+
+    /** A slightly bigger copy of the dispenser shakes for a moment over it, then goes. */
+    private void wobble(Block block) {
+        BlockKey key = FrameGeometry.key(block);
+        if (wobbling.containsKey(key)) {
+            return;
+        }
+        BlockDisplay copy = block.getWorld().spawn(block.getLocation(), BlockDisplay.class, display -> {
+            display.setPersistent(false);
+            display.setBlock(block.getBlockData());
+            display.setBrightness(brightness(block));
+            display.setTransformationMatrix(wobbleMatrix(0));
+        });
+        // Another plugin may cancel the spawn.
+        if (!copy.isValid()) {
+            return;
+        }
+        wobbling.put(key, copy);
+        wobbleStep(key, copy, 0);
+    }
+
+    private void wobbleStep(BlockKey key, BlockDisplay copy, int step) {
+        copy.getScheduler().runDelayed(plugin, task -> {
+            if (step == WOBBLE_DEGREES.size()) {
+                wobbling.remove(key, copy);
+                copy.remove();
+                return;
+            }
+            copy.setInterpolationDelay(0);
+            copy.setInterpolationDuration(WOBBLE_STEP_TICKS);
+            copy.setTransformationMatrix(wobbleMatrix(WOBBLE_DEGREES.get(step)));
+            wobbleStep(key, copy, step + 1);
+        }, () -> wobbling.remove(key, copy), WOBBLE_STEP_TICKS);
+    }
+
+    // Around the block's centre: the model of a block display spans 0 to 1 from the entity's position.
+    private static Matrix4f wobbleMatrix(float degrees) {
+        return new Matrix4f()
+                .translate(0.5f, 0.5f, 0.5f)
+                .rotateY((float) Math.toRadians(degrees))
+                .scale(WOBBLE_SCALE)
+                .translate(-0.5f, -0.5f, -0.5f);
+    }
+
+    // Inside the opaque dispenser the copy would get light 0 and show black, so it takes its brightest neighbour's.
+    // A neighbour in an unloaded chunk is skipped: reading its light would load that chunk.
+    private static Display.Brightness brightness(Block block) {
+        int blockLight = 0;
+        int skyLight = 0;
+        for (BlockFace face : NEIGHBOURS) {
+            Block next = block.getRelative(face);
+            if (next.getWorld().isChunkLoaded(next.getX() >> 4, next.getZ() >> 4)) {
+                blockLight = Math.max(blockLight, next.getLightFromBlocks());
+                skyLight = Math.max(skyLight, next.getLightFromSky());
+            }
+        }
+        return new Display.Brightness(blockLight, skyLight);
     }
 
     /** How many items this sorter's dispenser has sent; the count stays with the block. */
