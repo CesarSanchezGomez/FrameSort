@@ -69,6 +69,8 @@ public final class PadService {
 
     // The line of sight starts just off the block an item lies on, so it doesn't graze that block.
     private static final double RAY_LIFT = 0.05;
+    // How far from the pad's centre an item still counts as lying at its foot: up to a block from its side.
+    private static final double HOP_REACH = 1.5;
 
     private final Plugin plugin;
     private final Supplier<PadSettings> settings;
@@ -236,8 +238,11 @@ public final class PadService {
 
     /** Throws the loose items around the pad onto it, so a later sweep sends them. */
     private void pull(Block top, int radius) {
-        // Every pull ends in the block two above the pad, so the item must be able to stand there.
-        if (!top.getRelative(BlockFace.UP, 2).isPassable()) {
+        // Every pull ends in the block two above the pad and drops the item onto it: that block must let the item
+        // through, and the one right over the pad must leave room on top (empty, or a carpet or slab on the pad).
+        Block above = top.getRelative(BlockFace.UP);
+        if (!above.isPassable() && above.getBoundingBox().getMaxY() >= above.getY() + 1
+                || !top.getRelative(BlockFace.UP, 2).isPassable()) {
             return;
         }
         Location surface = top.getLocation().add(0.5, 1, 0.5);
@@ -278,9 +283,9 @@ public final class PadService {
     /** How an item lying near a pad can reach the point over it. */
     private enum Sight { CLEAR, PAD, BLOCKED }
 
-    // The arc passes above the straight line, so a clear line means a clear flight; a block lower than a full one
-    // resting on the pad (a carpet, a slab) doesn't stop it, and past it lies only the target's block. A side or top
-    // of the pad's own blocks means the item lies at its foot. Their bottom, or anything else, keeps it away.
+    // The arc passes above the straight line, so a clear line means a clear flight; the low block on the pad that
+    // pull allows doesn't stop it, and past it lies only the target's block. A side of the pad's own blocks means the
+    // item lies at its foot. Their bottom, or anything else, keeps it away.
     private static Sight sight(Item item, Block top, Location target) {
         Location start = item.getLocation().add(0, RAY_LIFT, 0);
         Vector toTarget = target.toVector().subtract(start.toVector());
@@ -294,10 +299,18 @@ public final class PadService {
             return Sight.BLOCKED;
         }
         if (blocked.equals(top) || blocked.equals(top.getRelative(BlockFace.DOWN))) {
-            return Sight.PAD;
+            return canHop(item, start, target) ? Sight.PAD : Sight.BLOCKED;
         }
-        return blocked.equals(top.getRelative(BlockFace.UP)) && blocked.getBoundingBox().getHeight() < 1
-                ? Sight.CLEAR : Sight.BLOCKED;
+        return blocked.equals(top.getRelative(BlockFace.UP)) ? Sight.CLEAR : Sight.BLOCKED;
+    }
+
+    // Only right at the foot, so the stop doesn't carry it far sideways, and with nothing over it up to the height it
+    // rises to.
+    private static boolean canHop(Item item, Location start, Location target) {
+        double dx = target.getX() - start.getX();
+        double dz = target.getZ() - start.getZ();
+        return dx * dx + dz * dz <= HOP_REACH * HOP_REACH && item.getWorld().rayTraceBlocks(start, new Vector(0, 1, 0),
+                target.getY() - start.getY(), FluidCollisionMode.NEVER, true) == null;
     }
 
     private static boolean matches(PadBlock top, PadBlock base, PadType type) {
