@@ -15,6 +15,7 @@ public final class Keys {
     public static final NamespacedKey ITEM_TAG = new NamespacedKey(NAMESPACE, "item-tag");
     public static final NamespacedKey ITEM_TAG_ORIGINAL = new NamespacedKey(NAMESPACE, "item-tag-original");
     public static final NamespacedKey AUTOMARK = new NamespacedKey(NAMESPACE, "automark");
+    public static final NamespacedKey DROPPED = new NamespacedKey(NAMESPACE, "dropped");
 
     private Keys() {
     }

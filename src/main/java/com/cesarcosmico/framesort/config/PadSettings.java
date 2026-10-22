@@ -13,7 +13,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.function.Predicate;
 
-public record PadSettings(PadMode creation, int sweepInterval, Map<String, PadType> types) {
+public record PadSettings(PadMode creation, int sweepInterval, int pullRadius, Map<String, PadType> types) {
 
     public PadSettings {
         // Keeps the file's order, so lists and suggestions follow it.
@@ -42,6 +42,7 @@ public record PadSettings(PadMode creation, int sweepInterval, Map<String, PadTy
         return new PadSettings(
                 reader.enumValue("creation", PadMode.class, PadMode.ANYONE),
                 reader.integer("sweep-interval", 10, 1, 200),
+                reader.integer("pull-radius", 4, 0, 16),
                 types);
     }
 

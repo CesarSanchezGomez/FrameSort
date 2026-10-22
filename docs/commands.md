@@ -55,9 +55,9 @@ next item put in leaves the frame unmarked and without an owner, or, with automa
 marks it for whoever put it in.
 Taking the item out means hitting the frame, which the server's protection decides, like breaking it. Breaking
 blocks, opening the dispenser or dropping items on a pad is left to the server's protection (claims, regions, locks):
-FrameSort only decides where items go from afar, and who sees it. Items dropped on someone's pad go to that pad's
-owner. A frame on someone else's chest belongs to whoever marked it, so their sorter can fill that chest unless the
-chest's protection stops them from touching the frame.
+FrameSort only decides where items go from afar, and who sees it. Items dropped on or near someone's pad (within
+its `pull-radius`) go to that pad's owner. A frame on someone else's chest belongs to whoever marked it, so their
+sorter can fill that chest unless the chest's protection stops them from touching the frame.
 
 With `ownership.enabled: false`, `/framesort trust`, `untrust` and `trusted` leave the help, tab completion and
 links, and can't be run; `/framesort reload` with it back on brings them back. Names come from the server's profile

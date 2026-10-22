@@ -1,5 +1,6 @@
 package com.cesarcosmico.framesort.service;
 
+import com.cesarcosmico.framesort.item.DropCodec;
 import com.cesarcosmico.framesort.model.Composting;
 import com.cesarcosmico.framesort.model.Delivery;
 import com.cesarcosmico.framesort.service.TargetResolver.Destination;
@@ -9,6 +10,7 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.Levelled;
+import org.bukkit.entity.Item;
 import org.bukkit.entity.ItemFrame;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
@@ -31,7 +33,8 @@ public final class DeliveryService {
         /** Leaves {@code remaining} items in the source; 0 empties it. */
         void commit(int remaining);
 
-        void moveTo(Location destination);
+        /** Puts the items left in the source at {@code destination}, as an item entity, and returns it. */
+        Item moveTo(Location destination);
 
         void destroy();
     }
@@ -86,7 +89,8 @@ public final class DeliveryService {
                     Destination.DESTROYED));
         } else {
             Location to = FrameGeometry.dropPoint(end.frame());
-            source.moveTo(to);
+            // A pad near the drop spot would otherwise pull them in and send them back here.
+            DropCodec.mark(source.moveTo(to));
             observer.accept(new Delivered(from, owner, stack, remaining, to, Destination.DROPPED));
         }
         return amount;

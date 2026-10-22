@@ -11,8 +11,10 @@ config-version: 1
 
 # Who creates pads: anyone, permission (framesort.pad.create) or item (only from /framesort give pad).
 creation: anyone
-# Ticks between checks for items resting on pads.
+# Ticks between checks for items resting on pads, and for loose items near them.
 sweep-interval: 10
+# Blocks around a pad whose loose items it pulls onto itself, if it can see them; 0 = off.
+pull-radius: 4
 
 # Copper turns into another block as it ages, which would end the pad: the copper pad uses waxed copper.
 types:

@@ -23,6 +23,7 @@ import org.bukkit.block.Dispenser;
 import org.bukkit.entity.BlockDisplay;
 import org.bukkit.entity.Display;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.Item;
 import org.bukkit.entity.ItemFrame;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
@@ -500,9 +501,11 @@ public final class SorterService {
         }
 
         @Override
-        public void moveTo(Location destination) {
-            destination.getWorld().dropItem(destination, stack(), item -> item.setVelocity(new Vector()));
+        public Item moveTo(Location destination) {
+            Item dropped = destination.getWorld().dropItem(destination, stack(),
+                    item -> item.setVelocity(new Vector()));
             leave(kept);
+            return dropped;
         }
 
         @Override

@@ -28,7 +28,7 @@ import com.cesarcosmico.framesort.config.FrameSortSettings;
 import com.cesarcosmico.framesort.config.PadSettings;
 import com.cesarcosmico.framesort.config.TagSettings;
 import com.cesarcosmico.framesort.integration.craftengine.CraftEngineItemResolver;
-import com.cesarcosmico.framesort.integration.worldguard.WorldGuardTargetListener;
+import com.cesarcosmico.framesort.integration.worldguard.WorldGuardListener;
 import com.cesarcosmico.framesort.item.ItemTemplate;
 import com.cesarcosmico.framesort.listener.InspectListener;
 import com.cesarcosmico.framesort.listener.PadListener;
@@ -150,7 +150,7 @@ public final class FrameSortPlugin extends JavaPlugin {
                 new PadListener(padService, messages), new InspectListener(inspect, sorters, padService));
         // Only this check loads the integration's classes, so FrameSort runs without WorldGuard installed.
         if (getServer().getPluginManager().isPluginEnabled("WorldGuard")) {
-            register(new WorldGuardTargetListener());
+            register(new WorldGuardListener());
         }
         List<String> helpLines = List.of("automark", "tag-list", "tag-search", "tag-show", "tag-apply", "tag-remove",
                 "where", "trace", "trust", "untrust", "trusted", "give", "reload");

@@ -15,7 +15,7 @@ com.cesarcosmico.framesort
 ├── command/          one class per command feature; CommandTree builds the roots from commands.yml
 ├── listener/         Bukkit listeners, one per feature
 ├── integration/      worldguard/, craftengine/: the only code that imports those plugins, each loaded only when enabled
-└── api/              TargetBindEvent, for other plugins
+└── api/              TargetBindEvent and PadPullEvent, for other plugins
 ```
 
 Packages depend on each other without cycles: `model` ← `item` ← `config` ← `text` ← `service` ← `command`,
@@ -56,6 +56,7 @@ it out of step:
 | Sorter dispenser | `framesort:sorted` | How many items the sorter has sent (a `long`); it goes away with the block. |
 | Item | `framesort:activator` | The sorter activator handed out by FrameSort. |
 | Item | `framesort:pad-item` | The pad type of a special pad block. |
+| Item entity | `framesort:dropped` | Set on what FrameSort drops at a drop spot, so no pad pulls it back. It is on the entity, not the stack: picking the item up ends it. |
 | Player | `framesort:automark` | Present while the player has `/framesort automark` on. Saved with the player's data on this server, so each server of a network keeps its own, and read only while the player is online. |
 
 Who trusts whom is read while the player who gave it is offline, so it lives in the database (`database.yml`):
@@ -92,7 +93,10 @@ SELECT HEX(owner), HEX(trusted), FROM_UNIXTIME(created_at / 1000) FROM framesort
   where a vanished container used to duplicate items.
 - **No hopper listener.** FrameSort never listens to or cancels `InventoryMoveItemEvent`, so hoppers behave
   exactly as in vanilla and Paper can skip that event.
-- **Pads.** Pads are registered in their chunk, so only loaded pads are checked, every `sweep-interval` ticks.
+- **Pads.** Pads are registered in their chunk, so only loaded pads are checked, every `sweep-interval` ticks. With
+  `pull-radius` on, a check also looks for loose items within it; each one that passes the cheap checks (on the
+  ground, not dropped by FrameSort, not on a pad) costs one ray and one `PadPullEvent`. `model.Pull` gives the
+  starting velocity that lands the item on the pad in ten ticks under the game's item physics; `PullTest` pins it.
 - **Chunk borders.** A frame on a chunk border can hang on a block of the next chunk. That block is only read when
   its chunk is loaded, so FrameSort never loads chunks.
 - **Tracing.** With nobody tracing, a delivery costs one empty-map check.
@@ -149,6 +153,9 @@ Tracing ends on a timer per player, so the "tracing ended" message arrives on ti
 (`@ApiStatus.Experimental`), through which `TagCatalog` reads item and block tags, and the data components
 (`@MinecraftVersionDependent`) behind item templates, the overlay on tagged and CraftEngine items, and shulker box
 and bundle contents. Check them again whenever Paper or Minecraft changes.
+
+`model.Pull` copies the game's item physics (gravity 0.04 and air drag 0.98 per tick, from `ItemEntity` and
+`Entity#getAirDrag` in 26.2). If a Minecraft version changes them, pulled items land short or long of the pad.
 
 The activator's `components` reach Minecraft as `/give` syntax through `ItemFactory#createItemStack`, which checks
 them on load and reload with the server's registries (main thread). Component names belong to Minecraft: one that a

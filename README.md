@@ -49,8 +49,8 @@ keeps its hidden frame until it loads with FrameSort installed, so before removi
    shulker box or bundle goes whole once nothing inside it can go anywhere. The dispenser wobbles each time it
    sends.
 3. **Sorting pads.** Place a waxed copper grate on a waxed block of copper, or a lodestone on smooth stone. Items
-   resting on top are sent to targets. Who can create pads is configurable: anyone, players with a permission, or
-   only with a special pad block.
+   resting on top, or lying loose within a few blocks (the pad pulls them in), are sent to targets. Who can create
+   pads is configurable: anyone, players with a permission, or only with a special pad block.
 4. **Inspect.** Sneak + right-click a sorter or pad with an empty hand: its targets' items glow (only for you, in
    configurable colours) and are listed page by page. Sneak + left-click a target frame to see what it accepts.
    `/framesort trace` shows the deliveries around you live.
@@ -63,7 +63,8 @@ keeps its hidden frame until it loads with FrameSort installed, so before removi
    [docs/commands.md](docs/commands.md#owners-and-trust).
 
 **WorldGuard.** When it is installed, a sorter or pad only sends to target frames on blocks in exactly the same
-regions as itself, whether they hold a container, a drop spot or lava; both outside every region is fine. Nobody can
+regions as itself, whether they hold a container, a drop spot or lava, and a pad only pulls items lying in those
+regions; both outside every region is fine. Nobody can
 fill a chest in a region from outside it, or from another region. Inspecting a sorter or pad lists only the targets
 it can reach. Targets are cached, so after changing regions run `/framesort reload`.
 

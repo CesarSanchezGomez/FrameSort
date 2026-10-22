@@ -33,6 +33,7 @@ class PadSettingsTest {
         assertEquals(List.of(), warnings);
         assertEquals(PadMode.ANYONE, settings.creation());
         assertEquals(10, settings.sweepInterval());
+        assertEquals(4, settings.pullRadius());
         PadType copper = settings.type("COPPER");
         assertNotNull(copper);
         assertEquals(new ItemReference.Vanilla(Material.WAXED_COPPER_GRATE), copper.top());
@@ -42,6 +43,22 @@ class PadSettingsTest {
         assertNotNull(lodestone);
         assertEquals(new ItemReference.Vanilla(Material.LODESTONE), lodestone.top());
         assertEquals(new ItemReference.Vanilla(Material.SMOOTH_STONE), lodestone.base());
+    }
+
+    @Test
+    void aPullRadiusOutOfRangeWarnsAndUsesTheDefault() throws Exception {
+        YamlConfiguration yaml = new YamlConfiguration();
+        yaml.loadFromString("""
+                pull-radius: 40
+                types:
+                  simple:
+                    structure: [CRYING_OBSIDIAN, GILDED_BLACKSTONE]
+                """);
+        List<String> warnings = new ArrayList<>();
+
+        assertEquals(4, parse(yaml, warnings).pullRadius());
+        assertEquals(1, warnings.size(), warnings::toString);
+        assertTrue(warnings.get(0).startsWith("pads.yml > pull-radius: "), warnings::toString);
     }
 
     @Test

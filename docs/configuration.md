@@ -129,8 +129,8 @@ How a destination is chosen:
 **A sorter never sends to another sorter.** A target frame on a sorter only takes items from pads (its frame card says
 so), so a pad can feed a sorter that opens the shulker boxes and bundles dropped on it, and no two sorters pass items
 back and forth. Nor does a sorter or pad send into its own block, and none of them drops items where they would fall
-onto a pad, which would pick them up and send them again. Hoppers can still lead items back into a sorter: build them so
-that items don't go round.
+onto a pad, which would pick them up and send them again; no pad pulls back what they drop either. Hoppers can
+still lead items back into a sorter: build them so that items don't go round.
 
 **Tagged items.** `/framesort tag apply <tag>` (or the [Apply] button in `/framesort tag show <tag>`) applies a tag
 to the item in your hand: the tag is stored inside the item, which takes the look of `targets.tagged-item`.
@@ -180,7 +180,8 @@ breaking and placing a pad's top block again gives it an owner. More in
 | Key | Default | Meaning |
 |---|---|---|
 | `creation` | `anyone` | `anyone`: any player who places the top block on its base. `permission`: only players with `framesort.pad.create`. `item`: only by placing the pad's special item (from `/framesort give pad`) as the top block. |
-| `sweep-interval` | `10` | Ticks between checks for items resting on pads. Items that arrive by water or fall onto a pad are picked up then. |
+| `sweep-interval` | `10` | Ticks between checks for items resting on pads, and for loose items near them to pull. Items that arrive by water or fall onto a pad are picked up then. |
+| `pull-radius` | `4` | Blocks around a pad whose loose items it pulls onto itself (0 to 16; `0` = off). See below. |
 | `types.<id>.structure` | | Exactly two blocks: the top, where items rest, then its base. The `<id>` can't contain `,`: each pad keeps it in its chunk between commas. Each one is a material or a CraftEngine block (`'craftengine:<namespace>:<id>'`). Players build pads by hand, so a material must be a block a player can place (not `STICK`, `WATER` or `AIR`); otherwise the type is skipped with a warning. |
 | `types.<id>.item` | | *Optional*, and so is each key in it: `name`, `lore` and `glint` of the special top block (see [Item look](#item-look)). Left out, or set to `''`, `[]` or `false`, the block has none of it. Its material is the top block of the structure and it looks like that block, so it takes no `components` (they are reported and ignored). With a CraftEngine top block the item is CraftEngine's, and `name`, `lore` and `glint` are laid over it (see [CraftEngine items and blocks](#item-look)). |
 
@@ -192,6 +193,13 @@ pad can't be pushed by pistons, blown up or changed where it stands: an axe can'
 block, nor a mob change it.
 
 Items resting up to one block above the top block count, so carpets or slabs on the pad are fine.
+
+**Pads pull loose items in.** On every check, a pad throws the items lying on the ground within `pull-radius` blocks
+onto itself, in an arc that lands in half a second; the next check sends them. It only pulls what it can see: a wall
+in between stops it, but the pad's own blocks and a carpet or slab on it don't. It never pulls what FrameSort itself
+dropped at a drop spot, nor items already on a pad. Items no target takes stay on top of the pad. With WorldGuard, a
+pad only pulls items lying in exactly its own regions; without it, or another plugin cancelling `PadPullEvent`, a pad
+pulls across claim borders, so set `pull-radius: 0` on servers that need it.
 
 The bundled types are a waxed copper grate on a waxed block of copper (`copper`) and a lodestone on smooth stone
 (`lodestone`). Copper ages into another block, so a pad of plain copper would end once it did: both copper blocks
