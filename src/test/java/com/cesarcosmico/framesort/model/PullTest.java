@@ -60,6 +60,12 @@ class PullTest {
         assertArrayEquals(new double[]{0, 0, 0}, landing(0, 0, 0), 1e-9);
     }
 
+    // An item at the foot of a pad goes straight up to the height of the point over the pad.
+    @Test
+    void aHopReachesTheHeightStraightUp() {
+        assertArrayEquals(new double[]{0, 3.5, 0}, landing(0, 3.5, 0), 1e-9);
+    }
+
     @Test
     void aTargetFarBelowCantBeReachedFromTheGround() {
         assertNull(Pull.velocity(2, -3.5, 0));

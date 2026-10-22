@@ -97,8 +97,9 @@ SELECT HEX(owner), HEX(trusted), FROM_UNIXTIME(created_at / 1000) FROM framesort
   `pull-radius` on, a check also looks for loose items within it: each one that passes the cheap checks (on the
   ground, not dropped by FrameSort, outside the pad's column, not on another pad) costs one ray, and each one in
   sight that can take off one `PadPullEvent`. `model.Pull` gives the starting velocity that carries the item to a
-  point over the pad in ten ticks under the game's item physics, so the arc clears the pad's edge; a one-shot task
-  on the item's own scheduler then puts it exactly there and stops it, so it drops onto the pad. Neither the ray
+  point over the pad in ten ticks under the game's item physics, so the arc clears the pad's edge; an item at the
+  pad's foot, whose ray to that point hits the pad, hops straight up instead. A one-shot task on the item's own
+  scheduler then puts it exactly there and stops it, so it drops onto the pad. Neither the ray
   nor reading a block's light loads a chunk. An item dropped at a drop spot that merges with an unmarked one can
   lose the mark and be pulled back once; the drop that sends it there again marks it.
 - **Chunk borders.** A frame on a chunk border can hang on a block of the next chunk. That block is only read when

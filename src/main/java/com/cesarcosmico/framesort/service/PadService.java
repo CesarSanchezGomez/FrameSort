@@ -236,6 +236,10 @@ public final class PadService {
 
     /** Throws the loose items around the pad onto it, so a later sweep sends them. */
     private void pull(Block top, int radius) {
+        // Every pull ends in the block two above the pad, so the item must be able to stand there.
+        if (!top.getRelative(BlockFace.UP, 2).isPassable()) {
+            return;
+        }
         Location surface = top.getLocation().add(0.5, 1, 0.5);
         Location target = surface.clone().add(0, Pull.AIM_ABOVE, 0);
         for (Item item : top.getWorld().getNearbyEntitiesByType(Item.class, surface, radius, radius, radius)) {
@@ -245,11 +249,18 @@ public final class PadService {
             if (!item.isValid() || !item.isOnGround() || DropCodec.isMarked(item)
                     || from.distanceSquared(surface) > (double) radius * radius
                     || Math.abs(from.getX() - surface.getX()) < 0.5 && Math.abs(from.getZ() - surface.getZ()) < 0.5
-                    || isPad(from.getBlock().getRelative(BlockFace.DOWN)) || !inSight(item, top, target)) {
+                    || isPad(from.getBlock().getRelative(BlockFace.DOWN))) {
                 continue;
             }
-            Pull.Velocity velocity = Pull.velocity(target.getX() - from.getX(), target.getY() - from.getY(),
-                    target.getZ() - from.getZ());
+            Sight sight = sight(item, top, target);
+            if (sight == Sight.BLOCKED) {
+                continue;
+            }
+            // At the foot of the pad an arc would hit its side: the item hops straight up, and the stop below puts it
+            // over the pad.
+            boolean hop = sight == Sight.PAD;
+            Pull.Velocity velocity = Pull.velocity(hop ? 0 : target.getX() - from.getX(), target.getY() - from.getY(),
+                    hop ? 0 : target.getZ() - from.getZ());
             if (velocity == null || !new PadPullEvent(item, top).callEvent()) {
                 continue;
             }
@@ -264,21 +275,29 @@ public final class PadService {
         }
     }
 
-    // The arc passes above the straight line, so a clear line means a clear flight. Anything in the way, the pad's own
-    // blocks included, stops it, except a block lower than a full one resting on the pad (a carpet, a slab); the ray
-    // only reports that first hit, and past it lies just the block of the target, which must let the item through.
-    private static boolean inSight(Item item, Block top, Location target) {
+    /** How an item lying near a pad can reach the point over it. */
+    private enum Sight { CLEAR, PAD, BLOCKED }
+
+    // The arc passes above the straight line, so a clear line means a clear flight; a block lower than a full one
+    // resting on the pad (a carpet, a slab) doesn't stop it, and past it lies only the target's block. A side or top
+    // of the pad's own blocks means the item lies at its foot. Their bottom, or anything else, keeps it away.
+    private static Sight sight(Item item, Block top, Location target) {
         Location start = item.getLocation().add(0, RAY_LIFT, 0);
         Vector toTarget = target.toVector().subtract(start.toVector());
         RayTraceResult hit = item.getWorld().rayTraceBlocks(start, toTarget.clone().normalize(), toTarget.length(),
                 FluidCollisionMode.NEVER, true);
         if (hit == null) {
-            return true;
+            return Sight.CLEAR;
         }
         Block blocked = hit.getHitBlock();
-        return blocked != null && blocked.equals(top.getRelative(BlockFace.UP))
-                && hit.getHitBlockFace() != BlockFace.DOWN && blocked.getBoundingBox().getHeight() < 1
-                && top.getRelative(BlockFace.UP, 2).isPassable();
+        if (blocked == null || hit.getHitBlockFace() == BlockFace.DOWN) {
+            return Sight.BLOCKED;
+        }
+        if (blocked.equals(top) || blocked.equals(top.getRelative(BlockFace.DOWN))) {
+            return Sight.PAD;
+        }
+        return blocked.equals(top.getRelative(BlockFace.UP)) && blocked.getBoundingBox().getHeight() < 1
+                ? Sight.CLEAR : Sight.BLOCKED;
     }
 
     private static boolean matches(PadBlock top, PadBlock base, PadType type) {

@@ -197,9 +197,10 @@ Items resting up to one block above the top block count, so carpets or slabs on 
 **Pads pull loose items in.** On every check, a pad throws the items lying on the ground within `pull-radius` blocks
 of its top in an arc that ends, half a second later, one and a half blocks over its centre; there the item is put
 right over the pad, stops and drops onto it, and a check sends it. It only pulls what it can see on a straight line to
-that point: anything in between, the pad's own blocks included, stops it, except a block lower than a full one
-resting on the pad (a carpet, a slab); so an item right at the foot of a pad standing on the ground stays where it
-is, and the pad needs two free blocks above it. It doesn't pull items already on a pad, items so far above the pad
+that point: a wall in between stops it, but a block lower than a full one resting on the pad (a carpet, a slab)
+doesn't. An item at the foot of the pad, whose arc would hit the pad's side, hops straight up instead and is put over
+the pad the same way; one under the pad stays. A pad needs two free blocks above it to pull at all. It doesn't pull
+items already on a pad, items so far above the pad
 that they couldn't take off, or what FrameSort itself dropped at a drop spot, except once if that item merged with
 another one lying there. Items no target takes stay on top of the pad. With WorldGuard, a
 pad only pulls items lying in exactly its own regions; without it, or another plugin cancelling `PadPullEvent`, a pad
