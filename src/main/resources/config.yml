@@ -32,7 +32,7 @@ sorter:
   disable-when-powered: false
   # true: hides the frame that holds the activator.
   hide-frame: true
-  # true: after each turn that sends something, the dispenser wobbles and the activator turns.
+  # true: rotates the activator after each turn that sends something.
   show-activity: true
 
 # Target frames: where sorters and pads send items.

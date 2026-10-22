@@ -46,8 +46,7 @@ keeps its hidden frame until it loads with FrameSort installed, so before removi
    leftovers.
 2. **Sorters.** Put a hopper in a frame on a dispenser. The frame disappears and every second the dispenser
    sends up to 64 items from its inventory, at random, taking them from inside shulker boxes and bundles too. A
-   shulker box or bundle goes whole once nothing inside it can go anywhere. The dispenser wobbles each time it
-   sends.
+   shulker box or bundle goes whole once nothing inside it can go anywhere.
 3. **Sorting pads.** Place a waxed copper grate on a waxed block of copper, or a lodestone on smooth stone. Items
    resting on top, or lying loose within a few blocks (the pad pulls them in), are sent to targets. Who can create
    pads is configurable: anyone, players with a permission, or only with a special pad block.
