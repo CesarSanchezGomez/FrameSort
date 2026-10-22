@@ -123,7 +123,9 @@ How a destination is chosen:
    pad first (counting height too), until it is all in. Targets of players the owner trusts take their turn by
    distance like the owner's own.
 3. Whatever is left is dropped at the nearest frame of that level without a container. If that level's frames
-   without a container are all on lava cauldrons, the rest is destroyed. Either way the delivery ends there.
+   without a container are all on lava cauldrons, the rest is destroyed. Either way the delivery ends there. If
+   another plugin cancels a sorter's drop (an item limiter, for instance), the items stay in the sorter. A stacking
+   plugin that merges items by cancelling their drop would then double them, so try a drop spot with yours.
 4. Otherwise, what is left goes on to the next level. If no level has room, it stays.
 
 **A sorter never sends to another sorter.** A target frame on a sorter only takes items from pads (its frame card says
