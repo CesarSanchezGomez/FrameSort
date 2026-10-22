@@ -498,9 +498,13 @@ public final class SorterService {
         }
 
         @Override
-        public Item moveTo(Location destination) {
+        public @Nullable Item moveTo(Location destination) {
             Item dropped = destination.getWorld().dropItem(destination, stack(),
                     item -> item.setVelocity(new Vector()));
+            // Another plugin may cancel the spawn; the item returned then isn't in the world.
+            if (!dropped.isValid()) {
+                return null;
+            }
             leave(kept);
             return dropped;
         }

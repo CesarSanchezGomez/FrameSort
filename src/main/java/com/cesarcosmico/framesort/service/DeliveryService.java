@@ -33,8 +33,11 @@ public final class DeliveryService {
         /** Leaves {@code remaining} items in the source; 0 empties it. */
         void commit(int remaining);
 
-        /** Puts the items left in the source at {@code destination}, as an item entity, and returns it. */
-        Item moveTo(Location destination);
+        /**
+         * Puts the items left in the source at {@code destination}, as an item entity, and returns it; or returns
+         * {@code null} and keeps them in the source when they couldn't be put there.
+         */
+        @Nullable Item moveTo(Location destination);
 
         void destroy();
     }
@@ -89,8 +92,12 @@ public final class DeliveryService {
                     Destination.DESTROYED));
         } else {
             Location to = FrameGeometry.dropPoint(end.frame());
+            Item dropped = source.moveTo(to);
+            if (dropped == null) {
+                return amount - remaining;
+            }
             // A pad near the drop spot would otherwise pull them in and send them back here.
-            DropCodec.mark(source.moveTo(to));
+            DropCodec.mark(dropped);
             observer.accept(new Delivered(from, owner, stack, remaining, to, Destination.DROPPED));
         }
         return amount;

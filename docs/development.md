@@ -89,7 +89,8 @@ SELECT HEX(owner), HEX(trusted), FROM_UNIXTIME(created_at / 1000) FROM framesort
   drop spots and lava, nearest to the source first. Deliveries and inspections (`/framesort where`, inspecting with
   an item in the off hand) both use it, so an inspection shows exactly what a delivery would do, in its order.
 - **No duplication.** Containers are looked up the moment items go in, and the source is updated after each
-  container (`model.Delivery`). A container that vanished in between is skipped, so it can't duplicate items.
+  container (`model.Delivery`). A container that vanished in between is skipped, so it can't duplicate items, and
+  a drop whose spawn another plugin cancels leaves the items in the sorter instead of losing them.
 - **No hopper listener.** FrameSort never listens to or cancels `InventoryMoveItemEvent`, so hoppers behave
   exactly as in vanilla and Paper can skip that event.
 - **Pads.** Pads are registered in their chunk, so only loaded pads are checked, every `sweep-interval` ticks. With
