@@ -49,11 +49,18 @@ public final class HighlightService {
             return;
         }
         shown.put(id, displays);
-        player.getScheduler().runDelayed(plugin, task -> {
-            if (shown.remove(id, displays)) {
-                displays.forEach(Entity::remove);
-            }
-        }, () -> clear(id), seconds * 20L);
+        // On each display's own scheduler: a retired callback must not remove entities, so leaving is handled apart.
+        for (ItemDisplay display : displays) {
+            display.getScheduler().runDelayed(plugin, task -> {
+                shown.remove(id, displays);
+                display.remove();
+            }, null, seconds * 20L);
+        }
+    }
+
+    /** Removes the player's highlights; nobody else can see them. */
+    public void stop(Player player) {
+        clear(player.getUniqueId());
     }
 
     private void clear(UUID player) {
