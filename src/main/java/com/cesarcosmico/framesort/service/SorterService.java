@@ -193,7 +193,7 @@ public final class SorterService {
      */
     public void stopAll() {
         sorters.values().forEach(sorter -> applyLook(sorter.frame, false));
-        // Removing one retires its scheduler, whose callback takes it out of the map.
+        // Removing one may run its retired callback, which edits the map.
         List.copyOf(wobbling.values()).forEach(Entity::remove);
         wobbling.clear();
     }
@@ -343,16 +343,13 @@ public final class SorterService {
     }
 
     // Inside the opaque dispenser the copy would get light 0 and show black, so it takes its brightest neighbour's.
-    // A neighbour in an unloaded chunk is skipped: reading its light would load that chunk.
     private static Display.Brightness brightness(Block block) {
         int blockLight = 0;
         int skyLight = 0;
         for (BlockFace face : NEIGHBOURS) {
             Block next = block.getRelative(face);
-            if (next.getWorld().isChunkLoaded(next.getX() >> 4, next.getZ() >> 4)) {
-                blockLight = Math.max(blockLight, next.getLightFromBlocks());
-                skyLight = Math.max(skyLight, next.getLightFromSky());
-            }
+            blockLight = Math.max(blockLight, next.getLightFromBlocks());
+            skyLight = Math.max(skyLight, next.getLightFromSky());
         }
         return new Display.Brightness(blockLight, skyLight);
     }
