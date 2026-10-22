@@ -89,17 +89,17 @@ SELECT HEX(owner), HEX(trusted), FROM_UNIXTIME(created_at / 1000) FROM framesort
   drop spots and lava, nearest to the source first. Deliveries and inspections (`/framesort where`, inspecting with
   an item in the off hand) both use it, so an inspection shows exactly what a delivery would do, in its order.
 - **No duplication.** Containers are looked up the moment items go in, and the source is updated after each
-  container (`model.Delivery`). A container that vanished in between is skipped. `DeliveryTest` covers the case
-  where a vanished container used to duplicate items.
+  container (`model.Delivery`). A container that vanished in between is skipped, so it can't duplicate items.
 - **No hopper listener.** FrameSort never listens to or cancels `InventoryMoveItemEvent`, so hoppers behave
   exactly as in vanilla and Paper can skip that event.
 - **Pads.** Pads are registered in their chunk, so only loaded pads are checked, every `sweep-interval` ticks. With
-  `pull-radius` on, a check also looks for loose items within it; each one that passes the cheap checks (on the
-  ground, not dropped by FrameSort, not on a pad, in sight) costs one `PadPullEvent`, and every one in range one
-  ray. `model.Pull` gives the starting velocity that carries the item to a point over the pad in ten ticks under the
-  game's item physics; a task on the item's own scheduler stops it there so it drops onto the pad. `PullTest` pins
-  the landing and that the arc clears the pad's edge. An item dropped at a drop spot that merges with an unmarked
-  one can lose the mark and be pulled back once; the drop that sends it there again marks it.
+  `pull-radius` on, a check also looks for loose items within it: each one that passes the cheap checks (on the
+  ground, not dropped by FrameSort, outside the pad's column, not on another pad) costs one ray, and each one in
+  sight that can take off one `PadPullEvent`. `model.Pull` gives the starting velocity that carries the item to a
+  point over the pad in ten ticks under the game's item physics, so the arc clears the pad's edge; a one-shot task
+  on the item's own scheduler then puts it exactly there and stops it, so it drops onto the pad. Neither the ray
+  nor reading a block's light loads a chunk. An item dropped at a drop spot that merges with an unmarked one can
+  lose the mark and be pulled back once; the drop that sends it there again marks it.
 - **Chunk borders.** A frame on a chunk border can hang on a block of the next chunk. That block is only read when
   its chunk is loaded, so FrameSort never loads chunks.
 - **Tracing.** With nobody tracing, a delivery costs one empty-map check.
@@ -137,7 +137,7 @@ Players' names come from the server's profile cache (`PlayerProfile#completeFrom
 Highlights are temporary item displays that copy each frame's item, glowing in an exact colour
 (`Display#setGlowColorOverride`). The display's transformation repeats what the vanilla item frame renderer does
 (`ItemFrameRenderer#submit` in 26.2: offset, facing, rotation, half scale, minus the half turn the item display
-renderer adds), so the copy lands exactly on the real item; `HighlightServiceTest` pins it. They are hidden from
+renderer adds), so the copy lands exactly on the real item. They are hidden from
 everyone but the inspecting player (`setVisibleByDefault(false)` + `Player#showEntity`), never saved, and removed
 after `highlight-seconds`, when the player leaves or when the plugin disables. Making the frame itself glow would
 show it to every player, in a colour that depends on scoreboard teams, and Paper has no per-player glow without

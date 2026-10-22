@@ -19,6 +19,8 @@ public final class Pull {
     static final double DRAG = 0.98;
     // Half a second: long enough to see the arc.
     public static final int FLIGHT_TICKS = 10;
+    // How high over a pad's surface pulled items aim, so their arc clears the pad's edge before they drop onto it.
+    public static final double AIM_ABOVE = 1.5;
     private static final double REACH = (1 - Math.pow(DRAG, FLIGHT_TICKS)) / (1 - DRAG);
     private static final double FALL = GRAVITY / (1 - DRAG) * (FLIGHT_TICKS - DRAG * REACH);
 

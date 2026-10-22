@@ -67,8 +67,6 @@ public final class PadService {
         }
     }
 
-    // Pulled items aim this high over the pad's surface, so their arc clears its edge; then they drop onto it.
-    private static final double AIM_ABOVE = 1.5;
     // The line of sight starts just off the block an item lies on, so it doesn't graze that block.
     private static final double RAY_LIFT = 0.05;
 
@@ -239,7 +237,7 @@ public final class PadService {
     /** Throws the loose items around the pad onto it, so a later sweep sends them. */
     private void pull(Block top, int radius) {
         Location surface = top.getLocation().add(0.5, 1, 0.5);
-        Location target = surface.clone().add(0, AIM_ABOVE, 0);
+        Location target = surface.clone().add(0, Pull.AIM_ABOVE, 0);
         for (Item item : top.getWorld().getNearbyEntitiesByType(Item.class, surface, radius, radius, radius)) {
             Location from = item.getLocation();
             // Handlers of an earlier PadPullEvent may remove items. One in the air is already on its way; one over or
@@ -256,13 +254,19 @@ public final class PadService {
                 continue;
             }
             item.setVelocity(new Vector(velocity.x(), velocity.y(), velocity.z()));
-            // It reaches the point over the pad still moving sideways; stopped there, it drops straight onto the pad.
-            item.getScheduler().runDelayed(plugin, task -> item.setVelocity(new Vector()), null, Pull.FLIGHT_TICKS);
+            // It arrives still moving sideways, and a tick early or late would leave it a block off on a long throw:
+            // put exactly over the pad and stopped, it drops straight onto it. Harmless if FrameSort is gone by then,
+            // so the task isn't kept.
+            item.getScheduler().runDelayed(plugin, task -> {
+                item.teleport(target);
+                item.setVelocity(new Vector());
+            }, null, Pull.FLIGHT_TICKS);
         }
     }
 
     // The arc passes above the straight line, so a clear line means a clear flight. Anything in the way, the pad's own
-    // blocks included, stops it, except a carpet or slab lying on the pad.
+    // blocks included, stops it, except a block lower than a full one resting on the pad (a carpet, a slab); the ray
+    // only reports that first hit, and past it lies just the block of the target, which must let the item through.
     private static boolean inSight(Item item, Block top, Location target) {
         Location start = item.getLocation().add(0, RAY_LIFT, 0);
         Vector toTarget = target.toVector().subtract(start.toVector());
@@ -273,7 +277,8 @@ public final class PadService {
         }
         Block blocked = hit.getHitBlock();
         return blocked != null && blocked.equals(top.getRelative(BlockFace.UP))
-                && hit.getHitBlockFace() != BlockFace.DOWN && blocked.getBoundingBox().getHeight() < 1;
+                && hit.getHitBlockFace() != BlockFace.DOWN && blocked.getBoundingBox().getHeight() < 1
+                && top.getRelative(BlockFace.UP, 2).isPassable();
     }
 
     private static boolean matches(PadBlock top, PadBlock base, PadType type) {

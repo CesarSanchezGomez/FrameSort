@@ -9,8 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class PullTest {
 
-    // A pad's top surface is at y 0 and its centre at x 0; pads aim this high over it, and an item is this wide.
-    private static final double AIM = 1.5;
+    // A pad's top surface is at y 0 and its centre at x 0, and an item is this wide.
     private static final double PAD_HALF_WIDTH = 0.5;
     private static final double ITEM_HALF_WIDTH = 0.125;
 
@@ -72,7 +71,7 @@ class PullTest {
     void theArcClearsThePadsEdge() {
         for (double startY : new double[]{-2, 0, 3}) {
             for (double distance : new double[]{1.25, 2, 4, 8, 16}) {
-                for (double[] at : flight(-distance, AIM - startY, 0)) {
+                for (double[] at : flight(-distance, Pull.AIM_ABOVE - startY, 0)) {
                     double x = distance + at[0];
                     double y = startY + at[1];
                     if (Math.abs(x) <= PAD_HALF_WIDTH + ITEM_HALF_WIDTH) {
