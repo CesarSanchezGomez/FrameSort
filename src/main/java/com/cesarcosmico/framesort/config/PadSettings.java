@@ -89,14 +89,24 @@ public record PadSettings(PadMode creation, int sweepInterval, Map<String, PadTy
             item.warn("components", "a pad item looks like the block it places, ignored");
         }
         return new PadType(id.toLowerCase(Locale.ROOT), top, structure.get(1), required(reader, "range", 64, 1, 512),
-                required(reader, "pull-radius", 4, 0, 16), ItemLookParser.look(item));
+                required(reader, "pull-radius", 4, 0, 16), required(reader, "takes-from-inventory", false),
+                ItemLookParser.look(item));
     }
 
     // Each type sets these itself, so a missing one changes what its pads do and is reported like a wrong one.
     private static int required(ConfigReader reader, String path, int fallback, int min, int max) {
+        warnIfMissing(reader, path, fallback);
+        return reader.integer(path, fallback, min, max);
+    }
+
+    private static boolean required(ConfigReader reader, String path, boolean fallback) {
+        warnIfMissing(reader, path, fallback);
+        return reader.bool(path, fallback);
+    }
+
+    private static void warnIfMissing(ConfigReader reader, String path, Object fallback) {
         if (!reader.isSet(path)) {
             reader.warn(path, "missing, using " + fallback);
         }
-        return reader.integer(path, fallback, min, max);
     }
 }

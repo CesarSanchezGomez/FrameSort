@@ -29,13 +29,13 @@ Interfaces exist only with several implementations, as closed sets, or to keep a
   `NONE` without CraftEngine, so no other class loads CraftEngine's classes. All but `id` and `isCustomBlock` go
   through types outside CraftEngine's stable `api` package (`BukkitItemDefinition`, `ImmutableBlockState`,
   `BlockDefinition`): check them on every CraftEngine update;
-- `DeliveryService.Source`: a sorter slot or a pad item entity;
+- `DeliveryService.Source`: a slot (`SlotSource`), of a sorter or of a player's inventory, or a pad item entity;
 - `CommandFeature`: one per command feature;
 - `GiveCommand.ItemSource`: a sorter activator or a pad block;
 - sealed `model.ItemReference`: an item or block named in the config, a vanilla material or a CraftEngine reference;
 - sealed `PadService.Placement`: what placing a pad block did;
 - sealed `PadService.Breaking`: what breaking a pad's top block did;
-- sealed `SorterService.Slot`: an inventory slot, or one inside a shulker box or bundle.
+- sealed `Slot`: an inventory slot, or one inside a shulker box or bundle, which only a sorter opens.
 
 `commands.yml` only places features: `CommandTree` joins every enabled path into Brigadier literals, makes a literal
 visible to anyone allowed to run something below it, and checks each feature's own permission on its command and
@@ -90,7 +90,7 @@ SELECT HEX(owner), HEX(trusted), FROM_UNIXTIME(created_at / 1000) FROM framesort
   an item in the off hand) both use it, so an inspection shows exactly what a delivery would do, in its order.
 - **No duplication.** Containers are looked up the moment items go in, and the source is updated after each
   container (`model.Delivery`). A container that vanished in between is skipped, so it can't duplicate items, and
-  a drop whose spawn another plugin cancels leaves the items in the sorter instead of losing them.
+  a drop whose spawn another plugin cancels leaves the items in their slot instead of losing them.
 - **No hopper listener.** FrameSort never listens to or cancels `InventoryMoveItemEvent`, so hoppers behave
   exactly as in vanilla and Paper can skip that event.
 - **Pads.** Pads are registered in their chunk, so only loaded pads are checked, every `sweep-interval` ticks. With its
@@ -101,7 +101,10 @@ SELECT HEX(owner), HEX(trusted), FROM_UNIXTIME(created_at / 1000) FROM framesort
   pad's foot, whose ray to that point hits the pad, hops straight up instead. A one-shot task on the item's own
   scheduler then puts it exactly there and stops it, so it drops onto the pad. The ray doesn't load a chunk. An
   item dropped at a drop spot that merges with an unmarked one can lose the mark and be pulled back once; the drop
-  that sends it there again marks it.
+  that sends it there again marks it. A type that takes inventories also looks for players in the box over the
+  pad: one crouching with their feet in the block over the top, and not in spectator mode, sends slots 9 to 35 one by
+  one, each a `SlotSource`. It stops when the player stops being valid, since another
+  plugin's handler may kill them or make them leave during a delivery.
 - **Chunk borders.** A frame on a chunk border can hang on a block of the next chunk. That block is only read when
   its chunk is loaded, so FrameSort never loads chunks.
 - **Tracing.** With nobody tracing, a delivery costs one empty-map check.

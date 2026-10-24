@@ -124,8 +124,9 @@ How a destination is chosen:
    distance like the owner's own.
 3. Whatever is left is dropped at the nearest frame of that level without a container. If that level's frames
    without a container are all on lava cauldrons, the rest is destroyed. Either way the delivery ends there. If
-   another plugin cancels a sorter's drop (an item limiter, for instance), the items stay in the sorter. A stacking
-   plugin that merges items by cancelling their drop would then double them, so try a drop spot with yours.
+   another plugin cancels the drop (an item limiter, for instance), items from a sorter stay in it, and items from a
+   player's inventory stay in that inventory. A stacking plugin that merges items by cancelling their drop would then
+   double them, so try a drop spot with yours.
 4. Otherwise, what is left goes on to the next level. If no level has room, it stays.
 
 **A sorter never sends to another sorter.** A target frame on a sorter only takes items from pads (its frame card says
@@ -182,10 +183,11 @@ breaking and placing a pad's top block again gives it an owner. More in
 | Key | Default | Meaning |
 |---|---|---|
 | `creation` | `anyone` | `anyone`: any player who places the top block on its base. `permission`: only players with `framesort.pad.create`. `item`: only by placing the pad's special item (from `/framesort give pad`) as the top block. |
-| `sweep-interval` | `10` | Ticks between checks for items resting on pads, and for loose items near them to pull. Items that arrive by water or fall onto a pad are picked up then. |
+| `sweep-interval` | `10` | Ticks between checks for items resting on pads, for loose items near them to pull, and for players crouching on pads that take inventories. Items that arrive by water or fall onto a pad are picked up then. |
 | `types.<id>.structure` | | Exactly two blocks: the top, where items rest, then its base. The `<id>` can't contain `,`: each pad keeps it in its chunk between commas. Each one is a material or a CraftEngine block (`'craftengine:<namespace>:<id>'`). Players build pads by hand, so a material must be a block a player can place (not `STICK`, `WATER` or `AIR`); otherwise the type is skipped with a warning. |
 | `types.<id>.range` | `64` | Targets of a pad of this type are searched within this many blocks of it (1 to 512). Left out, it is reported and `64` is used. |
 | `types.<id>.pull-radius` | `4` | Blocks around a pad of this type whose loose items it pulls onto itself (0 to 16; `0` = off). See below. Left out, it is reported and `4` is used. |
+| `types.<id>.takes-from-inventory` | `false` | `true`: a player crouching on a pad of this type sends their main inventory. See below. Left out, it is reported and `false` is used. |
 | `types.<id>.item` | | *Optional*, and so is each key in it: `name`, `lore` and `glint` of the special top block (see [Item look](#item-look)). Left out, or set to `''`, `[]` or `false`, the block has none of it. Its material is the top block of the structure and it looks like that block, so it takes no `components` (they are reported and ignored). With a CraftEngine top block the item is CraftEngine's, and `name`, `lore` and `glint` are laid over it (see [CraftEngine items and blocks](#item-look)). |
 
 A pad is created when its top block is placed on its base, so place the base first. It counts as long as both
@@ -209,9 +211,16 @@ except once if that item merged with another one lying there. Items no target ta
 WorldGuard, a pad only pulls items lying in exactly its own regions; without it, or another plugin cancelling
 `PadPullEvent`, a pad pulls across claim borders, so set every type's `pull-radius` to `0` on servers that need it.
 
-The bundled types are a waxed copper grate on a waxed block of copper (`copper`) and a lodestone on smooth stone
-(`lodestone`). Copper ages into another block, so a pad of plain copper would end once it did: both copper blocks
-have to be waxed (honeycomb) before they are placed, and `/framesort give pad copper` hands the grate out waxed.
+**Pads that take inventories.** On every check, a pad whose type has `takes-from-inventory: true` sends the main
+inventory (the 27 slots above the hotbar) of every player crouching on its top; the hotbar, armour and off hand
+stay. A player crouching beside the pad, or in spectator mode, is left alone. What it sends goes where the pad sends
+anything, to its owner's targets and those of players the owner trusts, and shulker boxes and bundles go whole. What
+no target takes stays in its slot.
+
+The bundled types are a waxed copper grate on a waxed block of copper (`copper`), a lodestone on smooth stone
+(`lodestone`) and chiseled tuff bricks on polished tuff (`tuff`), which takes inventories and pulls nothing. Copper
+ages into another block, so a pad of plain copper would end once it did: both copper blocks have to be waxed
+(honeycomb) before they are placed, and `/framesort give pad copper` hands the grate out waxed.
 
 A vanilla block in `structure` is only that block: a CraftEngine block never counts as it, whatever vanilla block it
 shows as to the server (bricks by default), and one put in place of a pad's top block ends the pad at the next

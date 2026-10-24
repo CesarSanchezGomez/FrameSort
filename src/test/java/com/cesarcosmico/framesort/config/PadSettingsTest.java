@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.function.Predicate;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -39,15 +40,22 @@ class PadSettingsTest {
         assertEquals(new ItemReference.Vanilla(Material.WAXED_COPPER_BLOCK), copper.base());
         assertEquals(64, copper.range());
         assertEquals(4, copper.pullRadius());
+        assertFalse(copper.takesFromInventory());
         assertEquals("<gradient:#F7B733:#FC4A1A>Copper Sorting Pad</gradient>", copper.look().name());
         PadType lodestone = settings.type("lodestone");
         assertNotNull(lodestone);
         assertEquals(new ItemReference.Vanilla(Material.LODESTONE), lodestone.top());
         assertEquals(new ItemReference.Vanilla(Material.SMOOTH_STONE), lodestone.base());
+        PadType tuff = settings.type("tuff");
+        assertNotNull(tuff);
+        assertEquals(new ItemReference.Vanilla(Material.CHISELED_TUFF_BRICKS), tuff.top());
+        assertEquals(new ItemReference.Vanilla(Material.POLISHED_TUFF), tuff.base());
+        assertEquals(0, tuff.pullRadius());
+        assertTrue(tuff.takesFromInventory());
     }
 
     @Test
-    void eachTypeHasItsOwnRangeAndPullRadius() throws Exception {
+    void eachTypeHasItsOwnRangePullRadiusAndInventoryMode() throws Exception {
         YamlConfiguration yaml = new YamlConfiguration();
         yaml.loadFromString("""
                 types:
@@ -55,10 +63,12 @@ class PadSettingsTest {
                     structure: [CRYING_OBSIDIAN, GILDED_BLACKSTONE]
                     range: 8
                     pull-radius: 0
+                    takes-from-inventory: true
                   far:
                     structure: [GLASS, BEDROCK]
                     range: 200
                     pull-radius: 16
+                    takes-from-inventory: false
                 """);
         List<String> warnings = new ArrayList<>();
         PadSettings settings = parse(yaml, warnings);
@@ -68,14 +78,16 @@ class PadSettingsTest {
         assertNotNull(near);
         assertEquals(8, near.range());
         assertEquals(0, near.pullRadius());
+        assertTrue(near.takesFromInventory());
         PadType far = settings.type("far");
         assertNotNull(far);
         assertEquals(200, far.range());
         assertEquals(16, far.pullRadius());
+        assertFalse(far.takesFromInventory());
     }
 
     @Test
-    void aMissingOrWrongRangeOrPullRadiusWarnsAndUsesTheDefault() throws Exception {
+    void aMissingOrWrongTypeSettingWarnsAndUsesTheDefault() throws Exception {
         YamlConfiguration yaml = new YamlConfiguration();
         yaml.loadFromString("""
                 types:
@@ -85,6 +97,7 @@ class PadSettingsTest {
                     structure: [GLASS, BEDROCK]
                     range: 0
                     pull-radius: 40
+                    takes-from-inventory: 3
                 """);
         List<String> warnings = new ArrayList<>();
         PadSettings settings = parse(yaml, warnings);
@@ -94,11 +107,14 @@ class PadSettingsTest {
             assertNotNull(type);
             assertEquals(64, type.range());
             assertEquals(4, type.pullRadius());
+            assertFalse(type.takesFromInventory());
         }
         assertEquals(List.of("pads.yml > types.missing.range: missing, using 64",
                 "pads.yml > types.missing.pull-radius: missing, using 4",
+                "pads.yml > types.missing.takes-from-inventory: missing, using false",
                 "pads.yml > types.wrong.range: 0 is outside 1..512, using 64",
-                "pads.yml > types.wrong.pull-radius: 40 is outside 0..16, using 4"), warnings);
+                "pads.yml > types.wrong.pull-radius: 40 is outside 0..16, using 4",
+                "pads.yml > types.wrong.takes-from-inventory: expected true or false, using false"), warnings);
     }
 
     @Test
@@ -112,6 +128,7 @@ class PadSettingsTest {
                     structure: [CRYING_OBSIDIAN, GILDED_BLACKSTONE]
                     range: 64
                     pull-radius: 4
+                    takes-from-inventory: false
                 """);
         List<String> warnings = new ArrayList<>();
         PadSettings settings = parse(yaml, warnings);
@@ -131,6 +148,7 @@ class PadSettingsTest {
                     structure: [CRYING_OBSIDIAN, GILDED_BLACKSTONE]
                     range: 64
                     pull-radius: 4
+                    takes-from-inventory: false
                     item: {name: 'Pad', components: {item_model: 'minecraft:stick'}}
                 """);
         List<String> warnings = new ArrayList<>();
@@ -151,11 +169,13 @@ class PadSettingsTest {
                     structure: ['craftengine:default:ruby_pad', GILDED_BLACKSTONE]
                     range: 64
                     pull-radius: 4
+                    takes-from-inventory: false
                     item: {name: 'Pad', glint: true, components: {item_model: 'minecraft:stick'}}
                   mixed:
                     structure: [CRYING_OBSIDIAN, 'craftengine:default:ruby_base']
                     range: 64
                     pull-radius: 4
+                    takes-from-inventory: false
                   nameless:
                     structure: ['craftengine:ruby_pad', GILDED_BLACKSTONE]
                 """);
@@ -188,6 +208,7 @@ class PadSettingsTest {
                     structure: [CRYING_OBSIDIAN, GILDED_BLACKSTONE]
                     range: 64
                     pull-radius: 4
+                    takes-from-inventory: false
                 """);
         List<String> warnings = new ArrayList<>();
         PadSettings settings = PadSettings.parse(new ConfigReader(yaml, "pads.yml", warnings::add), IS_BLOCK,
@@ -208,6 +229,7 @@ class PadSettingsTest {
                     structure: [GLASS, BEDROCK]
                     range: 64
                     pull-radius: 4
+                    takes-from-inventory: false
                   broken:
                     structure: [NOT_A_BLOCK, STONE]
                   single:

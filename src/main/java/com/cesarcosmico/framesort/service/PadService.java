@@ -17,6 +17,7 @@ import com.cesarcosmico.framesort.model.PadMode;
 import com.cesarcosmico.framesort.model.Pull;
 import org.bukkit.Chunk;
 import org.bukkit.FluidCollisionMode;
+import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -25,6 +26,7 @@ import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.util.RayTraceResult;
 import org.bukkit.util.Vector;
@@ -71,6 +73,9 @@ public final class PadService {
     private static final double RAY_LIFT = 0.05;
     // How far from the pad's centre an item still counts as lying at its foot: up to a block from its side.
     private static final double HOP_REACH = 1.5;
+    // The main inventory; the hotbar (0 to 8), armour and off hand are what the player is using.
+    private static final int FIRST_STORED = 9;
+    private static final int LAST_STORED = 35;
 
     private final Plugin plugin;
     private final Supplier<PadSettings> settings;
@@ -239,6 +244,26 @@ public final class PadService {
         }
         if (type.pullRadius() > 0) {
             pull(top, type.pullRadius());
+        }
+        if (type.takesFromInventory()) {
+            takeInventories(top, pad, type, above);
+        }
+    }
+
+    private void takeInventories(Block top, PadEntry pad, PadType type, Location above) {
+        for (Player player : top.getWorld().getNearbyEntitiesByType(Player.class, above, 0.5, 0.5, 0.5)) {
+            // The search also finds whoever brushes the space over the pad from beside it, and spectators, who crouch
+            // to fly down.
+            if (!player.isSneaking() || player.getGameMode() == GameMode.SPECTATOR
+                    || !player.getLocation().getBlock().equals(top.getRelative(BlockFace.UP))) {
+                continue;
+            }
+            PlayerInventory inventory = player.getInventory();
+            // Other plugins' handlers run during a delivery and may kill the player or make them leave.
+            for (int index = FIRST_STORED; index <= LAST_STORED && player.isValid(); index++) {
+                delivery.deliver(top, pad.owner(), type.range(),
+                        new SlotSource(new Slot.InventorySlot(inventory, index), 0));
+            }
         }
     }
 
