@@ -2,38 +2,27 @@ package com.cesarcosmico.framesort.service;
 
 import com.cesarcosmico.framesort.config.FrameSortSettings;
 import com.cesarcosmico.framesort.config.SorterSettings;
-import com.cesarcosmico.framesort.item.ItemLook;
+import com.cesarcosmico.framesort.item.FrameCodec;
 import com.cesarcosmico.framesort.item.ItemOverlay;
 import com.cesarcosmico.framesort.item.ItemTemplate;
 import com.cesarcosmico.framesort.item.Keys;
 import com.cesarcosmico.framesort.item.MarkerCodec;
-import com.cesarcosmico.framesort.item.SorterCodec;
 import com.cesarcosmico.framesort.model.BlockKey;
 import com.cesarcosmico.framesort.model.ItemReference;
-import io.papermc.paper.datacomponent.DataComponentType;
 import io.papermc.paper.datacomponent.DataComponentTypes;
 import io.papermc.paper.datacomponent.item.BundleContents;
 import io.papermc.paper.datacomponent.item.ItemContainerContents;
+import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
-import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
-import org.bukkit.Chunk;
-import org.bukkit.Color;
 import org.bukkit.Material;
-import org.bukkit.NamespacedKey;
-import org.bukkit.Particle;
-import org.bukkit.Tag;
-import org.bukkit.World;
 import org.bukkit.block.Block;
-import org.bukkit.block.BlockState;
-import org.bukkit.block.Container;
-import org.bukkit.block.data.type.Chest;
-import org.bukkit.entity.Item;
-import org.bukkit.entity.Player;
+import org.bukkit.block.Dispenser;
+import org.bukkit.entity.ItemFrame;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.RecipeChoice;
-import org.bukkit.inventory.ShapedRecipe;
+import org.bukkit.persistence.PersistentDataContainer;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.Plugin;
 import org.jspecify.annotations.Nullable;
 
@@ -43,45 +32,38 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 /** Sorters are spread over the ticks so they never all act at once. */
 public final class SorterService {
 
+    /** What checking a frame did to its dispenser. */
+    public enum Change { CREATED, REMOVED, UNCHANGED }
+
     private static final MiniMessage MINI_MESSAGE = MiniMessage.miniMessage();
     // Shulker boxes inside bundles inside shulker boxes…: deep enough for any real setup, and bounded.
     private static final int MAX_DEPTH = 8;
+    // A sorter frame whose dispenser sits in an unloaded chunk looks again this often.
+    private static final long RETRY_TICKS = 100;
     // A turn sends a stack's worth however the items are packed, so bundles of single items don't crawl; the same
     // bound caps the tries when items have nowhere to go, so one that doesn't fit never stalls the rest.
     private static final int PER_TURN = 64;
-    // A few small specks in the plugin's colours over the block: enough to see a turn, never enough to hide the build.
-    private static final Particle.DustTransition ACTIVITY = new Particle.DustTransition(Color.fromRGB(0xF7B733),
-            Color.fromRGB(0xFC4A1A), 0.6f);
-    private static final int ACTIVITY_SPECKS = 4;
-    // A sorter item's own look; anything else on a dropped container (its name, contents, lock, loot) is the block's.
-    private static final Set<DataComponentType> SORTER_LOOK = Set.of(DataComponentTypes.ITEM_NAME,
-            DataComponentTypes.LORE, DataComponentTypes.ENCHANTMENT_GLINT_OVERRIDE);
 
     private static final class Sorter {
+        private final ItemFrame frame;
         private final Block block;
-        private final UUID owner;
         private long due;
 
-        private Sorter(Block block, UUID owner, long due) {
+        private Sorter(ItemFrame frame, Block block, long due) {
+            this.frame = frame;
             this.block = block;
-            this.owner = owner;
             this.due = due;
         }
-    }
-
-    /** What the recipes were built from, so a reload that changes none of it sends nothing to the players. */
-    private record RecipeSource(SorterSettings.@Nullable Recipe recipe, Set<Material> blocks, ItemLook item,
-                                ItemReference activator, boolean requireMarked) {
     }
 
     private final Plugin plugin;
@@ -89,8 +71,8 @@ public final class SorterService {
     private final DeliveryService delivery;
     private final CustomItemResolver customItems;
     private final Map<BlockKey, Sorter> sorters = new HashMap<>();
-    private final Set<NamespacedKey> recipes = new HashSet<>();
-    private @Nullable RecipeSource registered;
+    // Frames with a retry pending; every load, reload or frame change would otherwise start another retry chain.
+    private final Set<UUID> waiting = new HashSet<>();
     private long tick;
     private int nextPhase;
 
@@ -102,100 +84,102 @@ public final class SorterService {
         this.customItems = customItems;
     }
 
-    /** Registers the sorters of a chunk that just loaded; only the catalog's containers are read. */
-    public void load(Chunk chunk) {
-        Set<Material> blocks = settings.get().sorter().blocks();
-        for (BlockState state : chunk.getTileEntities(block -> blocks.contains(block.getType()), false)) {
-            if (state instanceof Container container) {
-                UUID owner = SorterCodec.owner(container);
-                if (owner != null) {
-                    register(state.getBlock(), owner);
+    public Change consider(ItemFrame frame) {
+        boolean holdsActivator = settings.get().sorter().isActivatorFrame(frame, frame.getItem(), customItems::id);
+        if (!FrameGeometry.attachedLoaded(frame)) {
+            // Only frames that could make a sorter wait for the neighbouring chunk; the rest are never sorters.
+            if (holdsActivator && waiting.add(frame.getUniqueId())) {
+                Runnable done = () -> waiting.remove(frame.getUniqueId());
+                ScheduledTask retry = frame.getScheduler().runDelayed(plugin, task -> {
+                    done.run();
+                    consider(frame);
+                }, done, RETRY_TICKS);
+                if (retry == null) {
+                    done.run();
                 }
             }
+            return Change.UNCHANGED;
         }
-    }
-
-    public void unload(Chunk chunk) {
-        UUID world = chunk.getWorld().getUID();
-        sorters.keySet().removeIf(key -> key.world().equals(world) && key.x() >> 4 == chunk.getX()
-                && key.z() >> 4 == chunk.getZ());
-    }
-
-    /** Registers again every sorter in the loaded chunks, for the catalog may have changed. */
-    public void loadAll() {
-        sorters.clear();
-        for (World world : plugin.getServer().getWorlds()) {
-            for (Chunk chunk : world.getLoadedChunks()) {
-                load(chunk);
+        Block block = FrameGeometry.attachedBlock(frame);
+        BlockKey key = FrameGeometry.key(block);
+        Sorter existing = sorters.get(key);
+        if (holdsActivator && block.getType() == Material.DISPENSER) {
+            if (existing == null) {
+                SorterSettings sorter = settings.get().sorter();
+                sorters.put(key, new Sorter(frame, block, tick + 1 + (nextPhase++ % sorter.tickRate())));
             }
+            // On every check, not only the first: a reload's look settings then reach the sorters that exist.
+            if (existing == null || existing.frame.equals(frame)) {
+                applyLook(frame, true);
+            }
+            return existing == null ? Change.CREATED : Change.UNCHANGED;
         }
+        if (existing != null && existing.frame.equals(frame)) {
+            sorters.remove(key);
+            applyLook(frame, false);
+            return Change.REMOVED;
+        }
+        return Change.UNCHANGED;
     }
 
     /**
-     * Makes a sorter of {@code block}, just placed by {@code player} from {@code hand}; false when it makes none. A
-     * container taken out of the catalog still keeps the mark, and sorts again once it is back.
+     * Re-checks a frame on the next tick: when an item-frame event fires, the frame still holds the old item. A
+     * sorter belongs to whoever put the activator in, not to whoever hung the frame; {@code placer} is {@code null}
+     * when the change was not putting an item in, such as rotating the frame of a sorter not yet created.
      */
-    public boolean placed(Player player, Block block, ItemStack hand) {
-        if (MarkerCodec.read(hand, Keys.SORTER_ITEM) == null
-                || !(block.getState(false) instanceof Container container)) {
+    public void considerLater(ItemFrame frame, @Nullable UUID placer, Consumer<Change> then) {
+        frame.getScheduler().run(plugin, task -> {
+            Change change = consider(frame);
+            if (change == Change.CREATED && placer != null) {
+                FrameCodec.setOwner(frame, placer);
+            }
+            then.accept(change);
+        }, null);
+    }
+
+    /** The owner of the sorter on {@code block}: the owner of its frame, or {@code null} when nobody owns it. */
+    public @Nullable UUID ownerOf(Block block) {
+        Sorter sorter = sorters.get(FrameGeometry.key(block));
+        return sorter == null ? null : FrameCodec.owner(sorter.frame);
+    }
+
+    /** The frame left the world because its chunk unloaded; the sorter comes back with the chunk. */
+    public void forget(ItemFrame frame) {
+        sorters.values().removeIf(sorter -> sorter.frame.equals(frame));
+    }
+
+    /** @return whether the frame made a sorter */
+    public boolean broken(ItemFrame frame) {
+        Sorter sorter = sorterOf(frame);
+        if (sorter == null) {
             return false;
         }
-        SorterCodec.mark(container, player.getUniqueId());
-        if (!settings.get().sorter().blocks().contains(block.getType())) {
-            return false;
-        }
-        register(block, player.getUniqueId());
+        sorters.remove(FrameGeometry.key(sorter.block));
+        applyLook(frame, false);
         return true;
     }
 
-    /** @return whether the block was a sorter */
-    public boolean broken(Block block) {
-        return sorters.remove(FrameGeometry.key(block)) != null;
+    /** The dispenser {@code frame} makes a sorter, or {@code null} when it makes none. */
+    public @Nullable Block blockOf(ItemFrame frame) {
+        Sorter sorter = sorterOf(frame);
+        return sorter == null ? null : sorter.block;
     }
 
-    /**
-     * Turns what a broken sorter dropped back into a sorter item. The drops also hold what spilled out of it, so only
-     * an item alike to the block's own drop stands for it; any such one will do, as they are alike. A shulker box
-     * can't hold another, so its own drop, which carries its contents, is the only one of its kind.
-     */
-    public void markDrop(BlockState state, List<Item> drops) {
-        if (!(state instanceof Container container) || SorterCodec.owner(container) == null) {
-            return;
-        }
-        Material material = state.getType();
-        ItemStack alike = ItemStack.of(material);
-        Component name = container.customName();
-        if (name != null) {
-            alike.setData(DataComponentTypes.CUSTOM_NAME, name);
-        }
-        boolean shulker = Tag.SHULKER_BOXES.isTagged(material);
-        for (Item drop : drops) {
-            ItemStack stack = drop.getItemStack();
-            if (stack.getAmount() == 1 && stack.getType() == material && (shulker || stack.isSimilar(alike))) {
-                ItemStack sorter = createItem(material, 1);
-                sorter.copyDataFrom(stack, type -> !SORTER_LOOK.contains(type));
-                drop.setItemStack(sorter);
-                return;
-            }
-        }
+    private @Nullable Sorter sorterOf(ItemFrame frame) {
+        Sorter sorter = sorters.get(FrameGeometry.key(FrameGeometry.attachedBlock(frame)));
+        return sorter != null && sorter.frame.equals(frame) ? sorter : null;
     }
 
-    /** The owner of the sorter on {@code block}, or {@code null} when it is no sorter. */
-    public @Nullable UUID ownerOf(Block block) {
-        Sorter sorter = sorters.get(FrameGeometry.key(block));
-        return sorter == null ? null : sorter.owner;
+    /** Shows every loaded sorter's frame again, so nothing stays hidden while FrameSort is off. */
+    public void stopAll() {
+        sorters.values().forEach(sorter -> applyLook(sorter.frame, false));
     }
 
     public boolean isSorter(Block block) {
         return sorters.containsKey(FrameGeometry.key(block));
     }
 
-    /** Whether turning a sorter's block into {@code to} ends it; an axe may turn a copper chest into another one. */
-    public boolean endsSorter(Block block, Material to) {
-        return isSorter(block) && !settings.get().sorter().blocks().contains(to);
-    }
-
-    /** The title a sorter's inventory shows instead of the container's own name, or {@code null} to keep that name. */
+    /** The title a sorter's inventory shows instead of the dispenser's own name, or {@code null} to keep that name. */
     public @Nullable Component title(Block block) {
         String title = settings.get().sorter().customName();
         return title != null && isSorter(block) ? MINI_MESSAGE.deserialize(title) : null;
@@ -212,13 +196,6 @@ public final class SorterService {
         return sorters.values().stream().map(sorter -> sorter.block).toList();
     }
 
-    /** A sorter item for {@code material}: placing it makes a sorter. */
-    public ItemStack createItem(Material material, int amount) {
-        ItemStack item = new ItemTemplate(material, Map.of(), settings.get().sorter().item())
-                .create(amount, Placeholder.component("block", Component.translatable(material)));
-        return MarkerCodec.mark(item, Keys.SORTER_ITEM, "sorter");
-    }
-
     /** {@code null} when CraftEngine can't build the activator now: an ID it doesn't know, or a /ce reload. */
     public @Nullable ItemStack createActivator(int amount) {
         SorterSettings sorter = settings.get().sorter();
@@ -233,163 +210,81 @@ public final class SorterService {
         return item == null ? null : MarkerCodec.mark(item, Keys.ACTIVATOR, "sorter");
     }
 
-    /** How many items this sorter has sent; the count stays with the block. */
-    public long sorted(Block block) {
-        return block.getState(false) instanceof Container container ? SorterCodec.sorted(container) : 0;
-    }
-
-    /**
-     * Registers one recipe per container of the catalog, unless nothing they are built from changed. A CraftEngine
-     * activator or ingredient can't be built before CraftEngine loads its items: then nothing is registered, and
-     * CraftEngine's reload calls this again.
-     */
-    public void registerRecipes() {
-        SorterSettings sorter = settings.get().sorter();
-        RecipeSource source = new RecipeSource(sorter.recipe(), sorter.blocks(), sorter.item(), sorter.activator(),
-                sorter.requireMarked());
-        if (source.equals(registered)) {
-            return;
-        }
-        removeRecipes();
-        SorterSettings.Recipe recipe = sorter.recipe();
-        if (recipe == null) {
-            registered = source;
-            return;
-        }
-        Map<Character, RecipeChoice> ingredients = ingredients(recipe, sorter);
-        if (ingredients == null) {
-            return;
-        }
-        for (Material material : sorter.blocks()) {
-            NamespacedKey key = new NamespacedKey(plugin, "sorter_" + material.name().toLowerCase(Locale.ROOT));
-            ShapedRecipe shaped = new ShapedRecipe(key, createItem(material, 1));
-            shaped.shape(recipe.shape().toArray(String[]::new));
-            shaped.setIngredient(SorterSettings.Recipe.CONTAINER, RecipeChoice.predicateChoice(
-                    item -> isRecipeContainer(item, material), ItemStack.of(material)));
-            ingredients.forEach(shaped::setIngredient);
-            if (plugin.getServer().addRecipe(shaped, true)) {
-                recipes.add(key);
-            }
-        }
-        registered = source;
-        for (Player player : plugin.getServer().getOnlinePlayers()) {
-            discover(player);
-        }
-    }
-
-    /** Takes the recipes out: while FrameSort is off, nothing may call into it. */
-    public void removeRecipes() {
-        for (NamespacedKey key : recipes) {
-            plugin.getServer().removeRecipe(key, false);
-        }
-        recipes.clear();
-        registered = null;
-    }
-
-    /** Shows the sorter recipes in the player's recipe book. */
-    public void discover(Player player) {
-        player.discoverRecipes(recipes);
-    }
-
     public void tick() {
         tick++;
         SorterSettings sorter = settings.get().sorter();
-        for (Sorter current : List.copyOf(sorters.values())) {
+        for (Map.Entry<BlockKey, Sorter> entry : List.copyOf(sorters.entrySet())) {
+            Sorter current = entry.getValue();
             if (current.due > tick) {
                 continue;
             }
-            Block block = current.block;
-            // WorldEdit, a command or another plugin can change the block without any event FrameSort hears.
-            if (!(block.getState(false) instanceof Container container) || SorterCodec.owner(container) == null) {
-                sorters.remove(FrameGeometry.key(block));
+            if (!FrameGeometry.attachedLoaded(current.frame)) {
+                current.due = tick + sorter.tickRate();
                 continue;
             }
-            if (sorter.disableWhenPowered() && block.isBlockPowered()) {
+            if (!makesSorter(current.frame, current.frame.getItem())) {
+                sorters.remove(entry.getKey());
+                applyLook(current.frame, false);
+                continue;
+            }
+            if (sorter.disableWhenPowered() && current.block.isBlockPowered()) {
                 current.due = tick + 1;
                 continue;
             }
             current.due = tick + sorter.tickRate();
-            // A double chest would sort both halves: it waits until it is a single chest again.
-            boolean doubleChest = block.getBlockData() instanceof Chest chest && chest.getType() != Chest.Type.SINGLE;
-            if (sorter.blocks().contains(block.getType()) && !doubleChest) {
-                dispense(current, sorter);
-            }
+            dispense(current);
         }
     }
 
-    private void register(Block block, UUID owner) {
-        SorterSettings sorter = settings.get().sorter();
-        sorters.put(FrameGeometry.key(block), new Sorter(block, owner, tick + 1 + (nextPhase++ % sorter.tickRate())));
+    /** Whether {@code item} in {@code frame} makes a sorter of the block the frame hangs on. */
+    public boolean makesSorter(ItemFrame frame, ItemStack item) {
+        return FrameGeometry.attachedBlock(frame).getType() == Material.DISPENSER
+                && settings.get().sorter().isActivatorFrame(frame, item, customItems::id);
     }
 
-    private void dispense(Sorter sorter, SorterSettings settings) {
+    private void dispense(Sorter sorter) {
+        UUID owner = FrameCodec.owner(sorter.frame);
         int sent = 0;
         // What found nowhere to go this turn is not tried again.
         List<ItemStack> missed = new ArrayList<>();
         for (int tries = 0; tries < PER_TURN && sent < PER_TURN; tries++) {
-            // Other plugins' handlers run during a delivery and may break the container.
-            if (!(sorter.block.getState(false) instanceof Container container)) {
+            // Other plugins' handlers run during a delivery and may break the dispenser.
+            if (!(sorter.block.getState(false) instanceof Dispenser dispenser)) {
                 return;
             }
-            Slot slot = pick(container.getInventory(), missed);
+            Slot slot = pick(dispenser.getInventory(), missed);
             if (slot == null) {
                 break;
             }
             ItemStack tried = slot.get();
             int kept = Math.max(0, tried.getAmount() - (PER_TURN - sent));
-            int moved = delivery.deliver(sorter.block, sorter.owner, settings.range(), new SlotSource(slot, kept));
+            int moved = delivery.deliver(sorter.block, owner, settings.get().sorter().range(),
+                    new SlotSource(slot, kept));
             if (moved == 0) {
                 missed.add(tried);
             }
             sent += moved;
         }
-        if (sent == 0 || !(sorter.block.getState(false) instanceof Container container)) {
+        if (sent == 0 || !(sorter.block.getState(false) instanceof Dispenser dispenser)) {
             return;
         }
-        SorterCodec.addSorted(container, sent);
-        if (settings.showActivity()) {
-            sorter.block.getWorld().spawnParticle(Particle.DUST_COLOR_TRANSITION,
-                    sorter.block.getLocation().add(0.5, 1.15, 0.5), ACTIVITY_SPECKS, 0.2, 0.05, 0.2, 0, ACTIVITY);
+        PersistentDataContainer data = dispenser.getPersistentDataContainer();
+        long total = data.getOrDefault(Keys.SORTED, PersistentDataType.LONG, 0L) + sent;
+        data.set(Keys.SORTED, PersistentDataType.LONG, total);
+        if (settings.get().sorter().showActivity()) {
+            sorter.frame.setRotation(sorter.frame.getRotation().rotateClockwise());
         }
     }
 
-    /**
-     * The choices of the activator and the other letters, the same for every container; {@code null} while a
-     * CraftEngine item among them can't be built.
-     */
-    private @Nullable Map<Character, RecipeChoice> ingredients(SorterSettings.Recipe recipe, SorterSettings sorter) {
-        Map<Character, RecipeChoice> choices = new HashMap<>();
-        if (recipe.uses(SorterSettings.Recipe.ACTIVATOR)) {
-            ItemStack example = sorter.requireMarked() ? createActivator(1) : example(sorter.activator());
-            if (example == null) {
-                return null;
-            }
-            choices.put(SorterSettings.Recipe.ACTIVATOR, RecipeChoice.predicateChoice(
-                    item -> settings.get().sorter().isActivator(item, customItems::id), example));
-        }
-        for (Map.Entry<Character, ItemReference> ingredient : recipe.ingredients().entrySet()) {
-            ItemReference reference = ingredient.getValue();
-            ItemStack example = example(reference);
-            if (example == null) {
-                return null;
-            }
-            choices.put(ingredient.getKey(), RecipeChoice.predicateChoice(
-                    item -> reference.matches(item.getType(), customItems.id(item)), example));
-        }
-        return choices;
+    /** How many items this sorter's dispenser has sent; the count stays with the block. */
+    public long sorted(Block block) {
+        return block.getState(false) instanceof Dispenser dispenser
+                ? dispenser.getPersistentDataContainer().getOrDefault(Keys.SORTED, PersistentDataType.LONG, 0L)
+                : 0;
     }
 
-    private @Nullable ItemStack example(ItemReference reference) {
-        return switch (reference) {
-            case ItemReference.Vanilla(Material material) -> ItemStack.of(material);
-            case ItemReference.Custom custom -> customItems.item(custom, 1);
-        };
-    }
-
-    // An empty container of that kind: a filled shulker box would lose what it holds, and a sorter is one already.
-    private boolean isRecipeContainer(ItemStack item, Material material) {
-        return item.getType() == material && customItems.id(item) == null
-                && TargetResolver.contents(item).isEmpty() && MarkerCodec.read(item, Keys.SORTER_ITEM) == null;
+    private void applyLook(ItemFrame frame, boolean active) {
+        frame.setVisible(!active || !settings.get().sorter().hideFrame());
     }
 
     /** A sorter opens a shulker box or bundle with contents first; it goes whole once nothing inside can go. */

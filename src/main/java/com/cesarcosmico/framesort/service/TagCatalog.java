@@ -99,12 +99,6 @@ public final class TagCatalog {
         return new TagView(key, Kind.CUSTOM, List.copyOf(materials), materials, customItems);
     }
 
-    /** The blocks of the game's block tag {@code key}, or {@code null} when the game has no such tag. */
-    public static @Nullable Set<Material> blockTag(NamespacedKey key) {
-        TagView view = load(RegistryKey.BLOCK, key, Kind.BLOCK);
-        return view == null ? null : view.lookup();
-    }
-
     private static @Nullable TagView gameTag(NamespacedKey key) {
         TagView view = load(RegistryKey.ITEM, key, Kind.ITEM);
         return view != null ? view : load(RegistryKey.BLOCK, key, Kind.BLOCK);

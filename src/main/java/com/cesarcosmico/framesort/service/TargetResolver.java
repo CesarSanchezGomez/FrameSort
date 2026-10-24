@@ -6,7 +6,6 @@ import com.cesarcosmico.framesort.config.InspectSettings;
 import com.cesarcosmico.framesort.item.FrameCodec;
 import com.cesarcosmico.framesort.item.ItemTagCodec;
 import com.cesarcosmico.framesort.item.PadCodec;
-import com.cesarcosmico.framesort.item.SorterCodec;
 import com.cesarcosmico.framesort.model.BlockKey;
 import com.cesarcosmico.framesort.model.ItemReference;
 import com.cesarcosmico.framesort.model.MatchTier;
@@ -20,7 +19,6 @@ import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
-import org.bukkit.block.Container;
 import org.bukkit.entity.ItemFrame;
 import org.bukkit.inventory.ItemStack;
 import org.jspecify.annotations.Nullable;
@@ -281,8 +279,9 @@ public final class TargetResolver {
             return false;
         }
         Block attached = FrameGeometry.attachedBlock(frame);
-        // Never send a source's items back into itself.
-        if (attached.equals(source)) {
+        // Never send a source's items back into itself, and never treat a sorter's own frame as a target.
+        if (attached.equals(source) || attached.getType() == Material.DISPENSER
+                && current.sorter().isActivatorFrame(frame, shown, customItems::id)) {
             return false;
         }
         // Anyone can hang a frame near a sorter: it takes the owner's items only if the owner trusts its owner.
@@ -312,10 +311,19 @@ public final class TargetResolver {
         return PadCodec.read(block.getChunk()).containsKey(FrameGeometry.key(block));
     }
 
-    // Read from the block: SorterService delivers through this class, so it can't be asked.
-    private static boolean isSorter(FrameSortSettings current, Block block) {
-        return current.sorter().blocks().contains(block.getType())
-                && block.getState(false) instanceof Container container && SorterCodec.owner(container) != null;
+    // Read from the world: SorterService delivers through this class, so it can't be asked.
+    private boolean isSorter(FrameSortSettings current, Block block) {
+        if (block.getType() != Material.DISPENSER) {
+            return false;
+        }
+        for (ItemFrame frame : block.getWorld().getNearbyEntitiesByType(ItemFrame.class,
+                block.getLocation().toCenterLocation(), 1)) {
+            if (FrameGeometry.attachedBlock(frame).equals(block)
+                    && current.sorter().isActivatorFrame(frame, frame.getItem(), customItems::id)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private int direct(ItemStack target, ItemStack item, @Nullable String itemId, boolean nested) {

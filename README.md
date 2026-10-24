@@ -1,9 +1,9 @@
 # FrameSort
 
-Item sorting without hopper chains. A **sorter** (a container crafted with a hopper, such as a barrel or a chest)
-and **sorting pads** (a waxed copper grate on a waxed block of copper, a lodestone on smooth stone, or chiseled tuff
-bricks on polished tuff) send items straight to the **target frames** that ask for them: into the chest, barrel or
-hopper behind the frame, composted by a composter, or dropped in front of the frame when there is no container.
+Item sorting without hopper chains. A **sorter** (a dispenser with a hopper in an item frame on it) and **sorting
+pads** (a waxed copper grate on a waxed block of copper, a lodestone on smooth stone, or chiseled tuff bricks on
+polished tuff) send items straight to the **target frames** that ask for them: into the chest, barrel or hopper
+behind the frame, composted by a composter, or dropped in front of the frame when there is no container.
 
 - **Server:** Paper 26.2 or newer, Java 25.
 - **Dependencies:** none. With [WorldGuard](https://enginehub.org/worldguard) installed, sorters and pads respect its
@@ -23,6 +23,10 @@ hopper behind the frame, composted by a composter, or dropped in front of the fr
 
 `/version FrameSort` shows the installed version.
 
+When the server stops, every sorter in a loaded chunk shows its frame again. A sorter in a chunk that isn't loaded
+keeps its hidden frame until it loads with FrameSort installed, so before removing FrameSort, take the activator
+(the hopper) out of those sorters.
+
 ## How it works
 
 1. **Targets.** Put an item in a frame on a container and sneak + right-click the frame with an empty hand to
@@ -37,14 +41,12 @@ hopper behind the frame, composted by a composter, or dropped in front of the fr
    A shulker box or bundle in the frame stands for what it holds, never for itself, and each of those matches
    ranks just below the same match made directly; to keep shulker boxes or bundles whole, put an empty one in the
    frame: it takes any of its kind. Among targets that want it as much, the nearest fills first; when the preferred
-   targets are full, the rest goes to the next ones. A frame holding a recovery compass comes last: it takes whatever
+   targets are full, the rest goes to the next ones. A frame holding an item frame comes last: it takes whatever
    matches nothing else, and whatever the other targets have no room for. A frame on a lava cauldron destroys
    leftovers.
-2. **Sorters.** Craft a hopper over a dispenser, dropper, barrel, chest, trapped chest, copper chest or shulker
-   box to get its sorter, or get one with `/framesort give sorter <block>`. Place it, and every second it sends up to
-   64 items from its inventory, at random, taking them from inside shulker boxes and bundles too. A shulker box or
-   bundle goes whole once nothing inside it can go anywhere. Breaking a sorter gives it back; a double chest doesn't
-   sort.
+2. **Sorters.** Put a hopper in a frame on a dispenser. The frame disappears and every second the dispenser
+   sends up to 64 items from its inventory, at random, taking them from inside shulker boxes and bundles too. A
+   shulker box or bundle goes whole once nothing inside it can go anywhere.
 3. **Sorting pads.** Place a waxed copper grate on a waxed block of copper, or a lodestone on smooth stone. Items
    resting on top, or lying loose within a few blocks (the pad pulls them in), are sent to targets. Chiseled tuff
    bricks on polished tuff make a pad that sends your inventory while you crouch on it (not the hotbar, armour or off
@@ -54,8 +56,8 @@ hopper behind the frame, composted by a composter, or dropped in front of the fr
    configurable colours) and are listed page by page. Sneak + left-click a target frame to see what it accepts.
    `/framesort trace` shows the deliveries around you live.
 
-5. **Owners and trust.** What you set up is yours: the frames you mark, the sorters you place, the pads you
-   build. Your sorters and pads send only to your frames, so nobody can mark a frame near them and take
+5. **Owners and trust.** What you set up is yours: the frames you mark, the sorters you put the activator in, the
+   pads you build. Your sorters and pads send only to your frames, so nobody can mark a frame near them and take
    your items, and only you, the players you trust and admins see where they send.
    `/framesort trust <player>` makes that player's frames count as yours for your sorters and pads, one way: a team
    trusts each other. Breaking blocks or opening chests is still up to the server's protection. See
@@ -72,7 +74,7 @@ it can reach. Targets are cached, so after changing regions run `/framesort relo
 custom item instead, whatever its durability, name or random values; vanilla items of that material don't go there,
 and a custom item never goes to a frame for its material. No game tag takes a custom item; a tag in `tags.yml` takes
 the ones it lists, written as inspecting a frame that holds the item shows them (`craftengine:default:topaz_axe`). A
-custom item in a frame is never the default target, even one made from a recovery compass, nor the activator,
+custom item in a frame is never the default target, even one made from an item frame, nor the sorter activator,
 even one made from a hopper, unless the config names that custom item
 (`activator.material: 'craftengine:default:ruby'`, and the same in `default-target-item`). A pad's blocks can be
 CraftEngine blocks too, named the same way in `pads.yml`; otherwise a CraftEngine block never counts as a vanilla one.
@@ -99,7 +101,7 @@ never duplicated.
 | `/framesort trust <player>` | `framesort.command.trust` | everyone |
 | `/framesort untrust <player>` | `framesort.command.untrust` | everyone |
 | `/framesort trusted [page]` | `framesort.command.trusted` | everyone |
-| `/framesort give sorter <block>\|activator\|pad <type> [player] [amount]` | `framesort.command.give` | op |
+| `/framesort give sorter\|pad <type> [player] [amount]` | `framesort.command.give` | op |
 | `/framesort reload` | `framesort.command.reload` | op |
 
 The three trust commands only exist while `ownership.enabled` is on.

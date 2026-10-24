@@ -27,7 +27,7 @@ command:
     trust: '  <color:#F7B733>•</color> <hover:show_text:"<gray>Your sorters and pads also send<newline>to that player''s frames.</gray>"><white><usage> \<player></white> <dark_gray>share</dark_gray></hover>'
     untrust: '  <color:#F7B733>•</color> <hover:show_text:"<gray>Stops trusting a player.</gray>"><white><usage> \<player></white> <dark_gray>stop sharing</dark_gray></hover>'
     trusted: '  <color:#F7B733>•</color> <hover:show_text:"<gray>Whom you trust and who trusts you.</gray>"><white><usage> [page]</white> <dark_gray>your trust</dark_gray></hover>'
-    give: '  <color:#F7B733>•</color> <hover:show_text:"<white><usage> sorter \<block> [player] [amount]</white><newline><white><usage> activator [player] [amount]</white><newline><white><usage> pad \<type> [player] [amount]</white><newline><gray>Gives sorters, activators and pad blocks.</gray>"><white><usage> sorter|activator|pad …</white> <dark_gray>give items</dark_gray></hover>'
+    give: '  <color:#F7B733>•</color> <hover:show_text:"<white><usage> sorter [player] [amount]</white><newline><white><usage> pad \<type> [player] [amount]</white><newline><gray>Gives sorter activators and pad blocks.</gray>"><white><usage> sorter|pad …</white> <dark_gray>give items</dark_gray></hover>'
     reload: '  <color:#F7B733>•</color> <hover:show_text:"<gray>Reloads the configuration.</gray>"><white><usage></white> <dark_gray>reload</dark_gray></hover>'
   reloaded: '<prefix><green>Configuration reloaded.</green>'
   reloaded-with-warnings: '<prefix><yellow><hover:show_text:"<gray>Those settings use their defaults.<newline>See the console.</gray>">Reloaded with <count> warning(s)</hover></yellow>'
@@ -169,7 +169,6 @@ give:
   players-only: '<prefix><red>Name a player: <usage> ... [player]</red>'
   unavailable: '<prefix><red><hover:show_text:"<gray>Check its ID in the config,<newline>or wait for /ce reload to finish.</gray>">CraftEngine can''t build it now</hover></red>'
   unknown-pad: 'There is no pad type called ''<type>'''
-  unknown-block: '''<block>'' can''t be a sorter'
 
 trust:
   granted: '<prefix><green><hover:show_text:"<gray>Your sorters and pads also send<newline>to their frames.</gray>">You now trust <white><player></white></hover></green>'
@@ -185,7 +184,7 @@ trust:
     trusting: '  <color:#F7B733>←</color> <white><player></white> <dark_gray>trusts you</dark_gray>'
 
 sorter:
-  created: '<prefix><green><hover:show_text:"<gray>Items in this container now<newline>go to their target frames.</gray>">Sorter created</hover></green>'
+  created: '<prefix><green><hover:show_text:"<gray>Items in this dispenser now<newline>go to their target frames.</gray>">Sorter created</hover></green>'
   removed: '<prefix><yellow>Sorter removed</yellow>'
 
 pad:

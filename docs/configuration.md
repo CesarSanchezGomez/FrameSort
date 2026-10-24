@@ -14,8 +14,8 @@ empty line (`''`) and keeps each line short.
 
 ## Item look
 
-The sorter items, the activator, the pad items and tagged items take these keys, all optional: left out, or set to
-`''`, `[]` or `false`, the item has none of it.
+The activator, the pad items and tagged items take these keys, all optional: left out, or set to `''`, `[]` or
+`false`, the item has none of it.
 
 | Key | Meaning |
 |---|---|
@@ -73,35 +73,24 @@ the rest are CraftEngine's (they are reported and ignored).
 
 | Key | Default | Meaning |
 |---|---|---|
-| `blocks` | `[DISPENSER, DROPPER, BARREL, CHEST, TRAPPED_CHEST, '#minecraft:copper_chests', '#minecraft:shulker_boxes']` | Containers that can be sorters: materials, or `'#minecraft:<tag>'` for every container in a game block tag (copper chests change material as they age, and shulker boxes come in 17 colours). A block that holds no items, a CraftEngine block among them, is reported and ignored. With none left, nothing can be a sorter. |
-| `item.name`, `lore`, `glint` | | *Optional.* Look of a sorter as an item (see [Item look](#item-look)); `<block>` is the container's name, in each player's language. |
-| `recipe.shape` | `['A', 'C']` | Rows of the crafting grid, one to three of the same length, up to three letters each: `C` is the container, exactly once, `A` the activator, and a space an empty slot. Every container in `blocks` gets its recipe. `[]` = no recipe, only `/framesort give sorter`. A wrong shape is reported and the default is used. |
-| `recipe.ingredients` | | *Optional.* The other letters of the shape: `R: REDSTONE`, or a CraftEngine item (`'craftengine:<namespace>:<id>'`). A letter that is not in the shape, or one the shape uses but this leaves out, is reported. |
-| `activator.material` | `HOPPER` | The ingredient `A` of the recipe: a material, or a CraftEngine item (`'craftengine:<namespace>:<id>'`, see [CraftEngine items and blocks](#item-look)). A material that is not an item (`WATER`, `AIR`) falls back to the default. A CraftEngine item made from the activator's material is not the activator. |
-| `activator.require-marked` | `false` | `true`: only the activator from `/framesort give activator` crafts a sorter, not any item of that material. |
+| `activator.material` | `HOPPER` | Item that turns a dispenser into a sorter when placed in a frame on it: a material, or a CraftEngine item (`'craftengine:<namespace>:<id>'`, see [CraftEngine items and blocks](#item-look)). A material that is not an item (`WATER`, `AIR`) falls back to the default. A CraftEngine item made from the activator's material is not the activator. |
+| `activator.require-marked` | `false` | `true`: only the activator from `/framesort give sorter` works, not any item of that material. |
 | `activator.name`, `lore`, `glint`, `components` | | *Optional.* Look of the activator FrameSort hands out (see [Item look](#item-look)); over a CraftEngine one, `name`, `lore` and `glint` only. Left out, or set to `''`, `[]` or `false`, the activator has none of it: with no name it shows the item's own name. |
-| `custom-name` | `<gradient:#F7B733:#FC4A1A>Sorter</gradient>` | *Optional.* Title of a sorter's inventory. Left out or `''` = the container's own name. The container itself is never renamed: placed apart it shows its own name again (from an anvil, or none), and a broken sorter drops it with that name. |
+| `frame-types` | `[ITEM_FRAME, GLOW_ITEM_FRAME]` | Frames that can hold the activator. |
+| `custom-name` | `<gradient:#F7B733:#FC4A1A>Sorter</gradient>` | *Optional.* Title of a sorter's inventory. Left out or `''` = the dispenser's own name. The dispenser itself is never renamed: once it stops sorting it shows its own name again (from an anvil, or none), and a broken sorter drops it with that name. |
 | `range` | `64` | A sorter's targets are searched within this many blocks of it (1 to 512). Each pad type has its own `range` in `pads.yml`. |
 | `tick-rate` | `20` | Ticks between two turns of the same sorter. |
 | `disable-when-powered` | `false` | A powered sorter stops sending. |
-| `show-activity` | `true` | A few small specks in FrameSort's colours over a sorter after every turn that sends something. |
+| `hide-frame` | `true` | Hides the activator's frame while the sorter works. A reload applies a change to every sorter. |
+| `show-activity` | `true` | Rotates the activator after every turn that sends something. |
 
-**A sorter is a container placed from a sorter item.** Craft one from the recipe (a hopper over the container by
-default), or get one with `/framesort give sorter <block>`; the recipe shows in every player's recipe book. Only an
-empty container goes into the recipe, so a shulker box never loses what it holds, and a sorter item doesn't make
-another one. Placing it makes the sorter, and whoever placed it is told so and owns it. Breaking it gives the sorter
-item back, with the container's name and, for a shulker box, what it holds; the rest of what it held spills as
-usual. Explosions, a wither and pistons leave a sorter where it is; an axe or the weather may still change a copper
-chest into another copper chest. A plain container is never a sorter, and an item frame is always a target or
-decoration.
-
-A chest next to a sorter chest joins it as a double chest, which doesn't sort: the sorter waits until it is a single
-chest again. A container taken out of `blocks` keeps being a sorter but doesn't sort until it is back. A sorter never
-dispenses like a plain dispenser or dropper. Each turn it sends up to 64 items from random stacks (only part of the
-last one when it would go past 64), taking them from inside shulker boxes and bundles, so packed items go as fast as
-loose ones. Items with nowhere to go stay in the sorter without holding up the rest, and are not tried again in the
-same turn; a turn gives up after 64 tries. Once nothing inside a shulker box or bundle can go anywhere, the box or
-bundle itself is sent whole to the targets that accept it.
+Whoever creates or removes a sorter (placing or taking the activator, or breaking its frame or dispenser) is told
+so. A sorter never dispenses like a plain dispenser. Each turn it sends up to 64 items from random stacks (only part of
+the last one when it would go past 64), taking them from inside shulker boxes and bundles, so packed items go as fast
+as loose ones. Items with nowhere to go stay
+in the sorter without holding up the rest, and are not tried again in the same turn; a turn gives up after 64
+tries. Once nothing inside a shulker box or bundle can go anywhere, the box or bundle itself is sent whole to the
+targets that accept it.
 
 ### targets
 
@@ -172,11 +161,11 @@ frame does nothing.
 |---|---|---|
 | `enabled` | `true` | `true`: a sorter or pad sends only to frames of its owner and of the players its owner trusts (`/framesort trust`), and only they inspect it or see its deliveries in `/framesort trace`. `false`: it sends to any frame and anyone inspects it, as without owners, and `/framesort trust`, `untrust` and `trusted` are hidden. A reload applies it, to the commands too. |
 
-What a player sets up is theirs: a target frame belongs to whoever marked it, a sorter to whoever placed it, a pad to
-whoever placed its top block. Owners are recorded even with `enabled: false`, so turning it on later
+What a player sets up is theirs: a target frame belongs to whoever marked it, a sorter to whoever put the activator
+in, a pad to whoever placed its top block. Owners are recorded even with `enabled: false`, so turning it on later
 finds them. What has no owner (built before owners existed, or pasted without its data) only sends to frames that
-have none either, and only admins inspect it; unmarking and marking a frame again, or breaking and placing a pad's
-top block again, gives it an owner. More in
+have none either, and only admins inspect it; unmarking and marking a frame again, putting the activator back, or
+breaking and placing a pad's top block again gives it an owner. More in
 [docs/commands.md](commands.md#owners-and-trust).
 
 ### inspect

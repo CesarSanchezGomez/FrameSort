@@ -4,7 +4,6 @@ import com.cesarcosmico.framesort.item.ItemLook;
 import com.cesarcosmico.framesort.model.ItemReference;
 import org.bukkit.Color;
 import org.bukkit.Material;
-import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.EntityType;
 import org.jspecify.annotations.Nullable;
@@ -32,16 +31,6 @@ class FrameSortSettingsTest {
     // Minecraft checks components on a server; these tests reject only the component named "nope".
     static final Function<String, @Nullable String> PROBLEM =
             input -> input.contains("nope=") ? "Unknown item component 'minecraft:nope'" : null;
-    // A block's state needs a running server; these are the containers the tests use.
-    static final Predicate<Material> IS_CONTAINER = Set.of(Material.DISPENSER, Material.DROPPER, Material.BARREL,
-            Material.CHEST, Material.TRAPPED_CHEST, Material.COPPER_CHEST, Material.EXPOSED_COPPER_CHEST,
-            Material.SHULKER_BOX, Material.RED_SHULKER_BOX, Material.CRAFTER)::contains;
-    // Tags come from the server's registries; these stand in for the two the bundled config names.
-    static final Function<NamespacedKey, @Nullable Set<Material>> BLOCK_TAG = key -> switch (key.asString()) {
-        case "minecraft:copper_chests" -> Set.of(Material.COPPER_CHEST, Material.EXPOSED_COPPER_CHEST);
-        case "minecraft:shulker_boxes" -> Set.of(Material.SHULKER_BOX, Material.RED_SHULKER_BOX);
-        default -> null;
-    };
     private static final ItemReference HOPPER = new ItemReference.Vanilla(Material.HOPPER);
     private static final ItemReference COMPASS = new ItemReference.Vanilla(Material.RECOVERY_COMPASS);
 
@@ -52,8 +41,7 @@ class FrameSortSettingsTest {
     }
 
     private static FrameSortSettings parse(YamlConfiguration yaml, List<String> warnings) {
-        return FrameSortSettings.parse(new ConfigReader(yaml, "config.yml", warnings::add), IS_ITEM, IS_CONTAINER,
-                BLOCK_TAG, PROBLEM, true);
+        return FrameSortSettings.parse(new ConfigReader(yaml, "config.yml", warnings::add), IS_ITEM, PROBLEM, true);
     }
 
     @Test
@@ -85,11 +73,7 @@ class FrameSortSettingsTest {
 
         assertEquals(List.of(), warnings);
         assertEquals(64, settings.sorter().range());
-        assertEquals(Set.of(EntityType.ITEM_FRAME, EntityType.GLOW_ITEM_FRAME), settings.targets().frameTypes());
-        assertEquals(Set.of(Material.DISPENSER, Material.DROPPER, Material.BARREL, Material.CHEST,
-                Material.TRAPPED_CHEST, Material.COPPER_CHEST, Material.EXPOSED_COPPER_CHEST, Material.SHULKER_BOX,
-                Material.RED_SHULKER_BOX), settings.sorter().blocks());
-        assertEquals(new SorterSettings.Recipe(List.of("A", "C"), Map.of()), settings.sorter().recipe());
+        assertEquals(Set.of(EntityType.ITEM_FRAME, EntityType.GLOW_ITEM_FRAME), settings.sorter().frameTypes());
         assertEquals(8, settings.inspect().pageSize());
         // Without the section a tag changes nothing in the item's look.
         assertEquals(new ItemLook(null, List.of(), false), settings.targets().taggedItem());
@@ -103,9 +87,8 @@ class FrameSortSettingsTest {
                 sorter:
                   activator: { material: NOT_A_THING }
                   tick-rate: 0
-                  range: lots
-                targets:
                   frame-types: [ITEM_FRAME, ZOMBIE]
+                  range: lots
                 delivery:
                   default-target-item: ""
                 inspect:
@@ -117,7 +100,7 @@ class FrameSortSettingsTest {
         assertEquals("en_US", settings.language());
         assertEquals(HOPPER, settings.sorter().activator());
         assertEquals(20, settings.sorter().tickRate());
-        assertEquals(Set.of(EntityType.ITEM_FRAME), settings.targets().frameTypes());
+        assertEquals(Set.of(EntityType.ITEM_FRAME), settings.sorter().frameTypes());
         assertEquals(64, settings.sorter().range());
         assertNull(settings.delivery().defaultTargetItem());
         assertEquals(Color.fromRGB(0xFFFF55), settings.inspect().colors().dropped());
@@ -253,7 +236,7 @@ class FrameSortSettingsTest {
                 """);
         List<String> warnings = new ArrayList<>();
         FrameSortSettings settings = FrameSortSettings.parse(
-                new ConfigReader(yaml, "config.yml", warnings::add), IS_ITEM, IS_CONTAINER, BLOCK_TAG, PROBLEM, false);
+                new ConfigReader(yaml, "config.yml", warnings::add), IS_ITEM, PROBLEM, false);
 
         assertEquals(HOPPER, settings.sorter().activator());
         assertEquals(COMPASS, settings.delivery().defaultTargetItem());
@@ -292,111 +275,5 @@ class FrameSortSettingsTest {
         assertEquals(HOPPER, settings.sorter().activator());
         assertEquals(COMPASS, settings.delivery().defaultTargetItem());
         assertEquals(2, warnings.size(), warnings::toString);
-    }
-
-    @Test
-    void sorterBlocksAreContainersByMaterialOrBlockTag() throws Exception {
-        YamlConfiguration yaml = new YamlConfiguration();
-        yaml.loadFromString("""
-                sorter:
-                  blocks: [BARREL, '#minecraft:shulker_boxes', STONE, '#minecraft:nope', 'craftengine:default:box']
-                """);
-        List<String> warnings = new ArrayList<>();
-
-        assertEquals(Set.of(Material.BARREL, Material.SHULKER_BOX, Material.RED_SHULKER_BOX),
-                parse(yaml, warnings).sorter().blocks());
-        assertEquals(List.of("config.yml > sorter.blocks: 'STONE' is not a container; ignored",
-                "config.yml > sorter.blocks: the game has no block tag '#minecraft:nope'; ignored",
-                "config.yml > sorter.blocks: 'craftengine:default:box' is not a container; ignored"), warnings);
-    }
-
-    @Test
-    void anEmptyOrUnreadableCatalogWarns() throws Exception {
-        YamlConfiguration empty = new YamlConfiguration();
-        empty.loadFromString("sorter:\n  blocks: []\n");
-        List<String> warnings = new ArrayList<>();
-
-        assertEquals(Set.of(), parse(empty, warnings).sorter().blocks());
-        assertEquals(List.of("config.yml > sorter.blocks: no valid containers; sorters are disabled"), warnings);
-
-        YamlConfiguration single = new YamlConfiguration();
-        single.loadFromString("sorter:\n  blocks: BARREL\n");
-        warnings.clear();
-
-        assertTrue(parse(single, warnings).sorter().blocks().contains(Material.DISPENSER));
-        assertEquals(List.of("config.yml > sorter.blocks: expected a list of containers, using the default ones"),
-                warnings);
-    }
-
-    @Test
-    void aRecipeTakesItsShapeAndIngredients() throws Exception {
-        YamlConfiguration yaml = new YamlConfiguration();
-        yaml.loadFromString("""
-                sorter:
-                  recipe:
-                    shape: ['RAR', ' C ']
-                    ingredients:
-                      R: REDSTONE
-                """);
-        List<String> warnings = new ArrayList<>();
-
-        assertEquals(new SorterSettings.Recipe(List.of("RAR", " C "),
-                        Map.of('R', new ItemReference.Vanilla(Material.REDSTONE))),
-                parse(yaml, warnings).sorter().recipe());
-        assertEquals(List.of(), warnings);
-    }
-
-    @Test
-    void anEmptyShapeMeansNoRecipe() throws Exception {
-        YamlConfiguration yaml = new YamlConfiguration();
-        yaml.loadFromString("sorter:\n  recipe:\n    shape: []\n");
-        List<String> warnings = new ArrayList<>();
-
-        assertNull(parse(yaml, warnings).sorter().recipe());
-        assertEquals(List.of(), warnings);
-    }
-
-    @Test
-    void aBrokenRecipeWarnsAndUsesTheDefault() throws Exception {
-        SorterSettings.Recipe fallback = new SorterSettings.Recipe(List.of("A", "C"), Map.of());
-        for (String shape : List.of("['AC', 'C']", "['CC']", "['A']", "['ABCD']", "['A', 'C', 'A', 'A']", "'AC'",
-                "['XC']")) {
-            YamlConfiguration yaml = new YamlConfiguration();
-            yaml.loadFromString("sorter:\n  recipe:\n    shape: " + shape + "\n");
-            List<String> warnings = new ArrayList<>();
-
-            assertEquals(fallback, parse(yaml, warnings).sorter().recipe(), shape);
-            assertEquals(1, warnings.size(), shape + " " + warnings);
-            assertTrue(warnings.getFirst().startsWith("config.yml > sorter.recipe.shape: "), warnings::toString);
-        }
-    }
-
-    @Test
-    void ingredientsThatCantBeUsedAreIgnored() throws Exception {
-        YamlConfiguration yaml = new YamlConfiguration();
-        yaml.loadFromString("""
-                sorter:
-                  recipe:
-                    shape: ['RA', 'GC']
-                    ingredients:
-                      R: REDSTONE
-                      G: 'craftengine:default:gear'
-                      A: STICK
-                      Q: STONE
-                      W: WATER
-                      RR: GLASS
-                """);
-        List<String> warnings = new ArrayList<>();
-
-        assertEquals(new SorterSettings.Recipe(List.of("RA", "GC"), Map.of(
-                        'R', new ItemReference.Vanilla(Material.REDSTONE),
-                        'G', new ItemReference.Custom("craftengine:default:gear"))),
-                parse(yaml, warnings).sorter().recipe());
-        assertEquals(List.of(
-                "config.yml > sorter.recipe.ingredients.A: an ingredient is one letter other than 'C' and 'A'; ignored",
-                "config.yml > sorter.recipe.ingredients.Q: not in the shape; ignored",
-                "config.yml > sorter.recipe.ingredients.W: not in the shape; ignored",
-                "config.yml > sorter.recipe.ingredients.RR: an ingredient is one letter other than 'C' and 'A'; "
-                        + "ignored"), warnings);
     }
 }

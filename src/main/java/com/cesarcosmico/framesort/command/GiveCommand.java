@@ -1,6 +1,5 @@
 package com.cesarcosmico.framesort.command;
 
-import com.cesarcosmico.framesort.config.FrameSortSettings;
 import com.cesarcosmico.framesort.config.PadSettings;
 import com.cesarcosmico.framesort.config.PadType;
 import com.cesarcosmico.framesort.service.PadService;
@@ -18,7 +17,6 @@ import io.papermc.paper.command.brigadier.Commands;
 import io.papermc.paper.command.brigadier.argument.ArgumentTypes;
 import io.papermc.paper.command.brigadier.argument.resolvers.selector.PlayerSelectorArgumentResolver;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
-import org.bukkit.Material;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -38,15 +36,13 @@ public final class GiveCommand implements CommandFeature {
 
     private final SorterService sorters;
     private final PadService pads;
-    private final SorterBlockArgument sorterBlock;
     private final PadTypeArgument padType;
     private final Supplier<Messages> messages;
 
-    public GiveCommand(SorterService sorters, PadService pads, Supplier<FrameSortSettings> settings,
-                       Supplier<PadSettings> padSettings, Supplier<Messages> messages) {
+    public GiveCommand(SorterService sorters, PadService pads, Supplier<PadSettings> padSettings,
+                       Supplier<Messages> messages) {
         this.sorters = sorters;
         this.pads = pads;
-        this.sorterBlock = new SorterBlockArgument(settings, messages);
         this.padType = new PadTypeArgument(padSettings, messages);
         this.messages = messages;
     }
@@ -58,13 +54,9 @@ public final class GiveCommand implements CommandFeature {
 
     @Override
     public void attach(LiteralArgumentBuilder<CommandSourceStack> node, String path) {
-        ItemSource sorter = (context, amount) -> sorters.createItem(context.getArgument("block", Material.class),
-                amount);
-        ItemSource activator = (context, amount) -> sorters.createActivator(amount);
+        ItemSource sorter = (context, amount) -> sorters.createActivator(amount);
         ItemSource pad = (context, amount) -> pads.createItem(context.getArgument("type", PadType.class), amount);
-        node.then(Commands.literal("sorter")
-                        .then(targets(Commands.argument("block", sorterBlock), sorter, path)))
-                .then(targets(Commands.literal("activator"), activator, path))
+        node.then(targets(Commands.literal("sorter"), sorter, path))
                 .then(Commands.literal("pad")
                         .then(targets(Commands.argument("type", padType), pad, path)));
     }
