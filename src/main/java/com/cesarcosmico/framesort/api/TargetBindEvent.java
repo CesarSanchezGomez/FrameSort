@@ -28,7 +28,7 @@ public final class TargetBindEvent extends EntityEvent implements Cancellable {
         this.source = source;
     }
 
-    /** The sorter's dispenser or the pad's top block. */
+    /** The sorter's container or the pad's top block. */
     public Block getSource() {
         return source;
     }

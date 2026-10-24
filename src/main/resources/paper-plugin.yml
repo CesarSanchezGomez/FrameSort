@@ -4,7 +4,7 @@ main: com.cesarcosmico.framesort.FrameSortPlugin
 loader: com.cesarcosmico.framesort.FrameSortLoader
 api-version: '26.2'
 authors: [ CesarCosmico ]
-description: 'Send items to item frames from sorter dispensers and sorting pads, without hopper chains.'
+description: 'Send items to item frames from sorter containers and sorting pads, without hopper chains.'
 website: 'https://github.com/CesarSanchezGomez/FrameSort'
 
 dependencies:
@@ -100,7 +100,7 @@ permissions:
     description: 'List whom you trust and who trusts you with /framesort trusted.'
     default: true
   framesort.command.give:
-    description: 'Give sorter activators and pad blocks with /framesort give.'
+    description: 'Give sorters, sorter activators and pad blocks with /framesort give.'
     default: op
   framesort.command.reload:
     description: 'Reload the configuration with /framesort reload.'

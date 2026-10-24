@@ -27,7 +27,7 @@ command:
     trust: '  <color:#F7B733>•</color> <hover:show_text:"<gray>Tus sorters y pads también envían<newline>a los marcos de ese jugador.</gray>"><white><usage> \<jugador></white> <dark_gray>compartir</dark_gray></hover>'
     untrust: '  <color:#F7B733>•</color> <hover:show_text:"<gray>Deja de confiar en un jugador.</gray>"><white><usage> \<jugador></white> <dark_gray>dejar de compartir</dark_gray></hover>'
     trusted: '  <color:#F7B733>•</color> <hover:show_text:"<gray>En quién confías y quién confía en ti.</gray>"><white><usage> [página]</white> <dark_gray>tu confianza</dark_gray></hover>'
-    give: '  <color:#F7B733>•</color> <hover:show_text:"<white><usage> sorter [jugador] [cantidad]</white><newline><white><usage> pad \<tipo> [jugador] [cantidad]</white><newline><gray>Da activadores de sorter y bloques de pad.</gray>"><white><usage> sorter|pad …</white> <dark_gray>dar items</dark_gray></hover>'
+    give: '  <color:#F7B733>•</color> <hover:show_text:"<white><usage> sorter \<bloque> [jugador] [cantidad]</white><newline><white><usage> activator [jugador] [cantidad]</white><newline><white><usage> pad \<tipo> [jugador] [cantidad]</white><newline><gray>Da sorters, activadores y bloques de pad.</gray>"><white><usage> sorter|activator|pad …</white> <dark_gray>dar items</dark_gray></hover>'
     reload: '  <color:#F7B733>•</color> <hover:show_text:"<gray>Recarga la configuración.</gray>"><white><usage></white> <dark_gray>recargar</dark_gray></hover>'
   reloaded: '<prefix><green>Configuración recargada.</green>'
   reloaded-with-warnings: '<prefix><yellow><hover:show_text:"<gray>Esos ajustes usan su valor por defecto.<newline>Mira la consola.</gray>">Recargada con <count> aviso(s)</hover></yellow>'
@@ -169,6 +169,7 @@ give:
   players-only: '<prefix><red>Indica un jugador: <usage> ... [jugador]</red>'
   unavailable: '<prefix><red><hover:show_text:"<gray>Revisa su ID en la config<newline>o espera a que termine /ce reload.</gray>">CraftEngine no puede crearlo ahora</hover></red>'
   unknown-pad: 'No existe ningún tipo de pad llamado ''<type>'''
+  unknown-block: '''<block>'' no puede ser un sorter'
 
 trust:
   granted: '<prefix><green><hover:show_text:"<gray>Tus sorters y pads también envían<newline>a sus marcos.</gray>">Ahora confías en <white><player></white></hover></green>'
@@ -184,7 +185,7 @@ trust:
     trusting: '  <color:#F7B733>←</color> <white><player></white> <dark_gray>confía en ti</dark_gray>'
 
 sorter:
-  created: '<prefix><green><hover:show_text:"<gray>Lo que haya en este dispensador<newline>irá a sus marcos destino.</gray>">Sorter creado</hover></green>'
+  created: '<prefix><green><hover:show_text:"<gray>Lo que haya en este contenedor<newline>irá a sus marcos destino.</gray>">Sorter creado</hover></green>'
   removed: '<prefix><yellow>Sorter eliminado</yellow>'
 
 pad:

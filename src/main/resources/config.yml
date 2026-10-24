@@ -7,34 +7,45 @@ config-version: 1
 # File in lang/ that player messages come from: en_US, es_ES or a copy of your own.
 language: 'en_US'
 
-# Sorters: a dispenser with the activator in an item frame on it.
+# Sorters: a container crafted with the activator, or from /framesort give sorter, sends what goes in it.
 sorter:
+  # Containers that can be sorters: materials or '#minecraft:<block tag>'. A double chest doesn't sort.
+  blocks: [DISPENSER, DROPPER, BARREL, CHEST, TRAPPED_CHEST, '#minecraft:copper_chests', '#minecraft:shulker_boxes']
+  # Look of a sorter as an item; <block> is the container's name.
+  item:
+    name: '<gradient:#F7B733:#FC4A1A><block> Sorter</gradient>'
+    lore:
+      - ''
+      - ' <gray>Items put in it go</gray> '
+      - ' <gray>to their target frames.</gray> '
+      - ''
+    glint: true
+  # Crafting a sorter: rows of the grid, with C for the container and A for the activator. Other letters go in
+  # 'ingredients' (a material or 'craftengine:<namespace>:<id>'). [] = no recipe, only /framesort give sorter.
+  recipe:
+    shape: ['A', 'C']
   activator:
-    # Item that makes a sorter: a material or 'craftengine:<namespace>:<id>'.
+    # Item that makes a container a sorter: a material or 'craftengine:<namespace>:<id>'.
     material: HOPPER
-    # true: only the activator from /framesort give sorter works.
+    # true: only the activator from /framesort give activator works.
     require-marked: false
     # Look of the activator FrameSort hands out.
     # 'components' also works on a vanilla activator (a model, a head texture...).
     name: '<gradient:#F7B733:#FC4A1A>Sorter Activator</gradient>'
     lore:
       - ''
-      - ' <gray>Place it in an item frame</gray> '
-      - ' <gray>on a dispenser.</gray> '
+      - ' <gray>Craft it with a container</gray> '
+      - ' <gray>to make a sorter.</gray> '
       - ''
     glint: true
-  # Frames that can hold the activator.
-  frame-types: [ITEM_FRAME, GLOW_ITEM_FRAME]
-  # Optional title of a sorter's inventory; '' = the dispenser's own name.
+  # Optional title of a sorter's inventory; '' = the container's own name.
   custom-name: '<gradient:#F7B733:#FC4A1A>Sorter</gradient>'
   # Blocks around a sorter where its targets are searched.
   range: 64
   # Ticks between two turns of the same sorter.
   tick-rate: 20
   disable-when-powered: false
-  # true: hides the frame that holds the activator.
-  hide-frame: true
-  # true: rotates the activator after each turn that sends something.
+  # true: a few specks over a sorter after each turn that sends something.
   show-activity: true
 
 # Target frames: where sorters and pads send items.

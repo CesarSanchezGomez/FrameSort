@@ -31,7 +31,7 @@ Interfaces exist only with several implementations, as closed sets, or to keep a
   `BlockDefinition`): check them on every CraftEngine update;
 - `DeliveryService.Source`: a slot (`SlotSource`), of a sorter or of a player's inventory, or a pad item entity;
 - `CommandFeature`: one per command feature;
-- `GiveCommand.ItemSource`: a sorter activator or a pad block;
+- `GiveCommand.ItemSource`: a sorter, a sorter activator or a pad block;
 - sealed `model.ItemReference`: an item or block named in the config, a vanilla material or a CraftEngine reference;
 - sealed `PadService.Placement`: what placing a pad block did;
 - sealed `PadService.Breaking`: what breaking a pad's top block did;
@@ -49,11 +49,13 @@ it out of step:
 | Where | Key | Content |
 |---|---|---|
 | Item frame entity | `framesort:target` | Present from marking until the frame is unmarked or another item is put in. An item can leave a frame with no event that confirms it, so the mark ends when the next one goes in; an empty frame is never a target, so a mark left on one does nothing. |
-| Item frame entity | `framesort:owner` | The UUID, as text, of whoever marked the target or put a sorter's activator in. Removed when the mark ends. |
+| Item frame entity | `framesort:owner` | The UUID, as text, of whoever marked the target. Removed when the mark ends. |
 | Chunk | `framesort:pads` | The pads registered in the chunk, as `"x,y,z,type"` or `"x,y,z,type,owner"`; one saved before owners existed has none. A type id can't contain `,`. |
 | Item | `framesort:item-tag` | The tag a tagged item stands for, such as `minecraft:logs` (`/framesort tag apply <tag>`). |
 | Item | `framesort:item-tag-original` | The name, lore and glint a tagged item had before its tag, as item bytes, so `/framesort tag remove` gives them back. |
-| Sorter dispenser | `framesort:sorted` | How many items the sorter has sent (a `long`); it goes away with the block. |
+| Sorter container | `framesort:sorter` | The UUID, as text, of whoever placed the sorter: what makes the container a sorter. It travels with the block, so a pasted sorter keeps sorting, and a container put in its place by a command is none. |
+| Sorter container | `framesort:sorted` | How many items the sorter has sent (a `long`). |
+| Item | `framesort:sorter-item` | A sorter item: placing it marks the container as a sorter. |
 | Item | `framesort:activator` | The sorter activator handed out by FrameSort. |
 | Item | `framesort:pad-item` | The pad type of a special pad block. |
 | Item entity | `framesort:dropped` | Set on what FrameSort drops at a drop spot, so no pad pulls it back. It is on the entity, not the stack: picking the item up ends it. |
@@ -91,6 +93,15 @@ SELECT HEX(owner), HEX(trusted), FROM_UNIXTIME(created_at / 1000) FROM framesort
 - **No duplication.** Containers are looked up the moment items go in, and the source is updated after each
   container (`model.Delivery`). A container that vanished in between is skipped, so it can't duplicate items, and
   a drop whose spawn another plugin cancels leaves the items in their slot instead of losing them.
+- **Sorters.** A chunk's sorters are found as it loads, among its block entities of the catalog's materials that
+  carry `framesort:sorter`, and forgotten as it unloads. The tick forgets one whose block is no longer a marked
+  container, which a command or WorldEdit can do without an event. When a sorter breaks, its drops also hold what it
+  spilled, so one unit alike to the block's own drop (its material and name; a shulker box is the only one of its
+  kind) becomes the sorter item, at `LOWEST`, before any plugin that picks drops up. The recipes are one
+  `ShapedRecipe` per container, whose ingredients are predicates (the activator, an empty container that is no sorter
+  item, a CraftEngine item by its ID); they are registered again only when what they are built from changes, since
+  each one resends every recipe to every player, again when CraftEngine has loaded its items, and taken out on
+  disable.
 - **No hopper listener.** FrameSort never listens to or cancels `InventoryMoveItemEvent`, so hoppers behave
   exactly as in vanilla and Paper can skip that event.
 - **Pads.** Pads are registered in their chunk, so only loaded pads are checked, every `sweep-interval` ticks. With its

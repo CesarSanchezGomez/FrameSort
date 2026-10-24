@@ -1,6 +1,7 @@
 package com.cesarcosmico.framesort.config;
 
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Set;
@@ -11,19 +12,26 @@ import java.util.function.Predicate;
 public record FrameSortSettings(String language, SorterSettings sorter, TargetSettings targets,
                                 DeliverySettings delivery, InspectSettings inspect, boolean ownership) {
 
-    /** Keys whose absence means "without it": the activator's and a tagged item's look, and the sorter's title. */
-    public static final Set<String> OPTIONAL_KEYS = Set.of("sorter.custom-name", "sorter.activator.name",
-            "sorter.activator.lore", "sorter.activator.glint", "targets.tagged-item.name", "targets.tagged-item.lore",
+    /**
+     * Keys whose absence means "without it": the look of a sorter item, of the activator and of a tagged item, and
+     * the sorter's title.
+     */
+    public static final Set<String> OPTIONAL_KEYS = Set.of("sorter.custom-name", "sorter.item.name",
+            "sorter.item.lore", "sorter.item.glint", "sorter.activator.name", "sorter.activator.lore",
+            "sorter.activator.glint", "targets.tagged-item.name", "targets.tagged-item.lore",
             "targets.tagged-item.glint");
 
-    /** Sections of vanilla component names, which only Minecraft knows. */
-    public static final Set<String> OPEN_KEYS = Set.of("sorter.activator.components");
+    /** Vanilla component names, which only Minecraft knows, and the letters of the sorter recipe. */
+    public static final Set<String> OPEN_KEYS = Set.of("sorter.activator.components", "sorter.recipe.ingredients");
 
     /**
-     * {@code isItem} accepts what a stack can hold, and {@code problem} says why Minecraft rejects an item in /give
-     * syntax; both need a server, so tests pass their own. {@code craftEngine} says whether CraftEngine is enabled.
+     * {@code isItem} accepts what a stack can hold, {@code isContainer} a block that holds items, {@code blockTag}
+     * gives a game block tag's blocks, and {@code problem} says why Minecraft rejects an item in /give syntax; they
+     * need a server, so tests pass their own. {@code craftEngine} says whether CraftEngine is enabled.
      */
     public static FrameSortSettings parse(ConfigReader config, Predicate<Material> isItem,
+                                          Predicate<Material> isContainer,
+                                          Function<NamespacedKey, @Nullable Set<Material>> blockTag,
                                           Function<String, @Nullable String> problem, boolean craftEngine) {
         String language = config.string("language", "en_US");
         if (language.isBlank()) {
@@ -32,7 +40,8 @@ public record FrameSortSettings(String language, SorterSettings sorter, TargetSe
         }
         return new FrameSortSettings(
                 language,
-                SorterSettings.parse(config.sectionOrEmpty("sorter"), isItem, problem, craftEngine),
+                SorterSettings.parse(config.sectionOrEmpty("sorter"), isItem, isContainer, blockTag, problem,
+                        craftEngine),
                 TargetSettings.parse(config.sectionOrEmpty("targets")),
                 DeliverySettings.parse(config.sectionOrEmpty("delivery"), isItem, craftEngine),
                 InspectSettings.parse(config.sectionOrEmpty("inspect")),

@@ -109,7 +109,8 @@ trusted:
     - '/fs trusted'
     - '/framesort trusted'
 
-# Usage: [COMMAND] sorter [player] [amount] | [COMMAND] pad <type> [player] [amount]
+# Usage: [COMMAND] sorter <block> [player] [amount] | [COMMAND] activator [player] [amount]
+#        | [COMMAND] pad <type> [player] [amount]
 give:
   enabled: true
   permission: 'framesort.command.give'

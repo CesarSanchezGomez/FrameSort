@@ -28,6 +28,7 @@ import com.cesarcosmico.framesort.config.FrameSortSettings;
 import com.cesarcosmico.framesort.config.PadSettings;
 import com.cesarcosmico.framesort.config.TagSettings;
 import com.cesarcosmico.framesort.integration.craftengine.CraftEngineItemResolver;
+import com.cesarcosmico.framesort.integration.craftengine.CraftEngineReloadListener;
 import com.cesarcosmico.framesort.integration.worldguard.WorldGuardListener;
 import com.cesarcosmico.framesort.item.ItemTemplate;
 import com.cesarcosmico.framesort.listener.InspectListener;
@@ -58,6 +59,7 @@ import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.block.Container;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.ItemFrame;
 import org.bukkit.event.Listener;
@@ -144,7 +146,7 @@ public final class FrameSortPlugin extends JavaPlugin {
                 sorters, padService, commands);
 
         // Without the command a player could not switch it off, so it only acts while they may run it.
-        AutomarkService automark = new AutomarkService(this, index, sorters, inspect,
+        AutomarkService automark = new AutomarkService(this, index, inspect,
                 player -> commands.usageFor("automark", player::hasPermission) != null);
 
         register(new TargetListener(index, automark), new SorterListener(sorters, messages),
@@ -152,6 +154,9 @@ public final class FrameSortPlugin extends JavaPlugin {
         // Only this check loads the integration's classes, so FrameSort runs without WorldGuard installed.
         if (getServer().getPluginManager().isPluginEnabled("WorldGuard")) {
             register(new WorldGuardListener());
+        }
+        if (craftEngine) {
+            register(new CraftEngineReloadListener(sorters));
         }
         List<String> helpLines = List.of("automark", "tag-list", "tag-search", "tag-show", "tag-apply", "tag-remove",
                 "where", "trace", "trust", "untrust", "trusted", "give", "reload");
@@ -169,7 +174,7 @@ public final class FrameSortPlugin extends JavaPlugin {
                 new TrustCommand(trust, messages),
                 new UntrustCommand(trust, messages),
                 new TrustedCommand(trust, messages, settings),
-                new GiveCommand(sorters, padService, pads, messages),
+                new GiveCommand(sorters, padService, settings, pads, messages),
                 new ReloadCommand(messages, this::reload, getLogger(), getName()));
         getLifecycleManager().registerEventHandler(LifecycleEvents.COMMANDS, event -> {
             for (LiteralCommandNode<CommandSourceStack> root : CommandTree.build(features, commands)) {
@@ -184,6 +189,8 @@ public final class FrameSortPlugin extends JavaPlugin {
             }
         }
         scanFrames();
+        sorters.loadAll();
+        sorters.registerRecipes();
         ticker = getServer().getScheduler().runTaskTimer(this, () -> {
             sorters.tick();
             padService.tick();
@@ -202,7 +209,7 @@ public final class FrameSortPlugin extends JavaPlugin {
         }
         if (ticker != null) {
             ticker.cancel();
-            sorters.stopAll();
+            sorters.removeRecipes();
             highlights.clearAll();
         }
         // Also when the start failed after opening it: it waits for queued writes, then closes the pool.
@@ -234,6 +241,8 @@ public final class FrameSortPlugin extends JavaPlugin {
         resolver.clear();
         index.clear();
         scanFrames();
+        sorters.loadAll();
+        sorters.registerRecipes();
         return warnings.size();
     }
 
@@ -243,7 +252,6 @@ public final class FrameSortPlugin extends JavaPlugin {
                 for (Entity entity : chunk.getEntities()) {
                     if (entity instanceof ItemFrame frame) {
                         index.add(frame);
-                        sorters.consider(frame);
                     }
                 }
             }
@@ -255,7 +263,7 @@ public final class FrameSortPlugin extends JavaPlugin {
         ConfigValidator.check(this, yaml, "config.yml", FrameSortSettings.OPEN_KEYS, FrameSortSettings.OPTIONAL_KEYS,
                 warn);
         return FrameSortSettings.parse(new ConfigReader(yaml, "config.yml", warn), FrameSortPlugin::isItem,
-                ItemTemplate::problem, craftEngine);
+                FrameSortPlugin::isContainer, TagCatalog::blockTag, ItemTemplate::problem, craftEngine);
     }
 
     private PadSettings loadPads(Consumer<String> warn) throws IOException, InvalidConfigurationException {
@@ -275,6 +283,11 @@ public final class FrameSortPlugin extends JavaPlugin {
     // Air is an item type too (ItemType.AIR), but no stack can hold it.
     private static boolean isItem(Material material) {
         return material.isItem() && !material.isAir();
+    }
+
+    // createBlockData throws for a material that is no block.
+    private static boolean isContainer(Material material) {
+        return material.isBlock() && material.createBlockData().createBlockState() instanceof Container;
     }
 
     private void register(Listener... listeners) {
