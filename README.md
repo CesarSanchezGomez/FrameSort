@@ -41,7 +41,7 @@ keeps its hidden frame until it loads with FrameSort installed, so before removi
    A shulker box or bundle in the frame stands for what it holds, never for itself, and each of those matches
    ranks just below the same match made directly; to keep shulker boxes or bundles whole, put an empty one in the
    frame: it takes any of its kind. Among targets that want it as much, the nearest fills first; when the preferred
-   targets are full, the rest goes to the next ones. A frame holding an item frame comes last: it takes whatever
+   targets are full, the rest goes to the next ones. A frame holding a recovery compass comes last: it takes whatever
    matches nothing else, and whatever the other targets have no room for. A frame on a lava cauldron destroys
    leftovers.
 2. **Sorters.** Put a hopper in a frame on a dispenser. The frame disappears and every second the dispenser
@@ -74,7 +74,7 @@ it can reach. Targets are cached, so after changing regions run `/framesort relo
 custom item instead, whatever its durability, name or random values; vanilla items of that material don't go there,
 and a custom item never goes to a frame for its material. No game tag takes a custom item; a tag in `tags.yml` takes
 the ones it lists, written as inspecting a frame that holds the item shows them (`craftengine:default:topaz_axe`). A
-custom item in a frame is never the default target, even one made from an item frame, nor the sorter activator,
+custom item in a frame is never the default target, even one made from a recovery compass, nor the sorter activator,
 even one made from a hopper, unless the config names that custom item
 (`activator.material: 'craftengine:default:ruby'`, and the same in `default-target-item`). A pad's blocks can be
 CraftEngine blocks too, named the same way in `pads.yml`; otherwise a CraftEngine block never counts as a vanilla one.
