@@ -6,14 +6,12 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.function.Predicate;
 
-public record DeliverySettings(int maxDistance, boolean insertIntoContainers,
-                               @Nullable ItemReference defaultTargetItem) {
+public record DeliverySettings(boolean insertIntoContainers, @Nullable ItemReference defaultTargetItem) {
 
     private static final ItemReference.Vanilla DEFAULT_TARGET = new ItemReference.Vanilla(Material.ITEM_FRAME);
 
     static DeliverySettings parse(ConfigReader reader, Predicate<Material> isItem, boolean craftEngine) {
         return new DeliverySettings(
-                reader.integer("max-distance", 64, 1, 512),
                 reader.bool("insert-into-containers", true),
                 defaultTarget(reader, isItem, craftEngine));
     }

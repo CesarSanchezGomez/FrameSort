@@ -11,7 +11,7 @@
 | `/framesort tag search <text> [page]` | Only the tags whose name contains `<text>`. |
 | `/framesort tag apply <tag>` | Applies the tag to the item in your main hand, which takes the look of `targets.tagged-item` (name, lore and glint). A tagged item gets the new tag instead. The [Apply] button in `/framesort tag show <tag>` runs it. In a frame a tagged item accepts only its tag. |
 | `/framesort tag remove` | Takes the tag off the item in your main hand and gives it back the name, lore and glint it had before. |
-| `/framesort where` | Where the item in your main hand would go from the nearest sorter or pad you may inspect within `delivery.max-distance`, listed and highlighted like an inspection with that item in your off hand. Its components count (enchantments, name, contents). |
+| `/framesort where` | Where the item in your main hand would go from the nearest sorter or pad you may inspect whose `range` reaches you, listed and highlighted like an inspection with that item in your off hand. Its components count (enchantments, name, contents). |
 | `/framesort trace [seconds]` | For a while (`inspect.trace-default-seconds`, at most `inspect.trace-max-seconds`), deliveries from the sorters and pads near you that you may inspect show in the action bar, with a streak of particles from the sorter's dispenser or the pad's top block, converging on their destination, and a small splash when they arrive. A sorter turn or pad sweep draws one streak per target frame, and at most one delivery shows every 0.15 s, so a busy sorter never floods the screen. |
 | `/framesort trace stop` | Stops tracing. |
 | `/framesort trust <player>` | Your sorters and pads also send to that player's frames (see [Owners and trust](#owners-and-trust)). Only a player who has played on this server. |
@@ -56,7 +56,7 @@ marks it for whoever put it in.
 Taking the item out means hitting the frame, which the server's protection decides, like breaking it. Breaking
 blocks, opening the dispenser or dropping items on a pad is left to the server's protection (claims, regions, locks):
 FrameSort only decides where items go from afar, and who sees it. Items dropped on or near someone's pad (within
-its `pull-radius`) go to that pad's owner. A frame on someone else's chest belongs to whoever marked it, so their
+its type's `pull-radius`) go to that pad's owner. A frame on someone else's chest belongs to whoever marked it, so their
 sorter can fill that chest unless the chest's protection stops them from touching the frame.
 
 With `ownership.enabled: false`, `/framesort trust`, `untrust` and `trusted` leave the help, tab completion and

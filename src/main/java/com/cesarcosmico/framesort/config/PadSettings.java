@@ -13,7 +13,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.function.Predicate;
 
-public record PadSettings(PadMode creation, int sweepInterval, int pullRadius, Map<String, PadType> types) {
+public record PadSettings(PadMode creation, int sweepInterval, Map<String, PadType> types) {
 
     public PadSettings {
         // Keeps the file's order, so lists and suggestions follow it.
@@ -42,7 +42,6 @@ public record PadSettings(PadMode creation, int sweepInterval, int pullRadius, M
         return new PadSettings(
                 reader.enumValue("creation", PadMode.class, PadMode.ANYONE),
                 reader.integer("sweep-interval", 10, 1, 200),
-                reader.integer("pull-radius", 4, 0, 16),
                 types);
     }
 
@@ -89,6 +88,15 @@ public record PadSettings(PadMode creation, int sweepInterval, int pullRadius, M
         } else if (item.isSet("components")) {
             item.warn("components", "a pad item looks like the block it places, ignored");
         }
-        return new PadType(id.toLowerCase(Locale.ROOT), top, structure.get(1), ItemLookParser.look(item));
+        return new PadType(id.toLowerCase(Locale.ROOT), top, structure.get(1), required(reader, "range", 64, 1, 512),
+                required(reader, "pull-radius", 4, 0, 16), ItemLookParser.look(item));
+    }
+
+    // Each type sets these itself, so a missing one changes what its pads do and is reported like a wrong one.
+    private static int required(ConfigReader reader, String path, int fallback, int min, int max) {
+        if (!reader.isSet(path)) {
+            reader.warn(path, "missing, using " + fallback);
+        }
+        return reader.integer(path, fallback, min, max);
     }
 }

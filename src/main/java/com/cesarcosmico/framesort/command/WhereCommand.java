@@ -1,13 +1,11 @@
 package com.cesarcosmico.framesort.command;
 
-import com.cesarcosmico.framesort.config.FrameSortSettings;
 import com.cesarcosmico.framesort.service.InspectService;
 import com.cesarcosmico.framesort.text.Messages;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
-import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
@@ -17,12 +15,10 @@ public final class WhereCommand implements CommandFeature {
 
     private final InspectService inspect;
     private final Supplier<Messages> messages;
-    private final Supplier<FrameSortSettings> settings;
 
-    public WhereCommand(InspectService inspect, Supplier<Messages> messages, Supplier<FrameSortSettings> settings) {
+    public WhereCommand(InspectService inspect, Supplier<Messages> messages) {
         this.inspect = inspect;
         this.messages = messages;
-        this.settings = settings;
     }
 
     @Override
@@ -46,8 +42,7 @@ public final class WhereCommand implements CommandFeature {
             return Command.SINGLE_SUCCESS;
         }
         if (!inspect.inspectNearest(player, held)) {
-            player.sendMessage(messages.get().get("where.no-source",
-                    Placeholder.unparsed("radius", String.valueOf(settings.get().delivery().maxDistance()))));
+            player.sendMessage(messages.get().get("where.no-source"));
         }
         return Command.SINGLE_SUCCESS;
     }

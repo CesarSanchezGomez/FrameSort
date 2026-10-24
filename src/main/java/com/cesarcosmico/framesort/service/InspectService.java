@@ -3,6 +3,7 @@ package com.cesarcosmico.framesort.service;
 import com.cesarcosmico.framesort.config.CommandsConfig;
 import com.cesarcosmico.framesort.config.FrameSortSettings;
 import com.cesarcosmico.framesort.config.InspectSettings;
+import com.cesarcosmico.framesort.config.PadType;
 import com.cesarcosmico.framesort.item.FrameCodec;
 import com.cesarcosmico.framesort.item.ItemTagCodec;
 import com.cesarcosmico.framesort.model.BlockKey;
@@ -45,7 +46,7 @@ public final class InspectService {
         WHERE
     }
 
-    private record Source(Block block, boolean pad, @Nullable UUID owner) {
+    private record Source(Block block, boolean pad, @Nullable UUID owner, int range) {
     }
 
     private final Supplier<FrameSortSettings> settings;
@@ -76,16 +77,18 @@ public final class InspectService {
 
     /**
      * With an item in {@code filter}, only where that item would go, chosen like a real delivery. Only those the
-     * owner trusts see it: the glow shows the owner's chests through walls.
+     * owner trusts see it: the glow shows the owner's chests through walls. {@code pad} is the pad's type, or
+     * {@code null} for a sorter.
      */
-    public void inspectSource(Player player, Block source, boolean pad, ItemStack filter) {
-        UUID owner = pad ? pads.ownerOf(source) : sorters.ownerOf(source);
+    public void inspectSource(Player player, Block source, @Nullable PadType pad, ItemStack filter) {
+        UUID owner = pad != null ? pads.ownerOf(source) : sorters.ownerOf(source);
         if (trust.canView(player, owner)) {
-            open(player, new Source(source, pad, owner), filter, Opened.GESTURE);
+            int range = pad != null ? pad.range() : settings.get().sorter().range();
+            open(player, new Source(source, pad != null, owner, range), filter, Opened.GESTURE);
             return;
         }
         Messages text = messages.get();
-        Component kind = text.get(pad ? "inspect.source.pad" : "inspect.source.sorter");
+        Component kind = text.get(pad != null ? "inspect.source.pad" : "inspect.source.sorter");
         player.sendMessage(owner == null
                 ? text.get("inspect.no-owner", Placeholder.component("source", kind))
                 : text.get("inspect.not-trusted", Placeholder.component("source", kind),
@@ -123,7 +126,7 @@ public final class InspectService {
         Component title;
         if (filter.isEmpty()) {
             title = text.get("inspect.title", Placeholder.component("source", kind), details);
-            List<ItemFrame> frames = new ArrayList<>(resolver.targets(source, owner));
+            List<ItemFrame> frames = new ArrayList<>(resolver.targets(source, owner, shown.range()));
             frames.sort(Comparator.comparingLong(frame -> FrameGeometry.distanceSquared(frame, center)));
             for (ItemFrame frame : frames) {
                 Destination destination = resolver.destination(frame);
@@ -134,7 +137,7 @@ public final class InspectService {
         } else {
             title = text.get("inspect.title-item", Placeholder.component("source", kind),
                     Placeholder.component("item", filter.effectiveName()), details);
-            filtered(text, source, owner, center, filter, lines, marks);
+            filtered(text, source, owner, shown.range(), center, filter, lines, marks);
         }
         ChatPager.send(player, text, title, lines, page, settings.get().inspect().pageSize(),
                 target -> pageButton(center, pad, filter, opened, target));
@@ -167,10 +170,12 @@ public final class InspectService {
             return null;
         }
         Block block = world.getBlockAt(key.x(), key.y(), key.z());
-        if (pad ? pads.padAt(block) == null : !sorters.isSorter(block)) {
-            return null;
+        if (pad) {
+            PadType type = pads.padAt(block);
+            return type == null ? null : new Source(block, true, pads.ownerOf(block), type.range());
         }
-        return new Source(block, pad, pad ? pads.ownerOf(block) : sorters.ownerOf(block));
+        return sorters.isSorter(block)
+                ? new Source(block, false, sorters.ownerOf(block), settings.get().sorter().range()) : null;
     }
 
     // The same checks as when the listing was opened: the gesture's permission, or the where command's.
@@ -182,8 +187,8 @@ public final class InspectService {
     }
 
     /**
-     * Inspects the nearest sorter or pad in delivery range that {@code player} may see, as if {@code item} were in
-     * the off hand; false if there is none.
+     * Inspects the nearest sorter or pad whose range reaches {@code player} and that they may see, as if {@code item}
+     * were in the off hand; false if there is none.
      */
     public boolean inspectNearest(Player player, ItemStack item) {
         Block here = player.getLocation().getBlock();
@@ -304,9 +309,9 @@ public final class InspectService {
         highlight(player, List.of(new HighlightService.Highlight(frame, marked ? colors.container() : colors.lava())));
     }
 
-    private void filtered(Messages text, Block source, @Nullable UUID owner, BlockKey center, ItemStack filter,
-                          List<Component> lines, List<HighlightService.Highlight> marks) {
-        List<TargetResolver.Level> levels = resolver.plan(source, owner, filter).levels();
+    private void filtered(Messages text, Block source, @Nullable UUID owner, int range, BlockKey center,
+                          ItemStack filter, List<Component> lines, List<HighlightService.Highlight> marks) {
+        List<TargetResolver.Level> levels = resolver.plan(source, owner, range, filter).levels();
         for (int i = 0; i < levels.size(); i++) {
             TargetResolver.Level level = levels.get(i);
             // In the order a delivery uses them: the containers, then the one drop spot or lava that takes the rest.
@@ -367,16 +372,17 @@ public final class InspectService {
         return new HighlightService.Highlight(frame, destination.color(settings.get().inspect().colors()));
     }
 
-    /** The sorters and pads within delivery range of {@code center}. */
+    /** The sorters and pads whose range reaches {@code center}. */
     private List<Source> sourcesNear(Block center) {
-        int radius = settings.get().delivery().maxDistance();
-        long radiusSquared = (long) radius * radius;
+        int range = settings.get().sorter().range();
+        long rangeSquared = (long) range * range;
         BlockKey key = FrameGeometry.key(center);
         return Stream.concat(
                 sorters.blocks().stream()
-                        .filter(sorter -> FrameGeometry.key(sorter).distanceSquared(key) <= radiusSquared)
-                        .map(sorter -> new Source(sorter, false, sorters.ownerOf(sorter))),
-                pads.near(center, radius).stream().map(pad -> new Source(pad, true, pads.ownerOf(pad)))).toList();
+                        .filter(sorter -> FrameGeometry.key(sorter).distanceSquared(key) <= rangeSquared)
+                        .map(sorter -> new Source(sorter, false, sorters.ownerOf(sorter), range)),
+                pads.reaching(center).stream()
+                        .map(pad -> new Source(pad.top(), true, pad.owner(), pad.type().range()))).toList();
     }
 
     private void highlight(Player player, List<HighlightService.Highlight> marks) {

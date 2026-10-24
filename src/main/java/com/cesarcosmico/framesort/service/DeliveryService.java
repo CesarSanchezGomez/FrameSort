@@ -62,14 +62,14 @@ public final class DeliveryService {
 
     /**
      * Returns how many items left the source, whether into containers, dropped or destroyed. {@code owner} owns the
-     * source, or is {@code null} when nobody does.
+     * source, or is {@code null} when nobody does; {@code range} is how far from it its targets may be.
      */
-    public int deliver(Block origin, @Nullable UUID owner, Source source) {
+    public int deliver(Block origin, @Nullable UUID owner, int range, Source source) {
         ItemStack stack = source.stack().clone();
         if (stack.isEmpty()) {
             return 0;
         }
-        TargetResolver.Plan plan = resolver.plan(origin, owner, stack);
+        TargetResolver.Plan plan = resolver.plan(origin, owner, range, stack);
         int amount = stack.getAmount();
         List<Delivery.Level<ItemFrame, Target>> levels = plan.levels().stream()
                 .map(level -> new Delivery.Level<>(level.containers(), level.end())).toList();
@@ -78,7 +78,7 @@ public final class DeliveryService {
         Delivery.Outcome<ItemFrame, Target> outcome = Delivery.deliver(amount, levels,
                 (frame, offered) -> offer(frame, stack, offered, from, owner), source::commit);
         if (plan.stale() || !outcome.gone().isEmpty()) {
-            resolver.forget(origin, owner, stack);
+            resolver.forget(origin, owner, range, stack);
         }
 
         int remaining = outcome.remaining();

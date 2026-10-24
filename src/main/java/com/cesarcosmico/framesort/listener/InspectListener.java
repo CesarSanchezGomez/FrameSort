@@ -1,5 +1,6 @@
 package com.cesarcosmico.framesort.listener;
 
+import com.cesarcosmico.framesort.config.PadType;
 import com.cesarcosmico.framesort.service.InspectService;
 import com.cesarcosmico.framesort.service.PadService;
 import com.cesarcosmico.framesort.service.SorterService;
@@ -38,8 +39,8 @@ public final class InspectListener implements Listener {
             return;
         }
         boolean sorter = sorters.isSorter(block);
-        boolean pad = !sorter && pads.padAt(block) != null;
-        if (!sorter && !pad) {
+        PadType pad = sorter ? null : pads.padAt(block);
+        if (!sorter && pad == null) {
             return;
         }
         // Cancel both hands, or the off-hand item would be placed or used after the inspection.
@@ -84,7 +85,7 @@ public final class InspectListener implements Listener {
     private boolean inspectSorterOf(Player player, ItemFrame frame) {
         Block sorter = sorters.blockOf(frame);
         if (sorter != null) {
-            inspect.inspectSource(player, sorter, false, player.getInventory().getItemInOffHand());
+            inspect.inspectSource(player, sorter, null, player.getInventory().getItemInOffHand());
         }
         return sorter != null;
     }

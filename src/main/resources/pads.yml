@@ -2,9 +2,11 @@
 # Details: https://github.com/CesarSanchezGomez/FrameSort/blob/main/docs/configuration.md#padsyml
 #
 # Each type under 'types' is one kind of pad; its key is the <type> of /framesort give pad.
-#   structure  top and base, each a block a player can place or 'craftengine:<namespace>:<id>'.
-#              Items resting on the top go to the targets.
-#   item       optional look of the top block /framesort give pad hands out: name, lore, glint.
+#   structure    top and base, each a block a player can place or 'craftengine:<namespace>:<id>'.
+#                Items resting on the top go to the targets.
+#   range        blocks around the pad where its targets are searched.
+#   pull-radius  blocks around the pad whose loose items it pulls onto itself, if it can see them; 0 = off.
+#   item         optional look of the top block /framesort give pad hands out: name, lore, glint.
 # A pad is created when its top block is placed on its base.
 
 config-version: 1
@@ -13,13 +15,13 @@ config-version: 1
 creation: anyone
 # Ticks between checks for items resting on pads, and for loose items near them.
 sweep-interval: 10
-# Blocks around a pad whose loose items it pulls onto itself, if it can see them; 0 = off.
-pull-radius: 4
 
 # Copper turns into another block as it ages, which would end the pad: the copper pad uses waxed copper.
 types:
   copper:
     structure: [WAXED_COPPER_GRATE, WAXED_COPPER_BLOCK]
+    range: 64
+    pull-radius: 4
     item:
       name: '<gradient:#F7B733:#FC4A1A>Copper Sorting Pad</gradient>'
       lore:
@@ -30,6 +32,8 @@ types:
       glint: true
   lodestone:
     structure: [LODESTONE, SMOOTH_STONE]
+    range: 64
+    pull-radius: 4
     item:
       name: '<gradient:#F7B733:#FC4A1A>Lodestone Sorting Pad</gradient>'
       lore:

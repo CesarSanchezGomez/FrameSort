@@ -80,8 +80,8 @@ SELECT HEX(owner), HEX(trusted), FROM_UNIXTIME(created_at / 1000) FROM framesort
 ## How deliveries stay correct and cheap
 
 - **Target index.** Target frames are indexed by chunk as entities enter and leave the world (which includes chunk
-  loads and unloads). Finding targets only looks at the chunks within `max-distance`, never at every entity in
-  the world.
+  loads and unloads). Finding targets only looks at the chunks within the source's `range`, never at every entity
+  in the world.
 - **Cache.** Matches are cached per source and item (amount ignored) and invalidated by a per-world epoch that
   changes with any target change. A cached frame is checked again before use, and so are the loop guards (a frame
   on another sorter, items that would land on a pad): sorters and the blocks below change without touching a frame.
@@ -93,8 +93,8 @@ SELECT HEX(owner), HEX(trusted), FROM_UNIXTIME(created_at / 1000) FROM framesort
   a drop whose spawn another plugin cancels leaves the items in the sorter instead of losing them.
 - **No hopper listener.** FrameSort never listens to or cancels `InventoryMoveItemEvent`, so hoppers behave
   exactly as in vanilla and Paper can skip that event.
-- **Pads.** Pads are registered in their chunk, so only loaded pads are checked, every `sweep-interval` ticks. With
-  `pull-radius` on, a check also looks for loose items within it: each one that passes the cheap checks (on the
+- **Pads.** Pads are registered in their chunk, so only loaded pads are checked, every `sweep-interval` ticks. With its
+  type's `pull-radius` on, a check also looks for loose items within it: each one that passes the cheap checks (on the
   ground, not dropped by FrameSort, outside the pad's column, not on another pad) costs one ray, and each one in
   sight that can take off one `PadPullEvent`. `model.Pull` gives the starting velocity that carries the item to a
   point over the pad in ten ticks under the game's item physics, so the arc clears the pad's edge; an item at the
@@ -106,9 +106,9 @@ SELECT HEX(owner), HEX(trusted), FROM_UNIXTIME(created_at / 1000) FROM framesort
   its chunk is loaded, so FrameSort never loads chunks.
 - **Tracing.** With nobody tracing, a delivery costs one empty-map check.
 - **Owners.** `TargetResolver.eligible` lets a source send to a frame only if they have the same owner, or the
-  source's owner trusts the frame's (`model.TrustList.allows`); no owner counts as one more. The source's owner is part
-  of the cache key, so a pad rebuilt on the same block by someone else never reuses the old matches. A change of
-  trust raises every world's epoch (`TargetIndex.changedEverywhere`).
+  source's owner trusts the frame's (`model.TrustList.allows`); no owner counts as one more. The source's owner and
+  range are part of the cache key, so a pad rebuilt on the same block by someone else, or as another type, never
+  reuses the old matches. A change of trust raises every world's epoch (`TargetIndex.changedEverywhere`).
 - **Trust in memory.** Sorters work while their owners are offline, so the whole trust list is loaded at enable and
   kept as an immutable snapshot: a delivery never touches the database.
 

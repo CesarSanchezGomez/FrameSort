@@ -55,7 +55,7 @@ class FrameSortSettingsTest {
         assertFalse(settings.sorter().requireMarked());
         assertEquals(20, settings.sorter().tickRate());
         assertTrue(settings.sorter().showActivity());
-        assertEquals(64, settings.delivery().maxDistance());
+        assertEquals(64, settings.sorter().range());
         assertTrue(settings.delivery().insertIntoContainers());
         assertEquals(FRAME, settings.delivery().defaultTargetItem());
         assertEquals(Map.of(), settings.sorter().activatorComponents());
@@ -72,7 +72,7 @@ class FrameSortSettingsTest {
         FrameSortSettings settings = parse(new YamlConfiguration(), warnings);
 
         assertEquals(List.of(), warnings);
-        assertEquals(64, settings.delivery().maxDistance());
+        assertEquals(64, settings.sorter().range());
         assertEquals(Set.of(EntityType.ITEM_FRAME, EntityType.GLOW_ITEM_FRAME), settings.sorter().frameTypes());
         assertEquals(8, settings.inspect().pageSize());
         // Without the section a tag changes nothing in the item's look.
@@ -88,8 +88,8 @@ class FrameSortSettingsTest {
                   activator: { material: NOT_A_THING }
                   tick-rate: 0
                   frame-types: [ITEM_FRAME, ZOMBIE]
+                  range: lots
                 delivery:
-                  max-distance: lots
                   default-target-item: ""
                 inspect:
                   colors: { dropped: "#ABC", lava: "#00ff7f" }
@@ -101,7 +101,7 @@ class FrameSortSettingsTest {
         assertEquals(HOPPER, settings.sorter().activator());
         assertEquals(20, settings.sorter().tickRate());
         assertEquals(Set.of(EntityType.ITEM_FRAME), settings.sorter().frameTypes());
-        assertEquals(64, settings.delivery().maxDistance());
+        assertEquals(64, settings.sorter().range());
         assertNull(settings.delivery().defaultTargetItem());
         assertEquals(Color.fromRGB(0xFFFF55), settings.inspect().colors().dropped());
         assertEquals(Color.fromRGB(0x00FF7F), settings.inspect().colors().lava());

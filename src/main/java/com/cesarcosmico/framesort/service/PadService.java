@@ -163,15 +163,22 @@ public final class PadService {
         return entry == null ? null : entry.owner();
     }
 
-    /** The top blocks of the registered pads within {@code radius} of {@code center}, in its world. */
-    public List<Block> near(Block center, int radius) {
+    /** A registered pad: its top block, its type and its owner, or {@code null} when nobody owns it. */
+    public record Pad(Block top, PadType type, @Nullable UUID owner) {
+    }
+
+    /** The registered pads whose range reaches {@code center}, in its world. */
+    public List<Pad> reaching(Block center) {
         BlockKey here = FrameGeometry.key(center);
-        long radiusSquared = (long) radius * radius;
-        List<Block> found = new ArrayList<>();
+        List<Pad> found = new ArrayList<>();
         for (Map<BlockKey, PadEntry> inChunk : pads.values()) {
-            for (BlockKey key : inChunk.keySet()) {
-                if (key.distanceSquared(here) <= radiusSquared) {
-                    found.add(center.getWorld().getBlockAt(key.x(), key.y(), key.z()));
+            for (Map.Entry<BlockKey, PadEntry> pad : inChunk.entrySet()) {
+                BlockKey key = pad.getKey();
+                // A type taken out of pads.yml has no range until it is back.
+                PadType type = settings.get().type(pad.getValue().type());
+                if (type != null && key.distanceSquared(here) <= (long) type.range() * type.range()) {
+                    found.add(new Pad(center.getWorld().getBlockAt(key.x(), key.y(), key.z()), type,
+                            pad.getValue().owner()));
                 }
             }
         }
@@ -227,12 +234,11 @@ public final class PadService {
         Location above = top.getLocation().add(0.5, 1.5, 0.5);
         for (Item item : top.getWorld().getNearbyEntitiesByType(Item.class, above, 0.5, 0.5, 0.5)) {
             if (item.isValid()) {
-                delivery.deliver(top, pad.owner(), new EntitySource(item));
+                delivery.deliver(top, pad.owner(), type.range(), new EntitySource(item));
             }
         }
-        int radius = settings.get().pullRadius();
-        if (radius > 0) {
-            pull(top, radius);
+        if (type.pullRadius() > 0) {
+            pull(top, type.pullRadius());
         }
     }
 

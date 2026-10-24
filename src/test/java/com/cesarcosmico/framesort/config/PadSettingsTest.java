@@ -33,11 +33,12 @@ class PadSettingsTest {
         assertEquals(List.of(), warnings);
         assertEquals(PadMode.ANYONE, settings.creation());
         assertEquals(10, settings.sweepInterval());
-        assertEquals(4, settings.pullRadius());
         PadType copper = settings.type("COPPER");
         assertNotNull(copper);
         assertEquals(new ItemReference.Vanilla(Material.WAXED_COPPER_GRATE), copper.top());
         assertEquals(new ItemReference.Vanilla(Material.WAXED_COPPER_BLOCK), copper.base());
+        assertEquals(64, copper.range());
+        assertEquals(4, copper.pullRadius());
         assertEquals("<gradient:#F7B733:#FC4A1A>Copper Sorting Pad</gradient>", copper.look().name());
         PadType lodestone = settings.type("lodestone");
         assertNotNull(lodestone);
@@ -46,19 +47,58 @@ class PadSettingsTest {
     }
 
     @Test
-    void aPullRadiusOutOfRangeWarnsAndUsesTheDefault() throws Exception {
+    void eachTypeHasItsOwnRangeAndPullRadius() throws Exception {
         YamlConfiguration yaml = new YamlConfiguration();
         yaml.loadFromString("""
-                pull-radius: 40
                 types:
-                  simple:
+                  near:
                     structure: [CRYING_OBSIDIAN, GILDED_BLACKSTONE]
+                    range: 8
+                    pull-radius: 0
+                  far:
+                    structure: [GLASS, BEDROCK]
+                    range: 200
+                    pull-radius: 16
                 """);
         List<String> warnings = new ArrayList<>();
+        PadSettings settings = parse(yaml, warnings);
 
-        assertEquals(4, parse(yaml, warnings).pullRadius());
-        assertEquals(1, warnings.size(), warnings::toString);
-        assertTrue(warnings.get(0).startsWith("pads.yml > pull-radius: "), warnings::toString);
+        assertEquals(List.of(), warnings);
+        PadType near = settings.type("near");
+        assertNotNull(near);
+        assertEquals(8, near.range());
+        assertEquals(0, near.pullRadius());
+        PadType far = settings.type("far");
+        assertNotNull(far);
+        assertEquals(200, far.range());
+        assertEquals(16, far.pullRadius());
+    }
+
+    @Test
+    void aMissingOrWrongRangeOrPullRadiusWarnsAndUsesTheDefault() throws Exception {
+        YamlConfiguration yaml = new YamlConfiguration();
+        yaml.loadFromString("""
+                types:
+                  missing:
+                    structure: [CRYING_OBSIDIAN, GILDED_BLACKSTONE]
+                  wrong:
+                    structure: [GLASS, BEDROCK]
+                    range: 0
+                    pull-radius: 40
+                """);
+        List<String> warnings = new ArrayList<>();
+        PadSettings settings = parse(yaml, warnings);
+
+        for (String id : List.of("missing", "wrong")) {
+            PadType type = settings.type(id);
+            assertNotNull(type);
+            assertEquals(64, type.range());
+            assertEquals(4, type.pullRadius());
+        }
+        assertEquals(List.of("pads.yml > types.missing.range: missing, using 64",
+                "pads.yml > types.missing.pull-radius: missing, using 4",
+                "pads.yml > types.wrong.range: 0 is outside 1..512, using 64",
+                "pads.yml > types.wrong.pull-radius: 40 is outside 0..16, using 4"), warnings);
     }
 
     @Test
@@ -70,6 +110,8 @@ class PadSettingsTest {
                     structure: [CRYING_OBSIDIAN, GILDED_BLACKSTONE]
                   simple:
                     structure: [CRYING_OBSIDIAN, GILDED_BLACKSTONE]
+                    range: 64
+                    pull-radius: 4
                 """);
         List<String> warnings = new ArrayList<>();
         PadSettings settings = parse(yaml, warnings);
@@ -87,6 +129,8 @@ class PadSettingsTest {
                 types:
                   simple:
                     structure: [CRYING_OBSIDIAN, GILDED_BLACKSTONE]
+                    range: 64
+                    pull-radius: 4
                     item: {name: 'Pad', components: {item_model: 'minecraft:stick'}}
                 """);
         List<String> warnings = new ArrayList<>();
@@ -105,9 +149,13 @@ class PadSettingsTest {
                 types:
                   ruby:
                     structure: ['craftengine:default:ruby_pad', GILDED_BLACKSTONE]
+                    range: 64
+                    pull-radius: 4
                     item: {name: 'Pad', glint: true, components: {item_model: 'minecraft:stick'}}
                   mixed:
                     structure: [CRYING_OBSIDIAN, 'craftengine:default:ruby_base']
+                    range: 64
+                    pull-radius: 4
                   nameless:
                     structure: ['craftengine:ruby_pad', GILDED_BLACKSTONE]
                 """);
@@ -138,6 +186,8 @@ class PadSettingsTest {
                     structure: ['craftengine:default:ruby_pad', GILDED_BLACKSTONE]
                   plain:
                     structure: [CRYING_OBSIDIAN, GILDED_BLACKSTONE]
+                    range: 64
+                    pull-radius: 4
                 """);
         List<String> warnings = new ArrayList<>();
         PadSettings settings = PadSettings.parse(new ConfigReader(yaml, "pads.yml", warnings::add), IS_BLOCK,
@@ -156,6 +206,8 @@ class PadSettingsTest {
                 types:
                   glass:
                     structure: [GLASS, BEDROCK]
+                    range: 64
+                    pull-radius: 4
                   broken:
                     structure: [NOT_A_BLOCK, STONE]
                   single:

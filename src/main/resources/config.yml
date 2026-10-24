@@ -27,6 +27,8 @@ sorter:
   frame-types: [ITEM_FRAME, GLOW_ITEM_FRAME]
   # Optional title of a sorter's inventory; '' = the dispenser's own name.
   custom-name: '<gradient:#F7B733:#FC4A1A>Sorter</gradient>'
+  # Blocks around a sorter where its targets are searched.
+  range: 64
   # Ticks between two turns of the same sorter.
   tick-rate: 20
   disable-when-powered: false
@@ -45,8 +47,6 @@ targets:
 
 # How items reach the targets.
 delivery:
-  # Blocks around a sorter or pad where targets are searched.
-  max-distance: 64
   # false: frames on containers or composters drop the items instead.
   insert-into-containers: true
   # Frames holding it take what no other frame takes; '' = off.

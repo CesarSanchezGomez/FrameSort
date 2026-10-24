@@ -78,6 +78,7 @@ the rest are CraftEngine's (they are reported and ignored).
 | `activator.name`, `lore`, `glint`, `components` | | *Optional.* Look of the activator FrameSort hands out (see [Item look](#item-look)); over a CraftEngine one, `name`, `lore` and `glint` only. Left out, or set to `''`, `[]` or `false`, the activator has none of it: with no name it shows the item's own name. |
 | `frame-types` | `[ITEM_FRAME, GLOW_ITEM_FRAME]` | Frames that can hold the activator. |
 | `custom-name` | `<gradient:#F7B733:#FC4A1A>Sorter</gradient>` | *Optional.* Title of a sorter's inventory. Left out or `''` = the dispenser's own name. The dispenser itself is never renamed: once it stops sorting it shows its own name again (from an anvil, or none), and a broken sorter drops it with that name. |
+| `range` | `64` | A sorter's targets are searched within this many blocks of it (1 to 512). Each pad type has its own `range` in `pads.yml`. |
 | `tick-rate` | `20` | Ticks between two turns of the same sorter. |
 | `disable-when-powered` | `false` | A powered sorter stops sending. |
 | `hide-frame` | `true` | Hides the activator's frame while the sorter works. A reload applies a change to every sorter. |
@@ -106,7 +107,6 @@ the lid of an upright barrel, the side of a chest or the bottom of one in a ceil
 
 | Key | Default | Meaning |
 |---|---|---|
-| `max-distance` | `64` | Targets are searched within this many blocks of the sorter or pad. |
 | `insert-into-containers` | `true` | `true`: items go into the container behind the frame, or are composted by a composter. `false`: frames on containers or composters drop the items in front of them instead; frames on lava cauldrons still destroy them. |
 | `default-target-item` | `ITEM_FRAME` | Frames holding it (an item frame inside the frame) take whatever matches no other frame, and whatever the other targets have no room for: a material (but not a CraftEngine item made from it) or a CraftEngine item (`'craftengine:<namespace>:<id>'`). `''` = off. A material that is not an item falls back to the default. |
 
@@ -183,8 +183,9 @@ breaking and placing a pad's top block again gives it an owner. More in
 |---|---|---|
 | `creation` | `anyone` | `anyone`: any player who places the top block on its base. `permission`: only players with `framesort.pad.create`. `item`: only by placing the pad's special item (from `/framesort give pad`) as the top block. |
 | `sweep-interval` | `10` | Ticks between checks for items resting on pads, and for loose items near them to pull. Items that arrive by water or fall onto a pad are picked up then. |
-| `pull-radius` | `4` | Blocks around a pad whose loose items it pulls onto itself (0 to 16; `0` = off). See below. |
 | `types.<id>.structure` | | Exactly two blocks: the top, where items rest, then its base. The `<id>` can't contain `,`: each pad keeps it in its chunk between commas. Each one is a material or a CraftEngine block (`'craftengine:<namespace>:<id>'`). Players build pads by hand, so a material must be a block a player can place (not `STICK`, `WATER` or `AIR`); otherwise the type is skipped with a warning. |
+| `types.<id>.range` | `64` | Targets of a pad of this type are searched within this many blocks of it (1 to 512). Left out, it is reported and `64` is used. |
+| `types.<id>.pull-radius` | `4` | Blocks around a pad of this type whose loose items it pulls onto itself (0 to 16; `0` = off). See below. Left out, it is reported and `4` is used. |
 | `types.<id>.item` | | *Optional*, and so is each key in it: `name`, `lore` and `glint` of the special top block (see [Item look](#item-look)). Left out, or set to `''`, `[]` or `false`, the block has none of it. Its material is the top block of the structure and it looks like that block, so it takes no `components` (they are reported and ignored). With a CraftEngine top block the item is CraftEngine's, and `name`, `lore` and `glint` are laid over it (see [CraftEngine items and blocks](#item-look)). |
 
 A pad is created when its top block is placed on its base, so place the base first. It counts as long as both
@@ -196,18 +197,17 @@ block, nor a mob change it.
 
 Items resting up to one block above the top block count, so carpets or slabs on the pad are fine.
 
-**Pads pull loose items in.** On every check, a pad throws the items lying on the ground within `pull-radius` blocks
-of its top in an arc that ends, half a second later, one and a half blocks over its centre; there the item is put
-right over the pad, stops and drops onto it, and a check sends it. It only pulls what it can see on a straight line to
-that point: a wall in between stops it, but a carpet or slab resting on the pad doesn't. An item lying within a block
-of the pad's side, whose arc would hit it, hops straight up instead, if nothing is over it, and is put over the pad
-the same way; one under the pad stays. A pad only pulls while the block right over it is empty or leaves room on top
-(a carpet, a bottom slab) and the one above that is free. It doesn't pull
-items already on a pad, items so far above the pad
-that they couldn't take off, or what FrameSort itself dropped at a drop spot, except once if that item merged with
-another one lying there. Items no target takes stay on top of the pad. With WorldGuard, a
-pad only pulls items lying in exactly its own regions; without it, or another plugin cancelling `PadPullEvent`, a pad
-pulls across claim borders, so set `pull-radius: 0` on servers that need it.
+**Pads pull loose items in.** On every check, a pad throws the items lying on the ground within its type's
+`pull-radius` blocks of its top in an arc that ends, half a second later, one and a half blocks over its centre;
+there the item is put right over the pad, stops and drops onto it, and a check sends it. It only pulls what it can
+see on a straight line to that point: a wall in between stops it, but a carpet or slab resting on the pad doesn't. An
+item lying within a block of the pad's side, whose arc would hit it, hops straight up instead, if nothing is over it,
+and is put over the pad the same way; one under the pad stays. A pad only pulls while the block right over it is
+empty or leaves room on top (a carpet, a bottom slab) and the one above that is free. It doesn't pull items already
+on a pad, items so far above the pad that they couldn't take off, or what FrameSort itself dropped at a drop spot,
+except once if that item merged with another one lying there. Items no target takes stay on top of the pad. With
+WorldGuard, a pad only pulls items lying in exactly its own regions; without it, or another plugin cancelling
+`PadPullEvent`, a pad pulls across claim borders, so set every type's `pull-radius` to `0` on servers that need it.
 
 The bundled types are a waxed copper grate on a waxed block of copper (`copper`) and a lodestone on smooth stone
 (`lodestone`). Copper ages into another block, so a pad of plain copper would end once it did: both copper blocks

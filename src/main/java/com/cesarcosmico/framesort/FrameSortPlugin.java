@@ -165,7 +165,7 @@ public final class FrameSortPlugin extends JavaPlugin {
                 new TagApplyCommand(tags, messages, settings, commands),
                 new TagRemoveCommand(messages),
                 new TraceCommand(trace, messages, settings),
-                new WhereCommand(inspect, messages, settings),
+                new WhereCommand(inspect, messages),
                 new TrustCommand(trust, messages),
                 new UntrustCommand(trust, messages),
                 new TrustedCommand(trust, messages, settings),

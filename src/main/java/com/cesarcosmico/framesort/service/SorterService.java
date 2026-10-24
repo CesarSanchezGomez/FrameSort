@@ -261,7 +261,8 @@ public final class SorterService {
             }
             ItemStack tried = slot.get();
             int kept = Math.max(0, tried.getAmount() - (PER_TURN - sent));
-            int moved = delivery.deliver(sorter.block, owner, new SlotSource(slot, kept));
+            int moved = delivery.deliver(sorter.block, owner, settings.get().sorter().range(),
+                    new SlotSource(slot, kept));
             if (moved == 0) {
                 missed.add(tried);
             }
