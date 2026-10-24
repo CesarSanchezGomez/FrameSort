@@ -33,11 +33,13 @@ import org.bukkit.util.Vector;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Supplier;
 
 /** Pads live in their chunk's data, so only loaded pads are swept; sweeping also catches items that arrive late. */
@@ -259,10 +261,20 @@ public final class PadService {
                 continue;
             }
             PlayerInventory inventory = player.getInventory();
-            // Other plugins' handlers run during a delivery and may kill the player or make them leave.
-            for (int index = FIRST_STORED; index <= LAST_STORED && player.isValid(); index++) {
-                delivery.deliver(top, pad.owner(), type.range(),
-                        new SlotSource(new Slot.InventorySlot(inventory, index), 0));
+            List<Integer> filled = new ArrayList<>();
+            for (int index = FIRST_STORED; index <= LAST_STORED; index++) {
+                if (inventory.getItem(index) != null) {
+                    filled.add(index);
+                }
+            }
+            // One stack per check, at random, like a sorter's turn; one with nowhere to go doesn't hold up the rest.
+            Collections.shuffle(filled, ThreadLocalRandom.current());
+            for (int index : filled) {
+                // Other plugins' handlers run during a delivery and may kill the player or make them leave.
+                if (!player.isValid() || delivery.deliver(top, pad.owner(), type.range(),
+                        new SlotSource(new Slot.InventorySlot(inventory, index), 0)) > 0) {
+                    break;
+                }
             }
         }
     }

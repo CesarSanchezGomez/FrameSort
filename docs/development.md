@@ -102,9 +102,9 @@ SELECT HEX(owner), HEX(trusted), FROM_UNIXTIME(created_at / 1000) FROM framesort
   scheduler then puts it exactly there and stops it, so it drops onto the pad. The ray doesn't load a chunk. An
   item dropped at a drop spot that merges with an unmarked one can lose the mark and be pulled back once; the drop
   that sends it there again marks it. A type that takes inventories also looks for players in the box over the
-  pad: one crouching with their feet in the block over the top, and not in spectator mode, sends slots 9 to 35 one by
-  one, each a `SlotSource`. It stops when the player stops being valid, since another
-  plugin's handler may kill them or make them leave during a delivery.
+  pad: one crouching with their feet in the block over the top, and not in spectator mode, sends one stack of slots
+  9 to 35 per check, each a `SlotSource`, trying them at random until one moves something. It stops when the player
+  stops being valid, since another plugin's handler may kill them or make them leave during a delivery.
 - **Chunk borders.** A frame on a chunk border can hang on a block of the next chunk. That block is only read when
   its chunk is loaded, so FrameSort never loads chunks.
 - **Tracing.** With nobody tracing, a delivery costs one empty-map check.

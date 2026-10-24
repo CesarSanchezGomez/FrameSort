@@ -187,7 +187,7 @@ breaking and placing a pad's top block again gives it an owner. More in
 | `types.<id>.structure` | | Exactly two blocks: the top, where items rest, then its base. The `<id>` can't contain `,`: each pad keeps it in its chunk between commas. Each one is a material or a CraftEngine block (`'craftengine:<namespace>:<id>'`). Players build pads by hand, so a material must be a block a player can place (not `STICK`, `WATER` or `AIR`); otherwise the type is skipped with a warning. |
 | `types.<id>.range` | `64` | Targets of a pad of this type are searched within this many blocks of it (1 to 512). Left out, it is reported and `64` is used. |
 | `types.<id>.pull-radius` | `4` | Blocks around a pad of this type whose loose items it pulls onto itself (0 to 16; `0` = off). See below. Left out, it is reported and `4` is used. |
-| `types.<id>.takes-from-inventory` | `false` | `true`: a player crouching on a pad of this type sends their main inventory. See below. Left out, it is reported and `false` is used. |
+| `types.<id>.takes-from-inventory` | `false` | `true`: a player crouching on a pad of this type sends a stack of their main inventory on every check. See below. Left out, it is reported and `false` is used. |
 | `types.<id>.item` | | *Optional*, and so is each key in it: `name`, `lore` and `glint` of the special top block (see [Item look](#item-look)). Left out, or set to `''`, `[]` or `false`, the block has none of it. Its material is the top block of the structure and it looks like that block, so it takes no `components` (they are reported and ignored). With a CraftEngine top block the item is CraftEngine's, and `name`, `lore` and `glint` are laid over it (see [CraftEngine items and blocks](#item-look)). |
 
 A key a type doesn't take, in it or in its `item`, is reported with its path as a typo and ignored.
@@ -213,11 +213,12 @@ except once if that item merged with another one lying there. Items no target ta
 WorldGuard, a pad only pulls items lying in exactly its own regions; without it, or another plugin cancelling
 `PadPullEvent`, a pad pulls across claim borders, so set every type's `pull-radius` to `0` on servers that need it.
 
-**Pads that take inventories.** On every check, a pad whose type has `takes-from-inventory: true` sends the main
-inventory (the 27 slots above the hotbar) of every player crouching on its top; the hotbar, armour and off hand
-stay. A player crouching beside the pad, or in spectator mode, is left alone. What it sends goes where the pad sends
-anything, to its owner's targets and those of players the owner trusts, and shulker boxes and bundles go whole. What
-no target takes stays in its slot.
+**Pads that take inventories.** On every check, a pad whose type has `takes-from-inventory: true` sends one stack
+from the main inventory (the 27 slots above the hotbar) of every player crouching on its top, picked at random like a
+sorter's: a stack no target takes stays in its slot and the next one is tried, so it never holds up the rest. With
+the default `sweep-interval`, a full inventory empties in under 15 seconds. The hotbar, armour and off hand stay. A
+player crouching beside the pad, or in spectator mode, is left alone. What it sends goes where the pad sends
+anything, to its owner's targets and those of players the owner trusts, and shulker boxes and bundles go whole.
 
 The bundled types are a waxed copper grate on a waxed block of copper (`copper`), a lodestone on smooth stone
 (`lodestone`) and chiseled tuff bricks on polished tuff (`tuff`), which takes inventories and pulls nothing. Copper

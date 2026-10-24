@@ -49,9 +49,9 @@ keeps its hidden frame until it loads with FrameSort installed, so before removi
    shulker box or bundle goes whole once nothing inside it can go anywhere.
 3. **Sorting pads.** Place a waxed copper grate on a waxed block of copper, or a lodestone on smooth stone. Items
    resting on top, or lying loose within a few blocks (the pad pulls them in), are sent to targets. Chiseled tuff
-   bricks on polished tuff make a pad that sends your inventory while you crouch on it (not the hotbar, armour or off
-   hand). Who can create pads is configurable: anyone, players with a permission, or only with a special pad
-   block.
+   bricks on polished tuff make a pad that sends your inventory, a stack at a time, while you crouch on it (not the
+   hotbar, armour or off hand). Who can create pads is configurable: anyone, players with a permission, or only with
+   a special pad block.
 4. **Inspect.** Sneak + right-click a sorter or pad with an empty hand: its targets' items glow (only for you, in
    configurable colours) and are listed page by page. Sneak + left-click a target frame to see what it accepts.
    `/framesort trace` shows the deliveries around you live.

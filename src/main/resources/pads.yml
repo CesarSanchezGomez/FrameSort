@@ -6,8 +6,8 @@
 #                         Items resting on the top go to the targets.
 #   range                 blocks around the pad where its targets are searched.
 #   pull-radius           blocks around the pad whose loose items it pulls onto itself, if it can see them; 0 = off.
-#   takes-from-inventory  true: a player crouching on the pad sends their main inventory (not the hotbar, armour or
-#                         off hand).
+#   takes-from-inventory  true: a player crouching on the pad sends a stack of their main inventory on every check
+#                         (not the hotbar, armour or off hand).
 #   item                  optional look of the top block /framesort give pad hands out: name, lore, glint.
 # A pad is created when its top block is placed on its base.
 
