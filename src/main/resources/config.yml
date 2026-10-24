@@ -50,7 +50,7 @@ delivery:
   # false: frames on containers or composters drop the items instead.
   insert-into-containers: true
   # Frames holding it take what no other frame takes; '' = off.
-  default-target-item: ITEM_FRAME
+  default-target-item: RECOVERY_COMPASS
 
 # Who sorters, pads and targets belong to: whoever set them up.
 ownership:

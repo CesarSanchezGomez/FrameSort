@@ -8,7 +8,7 @@ import java.util.function.Predicate;
 
 public record DeliverySettings(boolean insertIntoContainers, @Nullable ItemReference defaultTargetItem) {
 
-    private static final ItemReference.Vanilla DEFAULT_TARGET = new ItemReference.Vanilla(Material.ITEM_FRAME);
+    private static final ItemReference.Vanilla DEFAULT_TARGET = new ItemReference.Vanilla(Material.RECOVERY_COMPASS);
 
     static DeliverySettings parse(ConfigReader reader, Predicate<Material> isItem, boolean craftEngine) {
         return new DeliverySettings(

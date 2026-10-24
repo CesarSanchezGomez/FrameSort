@@ -108,7 +108,7 @@ the lid of an upright barrel, the side of a chest or the bottom of one in a ceil
 | Key | Default | Meaning |
 |---|---|---|
 | `insert-into-containers` | `true` | `true`: items go into the container behind the frame, or are composted by a composter. `false`: frames on containers or composters drop the items in front of them instead; frames on lava cauldrons still destroy them. |
-| `default-target-item` | `ITEM_FRAME` | Frames holding it (an item frame inside the frame) take whatever matches no other frame, and whatever the other targets have no room for: a material (but not a CraftEngine item made from it) or a CraftEngine item (`'craftengine:<namespace>:<id>'`). `''` = off. A material that is not an item falls back to the default. |
+| `default-target-item` | `RECOVERY_COMPASS` | Frames holding it (a recovery compass inside the frame) take whatever matches no other frame, and whatever the other targets have no room for: a material (but not a CraftEngine item made from it) or a CraftEngine item (`'craftengine:<namespace>:<id>'`). `''` = off. A material that is not an item falls back to the default. |
 
 How a destination is chosen:
 

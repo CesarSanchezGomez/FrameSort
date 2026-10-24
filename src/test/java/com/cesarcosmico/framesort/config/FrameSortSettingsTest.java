@@ -32,7 +32,7 @@ class FrameSortSettingsTest {
     static final Function<String, @Nullable String> PROBLEM =
             input -> input.contains("nope=") ? "Unknown item component 'minecraft:nope'" : null;
     private static final ItemReference HOPPER = new ItemReference.Vanilla(Material.HOPPER);
-    private static final ItemReference FRAME = new ItemReference.Vanilla(Material.ITEM_FRAME);
+    private static final ItemReference COMPASS = new ItemReference.Vanilla(Material.RECOVERY_COMPASS);
 
     static YamlConfiguration bundled(String resource) throws Exception {
         try (InputStream in = FrameSortSettingsTest.class.getResourceAsStream("/" + resource)) {
@@ -57,7 +57,7 @@ class FrameSortSettingsTest {
         assertTrue(settings.sorter().showActivity());
         assertEquals(64, settings.sorter().range());
         assertTrue(settings.delivery().insertIntoContainers());
-        assertEquals(FRAME, settings.delivery().defaultTargetItem());
+        assertEquals(COMPASS, settings.delivery().defaultTargetItem());
         assertEquals(Map.of(), settings.sorter().activatorComponents());
         assertEquals("<gradient:#F7B733:#FC4A1A>#<tag></gradient>", settings.targets().taggedItem().name());
         assertTrue(settings.targets().taggedItem().glint());
@@ -239,12 +239,12 @@ class FrameSortSettingsTest {
                 new ConfigReader(yaml, "config.yml", warnings::add), IS_ITEM, PROBLEM, false);
 
         assertEquals(HOPPER, settings.sorter().activator());
-        assertEquals(FRAME, settings.delivery().defaultTargetItem());
+        assertEquals(COMPASS, settings.delivery().defaultTargetItem());
         assertEquals(List.of(
                 "config.yml > sorter.activator.material: 'craftengine:default:ruby' needs CraftEngine, which is not "
                         + "installed, using HOPPER",
                 "config.yml > delivery.default-target-item: 'craftengine:default:trash_bag' needs CraftEngine, which "
-                        + "is not installed, using ITEM_FRAME"), warnings);
+                        + "is not installed, using RECOVERY_COMPASS"), warnings);
     }
 
     @Test
@@ -273,7 +273,7 @@ class FrameSortSettingsTest {
         FrameSortSettings settings = parse(yaml, warnings);
 
         assertEquals(HOPPER, settings.sorter().activator());
-        assertEquals(FRAME, settings.delivery().defaultTargetItem());
+        assertEquals(COMPASS, settings.delivery().defaultTargetItem());
         assertEquals(2, warnings.size(), warnings::toString);
     }
 }
