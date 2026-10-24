@@ -190,6 +190,8 @@ breaking and placing a pad's top block again gives it an owner. More in
 | `types.<id>.takes-from-inventory` | `false` | `true`: a player crouching on a pad of this type sends their main inventory. See below. Left out, it is reported and `false` is used. |
 | `types.<id>.item` | | *Optional*, and so is each key in it: `name`, `lore` and `glint` of the special top block (see [Item look](#item-look)). Left out, or set to `''`, `[]` or `false`, the block has none of it. Its material is the top block of the structure and it looks like that block, so it takes no `components` (they are reported and ignored). With a CraftEngine top block the item is CraftEngine's, and `name`, `lore` and `glint` are laid over it (see [CraftEngine items and blocks](#item-look)). |
 
+A key a type doesn't take, in it or in its `item`, is reported with its path as a typo and ignored.
+
 A pad is created when its top block is placed on its base, so place the base first. It counts as long as both
 blocks stay; breaking the top block removes it, and whoever broke it is told so. If the top block goes any other
 way (WorldEdit, a command, gravity), the pad is forgotten at the next sweep. Without its base a pad waits, and works

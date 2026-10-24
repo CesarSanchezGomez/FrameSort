@@ -11,9 +11,15 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Predicate;
 
 public record PadSettings(PadMode creation, int sweepInterval, Map<String, PadType> types) {
+
+    // Each type is an entry the admin names, so only its parser knows its keys and can report a typo in one.
+    private static final Set<String> TYPE_KEYS = Set.of("structure", "range", "pull-radius", "takes-from-inventory",
+            "item");
+    private static final Set<String> ITEM_KEYS = Set.of("name", "lore", "glint", "components");
 
     public PadSettings {
         // Keeps the file's order, so lists and suggestions follow it.
@@ -61,6 +67,7 @@ public record PadSettings(PadMode creation, int sweepInterval, Map<String, PadTy
             types.warn(id, "expected a section with a 'structure' list");
             return null;
         }
+        reader.warnUnknownKeys(TYPE_KEYS);
         String skipped = "; pad type '" + id + "' is skipped";
         List<ItemReference> structure = new ArrayList<>();
         for (String entry : reader.strings("structure")) {
@@ -83,6 +90,7 @@ public record PadSettings(PadMode creation, int sweepInterval, Map<String, PadTy
         }
         ItemReference top = structure.getFirst();
         ConfigReader item = reader.sectionOrEmpty("item");
+        item.warnUnknownKeys(ITEM_KEYS);
         if (top instanceof ItemReference.Custom) {
             ItemReferences.ignoreComponents(item);
         } else if (item.isSet("components")) {

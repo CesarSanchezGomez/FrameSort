@@ -118,6 +118,28 @@ class PadSettingsTest {
     }
 
     @Test
+    void unknownKeysOfATypeOrItsItemAreReported() throws Exception {
+        YamlConfiguration yaml = new YamlConfiguration();
+        yaml.loadFromString("""
+                types:
+                  simple:
+                    structure: [CRYING_OBSIDIAN, GILDED_BLACKSTONE]
+                    range: 64
+                    pull-radius: 4
+                    pul-radius: 8
+                    takes-from-inventory: false
+                    item: {name: 'Pad', lroe: ['x']}
+                """);
+        List<String> warnings = new ArrayList<>();
+        PadType simple = parse(yaml, warnings).type("simple");
+
+        assertNotNull(simple);
+        assertEquals(4, simple.pullRadius());
+        assertEquals(List.of("pads.yml > types.simple.pul-radius: unknown key, typo or removed setting; ignored",
+                "pads.yml > types.simple.item.lroe: unknown key, typo or removed setting; ignored"), warnings);
+    }
+
+    @Test
     void aTypeIdWithACommaIsSkipped() throws Exception {
         YamlConfiguration yaml = new YamlConfiguration();
         yaml.loadFromString("""

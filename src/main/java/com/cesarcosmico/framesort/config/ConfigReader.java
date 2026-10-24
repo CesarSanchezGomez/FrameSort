@@ -218,6 +218,15 @@ public final class ConfigReader {
         return root.getKeys(false);
     }
 
+    /** Reports, in file order, each key of this section outside {@code known}; a child section checks its own. */
+    public void warnUnknownKeys(Set<String> known) {
+        for (String key : root.getKeys(false)) {
+            if (!known.contains(key)) {
+                warn(key, "unknown key, typo or removed setting; ignored");
+            }
+        }
+    }
+
     private static <E extends Enum<E>> @Nullable E parseEnum(Class<E> type, String name) {
         String constant = name.trim().toUpperCase(Locale.ROOT).replace('-', '_');
         for (E value : type.getEnumConstants()) {
