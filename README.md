@@ -44,17 +44,29 @@ keeps its hidden frame until it loads with FrameSort installed, so before removi
    targets are full, the rest goes to the next ones. A frame holding a recovery compass comes last: it takes whatever
    matches nothing else, and whatever the other targets have no room for. A frame on a lava cauldron destroys
    leftovers.
+
+   ![Marking a frame on a chest by hand, then with /fs automark on, just by putting the item in](docs/mark.gif)
+
 2. **Sorters.** Put a hopper in a frame on a dispenser. The frame disappears and every second the dispenser
    sends up to 64 items from its inventory, at random, taking them from inside shulker boxes and bundles too. A
    shulker box or bundle goes whole once nothing inside it can go anywhere.
+
+   ![A sorter sending to the target frame on a chest, as /framesort trace shows it](docs/sorter.gif)
+
 3. **Sorting pads.** Place a waxed copper grate on a waxed block of copper, or a lodestone on smooth stone. Items
    resting on top, or lying loose within a few blocks (the pad pulls them in), are sent to targets. Chiseled tuff
    on polished tuff makes a pad that sends your inventory, a stack at a time, while you crouch on it (not the
    hotbar, armour or off hand). Who can create pads is configurable: anyone, players with a permission, or only with
    a special pad block.
+
+   ![A copper pad pulling a loose item onto itself and sending it to the target frame on a chest](docs/pad.gif)
+   ![A player crouching on a tuff pad, sending their inventory to the target frame on a chest](docs/inventory-pad.gif)
+
 4. **Inspect.** Sneak + right-click a sorter or pad with an empty hand: its targets' items glow (only for you, in
    configurable colours) and are listed page by page. Sneak + left-click a target frame to see what it accepts.
    `/framesort trace` shows the deliveries around you live.
+
+   ![Inspecting a sorter: its targets glow by what they do with the items, and the chat lists them](docs/inspect.gif)
 
 5. **Owners and trust.** What you set up is yours: the frames you mark, the sorters you put the activator in, the
    pads you build. Your sorters and pads send only to your frames, so nobody can mark a frame near them and take
