@@ -136,7 +136,7 @@ public final class FrameSortPlugin extends JavaPlugin {
         CustomItemResolver customItems = craftEngine ? new CraftEngineItemResolver() : CustomItemResolver.NONE;
         resolver = new TargetResolver(settings, index, tags, customItems, trust);
         TraceService trace = new TraceService(this, settings, messages, trust);
-        DeliveryService delivery = new DeliveryService(this, resolver, trace::report);
+        DeliveryService delivery = new DeliveryService(this, resolver, customItems, trace::report);
         sorters = new SorterService(this, settings, delivery, customItems);
         padService = new PadService(this, pads, delivery, customItems);
         highlights = new HighlightService(this);
@@ -144,7 +144,7 @@ public final class FrameSortPlugin extends JavaPlugin {
                 sorters, padService, commands);
 
         // Without the command a player could not switch it off, so it only acts while they may run it.
-        AutomarkService automark = new AutomarkService(this, index, sorters, inspect,
+        AutomarkService automark = new AutomarkService(this, index, sorters, inspect, customItems,
                 player -> commands.usageFor("automark", player::hasPermission) != null);
 
         register(new TargetListener(index, automark), new SorterListener(sorters, messages),

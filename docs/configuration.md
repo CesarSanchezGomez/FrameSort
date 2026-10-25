@@ -107,7 +107,7 @@ the lid of an upright barrel, the side of a chest or the bottom of one in a ceil
 
 | Key | Default | Meaning |
 |---|---|---|
-| `insert-into-containers` | `true` | `true`: items go into the container behind the frame, or are composted by a composter. `false`: frames on containers or composters drop the items in front of them instead; frames on lava cauldrons still destroy them. |
+| `insert-into-containers` | `true` | `true`: items go into the container behind the frame (CraftEngine's storage blocks and drawers too, see [CraftEngine containers](#delivery)), or are composted by a composter. `false`: frames on containers or composters drop the items in front of them instead; frames on lava cauldrons still destroy them. |
 | `default-target-item` | `RECOVERY_COMPASS` | Frames holding it (a recovery compass inside the frame) take whatever matches no other frame, and whatever the other targets have no room for: a material (but not a CraftEngine item made from it) or a CraftEngine item (`'craftengine:<namespace>:<id>'`). `''` = off. A material that is not an item falls back to the default. |
 
 How a destination is chosen:
@@ -148,6 +148,15 @@ untagged ones again; a name given in an anvil after tagging is lost then.
 feeding it would: every item is used up, the level rises with that item's vanilla chance, and a full composter turns
 ready a second later and takes nothing more until it is emptied. A hopper under it collects the bone meal, as in
 vanilla. Items it doesn't take go on to the other targets as usual.
+
+**CraftEngine containers.** With CraftEngine installed, a target frame on one of its storage blocks
+(`simple_storage_block`, such as the safe of its default pack) or drawers (`drawer_block`) fills it as a hopper
+feeding it would, whatever the block is called or looks like. A drawer only takes the item it already holds, or the
+first one that comes while it is empty, as many as fit. A block whose `allow_input` is `false` takes nothing from
+FrameSort: its frame drops the items in front of it, like a frame on a wall. A change to `allow_input` reaches a
+block already placed once its chunk loads again. The frame card and inspection name the block as CraftEngine does,
+or as the vanilla block it shows as while `/ce reload` runs or when no CraftEngine item places it. Storage furniture
+is never filled: a frame can't hang on furniture, and CraftEngine keeps hoppers out of it.
 
 **Lava cauldrons are trash cans.** A target frame on a lava cauldron holds the item to destroy and is chosen like
 any other frame (exact item, tag, material). If a container with the same or a better priority also takes that
