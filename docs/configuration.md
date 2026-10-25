@@ -230,7 +230,7 @@ player crouching beside the pad, or in spectator mode, is left alone. What it se
 anything, to its owner's targets and those of players the owner trusts, and shulker boxes and bundles go whole.
 
 The bundled types are a waxed copper grate on a waxed block of copper (`copper`), a lodestone on smooth stone
-(`lodestone`) and chiseled tuff bricks on polished tuff (`tuff`), which takes inventories and pulls nothing. Copper
+(`lodestone`) and chiseled tuff on polished tuff (`tuff`), which takes inventories and pulls nothing. Copper
 ages into another block, so a pad of plain copper would end once it did: both copper blocks have to be waxed
 (honeycomb) before they are placed, and `/framesort give pad copper` hands the grate out waxed.
 
