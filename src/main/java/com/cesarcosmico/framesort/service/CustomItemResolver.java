@@ -1,5 +1,6 @@
 package com.cesarcosmico.framesort.service;
 
+import com.cesarcosmico.framesort.model.Delivery;
 import com.cesarcosmico.framesort.model.ItemReference;
 import net.kyori.adventure.text.Component;
 import org.bukkit.block.Block;
@@ -9,8 +10,8 @@ import org.jspecify.annotations.Nullable;
 /**
  * What FrameSort needs from a custom item plugin: an item's reference as tags.yml writes it (the plugin's name in
  * lowercase, {@code :} and the ID that plugin gave it, such as {@code craftengine:default:ruby}) and its name, which
- * placed blocks are the plugin's and which one, and the items the plugin builds for a reference or a block.
- * {@link #NONE} when no such plugin is installed.
+ * placed blocks are the plugin's and which one, its blocks that store items, and the items the plugin builds for a
+ * reference or a block. {@link #NONE} when no such plugin is installed.
  */
 @FunctionalInterface
 public interface CustomItemResolver {
@@ -49,5 +50,18 @@ public interface CustomItemResolver {
     /** The item that places the plugin's {@code block}, as {@link #item} builds it, or {@code null}. */
     default @Nullable ItemStack blockItem(ItemReference.Custom block, int amount) {
         return null;
+    }
+
+    /** Whether the plugin's block at {@code block} stores items that a hopper may put in. */
+    default boolean isContainer(Block block) {
+        return false;
+    }
+
+    /**
+     * Puts {@code items} into the plugin's block at {@code block} as a hopper would and returns how many it didn't
+     * take, or {@link Delivery#GONE} when that block stores no items ({@link #isContainer}).
+     */
+    default int store(Block block, ItemStack items) {
+        return Delivery.GONE;
     }
 }

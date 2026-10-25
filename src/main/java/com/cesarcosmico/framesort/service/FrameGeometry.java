@@ -31,9 +31,12 @@ public final class FrameGeometry {
         return block.getState(false) instanceof Container container ? container.getInventory() : null;
     }
 
-    /** Whether items sent to a frame on this block go into it: a container, or a composter that composts them. */
-    public static boolean isContainer(Block block) {
-        return block.getType() == Material.COMPOSTER || inventory(block) != null;
+    /**
+     * Whether items sent to a frame on this block go into it: a container, a custom plugin's block that stores items,
+     * or a composter that composts them.
+     */
+    public static boolean isContainer(Block block, CustomItemResolver customItems) {
+        return block.getType() == Material.COMPOSTER || inventory(block) != null || customItems.isContainer(block);
     }
 
     // The frame sits flush against its block; an item spawned there overlaps the block and gets pushed out of it.

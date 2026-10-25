@@ -48,7 +48,7 @@ class PadSettingsTest {
         assertEquals(new ItemReference.Vanilla(Material.SMOOTH_STONE), lodestone.base());
         PadType tuff = settings.type("tuff");
         assertNotNull(tuff);
-        assertEquals(new ItemReference.Vanilla(Material.CHISELED_TUFF_BRICKS), tuff.top());
+        assertEquals(new ItemReference.Vanilla(Material.CHISELED_TUFF), tuff.top());
         assertEquals(new ItemReference.Vanilla(Material.POLISHED_TUFF), tuff.base());
         assertEquals(0, tuff.pullRadius());
         assertTrue(tuff.takesFromInventory());

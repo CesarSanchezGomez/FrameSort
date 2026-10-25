@@ -25,10 +25,14 @@ the integrations. Dependencies are wired by constructor in `FrameSortPlugin`; th
 
 Interfaces exist only with several implementations, as closed sets, or to keep an optional plugin out:
 - `CustomItemResolver`: a custom item as `tags.yml` writes it (`craftengine:<namespace>:<id>`), its name, the item
-  built from a reference, whether a placed block is CraftEngine's and which one, and the item that places a block, or
-  `NONE` without CraftEngine, so no other class loads CraftEngine's classes. All but `id` and `isCustomBlock` go
-  through types outside CraftEngine's stable `api` package (`BukkitItemDefinition`, `ImmutableBlockState`,
-  `BlockDefinition`): check them on every CraftEngine update;
+  built from a reference, whether a placed block is CraftEngine's and which one, the item that places a block, and
+  CraftEngine's storage blocks and drawers (`isContainer`, `store`), or `NONE` without CraftEngine, so no other class
+  loads CraftEngine's classes. All but `id` and `isCustomBlock` go through types outside CraftEngine's stable `api`
+  package (`BukkitItemDefinition`, `ImmutableBlockState`, `BlockDefinition`; for containers `BukkitWorld`, `CEWorld`,
+  `BlockPos`, `BlockEntity`, `BlockEntityController#get`, `BlockBehavior#getFirst`,
+  `SimpleStorageBlockEntityController`, `SimpleStorageBlockBehavior`, `DrawerBlockEntityController`,
+  `DrawerBlockBehavior` and `BukkitItem`): check them on every CraftEngine update. CraftEngine saves a storage block
+  only once told it changed, which Bukkit's `addItem` never does, so `store` tells it (`CEWorld#blockEntityChanged`);
 - `DeliveryService.Source`: a slot (`SlotSource`), of a sorter or of a player's inventory, or a pad item entity;
 - `CommandFeature`: one per command feature;
 - `GiveCommand.ItemSource`: a sorter activator or a pad block;

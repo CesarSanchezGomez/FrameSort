@@ -17,15 +17,17 @@ public final class AutomarkService {
     private final TargetIndex index;
     private final SorterService sorters;
     private final InspectService inspect;
+    private final CustomItemResolver customItems;
     // Whether the player may still switch it off: their choice is kept, but does nothing while they can't.
     private final Predicate<Player> available;
 
     public AutomarkService(Plugin plugin, TargetIndex index, SorterService sorters, InspectService inspect,
-                           Predicate<Player> available) {
+                           CustomItemResolver customItems, Predicate<Player> available) {
         this.plugin = plugin;
         this.index = index;
         this.sorters = sorters;
         this.inspect = inspect;
+        this.customItems = customItems;
         this.available = available;
     }
 
@@ -50,7 +52,8 @@ public final class AutomarkService {
         // Another plugin can empty the item before it goes in.
         if (item.isEmpty() || !PlayerCodec.automark(player) || !player.hasPermission(TargetIndex.MARK_PERMISSION)
                 || !available.test(player) || !index.markable(frame)
-                || !FrameGeometry.isContainer(FrameGeometry.attachedBlock(frame)) || sorters.makesSorter(frame, item)) {
+                || !FrameGeometry.isContainer(FrameGeometry.attachedBlock(frame), customItems)
+                || sorters.makesSorter(frame, item)) {
             return;
         }
         index.mark(frame, player.getUniqueId());

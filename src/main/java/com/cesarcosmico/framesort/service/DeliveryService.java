@@ -52,11 +52,14 @@ public final class DeliveryService {
 
     private final Plugin plugin;
     private final TargetResolver resolver;
+    private final CustomItemResolver customItems;
     private final Consumer<Delivered> observer;
 
-    public DeliveryService(Plugin plugin, TargetResolver resolver, Consumer<Delivered> observer) {
+    public DeliveryService(Plugin plugin, TargetResolver resolver, CustomItemResolver customItems,
+                           Consumer<Delivered> observer) {
         this.plugin = plugin;
         this.resolver = resolver;
+        this.customItems = customItems;
         this.observer = observer;
     }
 
@@ -113,11 +116,15 @@ public final class DeliveryService {
             notAccepted = compost(block, stack, amount);
         } else {
             Inventory inventory = FrameGeometry.inventory(block);
-            if (inventory == null) {
-                return Delivery.GONE;
+            if (inventory != null) {
+                Map<Integer, ItemStack> left = inventory.addItem(stack.asQuantity(amount));
+                notAccepted = left.values().stream().mapToInt(ItemStack::getAmount).sum();
+            } else {
+                notAccepted = customItems.store(block, stack.asQuantity(amount));
+                if (notAccepted == Delivery.GONE) {
+                    return Delivery.GONE;
+                }
             }
-            Map<Integer, ItemStack> left = inventory.addItem(stack.asQuantity(amount));
-            notAccepted = left.values().stream().mapToInt(ItemStack::getAmount).sum();
         }
         if (notAccepted < amount) {
             int accepted = amount - notAccepted;

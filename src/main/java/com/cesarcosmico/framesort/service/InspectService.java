@@ -226,7 +226,7 @@ public final class InspectService {
 
         lines.add(switch (resolver.destination(frame)) {
             case CONTAINER -> text.get("frame.into.container",
-                    Placeholder.component("block", blockName(FrameGeometry.attachedBlock(frame))));
+                    Placeholder.component("block", resolver.blockName(FrameGeometry.attachedBlock(frame))));
             case DROPPED -> text.get("frame.into.dropped");
             case DESTROYED -> text.get("frame.into.lava");
         });
@@ -348,7 +348,7 @@ public final class InspectService {
 
     private Component entry(Messages text, ItemFrame frame, Destination destination, BlockKey center) {
         Component target = switch (destination) {
-            case CONTAINER -> blockName(FrameGeometry.attachedBlock(frame));
+            case CONTAINER -> resolver.blockName(FrameGeometry.attachedBlock(frame));
             case DROPPED -> text.get("inspect.target.dropped");
             case DESTROYED -> text.get("inspect.target.lava");
         };
@@ -387,10 +387,6 @@ public final class InspectService {
 
     private void highlight(Player player, List<HighlightService.Highlight> marks) {
         highlights.show(player, marks, settings.get().inspect().highlightSeconds());
-    }
-
-    private static Component blockName(Block block) {
-        return Component.translatable(block.getType());
     }
 
     private static TagResolver coordinates(Location location) {

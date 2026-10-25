@@ -1,7 +1,7 @@
 # FrameSort
 
 Item sorting without hopper chains. A **sorter** (a dispenser with a hopper in an item frame on it) and **sorting
-pads** (a waxed copper grate on a waxed block of copper, a lodestone on smooth stone, or chiseled tuff bricks on
+pads** (a waxed copper grate on a waxed block of copper, a lodestone on smooth stone, or chiseled tuff on
 polished tuff) send items straight to the **target frames** that ask for them: into the chest, barrel or hopper
 behind the frame, composted by a composter, or dropped in front of the frame when there is no container.
 
@@ -49,7 +49,7 @@ keeps its hidden frame until it loads with FrameSort installed, so before removi
    shulker box or bundle goes whole once nothing inside it can go anywhere.
 3. **Sorting pads.** Place a waxed copper grate on a waxed block of copper, or a lodestone on smooth stone. Items
    resting on top, or lying loose within a few blocks (the pad pulls them in), are sent to targets. Chiseled tuff
-   bricks on polished tuff make a pad that sends your inventory, a stack at a time, while you crouch on it (not the
+   on polished tuff makes a pad that sends your inventory, a stack at a time, while you crouch on it (not the
    hotbar, armour or off hand). Who can create pads is configurable: anyone, players with a permission, or only with
    a special pad block.
 4. **Inspect.** Sneak + right-click a sorter or pad with an empty hand: its targets' items glow (only for you, in
@@ -78,9 +78,10 @@ custom item in a frame is never the default target, even one made from a recover
 even one made from a hopper, unless the config names that custom item
 (`activator.material: 'craftengine:default:ruby'`, and the same in `default-target-item`). A pad's blocks can be
 CraftEngine blocks too, named the same way in `pads.yml`; otherwise a CraftEngine block never counts as a vanilla one.
-What FrameSort hands out (the activator, a pad block) shows its name and lore instead of CraftEngine's, if set. The
-ID is read from each item, so `/ce reload` changes nothing for items; a pad made of CraftEngine blocks waits until the
-reload ends, and in `item` mode it can't be broken meanwhile, so its item is never lost.
+A frame on a CraftEngine storage block or drawer fills it as a hopper would. What FrameSort hands out (the activator,
+a pad block) shows its name and lore instead of CraftEngine's, if set. The ID is read from each item, so `/ce reload`
+changes nothing for items; a pad made of CraftEngine blocks waits until the reload ends, and in `item` mode it can't
+be broken meanwhile, so its item is never lost.
 
 Containers are looked up the moment items go in, so a container that was moved or broken is skipped: items are
 never duplicated.

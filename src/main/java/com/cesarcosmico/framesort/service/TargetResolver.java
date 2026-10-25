@@ -14,6 +14,7 @@ import com.cesarcosmico.framesort.model.TrustList;
 import io.papermc.paper.datacomponent.DataComponentTypes;
 import io.papermc.paper.datacomponent.item.BundleContents;
 import io.papermc.paper.datacomponent.item.ItemContainerContents;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Color;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -155,13 +156,21 @@ public final class TargetResolver {
         return destination(settings.get(), frame);
     }
 
-    private static Destination destination(FrameSortSettings current, ItemFrame frame) {
+    private Destination destination(FrameSortSettings current, ItemFrame frame) {
         if (FrameGeometry.isLava(frame)) {
             return Destination.DESTROYED;
         }
         return current.delivery().insertIntoContainers()
-                && FrameGeometry.isContainer(FrameGeometry.attachedBlock(frame))
+                && FrameGeometry.isContainer(FrameGeometry.attachedBlock(frame), customItems)
                 ? Destination.CONTAINER : Destination.DROPPED;
+    }
+
+    /** The name of the block a frame on {@code block} fills; a custom plugin's block shows that plugin's name. */
+    public Component blockName(Block block) {
+        String id = customItems.blockId(block);
+        ItemStack item = id == null ? null : customItems.blockItem(new ItemReference.Custom(id), 1);
+        // While the plugin reloads, or when no item has the block's ID, only the vanilla block it shows as has a name.
+        return item == null ? Component.translatable(block.getType()) : item.effectiveName();
     }
 
     private List<Match> matches(Block source, @Nullable UUID owner, int range, ItemStack item) {
