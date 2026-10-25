@@ -73,11 +73,12 @@ the rest are CraftEngine's (they are reported and ignored).
 
 | Key | Default | Meaning |
 |---|---|---|
-| `activator.material` | `ENDER_EYE` | Item that turns a dispenser into a sorter when placed in a frame on it: a material, or a CraftEngine item (`'craftengine:<namespace>:<id>'`, see [CraftEngine items and blocks](#item-look)). A material that is not an item (`WATER`, `AIR`) falls back to the default. A CraftEngine item made from the activator's material is not the activator. |
+| `activator.material` | `HOPPER` | Item that turns a dispenser into a sorter when placed in a frame on it: a material, or a CraftEngine item (`'craftengine:<namespace>:<id>'`, see [CraftEngine items and blocks](#item-look)). A material that is not an item (`WATER`, `AIR`) falls back to the default. A CraftEngine item made from the activator's material is not the activator. |
 | `activator.require-marked` | `false` | `true`: only the activator from `/framesort give sorter` works, not any item of that material. |
 | `activator.name`, `lore`, `glint`, `components` | | *Optional.* Look of the activator FrameSort hands out (see [Item look](#item-look)); over a CraftEngine one, `name`, `lore` and `glint` only. Left out, or set to `''`, `[]` or `false`, the activator has none of it: with no name it shows the item's own name. |
 | `frame-types` | `[ITEM_FRAME, GLOW_ITEM_FRAME]` | Frames that can hold the activator. |
-| `custom-name` | `<gradient:#F7B733:#FC4A1A>Item Sorter</gradient>` | *Optional.* Title of a sorter's inventory. Left out or `''` = the dispenser's own name. The dispenser itself is never renamed: once it stops sorting it shows its own name again (from an anvil, or none), and a broken sorter drops it with that name. |
+| `custom-name` | `<gradient:#F7B733:#FC4A1A>Sorter</gradient>` | *Optional.* Title of a sorter's inventory. Left out or `''` = the dispenser's own name. The dispenser itself is never renamed: once it stops sorting it shows its own name again (from an anvil, or none), and a broken sorter drops it with that name. |
+| `range` | `64` | A sorter's targets are searched within this many blocks of it (1 to 512). Each pad type has its own `range` in `pads.yml`. |
 | `tick-rate` | `20` | Ticks between two turns of the same sorter. |
 | `disable-when-powered` | `false` | A powered sorter stops sending. |
 | `hide-frame` | `true` | Hides the activator's frame while the sorter works. A reload applies a change to every sorter. |
@@ -95,21 +96,19 @@ targets that accept it.
 
 | Key | Default | Meaning |
 |---|---|---|
-| `registration` | `manual` | `manual`: only frames marked by sneak + right-clicking them with an empty hand. `automatic`: every frame of `frame-types` on a container or composter; frames anywhere else (walls, lava cauldrons) are never targets, so marking is the only way to make a drop spot or a trash can. A frame belongs to whoever marked it, or, under `automatic`, to whoever put its item in. In either mode, putting another item in a frame ends its mark: after switching back to `manual`, a frame whose item changed must be marked again. After switching to `automatic`, a frame that wasn't marked has no owner until an item is put in again. |
 | `frame-types` | `[ITEM_FRAME, GLOW_ITEM_FRAME]` | Frames that can be targets. |
 | `tagged-item.name`, `lore`, `glint` | `'<gradient:#F7B733:#FC4A1A>#<tag></gradient>'`, none, `true` | *Optional.* Look a tagged item gets (see [Item look](#item-look)); in `name` and `lore`, `<tag>` is the tag, without `minecraft:` for vanilla tags. Left out, or set to `''`, `[]` or `false`, the item has none of it: `tagged-item: {}` tags items without changing how they look. |
 
-A target frame may hang on any face of its block, whichever way the block faces: the lid of an upright barrel, the
-side of a chest or the bottom of one in a ceiling. With `automatic`, that means every frame on a container or
-composter is a target.
+Only marked frames are targets: marked by hand, or by putting the item in with `/framesort automark` on (see
+[docs/commands.md](commands.md)). A target frame may hang on any face of its block, whichever way the block faces:
+the lid of an upright barrel, the side of a chest or the bottom of one in a ceiling.
 
 ### delivery
 
 | Key | Default | Meaning |
 |---|---|---|
-| `max-distance` | `64` | Targets are searched within this many blocks of the sorter or pad. |
 | `insert-into-containers` | `true` | `true`: items go into the container behind the frame, or are composted by a composter. `false`: frames on containers or composters drop the items in front of them instead; frames on lava cauldrons still destroy them. |
-| `default-target-item` | `CARROT_ON_A_STICK` | Frames holding it take whatever matches no other frame, and whatever the other targets have no room for: a material (but not a CraftEngine item made from it) or a CraftEngine item (`'craftengine:<namespace>:<id>'`). `''` = off. A material that is not an item falls back to the default. |
+| `default-target-item` | `RECOVERY_COMPASS` | Frames holding it (a recovery compass inside the frame) take whatever matches no other frame, and whatever the other targets have no room for: a material (but not a CraftEngine item made from it) or a CraftEngine item (`'craftengine:<namespace>:<id>'`). `''` = off. A material that is not an item falls back to the default. |
 
 How a destination is chosen:
 
@@ -124,14 +123,17 @@ How a destination is chosen:
    pad first (counting height too), until it is all in. Targets of players the owner trusts take their turn by
    distance like the owner's own.
 3. Whatever is left is dropped at the nearest frame of that level without a container. If that level's frames
-   without a container are all on lava cauldrons, the rest is destroyed. Either way the delivery ends there.
+   without a container are all on lava cauldrons, the rest is destroyed. Either way the delivery ends there. If
+   another plugin cancels the drop (an item limiter, for instance), items from a sorter stay in it, and items from a
+   player's inventory stay in that inventory. A stacking plugin that merges items by cancelling their drop would then
+   double them, so try a drop spot with yours.
 4. Otherwise, what is left goes on to the next level. If no level has room, it stays.
 
 **A sorter never sends to another sorter.** A target frame on a sorter only takes items from pads (its frame card says
 so), so a pad can feed a sorter that opens the shulker boxes and bundles dropped on it, and no two sorters pass items
 back and forth. Nor does a sorter or pad send into its own block, and none of them drops items where they would fall
-onto a pad, which would pick them up and send them again. Hoppers can still lead items back into a sorter: build them so
-that items don't go round.
+onto a pad, which would pick them up and send them again; no pad pulls back what they drop either. Hoppers can
+still lead items back into a sorter: build them so that items don't go round.
 
 **Tagged items.** `/framesort tag apply <tag>` (or the [Apply] button in `/framesort tag show <tag>`) applies a tag
 to the item in your hand: the tag is stored inside the item, which takes the look of `targets.tagged-item`.
@@ -148,10 +150,10 @@ ready a second later and takes nothing more until it is emptied. A hopper under 
 vanilla. Items it doesn't take go on to the other targets as usual.
 
 **Lava cauldrons are trash cans.** A target frame on a lava cauldron holds the item to destroy and is chosen like
-any other frame (exact item, tag, material); it must be marked, because `registration: automatic` only uses frames
-on containers. If a container with the same or a better priority also takes that item, the lava only gets what
-doesn't fit; containers with a worse priority get nothing. With the default target item (a carrot on a stick) in the
-frame, it destroys whatever has no other target or no room left in one. An empty frame does nothing.
+any other frame (exact item, tag, material). If a container with the same or a better priority also takes that
+item, the lava only gets what doesn't fit; containers with a worse priority get nothing. With the default target
+item (an item frame) in the frame, it destroys whatever has no other target or no room left in one. An empty
+frame does nothing.
 
 ### ownership
 
@@ -159,12 +161,11 @@ frame, it destroys whatever has no other target or no room left in one. An empty
 |---|---|---|
 | `enabled` | `true` | `true`: a sorter or pad sends only to frames of its owner and of the players its owner trusts (`/framesort trust`), and only they inspect it or see its deliveries in `/framesort trace`. `false`: it sends to any frame and anyone inspects it, as without owners, and `/framesort trust`, `untrust` and `trusted` are hidden. A reload applies it, to the commands too. |
 
-What a player sets up is theirs: a target frame belongs to whoever marked it (with `registration: automatic`, to
-whoever put its item in), a sorter to whoever put the activator in, a pad to whoever placed its top block. Owners are
-recorded even with `enabled: false`, so turning it on later finds them. What has no owner (built before owners
-existed, or pasted without its data) only sends to frames that have none either, and only admins inspect it;
-unmarking and marking a frame again (with `registration: automatic`, taking its item out and putting it back),
-putting the activator back, or breaking and placing a pad's top block again gives it an owner. More in
+What a player sets up is theirs: a target frame belongs to whoever marked it, a sorter to whoever put the activator
+in, a pad to whoever placed its top block. Owners are recorded even with `enabled: false`, so turning it on later
+finds them. What has no owner (built before owners existed, or pasted without its data) only sends to frames that
+have none either, and only admins inspect it; unmarking and marking a frame again, putting the activator back, or
+breaking and placing a pad's top block again gives it an owner. More in
 [docs/commands.md](commands.md#owners-and-trust).
 
 ### inspect
@@ -182,17 +183,47 @@ putting the activator back, or breaking and placing a pad's top block again give
 | Key | Default | Meaning |
 |---|---|---|
 | `creation` | `anyone` | `anyone`: any player who places the top block on its base. `permission`: only players with `framesort.pad.create`. `item`: only by placing the pad's special item (from `/framesort give pad`) as the top block. |
-| `sweep-interval` | `10` | Ticks between checks for items resting on pads. Items that arrive by water or fall onto a pad are picked up then. |
+| `sweep-interval` | `10` | Ticks between checks for items resting on pads, for loose items near them to pull, and for players crouching on pads that take inventories. Items that arrive by water or fall onto a pad are picked up then. |
 | `types.<id>.structure` | | Exactly two blocks: the top, where items rest, then its base. The `<id>` can't contain `,`: each pad keeps it in its chunk between commas. Each one is a material or a CraftEngine block (`'craftengine:<namespace>:<id>'`). Players build pads by hand, so a material must be a block a player can place (not `STICK`, `WATER` or `AIR`); otherwise the type is skipped with a warning. |
+| `types.<id>.range` | `64` | Targets of a pad of this type are searched within this many blocks of it (1 to 512). Left out, it is reported and `64` is used. |
+| `types.<id>.pull-radius` | `4` | Blocks around a pad of this type whose loose items it pulls onto itself (0 to 16; `0` = off). See below. Left out, it is reported and `4` is used. |
+| `types.<id>.takes-from-inventory` | `false` | `true`: a player crouching on a pad of this type sends a stack of their main inventory on every check. See below. Left out, it is reported and `false` is used. |
 | `types.<id>.item` | | *Optional*, and so is each key in it: `name`, `lore` and `glint` of the special top block (see [Item look](#item-look)). Left out, or set to `''`, `[]` or `false`, the block has none of it. Its material is the top block of the structure and it looks like that block, so it takes no `components` (they are reported and ignored). With a CraftEngine top block the item is CraftEngine's, and `name`, `lore` and `glint` are laid over it (see [CraftEngine items and blocks](#item-look)). |
+
+A key a type doesn't take, in it or in its `item`, is reported with its path as a typo and ignored.
 
 A pad is created when its top block is placed on its base, so place the base first. It counts as long as both
 blocks stay; breaking the top block removes it, and whoever broke it is told so. If the top block goes any other
 way (WorldEdit, a command, gravity), the pad is forgotten at the next sweep. Without its base a pad waits, and works
 again once the base is back. In `item` mode, breaking it gives the special item back. The top block of a registered
-pad can't be pushed by pistons or blown up.
+pad can't be pushed by pistons, blown up or changed where it stands: an axe can't scrape the wax off a copper top
+block, nor a mob change it.
 
 Items resting up to one block above the top block count, so carpets or slabs on the pad are fine.
+
+**Pads pull loose items in.** On every check, a pad throws the items lying on the ground within its type's
+`pull-radius` blocks of its top in an arc that ends, half a second later, one and a half blocks over its centre;
+there the item is put right over the pad, stops and drops onto it, and a check sends it. It only pulls what it can
+see on a straight line to that point: a wall in between stops it, but a carpet or slab resting on the pad doesn't. An
+item lying within a block of the pad's side, whose arc would hit it, hops straight up instead, if nothing is over it,
+and is put over the pad the same way; one under the pad stays. A pad only pulls while the block right over it is
+empty or leaves room on top (a carpet, a bottom slab) and the one above that is free. It doesn't pull items already
+on a pad, items so far above the pad that they couldn't take off, or what FrameSort itself dropped at a drop spot,
+except once if that item merged with another one lying there. Items no target takes stay on top of the pad. With
+WorldGuard, a pad only pulls items lying in exactly its own regions; without it, or another plugin cancelling
+`PadPullEvent`, a pad pulls across claim borders, so set every type's `pull-radius` to `0` on servers that need it.
+
+**Pads that take inventories.** On every check, a pad whose type has `takes-from-inventory: true` sends one stack
+from the main inventory (the 27 slots above the hotbar) of every player crouching on its top, picked at random like a
+sorter's: a stack no target takes stays in its slot and the next one is tried, so it never holds up the rest. With
+the default `sweep-interval`, a full inventory empties in under 15 seconds. The hotbar, armour and off hand stay. A
+player crouching beside the pad, or in spectator mode, is left alone. What it sends goes where the pad sends
+anything, to its owner's targets and those of players the owner trusts, and shulker boxes and bundles go whole.
+
+The bundled types are a waxed copper grate on a waxed block of copper (`copper`), a lodestone on smooth stone
+(`lodestone`) and chiseled tuff bricks on polished tuff (`tuff`), which takes inventories and pulls nothing. Copper
+ages into another block, so a pad of plain copper would end once it did: both copper blocks have to be waxed
+(honeycomb) before they are placed, and `/framesort give pad copper` hands the grate out waxed.
 
 A vanilla block in `structure` is only that block: a CraftEngine block never counts as it, whatever vanilla block it
 shows as to the server (bricks by default), and one put in place of a pad's top block ends the pad at the next
@@ -299,6 +330,5 @@ hover.
 
 What a frame accepts is shown as one message built from `frame.layout`, framed like a page: `<title>` is
 `frame.title` and `<lines>` are the `frame.status`, `frame.owner`, `frame.into`, `frame.on-sorter`, `frame.accepts`
-and `frame.sources` lines that apply. A target without an owner shows `frame.no-owner`, or
-`frame.no-owner-automatic` under automatic registration. A tag line is `frame.accepts.tag-link` when its click lists
-the tag, else `frame.accepts.tag`.
+and `frame.sources` lines that apply. A target without an owner shows `frame.no-owner`. A tag line is
+`frame.accepts.tag-link` when its click lists the tag, else `frame.accepts.tag`.

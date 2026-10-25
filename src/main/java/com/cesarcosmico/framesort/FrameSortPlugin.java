@@ -1,5 +1,6 @@
 package com.cesarcosmico.framesort;
 
+import com.cesarcosmico.framesort.command.AutomarkCommand;
 import com.cesarcosmico.framesort.command.CommandFeature;
 import com.cesarcosmico.framesort.command.CommandTree;
 import com.cesarcosmico.framesort.command.GiveCommand;
@@ -27,13 +28,14 @@ import com.cesarcosmico.framesort.config.FrameSortSettings;
 import com.cesarcosmico.framesort.config.PadSettings;
 import com.cesarcosmico.framesort.config.TagSettings;
 import com.cesarcosmico.framesort.integration.craftengine.CraftEngineItemResolver;
-import com.cesarcosmico.framesort.integration.worldguard.WorldGuardTargetListener;
+import com.cesarcosmico.framesort.integration.worldguard.WorldGuardListener;
 import com.cesarcosmico.framesort.item.ItemTemplate;
 import com.cesarcosmico.framesort.listener.InspectListener;
 import com.cesarcosmico.framesort.listener.PadListener;
 import com.cesarcosmico.framesort.listener.SorterListener;
 import com.cesarcosmico.framesort.listener.TargetListener;
 import com.cesarcosmico.framesort.model.TrustList;
+import com.cesarcosmico.framesort.service.AutomarkService;
 import com.cesarcosmico.framesort.service.CustomItemResolver;
 import com.cesarcosmico.framesort.service.DeliveryService;
 import com.cesarcosmico.framesort.service.HighlightService;
@@ -89,7 +91,7 @@ public final class FrameSortPlugin extends JavaPlugin {
     private TargetResolver resolver;
     private SorterService sorters;
     private PadService padService;
-    private InspectService inspect;
+    private HighlightService highlights;
     // Null in onDisable when the plugin failed to start, or before it got that far.
     private @Nullable BukkitTask ticker;
     private @Nullable Database database;
@@ -136,28 +138,34 @@ public final class FrameSortPlugin extends JavaPlugin {
         TraceService trace = new TraceService(this, settings, messages, trust);
         DeliveryService delivery = new DeliveryService(this, resolver, trace::report);
         sorters = new SorterService(this, settings, delivery, customItems);
-        padService = new PadService(getServer(), pads, delivery, customItems);
-        inspect = new InspectService(this, new HighlightService(this), settings, messages, index, resolver, trust,
+        padService = new PadService(this, pads, delivery, customItems);
+        highlights = new HighlightService(this);
+        InspectService inspect = new InspectService(this, highlights, settings, messages, index, resolver, trust,
                 sorters, padService, commands);
 
-        register(new TargetListener(index), new SorterListener(sorters, messages),
+        // Without the command a player could not switch it off, so it only acts while they may run it.
+        AutomarkService automark = new AutomarkService(this, index, sorters, inspect,
+                player -> commands.usageFor("automark", player::hasPermission) != null);
+
+        register(new TargetListener(index, automark), new SorterListener(sorters, messages),
                 new PadListener(padService, messages), new InspectListener(inspect, sorters, padService));
         // Only this check loads the integration's classes, so FrameSort runs without WorldGuard installed.
         if (getServer().getPluginManager().isPluginEnabled("WorldGuard")) {
-            register(new WorldGuardTargetListener());
+            register(new WorldGuardListener());
         }
-        List<String> helpLines = List.of("tag-list", "tag-search", "tag-show", "tag-apply", "tag-remove", "where",
-                "trace", "trust", "untrust", "trusted", "give", "reload");
+        List<String> helpLines = List.of("automark", "tag-list", "tag-search", "tag-show", "tag-apply", "tag-remove",
+                "where", "trace", "trust", "untrust", "trusted", "give", "reload");
         TagListing listing = new TagListing(tags, messages, settings, commands);
         List<CommandFeature> features = List.of(
                 new HelpCommand(messages, commands, helpLines),
+                new AutomarkCommand(automark, messages),
                 new TagListCommand(listing),
                 new TagSearchCommand(listing),
                 new TagShowCommand(tags, messages, settings, commands, customItems),
                 new TagApplyCommand(tags, messages, settings, commands),
                 new TagRemoveCommand(messages),
                 new TraceCommand(trace, messages, settings),
-                new WhereCommand(inspect, messages, settings),
+                new WhereCommand(inspect, messages),
                 new TrustCommand(trust, messages),
                 new UntrustCommand(trust, messages),
                 new TrustedCommand(trust, messages, settings),
@@ -195,7 +203,7 @@ public final class FrameSortPlugin extends JavaPlugin {
         if (ticker != null) {
             ticker.cancel();
             sorters.stopAll();
-            inspect.stopAll();
+            highlights.clearAll();
         }
         // Also when the start failed after opening it: it waits for queued writes, then closes the pool.
         if (database != null) {

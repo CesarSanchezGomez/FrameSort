@@ -111,6 +111,16 @@ class ConfigReaderTest {
     }
 
     @Test
+    void unknownKeysWarnOneByOneButChildSectionsAreLeftToTheirOwnCheck() throws Exception {
+        ConfigReader reader = reader("types:\n  a:\n    range: 8\n    rnage: 9\n    item:\n      lroe: []\n    pul: 1\n"
+                + "  b:\n    range: 8\n");
+        reader.sectionOrEmpty("types.a").warnUnknownKeys(Set.of("range", "item"));
+        reader.sectionOrEmpty("types.b").warnUnknownKeys(Set.of("range", "item"));
+        assertEquals(List.of("config.yml > types.a.rnage: unknown key, typo or removed setting; ignored",
+                "config.yml > types.a.pul: unknown key, typo or removed setting; ignored"), warnings);
+    }
+
+    @Test
     void anEnumSetWithNoValidValueFallsBack() throws Exception {
         assertEquals(Set.of(DayOfWeek.SUNDAY),
                 reader("days: ['x']\n").enumSet("days", DayOfWeek.class, Set.of(DayOfWeek.SUNDAY)));

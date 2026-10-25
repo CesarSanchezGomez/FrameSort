@@ -15,7 +15,6 @@ import io.papermc.paper.datacomponent.item.ItemContainerContents;
 import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
-import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.Dispenser;
@@ -25,7 +24,6 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.Plugin;
-import org.bukkit.util.Vector;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -87,7 +85,7 @@ public final class SorterService {
     }
 
     public Change consider(ItemFrame frame) {
-        boolean holdsActivator = settings.get().sorter().isActivatorFrame(frame, customItems::id);
+        boolean holdsActivator = settings.get().sorter().isActivatorFrame(frame, frame.getItem(), customItems::id);
         if (!FrameGeometry.attachedLoaded(frame)) {
             // Only frames that could make a sorter wait for the neighbouring chunk; the rest are never sorters.
             if (holdsActivator && waiting.add(frame.getUniqueId())) {
@@ -224,7 +222,7 @@ public final class SorterService {
                 current.due = tick + sorter.tickRate();
                 continue;
             }
-            if (!makesSorter(current.frame, current.block)) {
+            if (!makesSorter(current.frame, current.frame.getItem())) {
                 sorters.remove(entry.getKey());
                 applyLook(current.frame, false);
                 continue;
@@ -238,13 +236,13 @@ public final class SorterService {
         }
     }
 
-    private boolean makesSorter(ItemFrame frame, Block block) {
-        return block.getType() == Material.DISPENSER
-                && settings.get().sorter().isActivatorFrame(frame, customItems::id);
+    /** Whether {@code item} in {@code frame} makes a sorter of the block the frame hangs on. */
+    public boolean makesSorter(ItemFrame frame, ItemStack item) {
+        return FrameGeometry.attachedBlock(frame).getType() == Material.DISPENSER
+                && settings.get().sorter().isActivatorFrame(frame, item, customItems::id);
     }
 
     private void dispense(Sorter sorter) {
-        Location location = sorter.block.getLocation().toCenterLocation();
         UUID owner = FrameCodec.owner(sorter.frame);
         int sent = 0;
         // What found nowhere to go this turn is not tried again.
@@ -260,7 +258,8 @@ public final class SorterService {
             }
             ItemStack tried = slot.get();
             int kept = Math.max(0, tried.getAmount() - (PER_TURN - sent));
-            int moved = delivery.deliver(sorter.block, owner, new SlotSource(slot, location, kept));
+            int moved = delivery.deliver(sorter.block, owner, settings.get().sorter().range(),
+                    new SlotSource(slot, kept));
             if (moved == 0) {
                 missed.add(tried);
             }
@@ -297,7 +296,7 @@ public final class SorterService {
         List<ItemStack> contents = Arrays.stream(inventory.getContents())
                 .map(item -> item == null ? ItemStack.empty() : item).toList();
         for (int index : shuffledFilled(contents)) {
-            Slot found = pick(new InventorySlot(inventory, index), contents.get(index), missed, 0);
+            Slot found = pick(new Slot.InventorySlot(inventory, index), contents.get(index), missed, 0);
             if (found != null) {
                 return found;
             }
@@ -319,7 +318,7 @@ public final class SorterService {
             List<ItemStack> inside = container != null ? container.contents()
                     : bundle != null ? bundle.contents() : List.of();
             for (int index : shuffledFilled(inside)) {
-                Slot child = container != null ? new ContainerSlot(slot, index) : new BundleSlot(slot, index);
+                Slot child = container != null ? new Slot.ContainerSlot(slot, index) : new Slot.BundleSlot(slot, index);
                 Slot found = pick(child, inside.get(index), missed, depth + 1);
                 if (found != null) {
                     return found;
@@ -338,101 +337,5 @@ public final class SorterService {
         }
         Collections.shuffle(filled, ThreadLocalRandom.current());
         return filled;
-    }
-
-    private sealed interface Slot permits InventorySlot, ContainerSlot, BundleSlot {
-        ItemStack get();
-
-        void set(ItemStack stack);
-    }
-
-    private record InventorySlot(Inventory inventory, int index) implements Slot {
-        @Override
-        public ItemStack get() {
-            ItemStack item = inventory.getItem(index);
-            return item == null ? ItemStack.empty() : item;
-        }
-
-        @Override
-        public void set(ItemStack stack) {
-            inventory.setItem(index, stack.isEmpty() ? null : stack);
-        }
-    }
-
-    private record ContainerSlot(Slot parent, int index) implements Slot {
-        @Override
-        public ItemStack get() {
-            ItemContainerContents contents = parent.get().getData(DataComponentTypes.CONTAINER);
-            return contents == null || index >= contents.contents().size()
-                    ? ItemStack.empty() : contents.contents().get(index);
-        }
-
-        @Override
-        public void set(ItemStack stack) {
-            ItemStack holder = parent.get();
-            ItemContainerContents contents = holder.getData(DataComponentTypes.CONTAINER);
-            if (contents == null || index >= contents.contents().size()) {
-                return;
-            }
-            List<ItemStack> items = new ArrayList<>(contents.contents());
-            items.set(index, stack);
-            holder.setData(DataComponentTypes.CONTAINER, ItemContainerContents.containerContents(items));
-            parent.set(holder);
-        }
-    }
-
-    private record BundleSlot(Slot parent, int index) implements Slot {
-        @Override
-        public ItemStack get() {
-            BundleContents contents = parent.get().getData(DataComponentTypes.BUNDLE_CONTENTS);
-            return contents == null || index >= contents.contents().size()
-                    ? ItemStack.empty() : contents.contents().get(index);
-        }
-
-        @Override
-        public void set(ItemStack stack) {
-            ItemStack holder = parent.get();
-            BundleContents contents = holder.getData(DataComponentTypes.BUNDLE_CONTENTS);
-            if (contents == null || index >= contents.contents().size()) {
-                return;
-            }
-            List<ItemStack> items = new ArrayList<>(contents.contents());
-            if (stack.isEmpty()) {
-                items.remove(index);
-            } else {
-                items.set(index, stack);
-            }
-            holder.setData(DataComponentTypes.BUNDLE_CONTENTS, BundleContents.bundleContents(items));
-            parent.set(holder);
-        }
-    }
-
-    /** Offers all of the slot but {@code kept} items, which stay in it whatever happens: a turn never goes past 64. */
-    private record SlotSource(Slot slot, Location location, int kept) implements DeliveryService.Source {
-        @Override
-        public ItemStack stack() {
-            ItemStack item = slot.get();
-            return item.asQuantity(item.getAmount() - kept);
-        }
-
-        @Override
-        public void commit(int remaining) {
-            leave(kept + remaining);
-        }
-
-        @Override
-        public void moveTo(Location destination) {
-            destination.getWorld().dropItem(destination, stack(), item -> item.setVelocity(new Vector()));
-            leave(kept);
-        }
-
-        @Override
-        public void destroy() {
-            leave(kept);
-        }
-
-        private void leave(int amount) {
-            slot.set(amount <= 0 ? ItemStack.empty() : slot.get().asQuantity(amount));
-        }
     }
 }

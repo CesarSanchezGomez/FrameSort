@@ -18,6 +18,14 @@ help:
     - '/fs'
     - '/framesort'
 
+# Usage: [COMMAND]   (switches between marking frames by hand and when you put an item in)
+automark:
+  enabled: true
+  permission: 'framesort.command.automark'
+  usage:
+    - '/fs automark'
+    - '/framesort automark'
+
 # Usage: [COMMAND] [page]
 tag-list:
   enabled: true

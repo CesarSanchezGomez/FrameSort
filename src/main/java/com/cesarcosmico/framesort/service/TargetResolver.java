@@ -10,7 +10,6 @@ import com.cesarcosmico.framesort.model.BlockKey;
 import com.cesarcosmico.framesort.model.ItemReference;
 import com.cesarcosmico.framesort.model.MatchTier;
 import com.cesarcosmico.framesort.model.Ranking;
-import com.cesarcosmico.framesort.model.TargetRegistration;
 import com.cesarcosmico.framesort.model.TrustList;
 import io.papermc.paper.datacomponent.DataComponentTypes;
 import io.papermc.paper.datacomponent.item.BundleContents;
@@ -84,8 +83,9 @@ public final class TargetResolver {
     private record Match(ItemFrame frame, int priority, ItemStack frameItem) {
     }
 
-    // The owner is part of the key: a pad rebuilt on the same block by someone else must not reuse its matches.
-    private record CacheKey(BlockKey source, @Nullable UUID owner, ItemStack item) {
+    // The owner and range are part of the key: a pad rebuilt on the same block by someone else, or as another type,
+    // must not reuse its matches.
+    private record CacheKey(BlockKey source, @Nullable UUID owner, int range, ItemStack item) {
     }
 
     private record Entry(long epoch, List<Match> matches) {
@@ -113,13 +113,14 @@ public final class TargetResolver {
 
     /**
      * Deliveries and inspections both plan here, so an inspection always shows what a delivery would do.
-     * {@code owner} is the source's owner, or {@code null} when nobody owns it.
+     * {@code owner} is the source's owner, or {@code null} when nobody owns it; {@code range} is how far from the
+     * source its targets may be.
      */
-    public Plan plan(Block source, @Nullable UUID owner, ItemStack item) {
+    public Plan plan(Block source, @Nullable UUID owner, int range, ItemStack item) {
         FrameSortSettings current = settings.get();
         Ranking<ItemFrame> ranking = new Ranking<>();
         boolean stale = false;
-        for (Match match : matches(source, owner, item)) {
+        for (Match match : matches(source, owner, range, item)) {
             ItemFrame frame = match.frame();
             if (!frame.isValid() || !FrameGeometry.attachedLoaded(frame)
                     || !frame.getItem().equals(match.frameItem())) {
@@ -163,15 +164,15 @@ public final class TargetResolver {
                 ? Destination.CONTAINER : Destination.DROPPED;
     }
 
-    private List<Match> matches(Block source, @Nullable UUID owner, ItemStack item) {
+    private List<Match> matches(Block source, @Nullable UUID owner, int range, ItemStack item) {
         BlockKey key = FrameGeometry.key(source);
-        CacheKey cacheKey = new CacheKey(key, owner, item.asOne());
+        CacheKey cacheKey = new CacheKey(key, owner, range, item.asOne());
         long epoch = index.epoch(key.world());
         Entry entry = cache.get(cacheKey);
         if (entry != null && entry.epoch() == epoch) {
             return entry.matches();
         }
-        List<Match> matches = compute(source, owner, key, cacheKey.item());
+        List<Match> matches = compute(source, owner, key, range, cacheKey.item());
         if (cache.size() >= MAX_CACHED) {
             cache.clear();
         }
@@ -179,8 +180,8 @@ public final class TargetResolver {
         return matches;
     }
 
-    public void forget(Block source, @Nullable UUID owner, ItemStack item) {
-        cache.remove(new CacheKey(FrameGeometry.key(source), owner, item.asOne()));
+    public void forget(Block source, @Nullable UUID owner, int range, ItemStack item) {
+        cache.remove(new CacheKey(FrameGeometry.key(source), owner, range, item.asOne()));
     }
 
     public void clear() {
@@ -243,9 +244,9 @@ public final class TargetResolver {
     }
 
     /** The frames in range that {@code source} may send to, whatever the item. */
-    public List<ItemFrame> targets(Block source, @Nullable UUID owner) {
+    public List<ItemFrame> targets(Block source, @Nullable UUID owner, int range) {
         List<ItemFrame> found = new ArrayList<>();
-        for (ItemFrame frame : index.near(FrameGeometry.key(source), settings.get().delivery().maxDistance())) {
+        for (ItemFrame frame : index.near(FrameGeometry.key(source), range)) {
             if (reaches(source, owner, frame)) {
                 found.add(frame);
             }
@@ -253,11 +254,11 @@ public final class TargetResolver {
         return List.copyOf(found);
     }
 
-    private List<Match> compute(Block source, @Nullable UUID owner, BlockKey key, ItemStack item) {
+    private List<Match> compute(Block source, @Nullable UUID owner, BlockKey key, int range, ItemStack item) {
         FrameSortSettings current = settings.get();
         String itemId = customItems.id(item);
         List<Match> matches = new ArrayList<>();
-        for (ItemFrame frame : index.near(key, current.delivery().maxDistance())) {
+        for (ItemFrame frame : index.near(key, range)) {
             if (!eligible(current, source, owner, frame)) {
                 continue;
             }
@@ -278,13 +279,9 @@ public final class TargetResolver {
             return false;
         }
         Block attached = FrameGeometry.attachedBlock(frame);
-        // Unmarked frames only count on containers, so a decorative frame never becomes a drop spot or trash can.
-        if (current.targets().registration() == TargetRegistration.AUTOMATIC && !FrameGeometry.isContainer(attached)) {
-            return false;
-        }
         // Never send a source's items back into itself, and never treat a sorter's own frame as a target.
         if (attached.equals(source) || attached.getType() == Material.DISPENSER
-                && current.sorter().isActivatorFrame(frame, customItems::id)) {
+                && current.sorter().isActivatorFrame(frame, shown, customItems::id)) {
             return false;
         }
         // Anyone can hang a frame near a sorter: it takes the owner's items only if the owner trusts its owner.
@@ -322,7 +319,7 @@ public final class TargetResolver {
         for (ItemFrame frame : block.getWorld().getNearbyEntitiesByType(ItemFrame.class,
                 block.getLocation().toCenterLocation(), 1)) {
             if (FrameGeometry.attachedBlock(frame).equals(block)
-                    && current.sorter().isActivatorFrame(frame, customItems::id)) {
+                    && current.sorter().isActivatorFrame(frame, frame.getItem(), customItems::id)) {
                 return true;
             }
         }

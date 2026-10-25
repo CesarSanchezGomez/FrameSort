@@ -2,7 +2,6 @@ package com.cesarcosmico.framesort.config;
 
 import com.cesarcosmico.framesort.item.ItemLook;
 import com.cesarcosmico.framesort.model.ItemReference;
-import com.cesarcosmico.framesort.model.TargetRegistration;
 import org.bukkit.Color;
 import org.bukkit.Material;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -32,8 +31,8 @@ class FrameSortSettingsTest {
     // Minecraft checks components on a server; these tests reject only the component named "nope".
     static final Function<String, @Nullable String> PROBLEM =
             input -> input.contains("nope=") ? "Unknown item component 'minecraft:nope'" : null;
-    private static final ItemReference EYE = new ItemReference.Vanilla(Material.ENDER_EYE);
-    private static final ItemReference CARROT = new ItemReference.Vanilla(Material.CARROT_ON_A_STICK);
+    private static final ItemReference HOPPER = new ItemReference.Vanilla(Material.HOPPER);
+    private static final ItemReference COMPASS = new ItemReference.Vanilla(Material.RECOVERY_COMPASS);
 
     static YamlConfiguration bundled(String resource) throws Exception {
         try (InputStream in = FrameSortSettingsTest.class.getResourceAsStream("/" + resource)) {
@@ -52,14 +51,13 @@ class FrameSortSettingsTest {
 
         assertEquals(List.of(), warnings);
         assertEquals("en_US", settings.language());
-        assertEquals(EYE, settings.sorter().activator());
+        assertEquals(HOPPER, settings.sorter().activator());
         assertFalse(settings.sorter().requireMarked());
         assertEquals(20, settings.sorter().tickRate());
         assertTrue(settings.sorter().showActivity());
-        assertEquals(TargetRegistration.MANUAL, settings.targets().registration());
-        assertEquals(64, settings.delivery().maxDistance());
+        assertEquals(64, settings.sorter().range());
         assertTrue(settings.delivery().insertIntoContainers());
-        assertEquals(CARROT, settings.delivery().defaultTargetItem());
+        assertEquals(COMPASS, settings.delivery().defaultTargetItem());
         assertEquals(Map.of(), settings.sorter().activatorComponents());
         assertEquals("<gradient:#F7B733:#FC4A1A>#<tag></gradient>", settings.targets().taggedItem().name());
         assertTrue(settings.targets().taggedItem().glint());
@@ -74,7 +72,7 @@ class FrameSortSettingsTest {
         FrameSortSettings settings = parse(new YamlConfiguration(), warnings);
 
         assertEquals(List.of(), warnings);
-        assertEquals(64, settings.delivery().maxDistance());
+        assertEquals(64, settings.sorter().range());
         assertEquals(Set.of(EntityType.ITEM_FRAME, EntityType.GLOW_ITEM_FRAME), settings.sorter().frameTypes());
         assertEquals(8, settings.inspect().pageSize());
         // Without the section a tag changes nothing in the item's look.
@@ -90,10 +88,8 @@ class FrameSortSettingsTest {
                   activator: { material: NOT_A_THING }
                   tick-rate: 0
                   frame-types: [ITEM_FRAME, ZOMBIE]
-                targets:
-                  registration: sometimes
+                  range: lots
                 delivery:
-                  max-distance: lots
                   default-target-item: ""
                 inspect:
                   colors: { dropped: "#ABC", lava: "#00ff7f" }
@@ -102,16 +98,15 @@ class FrameSortSettingsTest {
         FrameSortSettings settings = parse(yaml, warnings);
 
         assertEquals("en_US", settings.language());
-        assertEquals(EYE, settings.sorter().activator());
+        assertEquals(HOPPER, settings.sorter().activator());
         assertEquals(20, settings.sorter().tickRate());
         assertEquals(Set.of(EntityType.ITEM_FRAME), settings.sorter().frameTypes());
-        assertEquals(TargetRegistration.MANUAL, settings.targets().registration());
-        assertEquals(64, settings.delivery().maxDistance());
+        assertEquals(64, settings.sorter().range());
         assertNull(settings.delivery().defaultTargetItem());
         assertEquals(Color.fromRGB(0xFFFF55), settings.inspect().colors().dropped());
         assertEquals(Color.fromRGB(0x00FF7F), settings.inspect().colors().lava());
         // default-target-item "" is a valid "off", so it does not warn.
-        assertEquals(7, warnings.size(), warnings::toString);
+        assertEquals(6, warnings.size(), warnings::toString);
         assertTrue(warnings.stream().allMatch(w -> w.startsWith("config.yml > ")), warnings::toString);
     }
 
@@ -243,13 +238,13 @@ class FrameSortSettingsTest {
         FrameSortSettings settings = FrameSortSettings.parse(
                 new ConfigReader(yaml, "config.yml", warnings::add), IS_ITEM, PROBLEM, false);
 
-        assertEquals(EYE, settings.sorter().activator());
-        assertEquals(CARROT, settings.delivery().defaultTargetItem());
+        assertEquals(HOPPER, settings.sorter().activator());
+        assertEquals(COMPASS, settings.delivery().defaultTargetItem());
         assertEquals(List.of(
                 "config.yml > sorter.activator.material: 'craftengine:default:ruby' needs CraftEngine, which is not "
-                        + "installed, using ENDER_EYE",
+                        + "installed, using HOPPER",
                 "config.yml > delivery.default-target-item: 'craftengine:default:trash_bag' needs CraftEngine, which "
-                        + "is not installed, using CARROT_ON_A_STICK"), warnings);
+                        + "is not installed, using RECOVERY_COMPASS"), warnings);
     }
 
     @Test
@@ -277,8 +272,8 @@ class FrameSortSettingsTest {
         List<String> warnings = new ArrayList<>();
         FrameSortSettings settings = parse(yaml, warnings);
 
-        assertEquals(EYE, settings.sorter().activator());
-        assertEquals(CARROT, settings.delivery().defaultTargetItem());
+        assertEquals(HOPPER, settings.sorter().activator());
+        assertEquals(COMPASS, settings.delivery().defaultTargetItem());
         assertEquals(2, warnings.size(), warnings::toString);
     }
 }

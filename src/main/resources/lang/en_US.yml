@@ -16,6 +16,7 @@ command:
       - ''
       - '<gradient:#F7B733:#FC4A1A>◣<st>                                   </st></gradient><gradient:#FC4A1A:#F7B733><st>                                   </st>◢</gradient>'
       - ''
+    automark: '  <color:#F7B733>•</color> <hover:show_text:"<gray>Whether an item you put in a frame<newline>on a container marks it.</gray>"><white><usage></white> <dark_gray>automark on/off</dark_gray></hover>'
     tag-list: '  <color:#F7B733>•</color> <hover:show_text:"<gray>Every item and block tag,<newline>and the tags in tags.yml.</gray>"><white><usage> [page]</white> <dark_gray>all tags</dark_gray></hover>'
     tag-search: '  <color:#F7B733>•</color> <hover:show_text:"<gray>Tags whose name contains a text.</gray>"><white><usage> \<text> [page]</white> <dark_gray>find</dark_gray></hover>'
     tag-show: '  <color:#F7B733>•</color> <hover:show_text:"<gray>The items or blocks in a tag.</gray>"><white><usage> \<tag> [page]</white> <dark_gray>contents</dark_gray></hover>'
@@ -55,7 +56,7 @@ pager:
 inspect:
   source:
     sorter: 'sorter'
-    pad: 'teleport pad'
+    pad: 'sorting pad'
   title: '<hover:show_text:"<details>">Targets of this <source></hover>'
   title-item: '<hover:show_text:"<details>">Where <item> goes</hover>'
   details:
@@ -100,7 +101,6 @@ frame:
     wrong-type: '  <red>✘</red> <hover:show_text:"<gray>This kind of frame isn''t in<newline>targets.frame-types.</gray>"><gray>Can''t be a target</gray></hover>'
   owner: '  <color:#F7B733>•</color> <gray>Owner:</gray> <white><player></white>'
   no-owner: '  <color:#F7B733>•</color> <hover:show_text:"<gray>Unmark it and mark it again<newline>to make it yours.</gray>"><gray>No owner</gray></hover>'
-  no-owner-automatic: '  <color:#F7B733>•</color> <hover:show_text:"<gray>Take its item out and put it<newline>back in to make it yours.</gray>"><gray>No owner</gray></hover>'
   into:
     container: '  <color:#F7B733>•</color> <gray>Into</gray> <white><block></white>'
     dropped: '  <color:#F7B733>•</color> <yellow>Dropped</yellow> <gray>in front of it</gray>'
@@ -119,10 +119,13 @@ frame:
 mark:
   marked: '<prefix><green>Frame marked as a target</green>'
   unmarked: '<prefix><yellow>Frame unmarked</yellow>'
-  automatic: '<prefix><gray><hover:show_text:"<gray>targets.registration is automatic.</gray>">Every frame is a target here</hover></gray>'
   no-permission: '<prefix><red>You can''t mark targets</red>'
   wrong-type: '<prefix><red>This frame can''t be a target</red>'
-  not-yours: '<prefix><red><hover:show_text:"<gray>Only its owner can unmark it.</gray>">This target is <white><player></white>''s</hover></red>'
+  not-yours: '<prefix><red>Only <white><player></white> can unmark this target</red>'
+
+automark:
+  enabled: '<prefix><green><hover:show_text:"<gray>An item you put in a frame on a<newline>container or composter marks it.<newline>Walls and lava: sneak + right-click.</gray>">Automark on</hover></green>'
+  disabled: '<prefix><yellow><hover:show_text:"<gray>Sneak + right-click a frame<newline>with an empty hand to mark it.</gray>">Automark off</hover></yellow>'
 
 tag-item:
   applied: '<prefix><green><hover:show_text:"<gray>In a frame it stands for the tag.</gray>">Tagged <white>#<tag></white></hover></green>'
@@ -132,7 +135,7 @@ tag-item:
 
 where:
   empty-hand: '<prefix><gray>Hold the item to look up</gray>'
-  no-source: '<prefix><gray><hover:show_text:"<gray>Only sorters and pads you may inspect:<newline>yours, or of players who trust you.</gray>">None within <radius> blocks</hover></gray>'
+  no-source: '<prefix><gray><hover:show_text:"<gray>Only sorters and pads you may inspect:<newline>yours, or of players who trust you.</gray>">None in range</hover></gray>'
 
 trace:
   started: '<prefix><green><hover:show_text:"<gray>Deliveries within <radius> blocks.<newline>Stop with <white><stop></white>.</gray>">Tracing for <seconds> s</hover></green>'
@@ -185,7 +188,7 @@ sorter:
   removed: '<prefix><yellow>Sorter removed</yellow>'
 
 pad:
-  created: '<prefix><green>Teleport pad <white><type></white> created</green>'
-  removed: '<prefix><yellow>Teleport pad removed</yellow>'
+  created: '<prefix><green>Sorting pad <white><type></white> created</green>'
+  removed: '<prefix><yellow>Sorting pad removed</yellow>'
   not-allowed: '<prefix><red>You can''t create pads here</red>'
   unavailable: '<prefix><red><hover:show_text:"<gray>CraftEngine can''t build its item now.<newline>Wait for /ce reload to finish,<newline>or ask an admin.</gray>">Can''t break this pad yet</hover></red>'

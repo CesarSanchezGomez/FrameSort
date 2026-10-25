@@ -1,5 +1,6 @@
 package com.cesarcosmico.framesort.listener;
 
+import com.cesarcosmico.framesort.service.AutomarkService;
 import com.cesarcosmico.framesort.service.TargetIndex;
 import com.destroystokyo.paper.event.entity.EntityAddToWorldEvent;
 import com.destroystokyo.paper.event.entity.EntityRemoveFromWorldEvent;
@@ -13,9 +14,11 @@ import org.bukkit.event.entity.EntityDamageEvent;
 public final class TargetListener implements Listener {
 
     private final TargetIndex index;
+    private final AutomarkService automark;
 
-    public TargetListener(TargetIndex index) {
+    public TargetListener(TargetIndex index, AutomarkService automark) {
         this.index = index;
+        this.automark = automark;
     }
 
     @EventHandler
@@ -32,13 +35,14 @@ public final class TargetListener implements Listener {
         }
     }
 
-    // MONITOR: only an item that really went in ends the mark; the event is left alone. Every item a player puts in
-    // passes here, while an item can leave a frame with no event that confirms it (an arrow, another plugin).
+    // MONITOR: only an item that really went in ends the mark, or makes one; the event is left alone. Every item a
+    // player puts in passes here, while an item can leave a frame with no event that confirms it (an arrow, another
+    // plugin). The frame still holds the old item: the event's item is the one going in.
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onFrameChange(PlayerItemFrameChangeEvent event) {
         ItemFrame frame = event.getItemFrame();
         if (event.getAction() == PlayerItemFrameChangeEvent.ItemFrameChangeAction.PLACE) {
-            index.itemPlaced(frame, event.getPlayer().getUniqueId());
+            automark.itemPlaced(event.getPlayer(), frame, event.getItemStack());
         } else {
             index.changed(frame.getWorld());
         }

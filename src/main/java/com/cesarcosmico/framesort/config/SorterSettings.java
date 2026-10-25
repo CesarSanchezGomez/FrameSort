@@ -25,10 +25,11 @@ import java.util.stream.Collectors;
  */
 public record SorterSettings(ItemReference activator, ItemLook activatorLook, Map<String, String> activatorComponents,
                              boolean requireMarked, Set<EntityType> frameTypes, @Nullable String customName,
-                             int tickRate, boolean disableWhenPowered, boolean hideFrame, boolean showActivity) {
+                             int range, int tickRate, boolean disableWhenPowered, boolean hideFrame,
+                             boolean showActivity) {
 
     private static final Set<EntityType> ITEM_FRAMES = Set.of(EntityType.ITEM_FRAME, EntityType.GLOW_ITEM_FRAME);
-    private static final ItemReference.Vanilla DEFAULT_ACTIVATOR = new ItemReference.Vanilla(Material.ENDER_EYE);
+    private static final ItemReference.Vanilla DEFAULT_ACTIVATOR = new ItemReference.Vanilla(Material.HOPPER);
 
     public SorterSettings {
         activatorComponents = Collections.unmodifiableMap(new LinkedHashMap<>(activatorComponents));
@@ -60,6 +61,7 @@ public record SorterSettings(ItemReference activator, ItemLook activatorLook, Ma
                 activator.bool("require-marked", false),
                 frameTypes(reader),
                 customName.isBlank() ? null : customName,
+                reader.integer("range", 64, 1, 512),
                 reader.integer("tick-rate", 20, 1, 1200),
                 reader.bool("disable-when-powered", false),
                 reader.bool("hide-frame", true),
@@ -67,11 +69,11 @@ public record SorterSettings(ItemReference activator, ItemLook activatorLook, Ma
     }
 
     /**
-     * Whether {@code frame} holds the activator, which makes a sorter of the dispenser it hangs on. {@code customId}
-     * gives a custom item's reference, or {@code null} for a vanilla item.
+     * Whether {@code frame} holding {@code item} holds the activator, which makes a sorter of the dispenser it hangs
+     * on. {@code item} is usually the frame's own, or the one going in. {@code customId} gives a custom item's
+     * reference, or {@code null} for a vanilla item.
      */
-    public boolean isActivatorFrame(ItemFrame frame, Function<ItemStack, @Nullable String> customId) {
-        ItemStack item = frame.getItem();
+    public boolean isActivatorFrame(ItemFrame frame, ItemStack item, Function<ItemStack, @Nullable String> customId) {
         return frameTypes.contains(frame.getType()) && activator.matches(item.getType(), customId.apply(item))
                 && (!requireMarked || MarkerCodec.read(item, Keys.ACTIVATOR) != null);
     }

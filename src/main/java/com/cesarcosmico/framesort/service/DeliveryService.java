@@ -1,5 +1,6 @@
 package com.cesarcosmico.framesort.service;
 
+import com.cesarcosmico.framesort.item.DropCodec;
 import com.cesarcosmico.framesort.model.Composting;
 import com.cesarcosmico.framesort.model.Delivery;
 import com.cesarcosmico.framesort.service.TargetResolver.Destination;
@@ -9,6 +10,7 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.Levelled;
+import org.bukkit.entity.Item;
 import org.bukkit.entity.ItemFrame;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
@@ -28,12 +30,14 @@ public final class DeliveryService {
 
         ItemStack stack();
 
-        Location location();
-
         /** Leaves {@code remaining} items in the source; 0 empties it. */
         void commit(int remaining);
 
-        void moveTo(Location destination);
+        /**
+         * Puts the items left in the source at {@code destination}, as an item entity, and returns it; or returns
+         * {@code null} and keeps them in the source when they couldn't be put there.
+         */
+        @Nullable Item moveTo(Location destination);
 
         void destroy();
     }
@@ -58,22 +62,23 @@ public final class DeliveryService {
 
     /**
      * Returns how many items left the source, whether into containers, dropped or destroyed. {@code owner} owns the
-     * source, or is {@code null} when nobody does.
+     * source, or is {@code null} when nobody does; {@code range} is how far from it its targets may be.
      */
-    public int deliver(Block origin, @Nullable UUID owner, Source source) {
+    public int deliver(Block origin, @Nullable UUID owner, int range, Source source) {
         ItemStack stack = source.stack().clone();
         if (stack.isEmpty()) {
             return 0;
         }
-        TargetResolver.Plan plan = resolver.plan(origin, owner, stack);
+        TargetResolver.Plan plan = resolver.plan(origin, owner, range, stack);
         int amount = stack.getAmount();
         List<Delivery.Level<ItemFrame, Target>> levels = plan.levels().stream()
                 .map(level -> new Delivery.Level<>(level.containers(), level.end())).toList();
-        Location from = source.location();
+        // From the source block, not the item: a pad's items rest anywhere on it, and one sweep is one turn.
+        Location from = origin.getLocation().toCenterLocation();
         Delivery.Outcome<ItemFrame, Target> outcome = Delivery.deliver(amount, levels,
                 (frame, offered) -> offer(frame, stack, offered, from, owner), source::commit);
         if (plan.stale() || !outcome.gone().isEmpty()) {
-            resolver.forget(origin, owner, stack);
+            resolver.forget(origin, owner, range, stack);
         }
 
         int remaining = outcome.remaining();
@@ -87,7 +92,12 @@ public final class DeliveryService {
                     Destination.DESTROYED));
         } else {
             Location to = FrameGeometry.dropPoint(end.frame());
-            source.moveTo(to);
+            Item dropped = source.moveTo(to);
+            if (dropped == null) {
+                return amount - remaining;
+            }
+            // A pad near the drop spot would otherwise pull them in and send them back here.
+            DropCodec.mark(dropped);
             observer.accept(new Delivered(from, owner, stack, remaining, to, Destination.DROPPED));
         }
         return amount;

@@ -42,18 +42,25 @@ public final class HighlightService {
         List<ItemDisplay> displays = new ArrayList<>();
         for (Highlight highlight : highlights.subList(0, Math.min(MAX_SHOWN, highlights.size()))) {
             if (highlight.frame().isValid() && !highlight.frame().getItem().isEmpty()) {
-                displays.add(spawn(player, highlight));
+                ItemDisplay display = spawn(highlight);
+                // Another plugin may cancel the spawn.
+                if (display.isValid()) {
+                    player.showEntity(plugin, display);
+                    displays.add(display);
+                }
             }
         }
         if (displays.isEmpty()) {
             return;
         }
         shown.put(id, displays);
-        player.getScheduler().runDelayed(plugin, task -> {
-            if (shown.remove(id, displays)) {
-                displays.forEach(Entity::remove);
-            }
-        }, () -> clear(id), seconds * 20L);
+        // Each display ends on its own scheduler. A player who leaves first just stops seeing them: nobody else can.
+        for (ItemDisplay display : displays) {
+            display.getScheduler().runDelayed(plugin, task -> {
+                shown.remove(id, displays);
+                display.remove();
+            }, null, seconds * 20L);
+        }
     }
 
     private void clear(UUID player) {
@@ -68,7 +75,7 @@ public final class HighlightService {
         shown.clear();
     }
 
-    private ItemDisplay spawn(Player player, Highlight highlight) {
+    private ItemDisplay spawn(Highlight highlight) {
         ItemFrame frame = highlight.frame();
         Location at = frame.getLocation();
         at.setYaw(0);
@@ -85,7 +92,6 @@ public final class HighlightService {
             entity.setGlowColorOverride(highlight.color());
             entity.setGlowing(true);
         });
-        player.showEntity(plugin, display);
         return display;
     }
 

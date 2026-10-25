@@ -11,7 +11,7 @@ language: 'en_US'
 sorter:
   activator:
     # Item that makes a sorter: a material or 'craftengine:<namespace>:<id>'.
-    material: ENDER_EYE
+    material: HOPPER
     # true: only the activator from /framesort give sorter works.
     require-marked: false
     # Look of the activator FrameSort hands out.
@@ -26,7 +26,9 @@ sorter:
   # Frames that can hold the activator.
   frame-types: [ITEM_FRAME, GLOW_ITEM_FRAME]
   # Optional title of a sorter's inventory; '' = the dispenser's own name.
-  custom-name: '<gradient:#F7B733:#FC4A1A>Item Sorter</gradient>'
+  custom-name: '<gradient:#F7B733:#FC4A1A>Sorter</gradient>'
+  # Blocks around a sorter where its targets are searched.
+  range: 64
   # Ticks between two turns of the same sorter.
   tick-rate: 20
   disable-when-powered: false
@@ -37,9 +39,6 @@ sorter:
 
 # Target frames: where sorters and pads send items.
 targets:
-  # manual: only frames marked with sneak + right-click (empty hand).
-  # automatic: every frame on a container or composter.
-  registration: manual
   frame-types: [ITEM_FRAME, GLOW_ITEM_FRAME]
   # Look of an item tagged with /framesort tag apply; <tag> is the tag.
   tagged-item:
@@ -48,12 +47,10 @@ targets:
 
 # How items reach the targets.
 delivery:
-  # Blocks around a sorter or pad where targets are searched.
-  max-distance: 64
   # false: frames on containers or composters drop the items instead.
   insert-into-containers: true
   # Frames holding it take what no other frame takes; '' = off.
-  default-target-item: CARROT_ON_A_STICK
+  default-target-item: RECOVERY_COMPASS
 
 # Who sorters, pads and targets belong to: whoever set them up.
 ownership:

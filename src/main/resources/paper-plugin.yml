@@ -4,7 +4,7 @@ main: com.cesarcosmico.framesort.FrameSortPlugin
 loader: com.cesarcosmico.framesort.FrameSortLoader
 api-version: '26.2'
 authors: [ CesarCosmico ]
-description: 'Send items to item frames from sorter dispensers and teleport pads, without hopper chains.'
+description: 'Send items to item frames from sorter dispensers and sorting pads, without hopper chains.'
 website: 'https://github.com/CesarSanchezGomez/FrameSort'
 
 dependencies:
@@ -32,6 +32,7 @@ permissions:
       framesort.inspect: true
       framesort.target.create: true
       framesort.command.help: true
+      framesort.command.automark: true
       framesort.command.tag-list: true
       framesort.command.tag-search: true
       framesort.command.tag-show: true
@@ -57,13 +58,16 @@ permissions:
     description: 'Inspect and trace sorters and pads whose owner does not trust you.'
     default: op
   framesort.target.create:
-    description: 'Mark item frames as targets (targets.registration manual).'
+    description: 'Mark item frames as targets.'
     default: true
   framesort.pad.create:
-    description: 'Create teleport pads when pads.yml has creation set to permission.'
+    description: 'Create sorting pads when pads.yml has creation set to permission.'
     default: op
   framesort.command.help:
     description: 'Show the help with /framesort.'
+    default: true
+  framesort.command.automark:
+    description: 'Switch between marking frames by hand and when you put an item in with /framesort automark.'
     default: true
   framesort.command.tag-list:
     description: 'List every item and block tag with /framesort tag list.'

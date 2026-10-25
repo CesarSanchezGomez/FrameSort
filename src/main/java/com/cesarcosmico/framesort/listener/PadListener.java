@@ -6,6 +6,7 @@ import com.cesarcosmico.framesort.text.Messages;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import org.bukkit.GameMode;
 import org.bukkit.block.Block;
+import org.bukkit.entity.FallingBlock;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -15,6 +16,7 @@ import org.bukkit.event.block.BlockExplodeEvent;
 import org.bukkit.event.block.BlockPistonExtendEvent;
 import org.bukkit.event.block.BlockPistonRetractEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.entity.EntityChangeBlockEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.world.ChunkLoadEvent;
 import org.bukkit.event.world.ChunkUnloadEvent;
@@ -89,6 +91,15 @@ public final class PadListener implements Listener {
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onPistonRetract(BlockPistonRetractEvent event) {
         if (movesPad(event.getBlocks())) {
+            event.setCancelled(true);
+        }
+    }
+
+    // An axe scraping the wax off a copper top, or a mob changing the block, would end the pad where it stands. A
+    // top block with gravity still falls once its base is gone: the sweep then forgets the pad.
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onEntityChangeBlock(EntityChangeBlockEvent event) {
+        if (!(event.getEntity() instanceof FallingBlock) && pads.isPad(event.getBlock())) {
             event.setCancelled(true);
         }
     }

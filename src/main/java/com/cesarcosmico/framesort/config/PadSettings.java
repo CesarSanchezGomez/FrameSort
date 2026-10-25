@@ -11,9 +11,15 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Predicate;
 
 public record PadSettings(PadMode creation, int sweepInterval, Map<String, PadType> types) {
+
+    // Each type is an entry the admin names, so only its parser knows its keys and can report a typo in one.
+    private static final Set<String> TYPE_KEYS = Set.of("structure", "range", "pull-radius", "takes-from-inventory",
+            "item");
+    private static final Set<String> ITEM_KEYS = Set.of("name", "lore", "glint", "components");
 
     public PadSettings {
         // Keeps the file's order, so lists and suggestions follow it.
@@ -37,7 +43,7 @@ public record PadSettings(PadMode creation, int sweepInterval, Map<String, PadTy
             }
         }
         if (types.isEmpty()) {
-            reader.warn("types", "no valid pad types; teleport pads are disabled");
+            reader.warn("types", "no valid pad types; pads are disabled");
         }
         return new PadSettings(
                 reader.enumValue("creation", PadMode.class, PadMode.ANYONE),
@@ -61,6 +67,7 @@ public record PadSettings(PadMode creation, int sweepInterval, Map<String, PadTy
             types.warn(id, "expected a section with a 'structure' list");
             return null;
         }
+        reader.warnUnknownKeys(TYPE_KEYS);
         String skipped = "; pad type '" + id + "' is skipped";
         List<ItemReference> structure = new ArrayList<>();
         for (String entry : reader.strings("structure")) {
@@ -83,11 +90,31 @@ public record PadSettings(PadMode creation, int sweepInterval, Map<String, PadTy
         }
         ItemReference top = structure.getFirst();
         ConfigReader item = reader.sectionOrEmpty("item");
+        item.warnUnknownKeys(ITEM_KEYS);
         if (top instanceof ItemReference.Custom) {
             ItemReferences.ignoreComponents(item);
         } else if (item.isSet("components")) {
             item.warn("components", "a pad item looks like the block it places, ignored");
         }
-        return new PadType(id.toLowerCase(Locale.ROOT), top, structure.get(1), ItemLookParser.look(item));
+        return new PadType(id.toLowerCase(Locale.ROOT), top, structure.get(1), required(reader, "range", 64, 1, 512),
+                required(reader, "pull-radius", 4, 0, 16), required(reader, "takes-from-inventory", false),
+                ItemLookParser.look(item));
+    }
+
+    // Each type sets these itself, so a missing one changes what its pads do and is reported like a wrong one.
+    private static int required(ConfigReader reader, String path, int fallback, int min, int max) {
+        warnIfMissing(reader, path, fallback);
+        return reader.integer(path, fallback, min, max);
+    }
+
+    private static boolean required(ConfigReader reader, String path, boolean fallback) {
+        warnIfMissing(reader, path, fallback);
+        return reader.bool(path, fallback);
+    }
+
+    private static void warnIfMissing(ConfigReader reader, String path, Object fallback) {
+        if (!reader.isSet(path)) {
+            reader.warn(path, "missing, using " + fallback);
+        }
     }
 }
