@@ -47,7 +47,7 @@ public final class TargetIndex {
         }
     }
 
-    public void changed(World world) {
+    private void changed(World world) {
         epochs.merge(world.getUID(), 1L, Long::sum);
     }
 
@@ -79,8 +79,6 @@ public final class TargetIndex {
         if (isMarked(frame)) {
             unmark(frame);
         }
-        // Cached matches remember the frame's item, so a new one changes them even when nothing else did.
-        changed(frame.getWorld());
     }
 
     // Removing and adding again always moves the frame in or out of the index, or out and back in, so the epoch rises.

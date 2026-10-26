@@ -9,7 +9,6 @@ import org.bukkit.entity.ItemFrame;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.entity.EntityDamageEvent;
 
 public final class TargetListener implements Listener {
 
@@ -37,19 +36,8 @@ public final class TargetListener implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onFrameChange(PlayerItemFrameChangeEvent event) {
-        ItemFrame frame = event.getItemFrame();
         if (event.getAction() == PlayerItemFrameChangeEvent.ItemFrameChangeAction.PLACE) {
-            automark.itemPlaced(event.getPlayer(), frame, event.getItemStack());
-        } else {
-            index.changed(frame.getWorld());
-        }
-    }
-
-    // Hitting a frame (arrows, explosions) knocks its item out without a frame change event.
-    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-    public void onDamage(EntityDamageEvent event) {
-        if (event.getEntity() instanceof ItemFrame frame) {
-            index.changed(frame.getWorld());
+            automark.itemPlaced(event.getPlayer(), event.getItemFrame(), event.getItemStack());
         }
     }
 }
