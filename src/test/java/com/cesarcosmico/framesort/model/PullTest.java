@@ -13,8 +13,7 @@ class PullTest {
     // Most blocks, and ice.
     private static final double GRIP = Pull.grip(0.6);
     private static final double ICE_GRIP = Pull.grip(0.98);
-    // How close to the pad's centre a pulled item has to stop.
-    private static final double ON_CENTRE = 0.05;
+    private static final double CENTRE_TOLERANCE = 0.05;
     private static final int SETTLE_TICKS = 300;
     // Items lying on the ground at the foot of a two-block pad, one block lower, level with its surface, and on a ledge
     // above it.
@@ -100,8 +99,8 @@ class PullTest {
         void assertOnCentre(String what) {
             assertTrue(grounded, what);
             assertEquals(pad.surface(), y, 1e-9, what);
-            assertEquals(pad.x(), x, ON_CENTRE, what);
-            assertEquals(pad.z(), z, ON_CENTRE, what);
+            assertEquals(pad.x(), x, CENTRE_TOLERANCE, what);
+            assertEquals(pad.z(), z, CENTRE_TOLERANCE, what);
         }
     }
 
