@@ -1,4 +1,4 @@
-package com.cesarcosmico.framesort.model;
+package com.cesarcosmico.framesort.service;
 
 /** Server ticks, as the schedulers count time. */
 public final class Ticks {

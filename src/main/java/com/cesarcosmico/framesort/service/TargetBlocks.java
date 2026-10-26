@@ -13,7 +13,12 @@ import org.bukkit.entity.ItemFrame;
 import org.bukkit.inventory.Inventory;
 import org.jspecify.annotations.Nullable;
 
+import java.util.List;
+
 final class TargetBlocks {
+
+    private static final List<Class<? extends Container>> STORAGE =
+            List.of(Chest.class, Barrel.class, ShulkerBox.class, Hopper.class, Dispenser.class, Dropper.class);
 
     private TargetBlocks() {
     }
@@ -26,8 +31,7 @@ final class TargetBlocks {
 
     // Inventory#addItem ignores a block's slot rules, so only blocks whose every slot takes any item are filled.
     private static boolean isStorage(Container container) {
-        return container instanceof Chest || container instanceof Barrel || container instanceof ShulkerBox
-                || container instanceof Hopper || container instanceof Dispenser || container instanceof Dropper;
+        return STORAGE.stream().anyMatch(type -> type.isInstance(container));
     }
 
     static boolean isContainer(Block block, CustomItemResolver customItems) {

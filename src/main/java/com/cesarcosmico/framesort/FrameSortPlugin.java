@@ -34,7 +34,6 @@ import com.cesarcosmico.framesort.listener.InspectListener;
 import com.cesarcosmico.framesort.listener.PadListener;
 import com.cesarcosmico.framesort.listener.SorterListener;
 import com.cesarcosmico.framesort.listener.TargetListener;
-import com.cesarcosmico.framesort.model.Ticks;
 import com.cesarcosmico.framesort.model.TrustList;
 import com.cesarcosmico.framesort.service.AutomarkService;
 import com.cesarcosmico.framesort.service.CustomItemResolver;
@@ -46,6 +45,7 @@ import com.cesarcosmico.framesort.service.SorterService;
 import com.cesarcosmico.framesort.service.TagCatalog;
 import com.cesarcosmico.framesort.service.TargetIndex;
 import com.cesarcosmico.framesort.service.TargetResolver;
+import com.cesarcosmico.framesort.service.Ticks;
 import com.cesarcosmico.framesort.service.TraceService;
 import com.cesarcosmico.framesort.service.TrustService;
 import com.cesarcosmico.framesort.storage.Database;
@@ -216,9 +216,10 @@ public final class FrameSortPlugin extends JavaPlugin {
         };
         FrameSortSettings newSettings = loadSettings(warn);
         PadSettings newPads = loadPads(warn);
-        newPads.warnTopChanges(pads.get(), warn);
         TagSettings newTags = loadTags(warn);
         Messages newMessages = Messages.load(this, newSettings.language(), warn);
+        // Only once nothing can fail any more: a broken file keeps the old pads, and they wouldn't go.
+        newPads.warnTopChanges(pads.get(), warn);
         settings.set(newSettings);
         pads.set(newPads);
         tagSettings.set(newTags);

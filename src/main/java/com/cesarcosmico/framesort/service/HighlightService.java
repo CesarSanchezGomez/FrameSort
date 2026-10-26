@@ -1,6 +1,5 @@
 package com.cesarcosmico.framesort.service;
 
-import com.cesarcosmico.framesort.model.Ticks;
 import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.block.BlockFace;

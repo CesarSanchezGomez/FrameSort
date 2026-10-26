@@ -55,9 +55,16 @@ public final class AutomarkService {
 
     // Another plugin can empty the item before it goes in.
     private boolean shouldAutomark(Player player, ItemFrame frame, ItemStack item) {
-        return !item.isEmpty() && PlayerCodec.automark(player) && player.hasPermission(TargetIndex.MARK_PERMISSION)
-                && maySwitchOff.test(player) && index.markable(frame)
-                && TargetBlocks.isContainer(FrameGeometry.attachedBlock(frame), customItems)
+        return !item.isEmpty() && usesAutomark(player) && makesTarget(frame, item);
+    }
+
+    private boolean usesAutomark(Player player) {
+        return PlayerCodec.automark(player) && player.hasPermission(TargetIndex.MARK_PERMISSION)
+                && maySwitchOff.test(player);
+    }
+
+    private boolean makesTarget(ItemFrame frame, ItemStack item) {
+        return index.markable(frame) && TargetBlocks.isContainer(FrameGeometry.attachedBlock(frame), customItems)
                 && !sorters.makesSorter(frame, item);
     }
 }

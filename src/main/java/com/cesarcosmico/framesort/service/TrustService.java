@@ -48,8 +48,11 @@ public final class TrustService implements Supplier<TrustList> {
 
     /** Whether {@code viewer} may see where a source of {@code owner} sends: inspecting it shows those chests. */
     public boolean canView(Player viewer, @Nullable UUID owner) {
-        return !settings.get().ownership() || viewer.hasPermission(SEE_OTHERS)
-                || owner != null && (owner.equals(viewer.getUniqueId()) || list.trusts(owner, viewer.getUniqueId()));
+        return !settings.get().ownership() || viewer.hasPermission(SEE_OTHERS) || isOwnerOrTrusted(viewer, owner);
+    }
+
+    private boolean isOwnerOrTrusted(Player viewer, @Nullable UUID owner) {
+        return owner != null && (owner.equals(viewer.getUniqueId()) || list.trusts(owner, viewer.getUniqueId()));
     }
 
     /** The name the server's profile cache has for {@code player}, or the UUID when it has none. */

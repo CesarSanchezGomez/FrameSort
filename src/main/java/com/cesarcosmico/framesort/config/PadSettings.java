@@ -58,7 +58,6 @@ public record PadSettings(PadMode creation, int sweepInterval, Map<String, PadTy
         return types.get(id.toLowerCase(Locale.ROOT));
     }
 
-    /** Reports each type whose top block changed since {@code before}: its pads built with the old one go. */
     public void warnTopChanges(PadSettings before, Consumer<String> warn) {
         for (PadType type : types.values()) {
             PadType old = before.type(type.id());

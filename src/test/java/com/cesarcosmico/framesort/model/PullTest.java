@@ -15,6 +15,9 @@ class PullTest {
     private static final double ICE_GRIP = Pull.grip(0.98);
     private static final double CENTRE_TOLERANCE = 0.05;
     private static final int SETTLE_TICKS = 300;
+    // Minecraft moves a lying item this slow (squared sideways speed) on one tick in four only.
+    private static final double RESTING_SPEED_SQUARED = 1e-5;
+    private static final int RESTING_MOVE_EVERY = 4;
     // Items lying on the ground at the foot of a two-block pad, one block lower, level with its surface, and on a ledge
     // above it.
     private static final double[] HEIGHTS = {-2, -1, 0, 3};
@@ -60,7 +63,7 @@ class PullTest {
         void step() {
             tick++;
             vy -= Pull.GRAVITY;
-            if (grounded && vx * vx + vz * vz <= 1e-5 && tick % 4 != 0) {
+            if (grounded && vx * vx + vz * vz <= RESTING_SPEED_SQUARED && tick % RESTING_MOVE_EVERY != 0) {
                 return;
             }
             double next = y + vy;
@@ -191,7 +194,7 @@ class PullTest {
     @Test
     void aHopNeverWaitsOnTheGround() {
         Pull.Velocity velocity = Pull.hop(0.7, 2, 0).velocity();
-        assertTrue(velocity.x() * velocity.x() + velocity.z() * velocity.z() > 1e-5);
+        assertTrue(velocity.x() * velocity.x() + velocity.z() * velocity.z() > RESTING_SPEED_SQUARED);
     }
 
     @Test

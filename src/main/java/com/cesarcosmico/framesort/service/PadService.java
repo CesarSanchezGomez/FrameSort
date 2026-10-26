@@ -368,9 +368,15 @@ public final class PadService {
 
     // Handlers of an earlier PadPullEvent may remove items.
     private boolean isPullable(Item item, Location surface, int radius) {
-        Location from = item.getLocation();
-        return item.isValid() && item.isOnGround() && !thrownThisSweep(item) && !DropCodec.isMarked(item)
-                && from.distanceSquared(surface) <= (double) radius * radius && !inPadColumn(from, surface)
+        return isLooseOnGround(item) && liesInReach(item.getLocation(), surface, radius);
+    }
+
+    private static boolean isLooseOnGround(Item item) {
+        return item.isValid() && item.isOnGround() && !thrownThisSweep(item) && !DropCodec.isMarked(item);
+    }
+
+    private boolean liesInReach(Location from, Location surface, int radius) {
+        return from.distanceSquared(surface) <= (double) radius * radius && !inPadColumn(from, surface)
                 && !isPadTop(from.getBlock().getRelative(BlockFace.DOWN));
     }
 
