@@ -271,15 +271,10 @@ public final class TargetResolver {
             return false;
         }
         Block attached = FrameGeometry.attachedBlock(frame);
-        if (attached.equals(source) || holdsActivator(current, attached, frame, shown)) {
+        if (attached.equals(source) || current.sorter().makesSorter(attached, frame, shown, customItems::id)) {
             return false;
         }
         return !current.ownership() || trust.get().allows(owner, FrameCodec.owner(frame));
-    }
-
-    private boolean holdsActivator(FrameSortSettings current, Block attached, ItemFrame frame, ItemStack shown) {
-        return attached.getType() == Material.DISPENSER
-                && current.sorter().isActivatorFrame(frame, shown, customItems::id);
     }
 
     private boolean wouldLoop(FrameSortSettings current, Block source, ItemFrame frame) {

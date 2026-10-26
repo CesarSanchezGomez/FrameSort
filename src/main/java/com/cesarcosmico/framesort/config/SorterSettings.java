@@ -6,6 +6,7 @@ import com.cesarcosmico.framesort.item.Keys;
 import com.cesarcosmico.framesort.item.MarkerCodec;
 import com.cesarcosmico.framesort.model.ItemReference;
 import org.bukkit.Material;
+import org.bukkit.block.Block;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.ItemFrame;
 import org.bukkit.inventory.ItemStack;
@@ -62,6 +63,12 @@ public record SorterSettings(ItemReference activator, ItemLook activatorLook, Ma
                 reader.bool("disable-when-powered", false),
                 reader.bool("hide-frame", true),
                 reader.bool("show-activity", true));
+    }
+
+    /** Whether {@code item} in {@code frame}, hanging on {@code attached}, makes a sorter of that block. */
+    public boolean makesSorter(Block attached, ItemFrame frame, ItemStack item,
+                               Function<ItemStack, @Nullable String> customId) {
+        return attached.getType() == Material.DISPENSER && isActivatorFrame(frame, item, customId);
     }
 
     /**

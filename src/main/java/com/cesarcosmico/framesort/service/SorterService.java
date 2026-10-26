@@ -231,8 +231,7 @@ public final class SorterService {
     }
 
     public boolean makesSorter(ItemFrame frame, ItemStack item) {
-        return FrameGeometry.attachedBlock(frame).getType() == Material.DISPENSER
-                && settings.get().sorter().isActivatorFrame(frame, item, customItems::id);
+        return settings.get().sorter().makesSorter(FrameGeometry.attachedBlock(frame), frame, item, customItems::id);
     }
 
     private void dispense(Sorter sorter) {

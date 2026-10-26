@@ -61,13 +61,13 @@ public record TagSettings(Map<NamespacedKey, CustomTag> tags) {
         for (String entry : tags.strings(name)) {
             String member = entry.trim();
             if (member.startsWith("#")) {
-                NamespacedKey include = NamespacedKey.fromString(member.substring(1).toLowerCase(Locale.ROOT));
-                if (include == null) {
+                NamespacedKey gameTag = NamespacedKey.fromString(member.substring(1).toLowerCase(Locale.ROOT));
+                if (gameTag == null) {
                     tags.warn(name, "'" + entry + "' is not a valid tag, such as '#minecraft:axes'; ignored");
-                } else if (!isGameTag.test(include)) {
+                } else if (!isGameTag.test(gameTag)) {
                     tags.warn(name, "the game has no tag called '" + member + "'; ignored");
                 } else {
-                    gameTags.add(include);
+                    gameTags.add(gameTag);
                 }
                 continue;
             }
