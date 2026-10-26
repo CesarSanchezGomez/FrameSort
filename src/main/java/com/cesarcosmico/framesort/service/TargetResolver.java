@@ -215,7 +215,7 @@ public final class TargetResolver {
         return target != null && target.matches(frameItem.getType(), customItems.id(frameItem));
     }
 
-    /** The tag a tagged item stands for, or {@code null} when the item has none. */
+    /** The tag a tagged item stands for, or {@code null} when it has none or no tag has that name any more. */
     public TagCatalog.@Nullable TagView tag(ItemStack frameItem) {
         NamespacedKey key = ItemTagCodec.read(frameItem);
         return key == null ? null : tags.find(key);
@@ -307,11 +307,11 @@ public final class TargetResolver {
             block = block.getRelative(BlockFace.DOWN);
         }
         // A carpet or slab on the pad still leaves the items in its pickup space.
-        return isPadTop(block) || isPadTop(block.getRelative(BlockFace.DOWN));
+        return hasPadEntry(block) || hasPadEntry(block.getRelative(BlockFace.DOWN));
     }
 
     // Read from the chunk: PadService delivers through this class, so it can't be asked.
-    private static boolean isPadTop(Block block) {
+    private static boolean hasPadEntry(Block block) {
         return PadCodec.read(block.getChunk()).containsKey(FrameGeometry.key(block));
     }
 

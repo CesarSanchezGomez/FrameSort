@@ -48,15 +48,19 @@ public final class AutomarkService {
      */
     public void itemPlaced(Player player, ItemFrame frame, ItemStack item) {
         index.itemPlaced(frame);
-        // Another plugin can empty the item before it goes in.
-        if (item.isEmpty() || !PlayerCodec.automark(player) || !player.hasPermission(TargetIndex.MARK_PERMISSION)
-                || !maySwitchOff.test(player) || !index.markable(frame)
-                || !FrameGeometry.isContainer(FrameGeometry.attachedBlock(frame), customItems)
-                || sorters.makesSorter(frame, item)) {
+        if (!marksFor(player, frame, item)) {
             return;
         }
         index.mark(frame, player.getUniqueId());
         // The glow copies the frame's item, which only goes in after this event.
         player.getScheduler().run(plugin, task -> inspect.showMark(player, frame, true), null);
+    }
+
+    // Another plugin can empty the item before it goes in.
+    private boolean marksFor(Player player, ItemFrame frame, ItemStack item) {
+        return !item.isEmpty() && PlayerCodec.automark(player) && player.hasPermission(TargetIndex.MARK_PERMISSION)
+                && maySwitchOff.test(player) && index.markable(frame)
+                && FrameGeometry.isContainer(FrameGeometry.attachedBlock(frame), customItems)
+                && !sorters.makesSorter(frame, item);
     }
 }

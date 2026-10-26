@@ -29,7 +29,7 @@ import java.util.function.Supplier;
 public final class GiveCommand implements CommandFeature {
 
     private interface ItemSource {
-        /** {@code null} when CraftEngine can't build the item now. */
+        // Null when CraftEngine can't build the item now.
         @Nullable ItemStack create(CommandContext<CommandSourceStack> context, int amount)
                 throws CommandSyntaxException;
     }

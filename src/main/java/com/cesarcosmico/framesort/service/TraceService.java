@@ -38,7 +38,6 @@ public final class TraceService {
     // At most one sorter turn or pad sweep per player this often, so a busy sorter does not flood the screen. Every
     // target of the turn that is shown still shows once: a turn is the same source in the same tick.
     private static final long MIN_INTERVAL_MILLIS = 150;
-    // The trail runs straight from the source to the frame, so it stays readable in tunnels.
     private static final int RING_TRAILS = 6;
     private static final double RING_RADIUS = 0.2;
     private static final double BLOCKS_PER_TICK = 1.0;
@@ -136,6 +135,7 @@ public final class TraceService {
         drawTrail(player, delivered.from(), to, delivered.destination().color(settings.get().inspect().colors()));
     }
 
+    // Straight from the source to the frame, so it stays readable in tunnels.
     private void drawTrail(Player player, Location from, Location to, Color color) {
         Vector path = to.toVector().subtract(from.toVector());
         double length = path.length();

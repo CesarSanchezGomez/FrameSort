@@ -136,7 +136,6 @@ public final class SorterService {
         }, null);
     }
 
-    /** The owner of the sorter's frame. */
     public @Nullable UUID ownerOf(Block block) {
         Sorter sorter = sorters.get(FrameGeometry.key(block));
         return sorter == null ? null : FrameCodec.owner(sorter.frame);

@@ -41,7 +41,6 @@ import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Supplier;
 
-/** Sweeping also catches items that arrive late. */
 public final class PadService {
 
     private static final String CREATE_PERMISSION = "framesort.pad.create";
@@ -164,7 +163,6 @@ public final class PadService {
         return type != null && matches(read(top), read(top.getRelative(BlockFace.DOWN)), type) ? type : null;
     }
 
-    /** The owner of the pad whose top block this is. */
     public @Nullable UUID ownerOf(Block top) {
         PadEntry entry = entry(top);
         return entry == null ? null : entry.owner();
@@ -310,13 +308,17 @@ public final class PadService {
                 && top.getRelative(BlockFace.UP, 2).isPassable();
     }
 
-    // Handlers of an earlier PadPullEvent may remove items, and one another pad threw this sweep still lies on the
-    // ground until its own tick.
+    // Handlers of an earlier PadPullEvent may remove items.
     private boolean isPullable(Item item, Location surface, int radius) {
         Location from = item.getLocation();
-        return item.isValid() && item.isOnGround() && item.getVelocity().getY() <= 0 && !DropCodec.isMarked(item)
+        return item.isValid() && item.isOnGround() && !thrownThisSweep(item) && !DropCodec.isMarked(item)
                 && from.distanceSquared(surface) <= (double) radius * radius && !inPadColumn(from, surface)
                 && !isPadTop(from.getBlock().getRelative(BlockFace.DOWN));
+    }
+
+    // Another pad threw it, and it still lies on the ground until its own tick.
+    private static boolean thrownThisSweep(Item item) {
+        return item.getVelocity().getY() > 0;
     }
 
     // An item over or under the pad is already on it, or can't get there.
