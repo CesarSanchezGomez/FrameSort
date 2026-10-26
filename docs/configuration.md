@@ -107,7 +107,7 @@ the lid of an upright barrel, the side of a chest or the bottom of one in a ceil
 
 | Key | Default | Meaning |
 |---|---|---|
-| `insert-into-containers` | `true` | `true`: items go into the container behind the frame (CraftEngine's storage blocks and drawers too, see [CraftEngine containers](#delivery)), or are composted by a composter. `false`: frames on containers or composters drop the items in front of them instead; frames on lava cauldrons still destroy them. |
+| `insert-into-containers` | `true` | `true`: items go into the container behind the frame (CraftEngine's storage blocks and drawers too, see [CraftEngine containers](#delivery)), or are composted by a composter. The containers are chests (copper and trapped ones too), barrels, shulker boxes, hoppers, dispensers and droppers, whose every slot takes any item; a frame on any other block, a furnace or a brewing stand among them, drops the items in front of it. A shulker box never goes into a shulker box, as in vanilla. `false`: frames on containers or composters drop the items in front of them instead, whatever the item; frames on lava cauldrons still destroy them. |
 | `default-target-item` | `RECOVERY_COMPASS` | Frames holding it (a recovery compass inside the frame) take whatever matches no other frame, and whatever the other targets have no room for: a material (but not a CraftEngine item made from it) or a CraftEngine item (`'craftengine:<namespace>:<id>'`). `''` = off. A material that is not an item falls back to the default. |
 
 How a destination is chosen:
@@ -147,7 +147,8 @@ untagged ones again; a name given in an anvil after tagging is lost then.
 **Composters compost.** A target frame on a composter takes only compostable items and composts them as a hopper
 feeding it would: every item is used up, the level rises with that item's vanilla chance, and a full composter turns
 ready a second later and takes nothing more until it is emptied. A hopper under it collects the bone meal, as in
-vanilla. Items it doesn't take go on to the other targets as usual.
+vanilla. Items it doesn't take go on to the other targets as usual. With `insert-into-containers: false` the frame is
+a drop spot like any other, for any item.
 
 **CraftEngine containers.** With CraftEngine installed, a target frame on one of its storage blocks
 (`simple_storage_block`, such as the safe of its default pack) or drawers (`drawer_block`) fills it as a hopper

@@ -107,6 +107,7 @@ public final class TargetResolver {
     public Plan plan(Block source, @Nullable UUID owner, int range, ItemStack item) {
         FrameSortSettings current = settings.get();
         Ranking<ItemFrame> ranking = new Ranking<>();
+        Map<ItemFrame, Destination> destinations = new HashMap<>();
         boolean stale = false;
         for (Match match : matches(source, owner, range, item)) {
             ItemFrame frame = match.frame();
@@ -115,13 +116,15 @@ public final class TargetResolver {
                 stale = true;
                 continue;
             }
-            if (FrameGeometry.attachedBlock(frame).getType() == Material.COMPOSTER && !item.getType().isCompostable()) {
+            Destination destination = destination(current, frame);
+            if (destination == Destination.CONTAINER && !takes(FrameGeometry.attachedBlock(frame), item)) {
                 continue;
             }
             if (wouldLoop(current, source, frame)) {
                 continue;
             }
             ranking.add(match.priority(), frame);
+            destinations.put(frame, destination);
         }
         BlockKey origin = FrameGeometry.key(source);
         Comparator<ItemFrame> nearest = Comparator.comparingLong(frame -> FrameGeometry.distanceSquared(frame, origin));
@@ -129,7 +132,7 @@ public final class TargetResolver {
         for (List<ItemFrame> tied : ranking.levels()) {
             Map<Destination, List<ItemFrame>> split = new EnumMap<>(Destination.class);
             for (ItemFrame frame : tied.stream().sorted(nearest).toList()) {
-                split.computeIfAbsent(destination(current, frame), key -> new ArrayList<>()).add(frame);
+                split.computeIfAbsent(destinations.get(frame), key -> new ArrayList<>()).add(frame);
             }
             levels.add(new Level(split.getOrDefault(Destination.CONTAINER, List.of()),
                     split.getOrDefault(Destination.DROPPED, List.of()),
@@ -140,6 +143,14 @@ public final class TargetResolver {
 
     public Destination destination(ItemFrame frame) {
         return destination(settings.get(), frame);
+    }
+
+    // A composter only takes what composts, and a shulker box never takes another one, as in vanilla.
+    private boolean takes(Block container, ItemStack item) {
+        if (container.getType() == Material.COMPOSTER) {
+            return item.getType().isCompostable();
+        }
+        return !(tags.isShulkerBox(container.getType()) && tags.isShulkerBox(item.getType()));
     }
 
     private Destination destination(FrameSortSettings current, ItemFrame frame) {

@@ -37,11 +37,13 @@ public final class TagCatalog {
     }
 
     private static final Comparator<Material> BY_KEY = Comparator.comparing(material -> material.getKey().asString());
+    private static final NamespacedKey SHULKER_BOXES = NamespacedKey.minecraft("shulker_boxes");
 
     private final Supplier<TagSettings> settings;
     private final Map<NamespacedKey, TagView> found = new HashMap<>();
     private final Set<NamespacedKey> missing = new HashSet<>();
     private @Nullable List<NamespacedKey> names;
+    private @Nullable Set<Material> shulkerBoxes;
 
     public TagCatalog(Supplier<TagSettings> settings) {
         this.settings = settings;
@@ -78,6 +80,16 @@ public final class TagCatalog {
         found.clear();
         missing.clear();
         names = null;
+        shulkerBoxes = null;
+    }
+
+    /** Whether {@code material} is a shulker box, by the game's own tag whatever tags.yml says. */
+    public boolean isShulkerBox(Material material) {
+        if (shulkerBoxes == null) {
+            TagView game = gameTag(SHULKER_BOXES);
+            shulkerBoxes = game == null ? Set.of() : game.lookup();
+        }
+        return shulkerBoxes.contains(material);
     }
 
     /** Whether the game has an item or block tag called {@code key}, whatever tags.yml says. */

@@ -40,8 +40,8 @@ public final class AutomarkService {
     }
 
     /**
-     * {@code item} is going into {@code frame}, which still holds the old one. A frame on a wall or a lava cauldron is
-     * never automarked, so a decorative one never becomes a drop spot or a trash can.
+     * {@code item} is going into {@code frame}, which still holds the old one. Only a frame on a container or a
+     * composter is automarked, so a decorative one never becomes a drop spot or a trash can.
      */
     public void itemPlaced(Player player, ItemFrame frame, ItemStack item) {
         index.itemPlaced(frame);

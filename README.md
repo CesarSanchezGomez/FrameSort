@@ -2,8 +2,9 @@
 
 Item sorting without hopper chains. A **sorter** (a dispenser with a hopper in an item frame on it) and **sorting
 pads** (a waxed copper grate on a waxed block of copper, a lodestone on smooth stone, or chiseled tuff on
-polished tuff) send items straight to the **target frames** that ask for them: into the chest, barrel or hopper
-behind the frame, composted by a composter, or dropped in front of the frame when there is no container.
+polished tuff) send items straight to the **target frames** that ask for them: into the chest, barrel, shulker box,
+hopper, dispenser or dropper behind the frame, composted by a composter, or dropped in front of the frame on any
+other block.
 
 - **Server:** Paper 26.2 or newer, Java 25.
 - **Dependencies:** none. With [WorldGuard](https://enginehub.org/worldguard) installed, sorters and pads respect its
