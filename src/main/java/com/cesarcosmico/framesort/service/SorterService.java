@@ -6,6 +6,7 @@ import com.cesarcosmico.framesort.item.FrameCodec;
 import com.cesarcosmico.framesort.item.ItemOverlay;
 import com.cesarcosmico.framesort.item.ItemTemplate;
 import com.cesarcosmico.framesort.item.Keys;
+import com.cesarcosmico.framesort.item.SorterCodec;
 import com.cesarcosmico.framesort.item.MarkerCodec;
 import com.cesarcosmico.framesort.model.BlockKey;
 import com.cesarcosmico.framesort.model.ItemReference;
@@ -21,8 +22,6 @@ import org.bukkit.block.Dispenser;
 import org.bukkit.entity.ItemFrame;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.persistence.PersistentDataContainer;
-import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.Plugin;
 import org.jspecify.annotations.Nullable;
 
@@ -82,7 +81,8 @@ public final class SorterService {
     }
 
     public Change consider(ItemFrame frame) {
-        boolean holdsActivator = settings.get().sorter().isActivatorFrame(frame, frame.getItem(), customItems::id);
+        boolean holdsActivator =
+                SorterFrames.holdsActivator(settings.get().sorter(), frame, frame.getItem(), customItems);
         if (!FrameGeometry.attachedLoaded(frame)) {
             // Only frames that could make a sorter wait for the neighbouring chunk; the rest are never sorters.
             if (holdsActivator && awaitingRetry.add(frame.getUniqueId())) {
@@ -231,7 +231,7 @@ public final class SorterService {
     }
 
     public boolean makesSorter(ItemFrame frame, ItemStack item) {
-        return settings.get().sorter().makesSorter(FrameGeometry.attachedBlock(frame), frame, item, customItems::id);
+        return SorterFrames.makesSorter(settings.get().sorter(), frame, item, customItems);
     }
 
     private void dispense(Sorter sorter) {
@@ -260,18 +260,14 @@ public final class SorterService {
         if (sent == 0 || !(sorter.block.getState(false) instanceof Dispenser dispenser)) {
             return;
         }
-        PersistentDataContainer data = dispenser.getPersistentDataContainer();
-        long total = data.getOrDefault(Keys.SORTED, PersistentDataType.LONG, 0L) + sent;
-        data.set(Keys.SORTED, PersistentDataType.LONG, total);
+        SorterCodec.addSorted(dispenser, sent);
         if (settings.get().sorter().showActivity()) {
             sorter.frame.setRotation(sorter.frame.getRotation().rotateClockwise());
         }
     }
 
     public long sorted(Block block) {
-        return block.getState(false) instanceof Dispenser dispenser
-                ? dispenser.getPersistentDataContainer().getOrDefault(Keys.SORTED, PersistentDataType.LONG, 0L)
-                : 0;
+        return block.getState(false) instanceof Dispenser dispenser ? SorterCodec.sorted(dispenser) : 0;
     }
 
     private void applyLook(ItemFrame frame, boolean active) {

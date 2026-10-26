@@ -274,7 +274,7 @@ public final class TargetResolver {
             return false;
         }
         Block attached = FrameGeometry.attachedBlock(frame);
-        if (attached.equals(source) || current.sorter().makesSorter(attached, frame, shown, customItems::id)) {
+        if (attached.equals(source) || SorterFrames.makesSorter(current.sorter(), frame, shown, customItems)) {
             return false;
         }
         return !current.ownership() || trust.get().allows(owner, FrameCodec.owner(frame));
@@ -309,7 +309,7 @@ public final class TargetResolver {
         for (ItemFrame frame : block.getWorld().getNearbyEntitiesByType(ItemFrame.class,
                 block.getLocation().toCenterLocation(), 1)) {
             if (FrameGeometry.attachedBlock(frame).equals(block)
-                    && current.sorter().isActivatorFrame(frame, frame.getItem(), customItems::id)) {
+                    && SorterFrames.holdsActivator(current.sorter(), frame, frame.getItem(), customItems)) {
                 return true;
             }
         }

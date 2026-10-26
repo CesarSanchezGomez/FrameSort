@@ -136,6 +136,13 @@ class PullTest {
 
     // From the foot of a two-block pad.
     @Test
+    void onlyAnItemWithinABlockOfTheCentreAlongBothAxesHops() {
+        assertTrue(Pull.needsHop(0.5, -0.9));
+        assertFalse(Pull.needsHop(1, 0));
+        assertFalse(Pull.needsHop(0.2, -1.5));
+    }
+
+    @Test
     void aFarItemFliesLonger() {
         int four = throwFrom(4, -2, DIRECTIONS[0]).landed;
         assertTrue(four >= 16 && four <= 22, "about a second, not " + four + " ticks");

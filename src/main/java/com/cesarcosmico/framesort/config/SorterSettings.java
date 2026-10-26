@@ -2,14 +2,9 @@ package com.cesarcosmico.framesort.config;
 
 import com.cesarcosmico.framesort.item.ItemLook;
 import com.cesarcosmico.framesort.item.ItemTemplate;
-import com.cesarcosmico.framesort.item.Keys;
-import com.cesarcosmico.framesort.item.MarkerCodec;
 import com.cesarcosmico.framesort.model.ItemReference;
 import org.bukkit.Material;
-import org.bukkit.block.Block;
 import org.bukkit.entity.EntityType;
-import org.bukkit.entity.ItemFrame;
-import org.bukkit.inventory.ItemStack;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Collections;
@@ -63,21 +58,6 @@ public record SorterSettings(ItemReference activator, ItemLook activatorLook, Ma
                 reader.bool("disable-when-powered", false),
                 reader.bool("hide-frame", true),
                 reader.bool("show-activity", true));
-    }
-
-    /** Whether {@code item} in {@code frame}, hanging on {@code attached}, makes a sorter of that block. */
-    public boolean makesSorter(Block attached, ItemFrame frame, ItemStack item,
-                               Function<ItemStack, @Nullable String> customId) {
-        return attached.getType() == Material.DISPENSER && isActivatorFrame(frame, item, customId);
-    }
-
-    /**
-     * Whether {@code frame} holding {@code item} holds the activator. {@code item} is usually the frame's own, or the
-     * one going in. {@code customId} gives a custom item's reference, or {@code null} for a vanilla item.
-     */
-    public boolean isActivatorFrame(ItemFrame frame, ItemStack item, Function<ItemStack, @Nullable String> customId) {
-        return frameTypes.contains(frame.getType()) && activator.matches(item.getType(), customId.apply(item))
-                && (!requireMarked || MarkerCodec.read(item, Keys.ACTIVATOR) != null);
     }
 
     static Set<EntityType> frameTypes(ConfigReader reader) {

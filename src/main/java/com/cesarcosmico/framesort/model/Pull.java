@@ -41,6 +41,8 @@ public final class Pull {
     static final double MIN_RISE = 1;
     // Half a pad plus half an item: further from the pad's centre along both axes, an item can't touch it.
     static final double EDGE = 0.625;
+    // Closer along both axes, the item lies beside the pad's edge or on it: it hops instead of being thrown.
+    static final double MIN_THROW = 1;
     // So an arc never clips the pad's corner.
     static final double EDGE_CLEARANCE = 0.25;
     // Still on the pad, whose top is a block wide.
@@ -72,8 +74,7 @@ public final class Pull {
      * The throw from beside the pad that lands short of its centre by as much as the item then slides, so it stops
      * there. It rises {@link #MIN_RISE} over the pad and over the item, comes over the pad's edge
      * {@link #EDGE_CLEARANCE} over its surface and lands on the pad; the further the item, the longer it flies. The
-     * item lies at least a block from the centre along one axis. {@code null} when no throw up to {@link #MAX_TICKS}
-     * does all that.
+     * item doesn't {@link #needsHop}. {@code null} when no throw up to {@link #MAX_TICKS} does all that.
      */
     public static @Nullable Arc toPad(double dx, double dy, double dz, double grip) {
         double distance = Math.hypot(dx, dz);
@@ -91,6 +92,11 @@ public final class Pull {
             }
         }
         return null;
+    }
+
+    /** Whether an item this far from the pad's centre needs a {@link #hop} rather than a throw ({@link #toPad}). */
+    public static boolean needsHop(double dx, double dz) {
+        return Math.max(Math.abs(dx), Math.abs(dz)) < MIN_THROW;
     }
 
     /** The hop of an item beside the pad, straight up to {@link #MIN_RISE} over the pad and over the item. */

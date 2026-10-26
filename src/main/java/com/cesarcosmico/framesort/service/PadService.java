@@ -86,7 +86,6 @@ public final class PadService {
     // A flight's rays start just off the block an item lies on and end just over the surface it lands on, so they don't
     // graze either.
     private static final double RAY_LIFT = 0.05;
-    private static final double HOP_REACH = 1;
     private static final int FIRST_MAIN_SLOT = 9;
     private static final int LAST_MAIN_SLOT = 35;
 
@@ -353,7 +352,7 @@ public final class PadService {
                 continue;
             }
             Location from = item.getLocation();
-            if (Math.max(Math.abs(surface.getX() - from.getX()), Math.abs(surface.getZ() - from.getZ())) < HOP_REACH) {
+            if (Pull.needsHop(surface.getX() - from.getX(), surface.getZ() - from.getZ())) {
                 hop(item, top, surface, grip);
             } else {
                 throwOnto(item, top, surface, grip);
