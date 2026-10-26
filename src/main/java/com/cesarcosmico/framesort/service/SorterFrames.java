@@ -4,6 +4,7 @@ import com.cesarcosmico.framesort.config.SorterSettings;
 import com.cesarcosmico.framesort.item.Keys;
 import com.cesarcosmico.framesort.item.MarkerCodec;
 import org.bukkit.Material;
+import org.bukkit.block.Block;
 import org.bukkit.entity.ItemFrame;
 import org.bukkit.inventory.ItemStack;
 
@@ -14,8 +15,11 @@ final class SorterFrames {
 
     // item is the frame's own, or the one going in.
     static boolean makesSorter(SorterSettings sorter, ItemFrame frame, ItemStack item, CustomItemResolver customItems) {
-        return FrameGeometry.attachedBlock(frame).getType() == Material.DISPENSER
-                && holdsActivator(sorter, frame, item, customItems);
+        return isSorterBlock(FrameGeometry.attachedBlock(frame)) && holdsActivator(sorter, frame, item, customItems);
+    }
+
+    static boolean isSorterBlock(Block block) {
+        return block.getType() == Material.DISPENSER;
     }
 
     static boolean holdsActivator(SorterSettings sorter, ItemFrame frame, ItemStack item,

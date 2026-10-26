@@ -15,10 +15,11 @@ import org.bukkit.event.entity.EntityEvent;
  *
  * <p>It fires for each frame in the source's range that could take items from it:</p>
  * <ul>
- *     <li>when a delivery finds no cached result for that source, its owner and that item. The cache is emptied when
- *     targets near the source change, when trust changes, on {@code /framesort reload}, and when it reaches 4096
- *     entries;</li>
- *     <li>every time a player inspects the source, or turns a page of that inspection;</li>
+ *     <li>when a delivery, or an inspection with an item in the off hand, finds no cached result for that source, its
+ *     owner and that item. A world's cached results go whenever a target frame in that world appears or goes (marked,
+ *     unmarked, or loaded and unloaded with its chunk), and all of them when trust changes, on
+ *     {@code /framesort reload} and at 4096 entries; one also goes when a frame it holds changed;</li>
+ *     <li>every time a player inspects the source with an empty off hand, and on each page of that inspection;</li>
  *     <li>when a player inspects a frame: once for each source in range of it.</li>
  * </ul>
  *

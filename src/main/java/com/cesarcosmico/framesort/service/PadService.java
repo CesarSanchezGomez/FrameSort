@@ -118,7 +118,7 @@ public final class PadService {
     }
 
     /** Registers a pad when {@code block}, just placed by {@code player} from {@code hand}, completes one. */
-    public Placement placed(Player player, Block block, ItemStack hand) {
+    public Placement registerPlaced(Player player, Block block, ItemStack hand) {
         PadSettings current = settings.get();
         String marker = MarkerCodec.read(hand, Keys.PAD_ITEM);
         PadBlock top = read(block);

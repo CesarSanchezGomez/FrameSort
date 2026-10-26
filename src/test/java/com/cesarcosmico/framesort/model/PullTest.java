@@ -120,8 +120,7 @@ class PullTest {
         for (double height : HEIGHTS) {
             for (double distance = 1; distance <= 16; distance += 0.25) {
                 for (double[] direction : DIRECTIONS) {
-                    // Closer along both axes, the item hops instead.
-                    if (Math.max(Math.abs(direction[0]), Math.abs(direction[1])) * distance < 1) {
+                    if (Pull.needsHop(direction[0] * distance, direction[1] * distance)) {
                         continue;
                     }
                     String from = "from " + distance + " at height " + height;
@@ -134,7 +133,6 @@ class PullTest {
         }
     }
 
-    // From the foot of a two-block pad.
     @Test
     void onlyAnItemWithinABlockOfTheCentreAlongBothAxesHops() {
         assertTrue(Pull.needsHop(0.5, -0.9));
@@ -142,6 +140,7 @@ class PullTest {
         assertFalse(Pull.needsHop(0.2, -1.5));
     }
 
+    // From the foot of a two-block pad.
     @Test
     void aFarItemFliesLonger() {
         int four = throwFrom(4, -2, DIRECTIONS[0]).landed;

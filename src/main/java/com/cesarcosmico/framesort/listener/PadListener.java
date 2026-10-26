@@ -64,7 +64,7 @@ public final class PadListener implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onPlace(BlockPlaceEvent event) {
-        switch (pads.placed(event.getPlayer(), event.getBlockPlaced(), event.getItemInHand())) {
+        switch (pads.registerPlaced(event.getPlayer(), event.getBlockPlaced(), event.getItemInHand())) {
             case PadService.Placement.Created(PadType type) -> event.getPlayer().sendMessage(
                     messages.get().get("pad.created", Placeholder.unparsed("type", type.id())));
             case PadService.Placement.NotAllowed() -> event.getPlayer().sendMessage(

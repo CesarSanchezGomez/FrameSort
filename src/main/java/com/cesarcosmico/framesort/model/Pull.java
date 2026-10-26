@@ -41,7 +41,6 @@ public final class Pull {
     static final double MIN_RISE = 1;
     // Half a pad plus half an item: further from the pad's centre along both axes, an item can't touch it.
     static final double EDGE = 0.625;
-    // Closer along both axes, the item lies beside the pad's edge or on it: it hops instead of being thrown.
     static final double MIN_THROW = 1;
     // So an arc never clips the pad's corner.
     static final double EDGE_CLEARANCE = 0.25;
@@ -94,7 +93,7 @@ public final class Pull {
         return null;
     }
 
-    /** Whether an item this far from the pad's centre needs a {@link #hop} rather than a throw ({@link #toPad}). */
+    /** Within a block of the centre along both axes, an item {@link #hop}s instead of being thrown. */
     public static boolean needsHop(double dx, double dz) {
         return Math.max(Math.abs(dx), Math.abs(dz)) < MIN_THROW;
     }

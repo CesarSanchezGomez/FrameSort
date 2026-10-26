@@ -34,6 +34,7 @@ import com.cesarcosmico.framesort.listener.InspectListener;
 import com.cesarcosmico.framesort.listener.PadListener;
 import com.cesarcosmico.framesort.listener.SorterListener;
 import com.cesarcosmico.framesort.listener.TargetListener;
+import com.cesarcosmico.framesort.model.Ticks;
 import com.cesarcosmico.framesort.model.TrustList;
 import com.cesarcosmico.framesort.service.AutomarkService;
 import com.cesarcosmico.framesort.service.CustomItemResolver;
@@ -79,7 +80,7 @@ public final class FrameSortPlugin extends JavaPlugin {
     private static final String COMMAND_DESCRIPTION = "Sort items into item frames";
     // The server does not take players before onEnable returns, so a slow database only delays the start.
     private static final long TRUST_LOAD_SECONDS = 10;
-    private static final long TRUST_REFRESH_TICKS = 60 * 20L;
+    private static final long TRUST_REFRESH_TICKS = Ticks.ofSeconds(60);
 
     private ConfigHolder<FrameSortSettings> settings;
     private ConfigHolder<PadSettings> pads;

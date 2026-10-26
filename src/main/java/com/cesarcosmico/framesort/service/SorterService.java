@@ -6,8 +6,8 @@ import com.cesarcosmico.framesort.item.FrameCodec;
 import com.cesarcosmico.framesort.item.ItemOverlay;
 import com.cesarcosmico.framesort.item.ItemTemplate;
 import com.cesarcosmico.framesort.item.Keys;
-import com.cesarcosmico.framesort.item.SorterCodec;
 import com.cesarcosmico.framesort.item.MarkerCodec;
+import com.cesarcosmico.framesort.item.SorterCodec;
 import com.cesarcosmico.framesort.model.BlockKey;
 import com.cesarcosmico.framesort.model.ItemReference;
 import io.papermc.paper.datacomponent.DataComponentTypes;
@@ -100,7 +100,7 @@ public final class SorterService {
         Block block = FrameGeometry.attachedBlock(frame);
         BlockKey key = FrameGeometry.key(block);
         Sorter existing = sorters.get(key);
-        if (holdsActivator && block.getType() == Material.DISPENSER) {
+        if (holdsActivator && SorterFrames.isSorterBlock(block)) {
             if (existing == null) {
                 SorterSettings sorter = settings.get().sorter();
                 sorters.put(key, new Sorter(frame, block, tick + 1 + (nextPhase++ % sorter.tickRate())));

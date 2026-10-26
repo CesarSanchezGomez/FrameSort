@@ -43,7 +43,7 @@ public final class AutomarkService {
      * {@code item} is going into {@code frame}, which still holds the old one. Only a frame on a container or a
      * composter is automarked, so a decorative one never becomes a drop spot or a trash can.
      */
-    public void itemPlaced(Player player, ItemFrame frame, ItemStack item) {
+    public void updateMark(Player player, ItemFrame frame, ItemStack item) {
         index.unmarkForNewItem(frame);
         if (!shouldAutomark(player, frame, item)) {
             return;

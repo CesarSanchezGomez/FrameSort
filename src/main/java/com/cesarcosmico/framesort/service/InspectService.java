@@ -189,8 +189,7 @@ public final class InspectService {
         long best = Long.MAX_VALUE;
         Source nearest = null;
         for (Source source : sourcesNear(here)) {
-            // Like inspecting by hand, and like its page buttons: only a pad whose column is complete.
-            if (source.pad() && pads.padAt(source.block()) == null) {
+            if (isIncompletePad(source)) {
                 continue;
             }
             long distance = FrameGeometry.key(source.block()).distanceSquared(key);
@@ -381,5 +380,9 @@ public final class InspectService {
                 Placeholder.unparsed("x", String.valueOf(location.getBlockX())),
                 Placeholder.unparsed("y", String.valueOf(location.getBlockY())),
                 Placeholder.unparsed("z", String.valueOf(location.getBlockZ())));
+    }
+
+    private boolean isIncompletePad(Source source) {
+        return source.pad() && pads.padAt(source.block()) == null;
     }
 }

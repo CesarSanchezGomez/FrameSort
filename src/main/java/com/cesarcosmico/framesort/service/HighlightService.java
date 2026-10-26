@@ -1,5 +1,6 @@
 package com.cesarcosmico.framesort.service;
 
+import com.cesarcosmico.framesort.model.Ticks;
 import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.block.BlockFace;
@@ -17,6 +18,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+/** Distances are in blocks. */
 public final class HighlightService {
 
     public record Highlight(ItemFrame frame, Color color) {
@@ -24,7 +26,6 @@ public final class HighlightService {
 
     // Enough for any inspection a player can read; bounds the entities one click can spawn.
     private static final int MAX_SHOWN = 64;
-    // Where Minecraft's item frame renderer draws the item, so the copy lies exactly over it.
     private static final float FACE_OFFSET = 0.46875f;
     private static final float DEPTH_IN_VISIBLE_FRAME = 0.4375f;
     private static final float DEPTH_IN_INVISIBLE_FRAME = 0.5f;
@@ -57,24 +58,33 @@ public final class HighlightService {
         }
         shown.put(id, displays);
         for (ItemDisplay display : displays) {
-            // A display unloaded with its chunk is gone before the task runs; the entry must go with it.
             display.getScheduler().runDelayed(plugin, task -> {
                 shown.remove(id, displays);
                 display.remove();
-            }, () -> shown.remove(id, displays), seconds * 20L);
+            }, () -> forget(id, displays, display), Ticks.ofSeconds(seconds));
         }
     }
 
+    // A display unloaded with its chunk is gone before its task runs; the others of that inspection stay.
+    private void forget(UUID id, List<ItemDisplay> displays, ItemDisplay display) {
+        displays.remove(display);
+        if (displays.isEmpty()) {
+            shown.remove(id, displays);
+        }
+    }
+
+    // Removing an entity runs its scheduler's retired callbacks at once, and they change these lists: remove copies.
     private void clear(UUID player) {
         List<ItemDisplay> displays = shown.remove(player);
         if (displays != null) {
-            displays.forEach(Entity::remove);
+            List.copyOf(displays).forEach(Entity::remove);
         }
     }
 
     public void clearAll() {
-        shown.values().forEach(displays -> displays.forEach(Entity::remove));
+        List<List<ItemDisplay>> all = List.copyOf(shown.values());
         shown.clear();
+        all.forEach(displays -> List.copyOf(displays).forEach(Entity::remove));
     }
 
     private ItemDisplay spawn(Highlight highlight) {

@@ -1,7 +1,9 @@
 package com.cesarcosmico.framesort.service;
 
 import com.cesarcosmico.framesort.config.FrameSortSettings;
+import com.cesarcosmico.framesort.model.Ticks;
 import com.cesarcosmico.framesort.text.Messages;
+import java.util.concurrent.TimeUnit;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import org.bukkit.Color;
 import org.bukkit.Location;
@@ -40,7 +42,6 @@ public final class TraceService {
     private static final long MIN_INTERVAL_MILLIS = 150;
     // Shorter than this, a trail has no direction to draw.
     private static final double MIN_TRAIL_LENGTH = 1e-3;
-    // A path closer to vertical than this takes its ring's plane from the x axis instead of the y axis.
     private static final double NEARLY_VERTICAL = 0.9;
     // From the source's face: inside the block nobody would see the start.
     private static final double START_BEYOND_CENTRE = 0.55;
@@ -74,14 +75,14 @@ public final class TraceService {
 
     public int start(Player player, int seconds) {
         int granted = Math.clamp(seconds, 1, settings.get().inspect().traceMaxSeconds());
-        long deadline = System.currentTimeMillis() + granted * 1000L;
+        long deadline = System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(granted);
         until.put(player, deadline);
         // A restart or stop changes the deadline, so a stale run does nothing.
         player.getScheduler().runDelayed(plugin, task -> {
             if (until.remove(player, deadline)) {
                 ended(player);
             }
-        }, () -> stop(player), granted * 20L);
+        }, () -> stop(player), Ticks.ofSeconds(granted));
         return granted;
     }
 

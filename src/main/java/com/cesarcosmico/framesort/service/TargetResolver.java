@@ -141,7 +141,6 @@ public final class TargetResolver {
         return new Plan(levels, stale);
     }
 
-    // Gone, unloaded, or holding another item than when it was cached.
     private static boolean isStale(Match match) {
         ItemFrame frame = match.frame();
         return !frame.isValid() || !FrameGeometry.attachedLoaded(frame) || !frame.getItem().equals(match.frameItem());
@@ -197,7 +196,6 @@ public final class TargetResolver {
         cache.clear();
     }
 
-    /** Drops the matches of sources in {@code world}, which hold its frames, when it unloads. */
     public void forget(World world) {
         UUID id = world.getUID();
         cache.keySet().removeIf(key -> key.source().world().equals(id));
@@ -315,7 +313,7 @@ public final class TargetResolver {
 
     // Read from the world: SorterService delivers through this class, so it can't be asked.
     private boolean isSorter(FrameSortSettings current, Block block) {
-        if (block.getType() != Material.DISPENSER) {
+        if (!SorterFrames.isSorterBlock(block)) {
             return false;
         }
         for (ItemFrame frame : block.getWorld().getNearbyEntitiesByType(ItemFrame.class,

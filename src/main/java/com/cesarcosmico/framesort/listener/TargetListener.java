@@ -41,7 +41,7 @@ public final class TargetListener implements Listener {
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onFrameChange(PlayerItemFrameChangeEvent event) {
         if (event.getAction() == PlayerItemFrameChangeEvent.ItemFrameChangeAction.PLACE) {
-            automark.itemPlaced(event.getPlayer(), event.getItemFrame(), event.getItemStack());
+            automark.updateMark(event.getPlayer(), event.getItemFrame(), event.getItemStack());
         }
     }
 
