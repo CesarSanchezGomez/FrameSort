@@ -51,10 +51,11 @@ public final class HighlightService {
         }
         shown.put(id, displays);
         for (ItemDisplay display : displays) {
+            // A display unloaded with its chunk is gone before the task runs; the entry must go with it.
             display.getScheduler().runDelayed(plugin, task -> {
                 shown.remove(id, displays);
                 display.remove();
-            }, null, seconds * 20L);
+            }, () -> shown.remove(id, displays), seconds * 20L);
         }
     }
 
