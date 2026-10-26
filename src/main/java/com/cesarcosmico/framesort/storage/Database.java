@@ -35,7 +35,7 @@ import java.util.stream.Collectors;
 public final class Database implements AutoCloseable {
 
     private static final String MIGRATIONS = "db";
-    private static final long SHUTDOWN_SECONDS = 10;
+    private static final int SHUTDOWN_SECONDS = 10;
     private static final long CONNECTION_TIMEOUT_MILLIS = 10_000;
 
     @FunctionalInterface
