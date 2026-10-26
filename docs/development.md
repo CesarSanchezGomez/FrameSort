@@ -93,7 +93,9 @@ SELECT HEX(owner), HEX(trusted), FROM_UNIXTIME(created_at / 1000) FROM framesort
   on another sorter, items that would land on a pad): sorters and the blocks below change without touching a frame.
 - **One plan.** `TargetResolver.plan` ranks the targets into levels of preference, each split into containers,
   drop spots and lava, nearest to the source first. Deliveries and inspections (`/framesort where`, inspecting with
-  an item in the off hand) both use it, so an inspection shows exactly what a delivery would do, in its order.
+  an item in the off hand) both use it, so an inspection shows exactly what a delivery would do, in its order. The
+  priority of each frame is pure Java with its tests: `model.MatchFacts` for one frame item, `MatchTier.best` for it
+  and the items inside it; `TargetResolver` only reads those facts from the items.
 - **No duplication.** Containers are looked up the moment items go in, and the source is updated after each
   container (`model.Delivery`). A container that vanished in between is skipped, so it can't duplicate items, and
   a drop whose spawn another plugin cancels leaves the items in their slot instead of losing them.

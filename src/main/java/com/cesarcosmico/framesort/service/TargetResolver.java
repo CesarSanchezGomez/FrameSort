@@ -8,6 +8,7 @@ import com.cesarcosmico.framesort.item.ItemTagCodec;
 import com.cesarcosmico.framesort.item.PadCodec;
 import com.cesarcosmico.framesort.model.BlockKey;
 import com.cesarcosmico.framesort.model.ItemReference;
+import com.cesarcosmico.framesort.model.MatchFacts;
 import com.cesarcosmico.framesort.model.MatchTier;
 import com.cesarcosmico.framesort.model.Ranking;
 import com.cesarcosmico.framesort.model.TrustList;
@@ -84,7 +85,6 @@ public final class TargetResolver {
     private record Entry(long epoch, List<Match> matches) {
     }
 
-    private static final int NO_MATCH = -1;
     // Bounds memory on servers with many distinct items; a full clear is cheap to rebuild from the index.
     private static final int MAX_CACHED = 4096;
 
@@ -192,21 +192,12 @@ public final class TargetResolver {
         cache.clear();
     }
 
-    // The best priority at which the frame item accepts the item, or NO_MATCH.
     private int priority(ItemStack frameItem, ItemStack item, @Nullable String itemId) {
-        int best = direct(frameItem, item, itemId, false);
-        if (best != MatchTier.EXACT.priority(false)) {
-            for (ItemStack content : contents(frameItem)) {
-                int nested = direct(content, item, itemId, true);
-                if (nested != NO_MATCH && (best == NO_MATCH || nested < best)) {
-                    best = nested;
-                }
-            }
-        }
-        if (best == NO_MATCH && isDefaultTarget(frameItem)) {
-            best = MatchTier.DEFAULT_PRIORITY;
-        }
-        return best;
+        int direct = facts(frameItem, item, itemId).priority(false);
+        // Nothing inside the frame item can beat the exact item, so its contents aren't read.
+        List<Integer> nested = direct == MatchTier.EXACT.priority(false) ? List.of() : contents(frameItem).stream()
+                .map(content -> facts(content, item, itemId).priority(true)).toList();
+        return MatchTier.best(direct, nested, isDefaultTarget(frameItem));
     }
 
     public boolean isDefaultTarget(ItemStack frameItem) {
@@ -268,7 +259,7 @@ public final class TargetResolver {
             ItemStack shown = frame.getItem();
             int priority = priority(shown, item, itemId);
             // The event goes last: other plugins' handlers cost more than matching the item.
-            if (priority == NO_MATCH || !new TargetBindEvent(source, frame).callEvent()) {
+            if (priority == MatchTier.NO_MATCH || !new TargetBindEvent(source, frame).callEvent()) {
                 continue;
             }
             matches.add(new Match(frame, priority, shown.clone()));
@@ -325,21 +316,13 @@ public final class TargetResolver {
         return false;
     }
 
-    private int direct(ItemStack target, ItemStack item, @Nullable String itemId, boolean nested) {
-        if (ItemTagCodec.read(target) != null) {
-            TagCatalog.TagView tag = tag(target);
-            return tag != null && (itemId == null ? tag.lookup().contains(item.getType())
-                    : tag.customItems().contains(itemId))
-                    ? MatchTier.TAG.priority(nested) : NO_MATCH;
-        }
-        boolean filled = !contents(target).isEmpty();
-        if (filled && !nested) {
-            return NO_MATCH;
-        }
-        if (target.isSimilar(item)) {
-            return MatchTier.EXACT.priority(nested);
-        }
-        return !filled && sameKind(target, item, itemId) ? MatchTier.SIMILAR.priority(nested) : NO_MATCH;
+    private MatchFacts facts(ItemStack target, ItemStack item, @Nullable String itemId) {
+        boolean tagged = ItemTagCodec.read(target) != null;
+        TagCatalog.TagView tag = tagged ? tag(target) : null;
+        boolean inTag = tag != null && (itemId == null ? tag.lookup().contains(item.getType())
+                : tag.customItems().contains(itemId));
+        return new MatchFacts(tagged, inTag, !contents(target).isEmpty(), target.isSimilar(item),
+                sameKind(target, item, itemId));
     }
 
     private boolean sameKind(ItemStack target, ItemStack item, @Nullable String itemId) {
