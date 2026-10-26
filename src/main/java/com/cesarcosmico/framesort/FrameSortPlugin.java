@@ -215,6 +215,7 @@ public final class FrameSortPlugin extends JavaPlugin {
         };
         FrameSortSettings newSettings = loadSettings(warn);
         PadSettings newPads = loadPads(warn);
+        newPads.warnTopChanges(pads.get(), warn);
         TagSettings newTags = loadTags(warn);
         Messages newMessages = Messages.load(this, newSettings.language(), warn);
         settings.set(newSettings);

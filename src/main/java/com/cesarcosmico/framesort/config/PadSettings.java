@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 public record PadSettings(PadMode creation, int sweepInterval, Map<String, PadType> types) {
@@ -55,6 +56,17 @@ public record PadSettings(PadMode creation, int sweepInterval, Map<String, PadTy
 
     public @Nullable PadType type(String id) {
         return types.get(id.toLowerCase(Locale.ROOT));
+    }
+
+    /** Reports each type whose top block changed since {@code before}: its pads built with the old one go. */
+    public void warnTopChanges(PadSettings before, Consumer<String> warn) {
+        for (PadType type : types.values()) {
+            PadType old = before.type(type.id());
+            if (old != null && !old.top().equals(type.top())) {
+                warn.accept("pads.yml > types." + type.id() + ".structure: the top block changed; pads of this type"
+                        + " built with the old one are forgotten at their next check");
+            }
+        }
     }
 
     private static @Nullable PadType parseType(ConfigReader types, String id, Predicate<Material> isBlock,

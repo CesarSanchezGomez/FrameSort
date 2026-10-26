@@ -204,13 +204,14 @@ breaking and placing a pad's top block again gives it an owner. More in
 
 A key a type doesn't take, in it or in its `item`, is reported with its path as a typo and ignored.
 
-A pad is created when its top block is placed on its base, so place the base first. It counts as long as both
-blocks stay; breaking the top block removes it, and whoever broke it is told so. If the top block goes any other
-way (WorldEdit, a command, gravity), the pad is forgotten at the next sweep. Without its base a pad waits, and works
-again once the base is back. In `item` mode, breaking it gives the special item back, and the special block can't
-be placed where it wouldn't complete its own pad: the player is told which base it goes on and keeps the block. The
-top block of a registered pad can't be pushed by pistons, blown up or changed where it stands: an axe can't scrape
-the wax off a copper top block, nor a mob change it.
+A pad is created when its top block is placed on its base, so place the base first. It counts as long as both blocks
+stay; breaking the top block removes it, and whoever broke it is told so. If the top block goes any other way
+(WorldEdit, a command, gravity), the pad is forgotten at the next sweep. Without its base a pad waits, and works again
+once the base is back. Changing a type's top block in `pads.yml` forgets, at their next check, its pads built with the
+old one (`/framesort reload` says so); changing only the base leaves them waiting for it. In `item` mode, breaking it
+gives the special item back, and the special block can't be placed where it wouldn't complete its own pad: the player is
+told which base it goes on and keeps the block. The top block of a registered pad can't be pushed by pistons, blown up
+or changed where it stands: an axe can't scrape the wax off a copper top block, nor a mob change it.
 
 Items resting up to one block above the top block count, so carpets or slabs on the pad are fine.
 

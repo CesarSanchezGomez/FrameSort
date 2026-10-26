@@ -164,6 +164,43 @@ class PadSettingsTest {
     }
 
     @Test
+    void aReloadThatChangesATypesTopBlockSaysItsPadsGo() throws Exception {
+        YamlConfiguration before = new YamlConfiguration();
+        before.loadFromString("""
+                types:
+                  shrine:
+                    structure: [CRYING_OBSIDIAN, GILDED_BLACKSTONE]
+                    range: 64
+                    pull-radius: 4
+                    takes-from-inventory: false
+                  plain:
+                    structure: [LODESTONE, SMOOTH_STONE]
+                    range: 64
+                    pull-radius: 4
+                    takes-from-inventory: false
+                """);
+        YamlConfiguration after = new YamlConfiguration();
+        after.loadFromString("""
+                types:
+                  shrine:
+                    structure: [LODESTONE, GILDED_BLACKSTONE]
+                    range: 64
+                    pull-radius: 4
+                    takes-from-inventory: false
+                  plain:
+                    structure: [LODESTONE, STONE]
+                    range: 64
+                    pull-radius: 4
+                    takes-from-inventory: false
+                """);
+        List<String> warnings = new ArrayList<>();
+        parse(after, new ArrayList<>()).warnTopChanges(parse(before, new ArrayList<>()), warnings::add);
+
+        assertEquals(List.of("pads.yml > types.shrine.structure: the top block changed; pads of this type built with"
+                + " the old one are forgotten at their next check"), warnings);
+    }
+
+    @Test
     void aTypeIdWithACommaIsSkipped() throws Exception {
         YamlConfiguration yaml = new YamlConfiguration();
         yaml.loadFromString("""
