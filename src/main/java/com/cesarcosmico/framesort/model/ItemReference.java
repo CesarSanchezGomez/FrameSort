@@ -15,7 +15,7 @@ public sealed interface ItemReference {
 
     /**
      * Whether an item or block of {@code type}, whose custom reference is {@code customId} ({@code null} for a vanilla
-     * one), is this. A custom item or block is only a vanilla material underneath, so it is never that material.
+     * one), is this.
      */
     default boolean matches(Material type, @Nullable String customId) {
         return switch (this) {

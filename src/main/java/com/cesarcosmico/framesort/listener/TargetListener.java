@@ -35,7 +35,6 @@ public final class TargetListener implements Listener {
         }
     }
 
-    // The frame still holds the old item: the event's item is the one going in.
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onFrameChange(PlayerItemFrameChangeEvent event) {
         ItemFrame frame = event.getItemFrame();

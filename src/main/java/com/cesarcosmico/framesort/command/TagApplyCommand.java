@@ -55,7 +55,7 @@ public final class TagApplyCommand implements CommandFeature {
         return Command.SINGLE_SUCCESS;
     }
 
-    // Tells the sender why when there is none; tag-remove needs it too.
+    // Tells the sender why when there is none.
     static @Nullable Player playerHoldingItem(CommandContext<CommandSourceStack> context, Messages messages) {
         if (!(context.getSource().getSender() instanceof Player player)) {
             context.getSource().getSender().sendMessage(messages.get("command.players-only"));

@@ -55,6 +55,7 @@ public final class InspectListener implements Listener {
         if (!(event.getRightClicked() instanceof ItemFrame frame) || frame.getItem().isEmpty() || !inspects(player)) {
             return;
         }
+        // Both hands, so the frame never rotates its item.
         event.setCancelled(true);
         if (event.getHand() == EquipmentSlot.HAND && !inspectSorterOf(player, frame)) {
             inspect.toggleMark(player, frame);

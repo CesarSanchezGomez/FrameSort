@@ -41,11 +41,12 @@ public final class DeliveryService {
         void destroy();
     }
 
-    /** {@code owner} is the source's owner, so a trace shows a delivery only to those who may see that source. */
+    /** {@code owner} is the source's owner. */
     public record Delivered(Location from, @Nullable UUID owner, ItemStack item, int amount, Location to,
                             Destination destination) {
     }
 
+    // Vanilla's delay before a full composter turns ready.
     private static final long READY_DELAY_TICKS = 20;
 
     private final Plugin plugin;
@@ -127,7 +128,7 @@ public final class DeliveryService {
         return notAccepted;
     }
 
-    // Returns how many items it did not take. The plan only sends compostable items to a composter.
+    // The plan only sends compostable items to a composter.
     private int compost(Block composter, ItemStack stack, int amount) {
         Levelled data = (Levelled) composter.getBlockData();
         int before = data.getLevel();

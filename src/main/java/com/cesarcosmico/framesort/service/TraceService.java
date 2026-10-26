@@ -20,6 +20,7 @@ import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Supplier;
 
+/** Distances are in blocks. */
 public final class TraceService {
 
     private static final class Turn {
@@ -35,7 +36,6 @@ public final class TraceService {
         }
     }
 
-    // Every target of the turn that is shown still shows once: a turn is the same source in the same tick.
     private static final long MIN_INTERVAL_MILLIS = 150;
     private static final int RING_TRAILS = 6;
     private static final double RING_RADIUS = 0.2;
@@ -100,7 +100,6 @@ public final class TraceService {
                 continue;
             }
             Location from = delivered.from();
-            // A trail ends at the chest it fills, so only those who may inspect the source see it.
             if (!player.getWorld().equals(from.getWorld())
                     || player.getLocation().distanceSquared(from) > (double) radius * radius
                     || !trust.canView(player, delivered.owner())) {

@@ -9,8 +9,6 @@ import java.util.Locale;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
-// The plugin name before the first : is matched ignoring case; what follows is CraftEngine's ID, exactly as
-// written.
 final class ItemReferences {
 
     private ItemReferences() {

@@ -190,7 +190,7 @@ public final class SorterService {
         return sorters.values().stream().map(sorter -> sorter.block).toList();
     }
 
-    /** {@code null} when CraftEngine can't build the activator now: an ID it doesn't know, or a /ce reload. */
+    /** {@code null} when CraftEngine can't build the activator now. */
     public @Nullable ItemStack createActivator(int amount) {
         SorterSettings sorter = settings.get().sorter();
         ItemStack item = switch (sorter.activator()) {

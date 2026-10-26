@@ -58,6 +58,7 @@ public final class SorterListener implements Listener {
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onBlockBreak(BlockBreakEvent event) {
         if (sorters.isSorter(event.getBlock())) {
+            // Its frame then falls, and that event forgets the sorter.
             tell(event.getPlayer(), SorterService.Change.REMOVED);
         }
     }

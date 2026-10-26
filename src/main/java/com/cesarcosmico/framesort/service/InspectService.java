@@ -74,10 +74,7 @@ public final class InspectService {
         this.commands = commands;
     }
 
-    /**
-     * Only those the owner trusts see it: the glow shows the owner's chests through walls. {@code pad} is the pad's
-     * type, or {@code null} for a sorter.
-     */
+    /** {@code pad} is the pad's type, or {@code null} for a sorter. */
     public void inspectSource(Player player, Block source, @Nullable PadType pad, ItemStack filter) {
         UUID owner = pad != null ? pads.ownerOf(source) : sorters.ownerOf(source);
         if (trust.canView(player, owner)) {
@@ -213,7 +210,6 @@ public final class InspectService {
         Messages text = messages.get();
         List<Component> lines = new ArrayList<>();
         lines.add(status(text, frame));
-        // Only a target's owner means anything: whoever marked it.
         if (index.isTarget(frame)) {
             UUID owner = FrameCodec.owner(frame);
             lines.add(owner != null ? text.get("frame.owner", Placeholder.unparsed("player", trust.name(owner)))

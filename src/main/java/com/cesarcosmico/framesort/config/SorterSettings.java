@@ -65,9 +65,8 @@ public record SorterSettings(ItemReference activator, ItemLook activatorLook, Ma
     }
 
     /**
-     * Whether {@code frame} holding {@code item} holds the activator, which makes a sorter of the dispenser it hangs
-     * on. {@code item} is usually the frame's own, or the one going in. {@code customId} gives a custom item's
-     * reference, or {@code null} for a vanilla item.
+     * Whether {@code frame} holding {@code item} holds the activator. {@code item} is usually the frame's own, or the
+     * one going in. {@code customId} gives a custom item's reference, or {@code null} for a vanilla item.
      */
     public boolean isActivatorFrame(ItemFrame frame, ItemStack item, Function<ItemStack, @Nullable String> customId) {
         return frameTypes.contains(frame.getType()) && activator.matches(item.getType(), customId.apply(item))

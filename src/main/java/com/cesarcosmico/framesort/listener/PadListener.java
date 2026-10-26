@@ -57,8 +57,6 @@ public final class PadListener implements Listener {
         }
     }
 
-    // HIGHEST, not MONITOR: it changes the drops or cancels the break. Protection plugins cancel earlier, and cancelled
-    // breaks are skipped.
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onBreak(BlockBreakEvent event) {
         Block block = event.getBlock();

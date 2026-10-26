@@ -41,6 +41,7 @@ import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Supplier;
 
+/** Distances are in blocks. */
 public final class PadService {
 
     private static final String CREATE_PERMISSION = "framesort.pad.create";

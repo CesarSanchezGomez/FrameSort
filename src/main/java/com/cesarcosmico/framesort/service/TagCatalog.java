@@ -47,7 +47,7 @@ public final class TagCatalog {
         this.settings = settings;
     }
 
-    /** A tags.yml tag replaces the game's tag of its name; an item tag wins over a block tag: frames sort items. */
+    /** An item tag wins over a block tag: frames sort items. */
     public @Nullable TagView find(NamespacedKey key) {
         TagView cached = found.get(key);
         if (cached != null || missing.contains(key)) {

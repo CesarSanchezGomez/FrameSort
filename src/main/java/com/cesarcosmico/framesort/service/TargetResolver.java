@@ -59,10 +59,7 @@ public final class TargetResolver {
             lava = List.copyOf(lava);
         }
 
-        /**
-         * Takes whatever the containers leave: the nearest drop spot, else the nearest lava. The other drop spots and
-         * lava of the level never get anything; {@code null} when it has neither.
-         */
+        /** The nearest drop spot, else the nearest lava, or {@code null} when the level has neither. */
         public @Nullable Target end() {
             if (!drops.isEmpty()) {
                 return new Target(drops.getFirst(), Destination.DROPPED);
@@ -154,11 +151,9 @@ public final class TargetResolver {
                 ? Destination.CONTAINER : Destination.DROPPED;
     }
 
-    /** The name of the block a frame on {@code block} fills; a custom plugin's block shows that plugin's name. */
     public Component blockName(Block block) {
         String id = customItems.blockId(block);
         ItemStack item = id == null ? null : customItems.blockItem(new ItemReference.Custom(id), 1);
-        // While the plugin reloads, or when no item has the block's ID, only the vanilla block it shows as has a name.
         return item == null ? Component.translatable(block.getType()) : item.effectiveName();
     }
 
