@@ -64,7 +64,7 @@ public final class TagShowCommand implements CommandFeature {
                 view.customItems().stream().map(reference -> entry(text, customName(reference), reference)))
                 .toList();
         String name = TagArgument.shortName(view.key());
-        // Applying needs a hand, and the button only shows to whoever may apply.
+        // Applying needs a hand.
         String apply = sender instanceof Player ? commands.usageFor("tag-apply", sender::hasPermission) : null;
         Component button = apply == null ? Component.empty()
                 : text.get("tag.apply-button").clickEvent(ClickEvent.runCommand(apply + " " + name));

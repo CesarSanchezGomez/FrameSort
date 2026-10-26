@@ -35,8 +35,7 @@ public final class TargetListener implements Listener {
         }
     }
 
-    // MONITOR, so only an item that really went in ends the mark or makes one. The frame still holds the old item:
-    // the event's item is the one going in.
+    // The frame still holds the old item: the event's item is the one going in.
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onFrameChange(PlayerItemFrameChangeEvent event) {
         ItemFrame frame = event.getItemFrame();

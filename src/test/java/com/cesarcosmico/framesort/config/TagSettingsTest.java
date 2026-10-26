@@ -56,7 +56,6 @@ class TagSettingsTest {
         assertNotNull(axes);
         assertEquals(List.of(Material.DIAMOND_AXE, Material.GOLDEN_AXE), axes.items());
         assertEquals(List.of(NamespacedKey.minecraft("axes")), axes.includes());
-        // The plugin name is matched ignoring case; the ID after it is CraftEngine's, exactly as written.
         assertEquals(List.of("craftengine:default:Topaz_Axe"), axes.customItems());
         TagSettings.CustomTag gems = settings.tags().get(NamespacedKey.fromString("server:gems"));
         assertNotNull(gems);

@@ -20,15 +20,12 @@ import org.bukkit.block.Block;
 import org.bukkit.inventory.ItemStack;
 import org.jspecify.annotations.Nullable;
 
-/** Created only when CraftEngine is enabled, so its classes are never loaded otherwise. */
 public final class CraftEngineItemResolver implements CustomItemResolver {
 
     private static final String PREFIX = ItemReference.CRAFT_ENGINE + ":";
 
     @Override
     public @Nullable String id(ItemStack item) {
-        // Reads the ID stored on the item, not CraftEngine's loaded item list, which is empty while it starts up or
-        // reloads: an item never changes destination during a /ce reload.
         Key id = CraftEngineItems.getCustomItemId(item);
         return id == null ? null : PREFIX + id.asString();
     }
@@ -36,13 +33,11 @@ public final class CraftEngineItemResolver implements CustomItemResolver {
     @Override
     public @Nullable Component name(String reference) {
         BukkitItemDefinition item = CraftEngineItems.byId(reference.substring(PREFIX.length()));
-        // CraftEngine translates this name for each player as the message goes out, as it does in inventories.
         return item == null ? null : item.buildBukkitItem().effectiveName();
     }
 
     @Override
     public @Nullable ItemStack item(ItemReference.Custom reference, int amount) {
-        // Null before CraftEngine has loaded its items, during /ce reload, and for an ID it doesn't know.
         BukkitItemDefinition item = CraftEngineItems.byId(reference.reference().substring(PREFIX.length()));
         if (item == null) {
             return null;
@@ -55,7 +50,6 @@ public final class CraftEngineItemResolver implements CustomItemResolver {
     @Override
     public @Nullable String blockId(Block block) {
         ImmutableBlockState state = CraftEngineBlocks.getCustomBlockState(block);
-        // Null for a vanilla block, and for a CraftEngine one while /ce reload has it unbound.
         return state == null || state.isEmpty() ? null : PREFIX + state.owner().value().id().asString();
     }
 
@@ -69,7 +63,6 @@ public final class CraftEngineItemResolver implements CustomItemResolver {
 
     @Override
     public boolean isCustomBlock(Block block) {
-        // True for any of CraftEngine's block slots, also while a /ce reload has them unbound.
         return CraftEngineBlocks.isCustomBlock(block);
     }
 
@@ -91,8 +84,7 @@ public final class CraftEngineItemResolver implements CustomItemResolver {
         if (storage != null) {
             int left = storage.inventory().addItem(items).values().stream().mapToInt(ItemStack::getAmount).sum();
             if (left < offered) {
-                // CraftEngine saves a chunk's block entities only once told one changed. Its hoppers tell it and
-                // Bukkit's addItem doesn't, so without this the items are gone when the chunk unloads.
+                // Bukkit's addItem doesn't tell CraftEngine, which then wouldn't save the items with the chunk.
                 entity.world().blockEntityChanged(entity.pos());
             }
             return left;
@@ -101,12 +93,11 @@ public final class CraftEngineItemResolver implements CustomItemResolver {
         if (drawer == null) {
             return Delivery.GONE;
         }
-        // addItem would replace what a drawer holds; put takes only its item, as many as fit, and has it saved.
+        // Not addItem, which would replace what the drawer holds.
         return offered - drawer.put(BukkitAdaptor.adapt(items), offered);
     }
 
-    // CraftEngine creates the block entity as its block is placed, and it outlives /ce reload, so FrameSort only reads
-    // it. No other block reaches these internals, which can change with any CraftEngine update.
+    // CraftEngine creates the block entity with its block and keeps it through /ce reload, so it is only read here.
     private static @Nullable BlockEntity blockEntity(Block block) {
         if (!CraftEngineBlocks.isCustomBlock(block)) {
             return null;
@@ -115,7 +106,6 @@ public final class CraftEngineItemResolver implements CustomItemResolver {
                 .getBlockEntityAtIfLoaded(new BlockPos(block.getX(), block.getY(), block.getZ()), false);
     }
 
-    // Both leave out a block whose allow_input is false: the pack keeps automatic input out of it.
     private static @Nullable SimpleStorageBlockEntityController storage(BlockEntity entity) {
         SimpleStorageBlockBehavior behavior = entity.blockState().behavior().getFirst(SimpleStorageBlockBehavior.class);
         return behavior == null || !behavior.canPlaceItem

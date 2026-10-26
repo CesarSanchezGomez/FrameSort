@@ -11,8 +11,6 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 
-// A source only sends to targets, and a pad only pulls items, in exactly its own set of regions, so nobody can fill a
-// chest in a region, or empty one of its loose items, from outside it or from another region.
 public final class WorldGuardListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)

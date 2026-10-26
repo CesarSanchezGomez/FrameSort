@@ -6,11 +6,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * How a pad throws a loose item onto itself, under the game's item physics. In the air, each tick the vertical speed
- * drops by {@link #GRAVITY}, the item moves, up or down first and then sideways, and its speed is multiplied by
- * {@link #DRAG}. Landing on a block stops its fall without a bounce, and on the ground its sideways speed is multiplied
- * after every move by the grip: the block's friction times {@link #DRAG}, below 1. Offsets go from the item to the
- * centre of the pad's surface, in blocks; speeds are in blocks per tick.
+ * How a pad throws a loose item onto itself, under the game's item physics. Offsets go from the item to the centre
+ * of the pad's surface, in blocks; speeds are in blocks per tick.
  */
 public final class Pull {
 
@@ -38,7 +35,6 @@ public final class Pull {
     private record Peak(double height, int ticks) {
     }
 
-    // ItemEntity#getDefaultGravity and Entity#getAirDrag; they change with Minecraft, not with Paper.
     static final double GRAVITY = 0.04;
     static final double DRAG = 0.98;
     // Over the pad's surface and over where the item lay, so the arc shows.
@@ -57,7 +53,6 @@ public final class Pull {
     static final int MIN_TICKS = 10;
     static final double TICKS_PER_BLOCK = 1.5;
     static final int PACED_TICKS = 22;
-    // An item that no throw brings in by then stays where it is.
     static final int MAX_TICKS = 40;
     // A lying item with less sideways speed than about 0.003 moves on one tick in four; this keeps it moving.
     static final double NUDGE = 0.01;
@@ -136,8 +131,6 @@ public final class Pull {
         return new Velocity(dx * scale, vy, dz * scale);
     }
 
-    // The item moves up or down before sideways, so it lands where the tick before left it, which must already be over
-    // the pad; and it comes over the pad's edge at the height the tick that brings it there has just reached.
     private static @Nullable Arc arc(Velocity velocity, int ticks, double dx, double dy, double dz, double lands) {
         double distance = Math.hypot(dx, dz);
         // Along the straight line to the centre, the item is over the pad once its larger axis is within EDGE.
@@ -193,7 +186,6 @@ public final class Pull {
         return (1 - Math.pow(DRAG, ticks)) / (1 - DRAG);
     }
 
-    // How far gravity pulls an item down over a flight of that many ticks.
     private static double fall(int ticks) {
         return GRAVITY / (1 - DRAG) * (ticks - DRAG * reach(ticks));
     }

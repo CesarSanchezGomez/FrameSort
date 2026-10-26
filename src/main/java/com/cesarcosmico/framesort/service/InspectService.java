@@ -36,7 +36,6 @@ import java.util.stream.Stream;
 public final class InspectService {
 
     public static final String INSPECT_PERMISSION = "framesort.inspect";
-    // A page button can be pressed again and again, for the callback's default lifetime of 12 hours.
     private static final ClickCallback.Options PAGE_BUTTON = ClickCallback.Options.builder()
             .uses(ClickCallback.UNLIMITED_USES).build();
 
@@ -76,9 +75,8 @@ public final class InspectService {
     }
 
     /**
-     * With an item in {@code filter}, only where that item would go, chosen like a real delivery. Only those the
-     * owner trusts see it: the glow shows the owner's chests through walls. {@code pad} is the pad's type, or
-     * {@code null} for a sorter.
+     * Only those the owner trusts see it: the glow shows the owner's chests through walls. {@code pad} is the pad's
+     * type, or {@code null} for a sorter.
      */
     public void inspectSource(Player player, Block source, @Nullable PadType pad, ItemStack filter) {
         UUID owner = pad != null ? pads.ownerOf(source) : sorters.ownerOf(source);
@@ -113,7 +111,6 @@ public final class InspectService {
         BlockKey center = FrameGeometry.key(source);
         List<Component> lines = new ArrayList<>();
         List<HighlightService.Highlight> marks = new ArrayList<>();
-        // The title stays short; where the source is, whose it is and what it sent go in its hover.
         List<Component> facts = new ArrayList<>();
         facts.add(text.get("inspect.details.place", coordinates(source.getLocation())));
         facts.add(owner == null ? text.get("inspect.details.no-owner")
@@ -144,7 +141,6 @@ public final class InspectService {
         highlight(player, marks);
     }
 
-    // The button may be pressed hours later: it keeps only keys and copies, and checks everything again.
     private ClickEvent<?> pageButton(BlockKey source, boolean pad, ItemStack filter, Opened opened, int page) {
         return ClickEvent.callback(ClickCallback.widen(viewer -> turnPage(viewer, source, pad, filter, opened, page),
                 Player.class), PAGE_BUTTON);
@@ -230,7 +226,6 @@ public final class InspectService {
             case DROPPED -> text.get("frame.into.dropped");
             case DESTROYED -> text.get("frame.into.lava");
         });
-        // A sorter never sends to another sorter, so only pads reach a frame on one.
         if (sorters.isSorter(FrameGeometry.attachedBlock(frame))) {
             lines.add(text.get("frame.on-sorter"));
         }
@@ -288,7 +283,6 @@ public final class InspectService {
             return;
         }
         boolean mark = !index.isMarked(frame);
-        // Unmarking someone else's frame would send their items down a level, maybe into lava.
         UUID owner = FrameCodec.owner(frame);
         if (!mark && settings.get().ownership() && owner != null && !owner.equals(player.getUniqueId())) {
             player.sendActionBar(text.get("mark.not-yours", Placeholder.unparsed("player", trust.name(owner))));
@@ -314,7 +308,6 @@ public final class InspectService {
         List<TargetResolver.Level> levels = resolver.plan(source, owner, range, filter).levels();
         for (int i = 0; i < levels.size(); i++) {
             TargetResolver.Level level = levels.get(i);
-            // In the order a delivery uses them: the containers, then the one drop spot or lava that takes the rest.
             Target end = level.end();
             List<Target> targets = Stream.concat(
                     level.containers().stream().map(frame -> new Target(frame, Destination.CONTAINER)),
@@ -329,7 +322,6 @@ public final class InspectService {
                 lines.add(j == 0 ? Component.join(JoinConfiguration.newlines(), header, branch) : branch);
                 marks.add(highlight(target.frame(), target.destination()));
             }
-            // A drop spot takes everything left, and lava destroys it: the levels after it never get anything.
             if (end != null) {
                 if (end.destination() == Destination.DESTROYED) {
                     endWith(lines, text.get("inspect.excess.lava"));

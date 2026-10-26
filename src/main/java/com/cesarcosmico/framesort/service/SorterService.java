@@ -49,8 +49,6 @@ public final class SorterService {
     // Shulker boxes inside bundles inside shulker boxes…: deep enough for any real setup, and bounded.
     private static final int MAX_DEPTH = 8;
     private static final long UNLOADED_DISPENSER_RETRY_TICKS = 100;
-    // A turn sends a stack's worth however the items are packed, so bundles of single items don't crawl; the same
-    // bound caps the tries when items have nowhere to go, so one that doesn't fit never stalls the rest.
     private static final int PER_TURN = 64;
 
     private static final class Sorter {
@@ -107,7 +105,6 @@ public final class SorterService {
                 SorterSettings sorter = settings.get().sorter();
                 sorters.put(key, new Sorter(frame, block, tick + 1 + (nextPhase++ % sorter.tickRate())));
             }
-            // On every check, not only the first: a reload's look settings then reach the sorters that exist.
             if (existing == null || existing.frame.equals(frame)) {
                 applyLook(frame, true);
             }
@@ -122,9 +119,9 @@ public final class SorterService {
     }
 
     /**
-     * Re-checks a frame on the next tick: when an item-frame event fires, the frame still holds the old item. A
-     * sorter belongs to whoever put the activator in, not to whoever hung the frame; {@code placer} is {@code null}
-     * when the change was not putting an item in, such as rotating the frame of a sorter not yet created.
+     * Re-checks a frame on the next tick: when an item-frame event fires, the frame still holds the old item.
+     * {@code placer} is {@code null} when the change was not putting an item in, such as rotating the frame of a sorter
+     * not yet created.
      */
     public void considerLater(ItemFrame frame, @Nullable UUID placer, Consumer<Change> then) {
         frame.getScheduler().run(plugin, task -> {
@@ -273,7 +270,6 @@ public final class SorterService {
         }
     }
 
-    /** How many items this sorter's dispenser has sent; the count stays with the block. */
     public long sorted(Block block) {
         return block.getState(false) instanceof Dispenser dispenser
                 ? dispenser.getPersistentDataContainer().getOrDefault(Keys.SORTED, PersistentDataType.LONG, 0L)
@@ -284,7 +280,6 @@ public final class SorterService {
         frame.setVisible(!active || !settings.get().sorter().hideFrame());
     }
 
-    /** A sorter opens a shulker box or bundle with contents first; it goes whole once nothing inside can go. */
     public static boolean opens(ItemStack item) {
         return !TargetResolver.contents(item).isEmpty();
     }
@@ -301,8 +296,8 @@ public final class SorterService {
         return null;
     }
 
-    // A stack inside the slot first, else the slot itself, skipping what missed this turn: a shulker box or bundle
-    // goes whole once nothing inside it can go. The item is what the slot holds, read once.
+    // A stack inside the slot first, else the slot itself, skipping what missed this turn. The item is what the slot
+    // holds, read once.
     private static @Nullable Slot pick(Slot slot, ItemStack item, List<ItemStack> missed, int depth) {
         if (missed.stream().anyMatch(item::isSimilar)) {
             return null;

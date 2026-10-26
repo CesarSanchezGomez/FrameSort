@@ -183,7 +183,6 @@ public final class FrameSortPlugin extends JavaPlugin {
             sorters.tick();
             padService.tick();
         }, 1L, 1L);
-        // With SQLite only this server writes the table; a shared MySQL or MariaDB one can change from elsewhere.
         if (opened.type() != DatabaseType.SQLITE) {
             trustRefresh = getServer().getScheduler().runTaskTimer(this, trust::refresh, TRUST_REFRESH_TICKS,
                     TRUST_REFRESH_TICKS);

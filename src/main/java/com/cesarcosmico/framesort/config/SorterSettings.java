@@ -19,10 +19,6 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-/**
- * A vanilla activator is built from its material, {@code activatorComponents} and {@code activatorLook}; a CraftEngine
- * one is built by CraftEngine, with {@code activatorLook} laid over it and no components.
- */
 public record SorterSettings(ItemReference activator, ItemLook activatorLook, Map<String, String> activatorComponents,
                              boolean requireMarked, Set<EntityType> frameTypes, @Nullable String customName,
                              int range, int tickRate, boolean disableWhenPowered, boolean hideFrame,

@@ -30,7 +30,6 @@ public final class AutomarkService {
         this.maySwitchOff = maySwitchOff;
     }
 
-    /** Switches {@code player} between marking by hand and marking what they fill. */
     public Toggle toggle(Player player) {
         if (!player.hasPermission(TargetIndex.MARK_PERMISSION)) {
             return Toggle.CANNOT_MARK;
@@ -41,10 +40,8 @@ public final class AutomarkService {
     }
 
     /**
-     * {@code item} is going into {@code frame}, which still holds the old one. Ends the old mark, then marks the frame
-     * for {@code player} if they chose to, answering as marking by hand does. Only frames on containers or composters:
-     * a frame on a wall or a lava cauldron is marked by hand, so a decorative one never becomes a drop spot or a trash
-     * can.
+     * {@code item} is going into {@code frame}, which still holds the old one. A frame on a wall or a lava cauldron is
+     * never automarked, so a decorative one never becomes a drop spot or a trash can.
      */
     public void itemPlaced(Player player, ItemFrame frame, ItemStack item) {
         index.itemPlaced(frame);

@@ -61,7 +61,6 @@ public final class PadService {
         record Removed(@Nullable ItemStack item) implements Breaking {
         }
 
-        /** The pad stays, so the special item it would give back is never lost. */
         record Kept() implements Breaking {
         }
 
@@ -72,10 +71,7 @@ public final class PadService {
     // A flight's rays start just off the block an item lies on and end just over the surface it lands on, so they don't
     // graze either.
     private static final double RAY_LIFT = 0.05;
-    // Closer to the pad's centre than this along both axes, within half a block of its side, no arc comes over its edge
-    // without a tall loop: the item hops instead.
     private static final double HOP_REACH = 1;
-    // Not the hotbar, armour or off hand: those are what the player is using.
     private static final int FIRST_MAIN_SLOT = 9;
     private static final int LAST_MAIN_SLOT = 35;
 
@@ -132,11 +128,7 @@ public final class PadService {
         return blocked && !silent ? new Placement.NotAllowed() : new Placement.NotAPad();
     }
 
-    /**
-     * What breaking {@code block} does. When pads are made from items and the breaker {@code drops} items, the pad
-     * gives its special item back, so it is kept while CraftEngine can't build that item (during /ce reload, or for
-     * an ID it no longer knows).
-     */
+    /** {@code drops} is whether the break drops items, as it does outside creative mode. */
     public Breaking broken(Block block, boolean drops) {
         PadType type = registered(block);
         if (type == null) {
@@ -178,7 +170,6 @@ public final class PadService {
         for (Map<BlockKey, PadEntry> inChunk : pads.values()) {
             for (Map.Entry<BlockKey, PadEntry> pad : inChunk.entrySet()) {
                 BlockKey key = pad.getKey();
-                // A type taken out of pads.yml has no range until it is back.
                 PadType type = settings.get().type(pad.getValue().type());
                 if (type != null && key.distanceSquared(here) <= (long) type.range() * type.range()) {
                     found.add(new Pad(center.getWorld().getBlockAt(key.x(), key.y(), key.z()), type,
@@ -224,8 +215,6 @@ public final class PadService {
         if (type == null) {
             return;
         }
-        // A player's break unregisters the pad at once; one by WorldEdit, a command, gravity or another block put in
-        // its place is only seen here.
         PadBlock seen = read(top);
         if (!isTop(seen, type)) {
             unregister(top);
@@ -234,7 +223,6 @@ public final class PadService {
         if (!matches(seen, read(top.getRelative(BlockFace.DOWN)), type)) {
             return;
         }
-        // Items count when resting up to one block above the pad, like a hopper's pickup area.
         Location above = top.getLocation().add(0.5, 1.5, 0.5);
         for (Item item : top.getWorld().getNearbyEntitiesByType(Item.class, above, 0.5, 0.5, 0.5)) {
             if (item.isValid()) {
@@ -264,7 +252,6 @@ public final class PadService {
                     filled.add(index);
                 }
             }
-            // One stack per check, at random, like a sorter's turn; one with nowhere to go doesn't hold up the rest.
             Collections.shuffle(filled, ThreadLocalRandom.current());
             for (int index : filled) {
                 // Other plugins' handlers run during a delivery and may kill the player or make them leave.
@@ -276,7 +263,6 @@ public final class PadService {
         }
     }
 
-    // Throws the loose items around the pad onto it, so a later sweep sends them.
     private void pull(Block top, int radius) {
         if (!hasRoomToLand(top)) {
             return;
@@ -284,8 +270,7 @@ public final class PadService {
         Block above = top.getRelative(BlockFace.UP);
         Location surface = top.getLocation().add(0.5, 0, 0.5);
         surface.setY(above.isPassable() ? above.getY() : above.getBoundingBox().getMaxY());
-        // A lying item is slowed by the block just under a block's height below it: the pad's top, also under a carpet
-        // or slab.
+        // The pad's top slows a lying item even under a carpet or slab.
         double grip = Pull.grip(top.getType().getSlipperiness());
         for (Item item : top.getWorld().getNearbyEntitiesByType(Item.class, surface, radius, radius, radius)) {
             if (!isPullable(item, surface, radius)) {
@@ -300,8 +285,6 @@ public final class PadService {
         }
     }
 
-    // Every pull lands on the pad's surface: a carpet or slab on the pad still leaves room, and the item comes down
-    // through the block above it.
     private static boolean hasRoomToLand(Block top) {
         Block above = top.getRelative(BlockFace.UP);
         return (above.isPassable() || above.getBoundingBox().getMaxY() < above.getY() + 1)
@@ -321,13 +304,10 @@ public final class PadService {
         return item.getVelocity().getY() > 0;
     }
 
-    // An item over or under the pad is already on it, or can't get there.
     private static boolean inPadColumn(Location at, Location surface) {
         return Math.abs(at.getX() - surface.getX()) < 0.5 && Math.abs(at.getZ() - surface.getZ()) < 0.5;
     }
 
-    // The rays pass under the curve between the points of the flight: a low overhang there can still catch the item,
-    // which then lands elsewhere and is tried again on the next check.
     private static void throwOnto(Item item, Block top, Location surface, double grip) {
         Location from = item.getLocation();
         Pull.Arc arc = Pull.toPad(surface.getX() - from.getX(), surface.getY() - from.getY(),
@@ -363,8 +343,7 @@ public final class PadService {
             return;
         }
         item.setVelocity(vector(hop.velocity()));
-        // Worked out when it runs, from where the item is then, so a tick before or after its highest point makes no
-        // difference. Harmless if FrameSort is gone by then, so the task isn't kept.
+        // Harmless if FrameSort is gone by then, so the task isn't kept.
         item.getScheduler().runDelayed(plugin, task -> {
             Location at = item.getLocation();
             // Water, a piston or another plugin may have moved it since.
@@ -395,8 +374,6 @@ public final class PadService {
         return top.is(type.top()) && base.is(type.base());
     }
 
-    // While /ce reload has CraftEngine's blocks unbound, a pad's CraftEngine top block can't be told from another:
-    // the pad is kept, and protected, until the reload ends.
     private static boolean isTop(PadBlock block, PadType type) {
         return block.is(type.top()) || type.top() instanceof ItemReference.Custom && block.unbound();
     }
@@ -439,8 +416,6 @@ public final class PadService {
         }
     }
 
-    // A CraftEngine block shows to the server as a vanilla one (bricks by default), so it never counts as that block;
-    // while /ce reload has it unbound, it counts as no block at all.
     private record PadBlock(Material type, @Nullable String customId, boolean unbound) {
         boolean is(ItemReference reference) {
             return !unbound && reference.matches(type, customId);

@@ -28,7 +28,6 @@ class ItemReferencesTest {
 
     @Test
     void craftEngineKeepsItsIdAsWritten() {
-        // The plugin name is matched ignoring case; the ID after it is CraftEngine's, exactly as written.
         assertEquals(new ItemReference.Custom("craftengine:default:Topaz_Axe"), parse("CraftEngine:default:Topaz_Axe"));
         assertEquals(List.of(), problems);
     }

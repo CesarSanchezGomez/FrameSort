@@ -3,10 +3,6 @@ package com.cesarcosmico.framesort.model;
 import org.bukkit.Material;
 import org.jspecify.annotations.Nullable;
 
-/**
- * An item or block named in the config: a vanilla material, or a CraftEngine one by its reference, written
- * {@code craftengine:<namespace>:<id>} as tags.yml and the CustomItemResolver write it.
- */
 public sealed interface ItemReference {
 
     String CRAFT_ENGINE = "craftengine";

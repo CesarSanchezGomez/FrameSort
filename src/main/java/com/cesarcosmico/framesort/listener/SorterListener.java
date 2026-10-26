@@ -46,7 +46,6 @@ public final class SorterListener implements Listener {
         }
     }
 
-    // MONITOR, so the sorter is forgotten only once the break is final.
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onBreak(HangingBreakEvent event) {
         if (event.getEntity() instanceof ItemFrame frame && sorters.broken(frame)
@@ -56,7 +55,6 @@ public final class SorterListener implements Listener {
         }
     }
 
-    // MONITOR: only a break no plugin cancelled ends the sorter; its frame then falls and is forgotten.
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onBlockBreak(BlockBreakEvent event) {
         if (sorters.isSorter(event.getBlock())) {
@@ -64,7 +62,6 @@ public final class SorterListener implements Listener {
         }
     }
 
-    // MONITOR, so the frame is re-checked only once the change is final.
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onFrameChange(PlayerItemFrameChangeEvent event) {
         Player player = event.getPlayer();
@@ -80,7 +77,6 @@ public final class SorterListener implements Listener {
         }
     }
 
-    // Only the title the player sees changes: the dispenser keeps its own name, for when it stops sorting.
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onOpen(InventoryOpenEvent event) {
         if (event.getInventory().getHolder(false) instanceof Dispenser dispenser) {

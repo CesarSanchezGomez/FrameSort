@@ -33,10 +33,8 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.function.Supplier;
 
-/** Cached until the world's targets change; callers recheck each frame, which may have changed since. */
 public final class TargetResolver {
 
-    /** Where a delivery leaves the items sent to a frame. */
     public enum Destination {
         CONTAINER,
         DROPPED,
@@ -54,7 +52,6 @@ public final class TargetResolver {
     public record Target(ItemFrame frame, Destination destination) {
     }
 
-    /** Frames tied at one priority, split by where the items end up, each list nearest to the source first. */
     public record Level(List<ItemFrame> containers, List<ItemFrame> drops, List<ItemFrame> lava) {
         public Level {
             containers = List.copyOf(containers);
@@ -84,8 +81,6 @@ public final class TargetResolver {
     private record Match(ItemFrame frame, int priority, ItemStack frameItem) {
     }
 
-    // The owner and range are part of the key: a pad rebuilt on the same block by someone else, or as another type,
-    // must not reuse its matches.
     private record CacheKey(BlockKey source, @Nullable UUID owner, int range, ItemStack item) {
     }
 
@@ -131,7 +126,6 @@ public final class TargetResolver {
             }
             ranking.add(match.priority(), frame);
         }
-        // Nearest first within a level, so filling is predictable and an inspection lists the real order.
         BlockKey origin = FrameGeometry.key(source);
         Comparator<ItemFrame> nearest = Comparator.comparingLong(frame -> FrameGeometry.distanceSquared(frame, origin));
         List<Level> levels = new ArrayList<>();
@@ -209,7 +203,6 @@ public final class TargetResolver {
         return best;
     }
 
-    /** Whether a frame holding {@code frameItem} takes whatever matches no other frame. */
     public boolean isDefaultTarget(ItemStack frameItem) {
         ItemReference target = settings.get().delivery().defaultTargetItem();
         return target != null && target.matches(frameItem.getType(), customItems.id(frameItem));
@@ -221,7 +214,7 @@ public final class TargetResolver {
         return key == null ? null : tags.find(key);
     }
 
-    /** The reference to {@code item} as tags.yml writes it, or {@code null} for a vanilla item. */
+    /** {@code null} for a vanilla item. */
     public @Nullable String customId(ItemStack item) {
         return customItems.id(item);
     }
@@ -288,11 +281,9 @@ public final class TargetResolver {
                 && current.sorter().isActivatorFrame(frame, shown, customItems::id)) {
             return false;
         }
-        // Anyone can hang a frame near a sorter: it takes the owner's items only if the owner trusts its owner.
         return !current.ownership() || trust.get().allows(owner, FrameCodec.owner(frame));
     }
 
-    // Never cached: sorters come and go, and the blocks below a drop spot change, without touching any target frame.
     private boolean wouldLoop(FrameSortSettings current, Block source, ItemFrame frame) {
         if (isSorter(current, FrameGeometry.attachedBlock(frame)) && isSorter(current, source)) {
             return true;
@@ -331,15 +322,12 @@ public final class TargetResolver {
     }
 
     private int direct(ItemStack target, ItemStack item, @Nullable String itemId, boolean nested) {
-        // A tagged item stands only for its tag, never for itself or its material.
         if (ItemTagCodec.read(target) != null) {
             TagCatalog.TagView tag = tag(target);
-            // A custom item is only a vanilla material underneath, so only a tags.yml tag that lists it stands for it.
             return tag != null && (itemId == null ? tag.lookup().contains(item.getType())
                     : tag.customItems().contains(itemId))
                     ? MatchTier.TAG.priority(nested) : NO_MATCH;
         }
-        // A filled shulker box or bundle in the frame stands only for what it holds; inside it, only for itself.
         boolean filled = !contents(target).isEmpty();
         if (filled && !nested) {
             return NO_MATCH;
@@ -350,7 +338,6 @@ public final class TargetResolver {
         return !filled && sameKind(target, item, itemId) ? MatchTier.SIMILAR.priority(nested) : NO_MATCH;
     }
 
-    // Many custom items share one vanilla material, so a custom item's kind is its ID, never its material.
     private boolean sameKind(ItemStack target, ItemStack item, @Nullable String itemId) {
         String targetId = customItems.id(target);
         return targetId == null ? itemId == null && target.getType() == item.getType() : targetId.equals(itemId);

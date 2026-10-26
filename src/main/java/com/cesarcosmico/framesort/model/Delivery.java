@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.function.IntConsumer;
 import java.util.function.ToIntBiFunction;
 
-/** Commits the remainder to the source after every sink, so a failing sink can never duplicate items. */
 public final class Delivery {
 
     /** Returned by the offer when the sink no longer exists (a container moved by a piston, broken…). */

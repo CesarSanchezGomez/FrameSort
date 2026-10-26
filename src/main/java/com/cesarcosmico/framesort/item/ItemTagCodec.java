@@ -10,7 +10,6 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.Set;
 
-// The tag lives in the item's data, not in its name, so renaming a tagged item never changes what it accepts.
 public final class ItemTagCodec {
 
     private static final Set<DataComponentType> CHANGED_BY_TAG = Set.of(DataComponentTypes.CUSTOM_NAME,
@@ -19,7 +18,6 @@ public final class ItemTagCodec {
     private ItemTagCodec() {
     }
 
-    /** The item keeps a copy of the look it had, so {@link #clear} can give it back exactly. */
     public static void apply(ItemStack item, NamespacedKey tag, ItemLook look, TagResolver... resolvers) {
         if (read(item) != null) {
             // Otherwise the first tag's look would be saved as the item's own.
@@ -35,7 +33,6 @@ public final class ItemTagCodec {
         });
     }
 
-    /** Takes the tag off and gives the item back the name, lore and glint it had when it was tagged. */
     public static void clear(ItemStack item) {
         byte[] snapshot = item.getPersistentDataContainer().get(Keys.ITEM_TAG_ORIGINAL, PersistentDataType.BYTE_ARRAY);
         ItemStack own = ItemStack.deserializeBytes(snapshot);

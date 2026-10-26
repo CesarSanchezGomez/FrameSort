@@ -14,7 +14,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Predicate;
 
-/** The tags in tags.yml. A name without a namespace is {@code minecraft:}, so it replaces the game's tag. */
 public record TagSettings(Map<NamespacedKey, CustomTag> tags) {
 
     /** A tag's vanilla items, the game tags whose items it takes, and its custom item references. */
@@ -30,10 +29,7 @@ public record TagSettings(Map<NamespacedKey, CustomTag> tags) {
         tags = Map.copyOf(tags);
     }
 
-    /**
-     * {@code isItem} and {@code isGameTag} need the registries on a server, so tests pass their own; {@code isItem}
-     * leaves out air. {@code craftEngine} says whether CraftEngine is enabled.
-     */
+    /** {@code isItem} leaves out air. */
     public static TagSettings parse(ConfigReader reader, Predicate<Material> isItem,
                                     Predicate<NamespacedKey> isGameTag, boolean craftEngine) {
         ConfigReader section = reader.section("tags");

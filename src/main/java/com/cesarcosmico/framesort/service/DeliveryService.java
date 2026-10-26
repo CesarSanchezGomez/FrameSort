@@ -46,7 +46,6 @@ public final class DeliveryService {
                             Destination destination) {
     }
 
-    // The delay vanilla gives a full composter before it turns ready.
     private static final long READY_DELAY_TICKS = 20;
 
     private final Plugin plugin;
@@ -95,7 +94,6 @@ public final class DeliveryService {
             if (dropped == null) {
                 return amount - remaining;
             }
-            // A pad near the drop spot would otherwise pull them in and send them back here.
             DropCodec.mark(dropped);
             observer.accept(new Delivered(from, owner, stack, remaining, to, Destination.DROPPED));
         }
@@ -129,8 +127,7 @@ public final class DeliveryService {
         return notAccepted;
     }
 
-    // Like a hopper feeding the composter; returns how many items it did not take. The plan only sends compostable
-    // items to a composter.
+    // Returns how many items it did not take. The plan only sends compostable items to a composter.
     private int compost(Block composter, ItemStack stack, int amount) {
         Levelled data = (Levelled) composter.getBlockData();
         int before = data.getLevel();

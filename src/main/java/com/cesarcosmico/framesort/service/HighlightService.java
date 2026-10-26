@@ -90,11 +90,6 @@ public final class HighlightService {
         return display;
     }
 
-    /**
-     * Where the vanilla item frame renderer draws the item, relative to the frame entity: the steps of
-     * {@code ItemFrameRenderer#submit} in Minecraft 26.2, ending with a half turn that undoes the one
-     * {@code ItemDisplayRenderer} adds, so the copy lands on the real item.
-     */
     static Matrix4f itemTransform(BlockFace facing, int rotation, boolean visibleFrame) {
         boolean horizontal = facing.getModY() == 0;
         float xRot = horizontal ? 0 : -90f * facing.getModY();

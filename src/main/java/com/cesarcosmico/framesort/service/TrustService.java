@@ -28,8 +28,6 @@ public final class TrustService implements Supplier<TrustList> {
     private final TrustRepository repository;
     private final Supplier<FrameSortSettings> settings;
     private final TargetIndex index;
-    // Changed only on the database thread, in the task that writes or reads the table, so it follows the database's
-    // order; the main thread only reads it.
     private volatile TrustList list;
     private volatile boolean refreshFailing;
 
@@ -54,11 +52,9 @@ public final class TrustService implements Supplier<TrustList> {
                 || owner != null && (owner.equals(viewer.getUniqueId()) || list.trusts(owner, viewer.getUniqueId()));
     }
 
-    /**
-     * The name the server's profile cache has for {@code player}, or the UUID when it has none. Not
-     * {@code OfflinePlayer#getName}: for an offline player it reads their file from disk on every call.
-     */
+    /** The name the server's profile cache has for {@code player}, or the UUID when it has none. */
     public String name(UUID player) {
+        // Not OfflinePlayer#getName, which reads an offline player's file on every call.
         PlayerProfile profile = plugin.getServer().createProfile(player);
         profile.completeFromCache();
         String name = profile.getName();
@@ -66,9 +62,8 @@ public final class TrustService implements Supplier<TrustList> {
     }
 
     /**
-     * Makes {@code owner} trust the player named {@code typed}. Saved first, then applied, so a failed write never
-     * leaves a trust in memory that the database doesn't have. {@code then} gets the result and the name to show,
-     * on the main thread; not at all if {@code owner} leaves first, but the trust is applied anyway.
+     * {@code then} gets the result and the name to show, on the main thread; not at all if {@code owner} leaves first,
+     * but the trust is applied anyway.
      */
     public void trust(Player owner, String typed, BiConsumer<Grant, String> then) {
         // Only players this server has seen: looking a name up on the web would block the server.
@@ -124,7 +119,6 @@ public final class TrustService implements Supplier<TrustList> {
         });
     }
 
-    /** Reads the whole table again, so trust changed on another server sharing the database applies here too. */
     public void refresh() {
         database.query(connection -> {
             TrustList read = repository.load(connection);
@@ -135,7 +129,6 @@ public final class TrustService implements Supplier<TrustList> {
             return differs;
         }).whenComplete((differs, error) -> {
             if (error != null) {
-                // Once per outage: the next read is a minute away and would fail the same way.
                 if (!refreshFailing) {
                     refreshFailing = true;
                     plugin.getLogger().log(Level.WARNING,
@@ -161,8 +154,7 @@ public final class TrustService implements Supplier<TrustList> {
         invalidate();
     }
 
-    // The cached matches live on the main thread. The global scheduler runs this even when the player who changed
-    // the trust has left; their own scheduler would drop it.
+    // The global scheduler: the player who changed the trust may have left, and theirs would drop it.
     private void invalidate() {
         if (plugin.isEnabled()) {
             plugin.getServer().getScheduler().runTask(plugin, index::changedEverywhere);

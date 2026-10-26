@@ -45,7 +45,6 @@ public final class PadListener implements Listener {
         pads.unload(event.getChunk());
     }
 
-    // MONITOR, so the pad is registered only once no plugin can still cancel the placement.
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onPlace(BlockPlaceEvent event) {
         switch (pads.placed(event.getPlayer(), event.getBlockPlaced(), event.getItemInHand())) {
@@ -95,8 +94,7 @@ public final class PadListener implements Listener {
         }
     }
 
-    // An axe scraping the wax off a copper top, or a mob changing the block, would end the pad where it stands. A
-    // top block with gravity still falls once its base is gone: the sweep then forgets the pad.
+    // A top block with gravity still falls; the sweep then forgets the pad.
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onEntityChangeBlock(EntityChangeBlockEvent event) {
         if (!(event.getEntity() instanceof FallingBlock) && pads.isPadTop(event.getBlock())) {

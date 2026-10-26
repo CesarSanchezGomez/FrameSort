@@ -35,8 +35,7 @@ public final class TraceService {
         }
     }
 
-    // At most one sorter turn or pad sweep per player this often, so a busy sorter does not flood the screen. Every
-    // target of the turn that is shown still shows once: a turn is the same source in the same tick.
+    // Every target of the turn that is shown still shows once: a turn is the same source in the same tick.
     private static final long MIN_INTERVAL_MILLIS = 150;
     private static final int RING_TRAILS = 6;
     private static final double RING_RADIUS = 0.2;

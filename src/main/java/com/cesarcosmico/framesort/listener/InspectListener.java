@@ -18,7 +18,6 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.jspecify.annotations.Nullable;
 
-// Inspecting needs sneaking with an empty main hand, so every other click stays vanilla.
 public final class InspectListener implements Listener {
 
     private final InspectService inspect;
@@ -50,8 +49,6 @@ public final class InspectListener implements Listener {
         }
     }
 
-    // Cancelled for both hands, so the frame never rotates its item. Empty frames are left alone: a mark lives with the
-    // item, and the click can still put the off-hand item in.
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onMark(PlayerInteractAtEntityEvent event) {
         Player player = event.getPlayer();
@@ -81,7 +78,6 @@ public final class InspectListener implements Listener {
         }
     }
 
-    // A sorter's frame covers a face of its dispenser, so clicking it inspects the sorter: it is never a target.
     private boolean inspectSorterOf(Player player, ItemFrame frame) {
         Block sorter = sorters.blockOf(frame);
         if (sorter != null) {
@@ -90,7 +86,6 @@ public final class InspectListener implements Listener {
         return sorter != null;
     }
 
-    // Empty frames are left alone, so they can still be filled or broken while sneaking.
     private @Nullable ItemFrame inspectedFrame(Player player, Entity entity) {
         return entity instanceof ItemFrame frame && !frame.getItem().isEmpty() && inspects(player) ? frame : null;
     }

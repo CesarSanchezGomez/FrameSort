@@ -13,7 +13,6 @@ import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/** Each pad is {@code x,y,z,type[,owner]}: the owner came later, so a pad saved before it has none. */
 public final class PadCodec {
 
     // Nine digits always fit an int and cover every block coordinate (at most 30 million).
@@ -47,7 +46,7 @@ public final class PadCodec {
                 .toList();
     }
 
-    /** Malformed entries are dropped: a hand-edited chunk must not stop the others from loading. */
+    // Malformed entries are dropped: a hand-edited chunk must not stop the others from loading.
     static Map<BlockKey, PadEntry> decode(UUID world, List<String> entries) {
         Map<BlockKey, PadEntry> pads = new LinkedHashMap<>();
         for (String entry : entries) {
