@@ -3,6 +3,7 @@ package com.cesarcosmico.framesort.listener;
 import com.cesarcosmico.framesort.config.PadType;
 import com.cesarcosmico.framesort.service.PadService;
 import com.cesarcosmico.framesort.text.Messages;
+import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import org.bukkit.GameMode;
 import org.bukkit.block.Block;
@@ -20,7 +21,6 @@ import org.bukkit.event.entity.EntityChangeBlockEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.world.ChunkLoadEvent;
 import org.bukkit.event.world.ChunkUnloadEvent;
-import org.bukkit.inventory.ItemStack;
 
 import java.util.List;
 import java.util.function.Supplier;
@@ -45,6 +45,23 @@ public final class PadListener implements Listener {
         pads.unload(event.getChunk());
     }
 
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onPlacing(BlockPlaceEvent event) {
+        switch (pads.placing(event.getBlockPlaced(), event.getItemInHand())) {
+            case PadService.Placing.NeedsBase(PadType type, Component base) -> {
+                event.setCancelled(true);
+                event.getPlayer().sendMessage(messages.get().get("pad.needs-base",
+                        Placeholder.unparsed("type", type.id()), Placeholder.component("base", base)));
+            }
+            case PadService.Placing.NotReady() -> {
+                event.setCancelled(true);
+                event.getPlayer().sendMessage(messages.get().get("pad.unavailable"));
+            }
+            case PadService.Placing.Fine() -> {
+            }
+        }
+    }
+
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onPlace(BlockPlaceEvent event) {
         switch (pads.placed(event.getPlayer(), event.getBlockPlaced(), event.getItemInHand())) {
@@ -59,15 +76,12 @@ public final class PadListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onBreak(BlockBreakEvent event) {
-        Block block = event.getBlock();
         Player player = event.getPlayer();
-        switch (pads.broken(block, player.getGameMode() != GameMode.CREATIVE)) {
-            case PadService.Breaking.Removed(ItemStack item) -> {
-                if (item != null) {
+        switch (pads.breaking(event.getBlock(), player.getGameMode() != GameMode.CREATIVE)) {
+            case PadService.Breaking.Allowed(boolean replacesDrops) -> {
+                if (replacesDrops) {
                     event.setDropItems(false);
-                    block.getWorld().dropItemNaturally(block.getLocation().toCenterLocation(), item);
                 }
-                player.sendMessage(messages.get().get("pad.removed"));
             }
             case PadService.Breaking.Kept() -> {
                 event.setCancelled(true);
@@ -76,6 +90,19 @@ public final class PadListener implements Listener {
             case PadService.Breaking.NotAPad() -> {
             }
         }
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onBroken(BlockBreakEvent event) {
+        Block block = event.getBlock();
+        PadService.Removed removed = pads.broken(block);
+        if (removed == null) {
+            return;
+        }
+        if (removed.item() != null) {
+            block.getWorld().dropItemNaturally(block.getLocation().toCenterLocation(), removed.item());
+        }
+        event.getPlayer().sendMessage(messages.get().get("pad.removed"));
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)

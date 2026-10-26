@@ -191,4 +191,5 @@ pad:
   created: '<prefix><green>Pad clasificador <white><type></white> creado</green>'
   removed: '<prefix><yellow>Pad clasificador eliminado</yellow>'
   not-allowed: '<prefix><red>No puedes crear pads aquí</red>'
-  unavailable: '<prefix><red><hover:show_text:"<gray>CraftEngine no puede crear su item ahora.<newline>Espera a que termine /ce reload<newline>o avisa a un admin.</gray>">Aún no se puede romper este pad</hover></red>'
+  needs-base: '<prefix><red>El pad <white><type></white> va sobre <white><base></white></red>'
+  unavailable: '<prefix><red><hover:show_text:"<gray>CraftEngine no distingue sus bloques<newline>ni crea sus items ahora.<newline>Espera a que termine /ce reload<newline>o avisa a un admin.</gray>">Los pads no están listos, prueba otra vez</hover></red>'

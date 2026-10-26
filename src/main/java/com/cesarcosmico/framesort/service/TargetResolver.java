@@ -164,8 +164,8 @@ public final class TargetResolver {
 
     public Component blockName(Block block) {
         String id = customItems.blockId(block);
-        ItemStack item = id == null ? null : customItems.blockItem(new ItemReference.Custom(id), 1);
-        return item == null ? Component.translatable(block.getType()) : item.effectiveName();
+        Component custom = id == null ? null : customItems.blockName(new ItemReference.Custom(id));
+        return custom == null ? Component.translatable(block.getType()) : custom;
     }
 
     private List<Match> matches(Block source, @Nullable UUID owner, int range, ItemStack item) {

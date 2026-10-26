@@ -191,4 +191,5 @@ pad:
   created: '<prefix><green>Sorting pad <white><type></white> created</green>'
   removed: '<prefix><yellow>Sorting pad removed</yellow>'
   not-allowed: '<prefix><red>You can''t create pads here</red>'
-  unavailable: '<prefix><red><hover:show_text:"<gray>CraftEngine can''t build its item now.<newline>Wait for /ce reload to finish,<newline>or ask an admin.</gray>">Can''t break this pad yet</hover></red>'
+  needs-base: '<prefix><red>A <white><type></white> pad goes on <white><base></white></red>'
+  unavailable: '<prefix><red><hover:show_text:"<gray>CraftEngine can''t tell its blocks<newline>apart or build its items now.<newline>Wait for /ce reload to finish,<newline>or ask an admin.</gray>">Pads aren''t ready, try again</hover></red>'

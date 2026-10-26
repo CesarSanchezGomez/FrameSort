@@ -15,6 +15,7 @@ import com.cesarcosmico.framesort.model.ItemReference;
 import com.cesarcosmico.framesort.model.PadEntry;
 import com.cesarcosmico.framesort.model.PadMode;
 import com.cesarcosmico.framesort.model.Pull;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Chunk;
 import org.bukkit.FluidCollisionMode;
 import org.bukkit.GameMode;
@@ -57,16 +58,36 @@ public final class PadService {
         }
     }
 
-    public sealed interface Breaking {
-        /** The pad is gone; {@code item} is the special item to drop instead of the block, if any. */
-        record Removed(@Nullable ItemStack item) implements Breaking {
+    /** Whether a pad's special block may be placed where a player is placing it. */
+    public sealed interface Placing {
+        record Fine() implements Placing {
         }
 
+        /** It wouldn't complete a pad of {@code type}, whose base is called {@code base}. */
+        record NeedsBase(PadType type, Component base) implements Placing {
+        }
+
+        /** CraftEngine is reloading, so its blocks can't be told apart yet. */
+        record NotReady() implements Placing {
+        }
+    }
+
+    /** What a break of a block may do, decided before it happens. */
+    public sealed interface Breaking {
+        /** {@code replacesDrops}: once it happens, the pad's special item drops instead of the block. */
+        record Allowed(boolean replacesDrops) implements Breaking {
+        }
+
+        /** CraftEngine can't build the special item now, so the pad stays rather than lose it. */
         record Kept() implements Breaking {
         }
 
         record NotAPad() implements Breaking {
         }
+    }
+
+    /** A pad that is gone; {@code item} is the special item to drop instead of the block, if any. */
+    public record Removed(@Nullable ItemStack item) {
     }
 
     // A flight's rays start just off the block an item lies on and end just over the surface it lands on, so they don't
@@ -81,6 +102,8 @@ public final class PadService {
     private final DeliveryService delivery;
     private final CustomItemResolver customItems;
     private final Map<ChunkKey, Map<BlockKey, PadEntry>> pads = new HashMap<>();
+    // Built before the break so a /ce reload before it happens can't lose the item; every break attempt replaces it.
+    private final Map<BlockKey, ItemStack> handBack = new HashMap<>();
     private long tick;
 
     public PadService(Plugin plugin, Supplier<PadSettings> settings, DeliveryService delivery,
@@ -129,21 +152,62 @@ public final class PadService {
         return blocked && !silent ? new Placement.NotAllowed() : new Placement.NotAPad();
     }
 
-    /** {@code drops} is whether the break drops items, as it does outside creative mode. */
-    public Breaking broken(Block block, boolean drops) {
+    /**
+     * In item mode, a special block that wouldn't complete its own pad where {@code block} was just placed from
+     * {@code hand} (it would be lost as a plain block).
+     */
+    public Placing placing(Block block, ItemStack hand) {
+        PadSettings current = settings.get();
+        String marker = MarkerCodec.read(hand, Keys.PAD_ITEM);
+        PadType type = marker == null || current.creation() != PadMode.ITEM ? null : current.type(marker);
+        if (type == null) {
+            return new Placing.Fine();
+        }
+        PadBlock top = read(block);
+        PadBlock base = read(block.getRelative(BlockFace.DOWN));
+        if (top.unbound() || base.unbound()) {
+            return new Placing.NotReady();
+        }
+        if (matches(top, base, type)) {
+            return new Placing.Fine();
+        }
+        Component name = customItems.blockName(type.base());
+        return new Placing.NeedsBase(type, name != null ? name : Component.text(switch (type.base()) {
+            case ItemReference.Vanilla vanilla -> vanilla.material().getKey().asString();
+            case ItemReference.Custom custom -> custom.reference();
+        }));
+    }
+
+    /**
+     * Before other plugins decide whether {@code block} breaks; {@code drops} is whether the break drops items, as it
+     * does outside creative mode.
+     */
+    public Breaking breaking(Block block, boolean drops) {
+        BlockKey key = FrameGeometry.key(block);
+        handBack.remove(key);
         PadType type = registered(block);
         if (type == null) {
             return new Breaking.NotAPad();
         }
-        ItemStack item = null;
-        if (drops && settings.get().creation() == PadMode.ITEM) {
-            item = createItem(type, 1);
-            if (item == null) {
-                return new Breaking.Kept();
-            }
+        if (!drops || settings.get().creation() != PadMode.ITEM) {
+            return new Breaking.Allowed(false);
+        }
+        ItemStack item = createItem(type, 1);
+        if (item == null) {
+            return new Breaking.Kept();
+        }
+        handBack.put(key, item);
+        return new Breaking.Allowed(true);
+    }
+
+    /** {@code block} broke: forgets its pad, or {@code null} when it was none. */
+    public @Nullable Removed broken(Block block) {
+        ItemStack item = handBack.remove(FrameGeometry.key(block));
+        if (registered(block) == null) {
+            return null;
         }
         unregister(block);
-        return new Breaking.Removed(item);
+        return new Removed(item);
     }
 
     public boolean isPadTop(Block block) {

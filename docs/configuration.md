@@ -205,9 +205,10 @@ A key a type doesn't take, in it or in its `item`, is reported with its path as 
 A pad is created when its top block is placed on its base, so place the base first. It counts as long as both
 blocks stay; breaking the top block removes it, and whoever broke it is told so. If the top block goes any other
 way (WorldEdit, a command, gravity), the pad is forgotten at the next sweep. Without its base a pad waits, and works
-again once the base is back. In `item` mode, breaking it gives the special item back. The top block of a registered
-pad can't be pushed by pistons, blown up or changed where it stands: an axe can't scrape the wax off a copper top
-block, nor a mob change it.
+again once the base is back. In `item` mode, breaking it gives the special item back, and the special block can't
+be placed where it wouldn't complete its own pad: the player is told which base it goes on and keeps the block. The
+top block of a registered pad can't be pushed by pistons, blown up or changed where it stands: an axe can't scrape
+the wax off a copper top block, nor a mob change it.
 
 Items resting up to one block above the top block count, so carpets or slabs on the pad are fine.
 
@@ -248,7 +249,8 @@ furniture can't be part of a pad: it is not a block. A pad with a CraftEngine bl
 - in `item` mode, the special item is CraftEngine's item for that block with FrameSort's mark, so it doesn't stack
   with the same item from `/ce give`, and breaking the pad gives it back;
 - while `/ce reload` runs, the pad is kept and protected but sends nothing, because CraftEngine's blocks can't be
-  told apart until it ends;
+  told apart until it ends; in `item` mode its special block can't be placed then either, and the player is told
+  to try again;
 - in `item` mode, a pad whose item CraftEngine can't build (while `/ce reload` runs, or for an ID it no longer knows)
   can't be broken, so its item is never lost; the player is told why. A player in creative mode can still break it;
 - an ID CraftEngine doesn't know never makes a pad.

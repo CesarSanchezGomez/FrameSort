@@ -37,8 +37,10 @@ Interfaces exist only with several implementations, as closed sets, or to keep a
 - `CommandFeature`: one per command feature;
 - `GiveCommand.ItemSource`: a sorter activator or a pad block;
 - sealed `model.ItemReference`: an item or block named in the config, a vanilla material or a CraftEngine reference;
-- sealed `PadService.Placement`: what placing a pad block did;
-- sealed `PadService.Breaking`: what breaking a pad's top block did;
+- sealed `PadService.Placing`: whether a pad's special block may go where it is being placed (`HIGHEST`);
+- sealed `PadService.Placement`: what placing a pad block did (`MONITOR`);
+- sealed `PadService.Breaking`: what breaking a pad's top block may do, decided at `HIGHEST`; the pad is only
+  forgotten, and its special item dropped, at `MONITOR`, once no plugin can cancel the break;
 - sealed `Slot`: an inventory slot, or one inside a shulker box or bundle, which only a sorter opens.
 
 `commands.yml` only places features: `CommandTree` joins every enabled path into Brigadier literals, makes a literal
