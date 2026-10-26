@@ -6,11 +6,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * How a pad throws a loose item onto itself, under the game's item physics. In the air, each tick the vertical speed
- * drops by {@link #GRAVITY}, the item moves, up or down first and then sideways, and its speed is multiplied by
- * {@link #DRAG}. Landing on a block stops its fall without a bounce, and on the ground its sideways speed is multiplied
- * after every move by the grip: the block's friction times {@link #DRAG}, below 1. Offsets go from the item to the
- * centre of the pad's surface, in blocks; speeds are in blocks per tick.
+ * How a pad throws a loose item onto itself, under the game's item physics. Offsets go from the item to the centre
+ * of the pad's surface, in blocks; speeds are in blocks per tick.
  */
 public final class Pull {
 
@@ -38,27 +35,24 @@ public final class Pull {
     private record Peak(double height, int ticks) {
     }
 
-    // ItemEntity#getDefaultGravity and Entity#getAirDrag; they change with Minecraft, not with Paper.
     static final double GRAVITY = 0.04;
     static final double DRAG = 0.98;
-    // How far every pull rises over the pad's surface and over where the item lay, so the arc shows.
-    static final double LIFT = 1;
-    // Half a pad plus half an item: sideways from the pad's centre, an item further than this along both axes can't
-    // touch the pad.
+    // So the arc shows.
+    static final double MIN_RISE = 1;
+    // Half a pad plus half an item: further from the pad's centre along both axes, an item can't touch it.
     static final double EDGE = 0.625;
-    // An arc comes over the pad's edge at least this high over its surface, so it never clips the corner.
+    // So an arc never clips the pad's corner.
     static final double EDGE_CLEARANCE = 0.25;
-    // An item landing this far from the centre has landed on the pad, whose top is a block wide.
+    // Still on the pad, whose top is a block wide.
     static final double MAX_SLIDE = 0.4;
     // Aiming a little under the surface makes the item touch it on the throw's last tick, not on the tick after.
     static final double SINK = 0.05;
-    // An item's box is a quarter block tall: at the top of the flight, that is what meets a roof.
+    // At the top of the flight, the item's box is what meets a roof.
     static final double ITEM_HEIGHT = 0.25;
-    // A throw takes half a second plus 1.5 ticks per block, up to 22 ticks, so a far item doesn't fly like a dart.
+    // A farther item flies longer, so it doesn't fly like a dart.
     static final int MIN_TICKS = 10;
     static final double TICKS_PER_BLOCK = 1.5;
     static final int PACED_TICKS = 22;
-    // Two seconds: an item that no throw brings in by then stays where it is.
     static final int MAX_TICKS = 40;
     // A lying item with less sideways speed than about 0.003 moves on one tick in four; this keeps it moving.
     static final double NUDGE = 0.01;
@@ -76,9 +70,10 @@ public final class Pull {
 
     /**
      * The throw from beside the pad that lands short of its centre by as much as the item then slides, so it stops
-     * there. It rises {@link #LIFT} over the pad and over the item, comes over the pad's edge {@link #EDGE_CLEARANCE}
-     * over its surface and lands on the pad; the further the item, the longer it flies. The item lies at least a block
-     * from the centre along one axis. {@code null} when no throw up to {@link #MAX_TICKS} does all that.
+     * there. It rises {@link #MIN_RISE} over the pad and over the item, comes over the pad's edge
+     * {@link #EDGE_CLEARANCE} over its surface and lands on the pad; the further the item, the longer it flies. The
+     * item lies at least a block from the centre along one axis. {@code null} when no throw up to {@link #MAX_TICKS}
+     * does all that.
      */
     public static @Nullable Arc toPad(double dx, double dy, double dz, double grip) {
         double distance = Math.hypot(dx, dz);
@@ -98,9 +93,9 @@ public final class Pull {
         return null;
     }
 
-    /** The hop of an item beside the pad, straight up to {@link #LIFT} over the pad and over the item. */
+    /** The hop of an item beside the pad, straight up to {@link #MIN_RISE} over the pad and over the item. */
     public static Hop hop(double dx, double dy, double dz) {
-        double rise = Math.max(dy, 0) + LIFT;
+        double rise = Math.max(dy, 0) + MIN_RISE;
         double low = 0;
         double high = MAX_UP;
         for (int step = 0; step < SEARCH_STEPS; step++) {
@@ -137,8 +132,6 @@ public final class Pull {
         return new Velocity(dx * scale, vy, dz * scale);
     }
 
-    // The item moves up or down before sideways, so it lands where the tick before left it, which must already be over
-    // the pad; and it comes over the pad's edge at the height the tick that brings it there has just reached.
     private static @Nullable Arc arc(Velocity velocity, int ticks, double dx, double dy, double dz, double lands) {
         double distance = Math.hypot(dx, dz);
         // Along the straight line to the centre, the item is over the pad once its larger axis is within EDGE.
@@ -162,7 +155,7 @@ public final class Pull {
             speed *= DRAG;
             vy *= DRAG;
         }
-        if (edgeTick == ticks || heights[apexTick] < Math.max(dy, 0) + LIFT
+        if (edgeTick == ticks || heights[apexTick] < Math.max(dy, 0) + MIN_RISE
                 || heights[edgeTick] < dy + EDGE_CLEARANCE) {
             return null;
         }
@@ -194,7 +187,6 @@ public final class Pull {
         return (1 - Math.pow(DRAG, ticks)) / (1 - DRAG);
     }
 
-    // How far gravity pulls an item down over a flight of that many ticks.
     private static double fall(int ticks) {
         return GRAVITY / (1 - DRAG) * (ticks - DRAG * reach(ticks));
     }

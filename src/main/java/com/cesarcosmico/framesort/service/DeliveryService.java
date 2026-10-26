@@ -23,7 +23,6 @@ import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Consumer;
 
-/** Containers are looked up the moment items go in, so one that vanished is skipped instead of duplicating items. */
 public final class DeliveryService {
 
     public interface Source {
@@ -42,12 +41,12 @@ public final class DeliveryService {
         void destroy();
     }
 
-    /** {@code owner} is the source's owner, so a trace shows a delivery only to those who may see that source. */
+    /** {@code owner} is the source's owner. */
     public record Delivered(Location from, @Nullable UUID owner, ItemStack item, int amount, Location to,
                             Destination destination) {
     }
 
-    // The delay vanilla gives a full composter before it turns ready.
+    // Vanilla's delay before a full composter turns ready.
     private static final long READY_DELAY_TICKS = 20;
 
     private final Plugin plugin;
@@ -63,10 +62,7 @@ public final class DeliveryService {
         this.observer = observer;
     }
 
-    /**
-     * Returns how many items left the source, whether into containers, dropped or destroyed. {@code owner} owns the
-     * source, or is {@code null} when nobody does; {@code range} is how far from it its targets may be.
-     */
+    /** Returns how many items left the source, whether into containers, dropped or destroyed. */
     public int deliver(Block origin, @Nullable UUID owner, int range, Source source) {
         ItemStack stack = source.stack().clone();
         if (stack.isEmpty()) {
@@ -99,7 +95,6 @@ public final class DeliveryService {
             if (dropped == null) {
                 return amount - remaining;
             }
-            // A pad near the drop spot would otherwise pull them in and send them back here.
             DropCodec.mark(dropped);
             observer.accept(new Delivered(from, owner, stack, remaining, to, Destination.DROPPED));
         }
@@ -133,10 +128,7 @@ public final class DeliveryService {
         return notAccepted;
     }
 
-    /**
-     * Composts like a hopper feeding the composter; returns how many items it did not take. The plan only sends
-     * compostable items to a composter.
-     */
+    // The plan only sends compostable items to a composter.
     private int compost(Block composter, ItemStack stack, int amount) {
         Levelled data = (Levelled) composter.getBlockData();
         int before = data.getLevel();

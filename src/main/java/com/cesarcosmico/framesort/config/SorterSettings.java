@@ -6,6 +6,7 @@ import com.cesarcosmico.framesort.item.Keys;
 import com.cesarcosmico.framesort.item.MarkerCodec;
 import com.cesarcosmico.framesort.model.ItemReference;
 import org.bukkit.Material;
+import org.bukkit.block.Block;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.ItemFrame;
 import org.bukkit.inventory.ItemStack;
@@ -19,10 +20,6 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-/**
- * A vanilla activator is built from its material, {@code activatorComponents} and {@code activatorLook}; a CraftEngine
- * one is built by CraftEngine, with {@code activatorLook} laid over it and no components.
- */
 public record SorterSettings(ItemReference activator, ItemLook activatorLook, Map<String, String> activatorComponents,
                              boolean requireMarked, Set<EntityType> frameTypes, @Nullable String customName,
                              int range, int tickRate, boolean disableWhenPowered, boolean hideFrame,
@@ -68,10 +65,15 @@ public record SorterSettings(ItemReference activator, ItemLook activatorLook, Ma
                 reader.bool("show-activity", true));
     }
 
+    /** Whether {@code item} in {@code frame}, hanging on {@code attached}, makes a sorter of that block. */
+    public boolean makesSorter(Block attached, ItemFrame frame, ItemStack item,
+                               Function<ItemStack, @Nullable String> customId) {
+        return attached.getType() == Material.DISPENSER && isActivatorFrame(frame, item, customId);
+    }
+
     /**
-     * Whether {@code frame} holding {@code item} holds the activator, which makes a sorter of the dispenser it hangs
-     * on. {@code item} is usually the frame's own, or the one going in. {@code customId} gives a custom item's
-     * reference, or {@code null} for a vanilla item.
+     * Whether {@code frame} holding {@code item} holds the activator. {@code item} is usually the frame's own, or the
+     * one going in. {@code customId} gives a custom item's reference, or {@code null} for a vanilla item.
      */
     public boolean isActivatorFrame(ItemFrame frame, ItemStack item, Function<ItemStack, @Nullable String> customId) {
         return frameTypes.contains(frame.getType()) && activator.matches(item.getType(), customId.apply(item))

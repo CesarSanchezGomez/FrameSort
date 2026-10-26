@@ -18,20 +18,18 @@ public final class AutomarkService {
     private final SorterService sorters;
     private final InspectService inspect;
     private final CustomItemResolver customItems;
-    // Whether the player may still switch it off: their choice is kept, but does nothing while they can't.
-    private final Predicate<Player> available;
+    private final Predicate<Player> maySwitchOff;
 
     public AutomarkService(Plugin plugin, TargetIndex index, SorterService sorters, InspectService inspect,
-                           CustomItemResolver customItems, Predicate<Player> available) {
+                           CustomItemResolver customItems, Predicate<Player> maySwitchOff) {
         this.plugin = plugin;
         this.index = index;
         this.sorters = sorters;
         this.inspect = inspect;
         this.customItems = customItems;
-        this.available = available;
+        this.maySwitchOff = maySwitchOff;
     }
 
-    /** Switches {@code player} between marking by hand and marking what they fill. */
     public Toggle toggle(Player player) {
         if (!player.hasPermission(TargetIndex.MARK_PERMISSION)) {
             return Toggle.CANNOT_MARK;
@@ -42,22 +40,24 @@ public final class AutomarkService {
     }
 
     /**
-     * {@code item} is going into {@code frame}, which still holds the old one. Ends the old mark, then marks the frame
-     * for {@code player} if they chose to, answering as marking by hand does. Only frames on containers or composters:
-     * a frame on a wall or a lava cauldron is marked by hand, so a decorative one never becomes a drop spot or a trash
-     * can.
+     * {@code item} is going into {@code frame}, which still holds the old one. A frame on a wall or a lava cauldron is
+     * never automarked, so a decorative one never becomes a drop spot or a trash can.
      */
     public void itemPlaced(Player player, ItemFrame frame, ItemStack item) {
         index.itemPlaced(frame);
-        // Another plugin can empty the item before it goes in.
-        if (item.isEmpty() || !PlayerCodec.automark(player) || !player.hasPermission(TargetIndex.MARK_PERMISSION)
-                || !available.test(player) || !index.markable(frame)
-                || !FrameGeometry.isContainer(FrameGeometry.attachedBlock(frame), customItems)
-                || sorters.makesSorter(frame, item)) {
+        if (!shouldAutomark(player, frame, item)) {
             return;
         }
         index.mark(frame, player.getUniqueId());
         // The glow copies the frame's item, which only goes in after this event.
         player.getScheduler().run(plugin, task -> inspect.showMark(player, frame, true), null);
+    }
+
+    // Another plugin can empty the item before it goes in.
+    private boolean shouldAutomark(Player player, ItemFrame frame, ItemStack item) {
+        return !item.isEmpty() && PlayerCodec.automark(player) && player.hasPermission(TargetIndex.MARK_PERMISSION)
+                && maySwitchOff.test(player) && index.markable(frame)
+                && FrameGeometry.isContainer(FrameGeometry.attachedBlock(frame), customItems)
+                && !sorters.makesSorter(frame, item);
     }
 }

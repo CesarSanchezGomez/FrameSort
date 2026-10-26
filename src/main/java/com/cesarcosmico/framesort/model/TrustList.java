@@ -9,10 +9,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
-/**
- * Whom each owner lets receive from their sorters and pads, with when they did, in epoch milliseconds. One way and
- * not transitive: trusting someone shares your network with them, not theirs with you.
- */
+/** Whom each owner trusts, and since when, in epoch milliseconds. */
 public record TrustList(Map<UUID, Map<UUID, Long>> grants) {
 
     public static final TrustList EMPTY = new TrustList(Map.of());
@@ -36,12 +33,10 @@ public record TrustList(Map<UUID, Map<UUID, Long>> grants) {
         return trustedBy(owner).containsKey(trusted);
     }
 
-    /** The players {@code owner} trusts, with when. */
     public Map<UUID, Long> trustedBy(UUID owner) {
         return grants.getOrDefault(owner, Map.of());
     }
 
-    /** The owners who trust {@code player}. */
     public List<UUID> trusting(UUID player) {
         List<UUID> owners = new ArrayList<>();
         grants.forEach((owner, trusted) -> {

@@ -13,8 +13,7 @@ class PullTest {
     // Most blocks, and ice.
     private static final double GRIP = Pull.grip(0.6);
     private static final double ICE_GRIP = Pull.grip(0.98);
-    // How close to the pad's centre a pulled item has to stop.
-    private static final double ON_CENTRE = 0.05;
+    private static final double CENTRE_TOLERANCE = 0.05;
     private static final int SETTLE_TICKS = 300;
     // Items lying on the ground at the foot of a two-block pad, one block lower, level with its surface, and on a ledge
     // above it.
@@ -22,7 +21,7 @@ class PullTest {
     // Along an axis, close to an axis, diagonal, and at an odd angle.
     private static final double[][] DIRECTIONS = {{1, 0}, {0.96, 0.28}, {Math.sqrt(0.5), -Math.sqrt(0.5)}, {-0.6, 0.8}};
 
-    /** The pad's top at height {@code surface}, its centre at ({@code x}, {@code z}), from where the item starts. */
+    // The pad's top at height surface, its centre at (x, z), from where the item starts.
     private record Pad(double x, double surface, double z) {
         // The item's box overlaps the pad, seen from above.
         boolean under(double itemX, double itemZ) {
@@ -30,10 +29,8 @@ class PullTest {
         }
     }
 
-    // Steps an item as ItemEntity#tick and Paper's collisions do: gravity; a lying item with almost no sideways speed
-    // skips three ticks in four; the move, up or down first and then sideways, which stops on the pad's top without a
-    // bounce; then the ground's grip, or the air's drag, on the sideways speed. It fails if the item falls past the
-    // pad's top, or hits its side while `strict`; otherwise the side stops it sideways, as a bounciness of 0 does.
+    // Steps an item as ItemEntity#tick and Paper's collisions do. It fails if the item falls past the pad's top, or
+    // hits its side while `strict`; otherwise the side stops it sideways, as a bounciness of 0 does.
     private static final class Flight {
         private final Pad pad;
         private boolean strict = true;
@@ -102,8 +99,8 @@ class PullTest {
         void assertOnCentre(String what) {
             assertTrue(grounded, what);
             assertEquals(pad.surface(), y, 1e-9, what);
-            assertEquals(pad.x(), x, ON_CENTRE, what);
-            assertEquals(pad.z(), z, ON_CENTRE, what);
+            assertEquals(pad.x(), x, CENTRE_TOLERANCE, what);
+            assertEquals(pad.z(), z, CENTRE_TOLERANCE, what);
         }
     }
 
@@ -130,7 +127,8 @@ class PullTest {
                     String from = "from " + distance + " at height " + height;
                     Flight flight = throwFrom(distance, height, direction);
                     flight.assertOnCentre(from);
-                    assertTrue(flight.apex >= Math.max(-height, 0) + Pull.LIFT - 1e-9, from + ", rises " + flight.apex);
+                    assertTrue(flight.apex >= Math.max(-height, 0) + Pull.MIN_RISE - 1e-9,
+                            from + ", rises " + flight.apex);
                 }
             }
         }
@@ -168,7 +166,7 @@ class PullTest {
                     flight.strict = true;
                     String what = "beside at " + at[0] + ", " + at[1] + ", height " + height + ", " + late + " late";
                     if (late == 0) {
-                        assertEquals(Math.max(-height, 0) + Pull.LIFT, flight.y, 0.05, what);
+                        assertEquals(Math.max(-height, 0) + Pull.MIN_RISE, flight.y, 0.05, what);
                         assertEquals(hop.height(), flight.y, 1e-9, what);
                     }
                     Pull.Velocity drift = Pull.drift(pad.x() - flight.x, pad.surface() - flight.y,

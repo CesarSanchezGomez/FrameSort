@@ -12,7 +12,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 
 class DeliveryTest {
 
-    /** A container with room for {@code room} more items, or {@code null} room when it has vanished. */
+    // A container with room for that many more items, or null room when it has vanished.
     private static final class Box {
         private final Integer room;
         private int stored;

@@ -1,6 +1,6 @@
 package com.cesarcosmico.framesort.model;
 
-/** A lower priority wins; a match through a shulker box or bundle ranks just below the same direct match. */
+/** A lower priority wins. */
 public enum MatchTier {
     EXACT(0),
     TAG(10),

@@ -45,7 +45,6 @@ public final class PadListener implements Listener {
         pads.unload(event.getChunk());
     }
 
-    // MONITOR: the pad is registered only once no plugin can still cancel the placement; the event is left alone.
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onPlace(BlockPlaceEvent event) {
         switch (pads.placed(event.getPlayer(), event.getBlockPlaced(), event.getItemInHand())) {
@@ -58,8 +57,6 @@ public final class PadListener implements Listener {
         }
     }
 
-    // HIGHEST, not MONITOR: it changes the drops or cancels the break. Protection plugins cancel earlier, and cancelled
-    // breaks are skipped.
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onBreak(BlockBreakEvent event) {
         Block block = event.getBlock();
@@ -95,28 +92,27 @@ public final class PadListener implements Listener {
         }
     }
 
-    // An axe scraping the wax off a copper top, or a mob changing the block, would end the pad where it stands. A
-    // top block with gravity still falls once its base is gone: the sweep then forgets the pad.
+    // A top block with gravity still falls; the sweep then forgets the pad.
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onEntityChangeBlock(EntityChangeBlockEvent event) {
-        if (!(event.getEntity() instanceof FallingBlock) && pads.isPad(event.getBlock())) {
+        if (!(event.getEntity() instanceof FallingBlock) && pads.isPadTop(event.getBlock())) {
             event.setCancelled(true);
         }
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onEntityExplode(EntityExplodeEvent event) {
-        event.blockList().removeIf(pads::isPad);
+        event.blockList().removeIf(pads::isPadTop);
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onBlockExplode(BlockExplodeEvent event) {
-        event.blockList().removeIf(pads::isPad);
+        event.blockList().removeIf(pads::isPadTop);
     }
 
     private boolean movesPad(List<Block> blocks) {
         for (Block block : blocks) {
-            if (pads.isPad(block)) {
+            if (pads.isPadTop(block)) {
                 return true;
             }
         }

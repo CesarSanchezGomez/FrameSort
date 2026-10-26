@@ -41,7 +41,7 @@ import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Supplier;
 
-/** Pads live in their chunk's data, so only loaded pads are swept; sweeping also catches items that arrive late. */
+/** Distances are in blocks. */
 public final class PadService {
 
     private static final String CREATE_PERMISSION = "framesort.pad.create";
@@ -62,7 +62,6 @@ public final class PadService {
         record Removed(@Nullable ItemStack item) implements Breaking {
         }
 
-        /** The pad stays, so the special item it would give back is never lost. */
         record Kept() implements Breaking {
         }
 
@@ -73,12 +72,9 @@ public final class PadService {
     // A flight's rays start just off the block an item lies on and end just over the surface it lands on, so they don't
     // graze either.
     private static final double RAY_LIFT = 0.05;
-    // Closer to the pad's centre than this along both axes, within half a block of its side, no arc comes over its edge
-    // without a tall loop: the item hops instead.
     private static final double HOP_REACH = 1;
-    // The main inventory; the hotbar (0 to 8), armour and off hand are what the player is using.
-    private static final int FIRST_STORED = 9;
-    private static final int LAST_STORED = 35;
+    private static final int FIRST_MAIN_SLOT = 9;
+    private static final int LAST_MAIN_SLOT = 35;
 
     private final Plugin plugin;
     private final Supplier<PadSettings> settings;
@@ -133,11 +129,7 @@ public final class PadService {
         return blocked && !silent ? new Placement.NotAllowed() : new Placement.NotAPad();
     }
 
-    /**
-     * What breaking {@code block} does. When pads are made from items and the breaker {@code drops} items, the pad
-     * gives its special item back, so it is kept while CraftEngine can't build that item (during /ce reload, or for
-     * an ID it no longer knows).
-     */
+    /** {@code drops} is whether the break drops items, as it does outside creative mode. */
     public Breaking broken(Block block, boolean drops) {
         PadType type = registered(block);
         if (type == null) {
@@ -154,8 +146,7 @@ public final class PadService {
         return new Breaking.Removed(item);
     }
 
-    /** Whether {@code block} is the top block of a registered pad. */
-    public boolean isPad(Block block) {
+    public boolean isPadTop(Block block) {
         return registered(block) != null;
     }
 
@@ -165,13 +156,11 @@ public final class PadService {
         return type != null && matches(read(top), read(top.getRelative(BlockFace.DOWN)), type) ? type : null;
     }
 
-    /** The owner of the pad whose top block this is, or {@code null} when nobody owns it. */
     public @Nullable UUID ownerOf(Block top) {
         PadEntry entry = entry(top);
         return entry == null ? null : entry.owner();
     }
 
-    /** A registered pad: its top block, its type and its owner, or {@code null} when nobody owns it. */
     public record Pad(Block top, PadType type, @Nullable UUID owner) {
     }
 
@@ -182,7 +171,6 @@ public final class PadService {
         for (Map<BlockKey, PadEntry> inChunk : pads.values()) {
             for (Map.Entry<BlockKey, PadEntry> pad : inChunk.entrySet()) {
                 BlockKey key = pad.getKey();
-                // A type taken out of pads.yml has no range until it is back.
                 PadType type = settings.get().type(pad.getValue().type());
                 if (type != null && key.distanceSquared(here) <= (long) type.range() * type.range()) {
                     found.add(new Pad(center.getWorld().getBlockAt(key.x(), key.y(), key.z()), type,
@@ -200,7 +188,7 @@ public final class PadService {
                     new ItemTemplate(material, Map.of(), type.look()).create(amount);
             case ItemReference.Custom custom -> {
                 ItemStack built = customItems.blockItem(custom, amount);
-                yield built == null ? null : ItemOverlay.apply(built, type.look());
+                yield built == null ? null : ItemOverlay.applyReplacingLore(built, type.look());
             }
         };
         return item == null ? null : MarkerCodec.mark(item, Keys.PAD_ITEM, type.id());
@@ -228,8 +216,6 @@ public final class PadService {
         if (type == null) {
             return;
         }
-        // A player's break unregisters the pad at once; one by WorldEdit, a command, gravity or another block put in
-        // its place is only seen here.
         PadBlock seen = read(top);
         if (!isTop(seen, type)) {
             unregister(top);
@@ -238,7 +224,6 @@ public final class PadService {
         if (!matches(seen, read(top.getRelative(BlockFace.DOWN)), type)) {
             return;
         }
-        // Items count when resting up to one block above the pad, like a hopper's pickup area.
         Location above = top.getLocation().add(0.5, 1.5, 0.5);
         for (Item item : top.getWorld().getNearbyEntitiesByType(Item.class, above, 0.5, 0.5, 0.5)) {
             if (item.isValid()) {
@@ -255,20 +240,16 @@ public final class PadService {
 
     private void takeInventories(Block top, PadEntry pad, PadType type, Location above) {
         for (Player player : top.getWorld().getNearbyEntitiesByType(Player.class, above, 0.5, 0.5, 0.5)) {
-            // The search also finds whoever brushes the space over the pad from beside it, and spectators, who crouch
-            // to fly down.
-            if (!player.isSneaking() || player.getGameMode() == GameMode.SPECTATOR
-                    || !player.getLocation().getBlock().equals(top.getRelative(BlockFace.UP))) {
+            if (!isCrouchingOnTop(player, top)) {
                 continue;
             }
             PlayerInventory inventory = player.getInventory();
             List<Integer> filled = new ArrayList<>();
-            for (int index = FIRST_STORED; index <= LAST_STORED; index++) {
+            for (int index = FIRST_MAIN_SLOT; index <= LAST_MAIN_SLOT; index++) {
                 if (inventory.getItem(index) != null) {
                     filled.add(index);
                 }
             }
-            // One stack per check, at random, like a sorter's turn; one with nowhere to go doesn't hold up the rest.
             Collections.shuffle(filled, ThreadLocalRandom.current());
             for (int index : filled) {
                 // Other plugins' handlers run during a delivery and may kill the player or make them leave.
@@ -280,31 +261,25 @@ public final class PadService {
         }
     }
 
-    /** Throws the loose items around the pad onto it, so a later sweep sends them. */
+    private static boolean isCrouchingOnTop(Player player, Block top) {
+        return player.isSneaking() && player.getGameMode() != GameMode.SPECTATOR
+                && player.getLocation().getBlock().equals(top.getRelative(BlockFace.UP));
+    }
+
     private void pull(Block top, int radius) {
-        // Every pull lands on the pad's surface: the block right over the pad must leave room on top (empty, or a
-        // carpet or slab on the pad), and the one above that must let the item come down through it.
-        Block above = top.getRelative(BlockFace.UP);
-        if (!above.isPassable() && above.getBoundingBox().getMaxY() >= above.getY() + 1
-                || !top.getRelative(BlockFace.UP, 2).isPassable()) {
+        if (!hasRoomToLand(top)) {
             return;
         }
+        Block above = top.getRelative(BlockFace.UP);
         Location surface = top.getLocation().add(0.5, 0, 0.5);
         surface.setY(above.isPassable() ? above.getY() : above.getBoundingBox().getMaxY());
-        // A lying item is slowed by the block just under a block's height below it: the pad's top, also under a carpet
-        // or slab.
+        // The pad's top slows a lying item even under a carpet or slab.
         double grip = Pull.grip(top.getType().getSlipperiness());
         for (Item item : top.getWorld().getNearbyEntitiesByType(Item.class, surface, radius, radius, radius)) {
-            Location from = item.getLocation();
-            // Handlers of an earlier PadPullEvent may remove items. One in the air is already on its way, and so is one
-            // another pad threw this sweep: it lies on the ground until its own tick. One over or under this pad is on
-            // it or can't get there, and one on another pad goes with that pad's sweep.
-            if (!item.isValid() || !item.isOnGround() || item.getVelocity().getY() > 0 || DropCodec.isMarked(item)
-                    || from.distanceSquared(surface) > (double) radius * radius
-                    || Math.abs(from.getX() - surface.getX()) < 0.5 && Math.abs(from.getZ() - surface.getZ()) < 0.5
-                    || isPad(from.getBlock().getRelative(BlockFace.DOWN))) {
+            if (!isPullable(item, surface, radius)) {
                 continue;
             }
+            Location from = item.getLocation();
             if (Math.max(Math.abs(surface.getX() - from.getX()), Math.abs(surface.getZ() - from.getZ())) < HOP_REACH) {
                 hop(item, top, surface, grip);
             } else {
@@ -313,9 +288,29 @@ public final class PadService {
         }
     }
 
-    // Rays through the points of the flight: they meet a wall in the way, or a roof over its top. They pass under the
-    // curve between those points, so a low overhang there can still catch the item, which then lands elsewhere and is
-    // tried again on the next check.
+    private static boolean hasRoomToLand(Block top) {
+        Block above = top.getRelative(BlockFace.UP);
+        return (above.isPassable() || above.getBoundingBox().getMaxY() < above.getY() + 1)
+                && top.getRelative(BlockFace.UP, 2).isPassable();
+    }
+
+    // Handlers of an earlier PadPullEvent may remove items.
+    private boolean isPullable(Item item, Location surface, int radius) {
+        Location from = item.getLocation();
+        return item.isValid() && item.isOnGround() && !thrownThisSweep(item) && !DropCodec.isMarked(item)
+                && from.distanceSquared(surface) <= (double) radius * radius && !inPadColumn(from, surface)
+                && !isPadTop(from.getBlock().getRelative(BlockFace.DOWN));
+    }
+
+    // Another pad threw it, and it still lies on the ground until its own tick.
+    private static boolean thrownThisSweep(Item item) {
+        return item.getVelocity().getY() > 0;
+    }
+
+    private static boolean inPadColumn(Location at, Location surface) {
+        return Math.abs(at.getX() - surface.getX()) < 0.5 && Math.abs(at.getZ() - surface.getZ()) < 0.5;
+    }
+
     private static void throwOnto(Item item, Block top, Location surface, double grip) {
         Location from = item.getLocation();
         Pull.Arc arc = Pull.toPad(surface.getX() - from.getX(), surface.getY() - from.getY(),
@@ -351,8 +346,7 @@ public final class PadService {
             return;
         }
         item.setVelocity(vector(hop.velocity()));
-        // Worked out when it runs, from where the item is then, so a tick before or after its highest point makes no
-        // difference. Harmless if FrameSort is gone by then, so the task isn't kept.
+        // Harmless if FrameSort is gone by then, so the task isn't kept.
         item.getScheduler().runDelayed(plugin, task -> {
             Location at = item.getLocation();
             // Water, a piston or another plugin may have moved it since.
@@ -383,8 +377,6 @@ public final class PadService {
         return top.is(type.top()) && base.is(type.base());
     }
 
-    // While /ce reload has CraftEngine's blocks unbound, a pad's CraftEngine top block can't be told from another:
-    // the pad is kept, and protected, until the reload ends.
     private static boolean isTop(PadBlock block, PadType type) {
         return block.is(type.top()) || type.top() instanceof ItemReference.Custom && block.unbound();
     }
@@ -427,8 +419,6 @@ public final class PadService {
         }
     }
 
-    // A CraftEngine block shows to the server as a vanilla one (bricks by default), so it never counts as that block;
-    // while /ce reload has it unbound, it counts as no block at all.
     private record PadBlock(Material type, @Nullable String customId, boolean unbound) {
         boolean is(ItemReference reference) {
             return !unbound && reference.matches(type, customId);

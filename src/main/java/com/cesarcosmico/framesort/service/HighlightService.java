@@ -17,10 +17,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-/**
- * A per-player copy of the frame item glows instead of the frame: frame glowing is global and its colour
- * team-based.
- */
 public final class HighlightService {
 
     public record Highlight(ItemFrame frame, Color color) {
@@ -54,7 +50,6 @@ public final class HighlightService {
             return;
         }
         shown.put(id, displays);
-        // Each display ends on its own scheduler. A player who leaves first just stops seeing them: nobody else can.
         for (ItemDisplay display : displays) {
             display.getScheduler().runDelayed(plugin, task -> {
                 shown.remove(id, displays);
@@ -95,11 +90,6 @@ public final class HighlightService {
         return display;
     }
 
-    /**
-     * Where the vanilla item frame renderer draws the item, relative to the frame entity: the steps of
-     * {@code ItemFrameRenderer#submit} in Minecraft 26.2, ending with a half turn that undoes the one
-     * {@code ItemDisplayRenderer} adds, so the copy lands on the real item.
-     */
     static Matrix4f itemTransform(BlockFace facing, int rotation, boolean visibleFrame) {
         boolean horizontal = facing.getModY() == 0;
         float xRot = horizontal ? 0 : -90f * facing.getModY();

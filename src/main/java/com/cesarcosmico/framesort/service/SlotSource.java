@@ -6,7 +6,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
 import org.jspecify.annotations.Nullable;
 
-/** Offers all of the slot but {@code kept} items, which stay whatever happens: a sorter's turn stops at 64. */
+// Offers all of the slot but kept items, which stay whatever happens.
 record SlotSource(Slot slot, int kept) implements DeliveryService.Source {
     @Override
     public ItemStack stack() {

@@ -61,7 +61,8 @@ public final class Database implements AutoCloseable {
 
     /**
      * Opens the pool and applies pending migrations. Blocks: call it from {@code onEnable}, before players join. The
-     * applied versions go in {@code <plugin>_schema_version}, the plugin's name in lower case.
+     * applied versions go in {@code <plugin>_schema_version}, the plugin's name in lower case, because servers often
+     * give several plugins one MySQL database.
      */
     public static Database open(Plugin plugin, DatabaseSettings settings) throws SQLException {
         String name = plugin.getName().toLowerCase(Locale.ROOT);
@@ -174,9 +175,7 @@ public final class Database implements AutoCloseable {
         }
     }
 
-    // Applies <root>/<dialect>/V1.sql, V2.sql… in order, each in its own transaction, until the next file is missing.
-    // MySQL commits DDL implicitly, so a failing MySQL migration can leave its earlier statements applied. The versions
-    // table carries the plugin's name because servers often give several plugins one MySQL database.
+    // MySQL commits DDL implicitly, so a failing MySQL migration can leave its earlier statements applied.
     private void migrate(String root, String versions) throws SQLException {
         try (Connection connection = dataSource.getConnection()) {
             try (Statement statement = connection.createStatement()) {

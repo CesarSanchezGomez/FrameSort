@@ -25,6 +25,7 @@ public final class PadPullEvent extends EntityEvent implements Cancellable {
     private final Block pad;
     private boolean cancelled;
 
+    /** Only FrameSort creates and fires this event. */
     public PadPullEvent(Item item, Block pad) {
         super(item);
         this.pad = pad;

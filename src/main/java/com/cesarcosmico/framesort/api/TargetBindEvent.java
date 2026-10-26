@@ -23,6 +23,7 @@ public final class TargetBindEvent extends EntityEvent implements Cancellable {
     private final Block source;
     private boolean cancelled;
 
+    /** Only FrameSort creates and fires this event. */
     public TargetBindEvent(Block source, ItemFrame target) {
         super(target);
         this.source = source;

@@ -33,10 +33,8 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.function.Supplier;
 
-/** Cached until the world's targets change; callers recheck each frame, which may have changed since. */
 public final class TargetResolver {
 
-    /** Where a delivery leaves the items sent to a frame. */
     public enum Destination {
         CONTAINER,
         DROPPED,
@@ -54,7 +52,6 @@ public final class TargetResolver {
     public record Target(ItemFrame frame, Destination destination) {
     }
 
-    /** Frames tied at one priority, split by where the items end up, each list nearest to the source first. */
     public record Level(List<ItemFrame> containers, List<ItemFrame> drops, List<ItemFrame> lava) {
         public Level {
             containers = List.copyOf(containers);
@@ -62,10 +59,7 @@ public final class TargetResolver {
             lava = List.copyOf(lava);
         }
 
-        /**
-         * Takes whatever the containers leave: the nearest drop spot, else the nearest lava. The other drop spots and
-         * lava of the level never get anything; {@code null} when it has neither.
-         */
+        /** The nearest drop spot, else the nearest lava, or {@code null} when the level has neither. */
         public @Nullable Target end() {
             if (!drops.isEmpty()) {
                 return new Target(drops.getFirst(), Destination.DROPPED);
@@ -84,8 +78,6 @@ public final class TargetResolver {
     private record Match(ItemFrame frame, int priority, ItemStack frameItem) {
     }
 
-    // The owner and range are part of the key: a pad rebuilt on the same block by someone else, or as another type,
-    // must not reuse its matches.
     private record CacheKey(BlockKey source, @Nullable UUID owner, int range, ItemStack item) {
     }
 
@@ -112,11 +104,6 @@ public final class TargetResolver {
         this.trust = trust;
     }
 
-    /**
-     * Deliveries and inspections both plan here, so an inspection always shows what a delivery would do.
-     * {@code owner} is the source's owner, or {@code null} when nobody owns it; {@code range} is how far from the
-     * source its targets may be.
-     */
     public Plan plan(Block source, @Nullable UUID owner, int range, ItemStack item) {
         FrameSortSettings current = settings.get();
         Ranking<ItemFrame> ranking = new Ranking<>();
@@ -136,7 +123,6 @@ public final class TargetResolver {
             }
             ranking.add(match.priority(), frame);
         }
-        // Nearest first within a level, so filling is predictable and an inspection lists the real order.
         BlockKey origin = FrameGeometry.key(source);
         Comparator<ItemFrame> nearest = Comparator.comparingLong(frame -> FrameGeometry.distanceSquared(frame, origin));
         List<Level> levels = new ArrayList<>();
@@ -165,11 +151,9 @@ public final class TargetResolver {
                 ? Destination.CONTAINER : Destination.DROPPED;
     }
 
-    /** The name of the block a frame on {@code block} fills; a custom plugin's block shows that plugin's name. */
     public Component blockName(Block block) {
         String id = customItems.blockId(block);
         ItemStack item = id == null ? null : customItems.blockItem(new ItemReference.Custom(id), 1);
-        // While the plugin reloads, or when no item has the block's ID, only the vanilla block it shows as has a name.
         return item == null ? Component.translatable(block.getType()) : item.effectiveName();
     }
 
@@ -197,7 +181,7 @@ public final class TargetResolver {
         cache.clear();
     }
 
-    /** The best priority this frame item accepts {@code item} at, or {@code -1}. */
+    // The best priority at which the frame item accepts the item, or NO_MATCH.
     private int priority(ItemStack frameItem, ItemStack item, @Nullable String itemId) {
         int best = direct(frameItem, item, itemId, false);
         if (best != MatchTier.EXACT.priority(false)) {
@@ -214,19 +198,18 @@ public final class TargetResolver {
         return best;
     }
 
-    /** Whether a frame holding {@code frameItem} takes whatever matches no other frame. */
     public boolean isDefaultTarget(ItemStack frameItem) {
         ItemReference target = settings.get().delivery().defaultTargetItem();
         return target != null && target.matches(frameItem.getType(), customItems.id(frameItem));
     }
 
-    /** The tag a tagged item stands for, or {@code null} when the item has none. */
+    /** The tag a tagged item stands for, or {@code null} when it has none or no tag has that name any more. */
     public TagCatalog.@Nullable TagView tag(ItemStack frameItem) {
         NamespacedKey key = ItemTagCodec.read(frameItem);
         return key == null ? null : tags.find(key);
     }
 
-    /** The reference to {@code item} as tags.yml writes it, or {@code null} for a vanilla item. */
+    /** {@code null} for a vanilla item. */
     public @Nullable String customId(ItemStack item) {
         return customItems.id(item);
     }
@@ -288,16 +271,12 @@ public final class TargetResolver {
             return false;
         }
         Block attached = FrameGeometry.attachedBlock(frame);
-        // Never send a source's items back into itself, and never treat a sorter's own frame as a target.
-        if (attached.equals(source) || attached.getType() == Material.DISPENSER
-                && current.sorter().isActivatorFrame(frame, shown, customItems::id)) {
+        if (attached.equals(source) || current.sorter().makesSorter(attached, frame, shown, customItems::id)) {
             return false;
         }
-        // Anyone can hang a frame near a sorter: it takes the owner's items only if the owner trusts its owner.
         return !current.ownership() || trust.get().allows(owner, FrameCodec.owner(frame));
     }
 
-    // Never cached: sorters come and go, and the blocks below a drop spot change, without touching any target frame.
     private boolean wouldLoop(FrameSortSettings current, Block source, ItemFrame frame) {
         if (isSorter(current, FrameGeometry.attachedBlock(frame)) && isSorter(current, source)) {
             return true;
@@ -312,11 +291,11 @@ public final class TargetResolver {
             block = block.getRelative(BlockFace.DOWN);
         }
         // A carpet or slab on the pad still leaves the items in its pickup space.
-        return isPadTop(block) || isPadTop(block.getRelative(BlockFace.DOWN));
+        return hasPadEntry(block) || hasPadEntry(block.getRelative(BlockFace.DOWN));
     }
 
     // Read from the chunk: PadService delivers through this class, so it can't be asked.
-    private static boolean isPadTop(Block block) {
+    private static boolean hasPadEntry(Block block) {
         return PadCodec.read(block.getChunk()).containsKey(FrameGeometry.key(block));
     }
 
@@ -336,15 +315,12 @@ public final class TargetResolver {
     }
 
     private int direct(ItemStack target, ItemStack item, @Nullable String itemId, boolean nested) {
-        // A tagged item stands only for its tag, never for itself or its material.
         if (ItemTagCodec.read(target) != null) {
             TagCatalog.TagView tag = tag(target);
-            // A custom item is only a vanilla material underneath, so only a tags.yml tag that lists it stands for it.
             return tag != null && (itemId == null ? tag.lookup().contains(item.getType())
                     : tag.customItems().contains(itemId))
                     ? MatchTier.TAG.priority(nested) : NO_MATCH;
         }
-        // A filled shulker box or bundle in the frame stands only for what it holds; inside it, only for itself.
         boolean filled = !contents(target).isEmpty();
         if (filled && !nested) {
             return NO_MATCH;
@@ -355,7 +331,6 @@ public final class TargetResolver {
         return !filled && sameKind(target, item, itemId) ? MatchTier.SIMILAR.priority(nested) : NO_MATCH;
     }
 
-    // Many custom items share one vanilla material, so a custom item's kind is its ID, never its material.
     private boolean sameKind(ItemStack target, ItemStack item, @Nullable String itemId) {
         String targetId = customItems.id(target);
         return targetId == null ? itemId == null && target.getType() == item.getType() : targetId.equals(itemId);

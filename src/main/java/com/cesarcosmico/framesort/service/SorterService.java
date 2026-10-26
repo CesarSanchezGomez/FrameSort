@@ -48,10 +48,7 @@ public final class SorterService {
     private static final MiniMessage MINI_MESSAGE = MiniMessage.miniMessage();
     // Shulker boxes inside bundles inside shulker boxes…: deep enough for any real setup, and bounded.
     private static final int MAX_DEPTH = 8;
-    // A sorter frame whose dispenser sits in an unloaded chunk looks again this often.
-    private static final long RETRY_TICKS = 100;
-    // A turn sends a stack's worth however the items are packed, so bundles of single items don't crawl; the same
-    // bound caps the tries when items have nowhere to go, so one that doesn't fit never stalls the rest.
+    private static final long UNLOADED_DISPENSER_RETRY_TICKS = 100;
     private static final int PER_TURN = 64;
 
     private static final class Sorter {
@@ -71,8 +68,8 @@ public final class SorterService {
     private final DeliveryService delivery;
     private final CustomItemResolver customItems;
     private final Map<BlockKey, Sorter> sorters = new HashMap<>();
-    // Frames with a retry pending; every load, reload or frame change would otherwise start another retry chain.
-    private final Set<UUID> waiting = new HashSet<>();
+    // Otherwise every load, reload or frame change would start another retry chain.
+    private final Set<UUID> awaitingRetry = new HashSet<>();
     private long tick;
     private int nextPhase;
 
@@ -88,12 +85,12 @@ public final class SorterService {
         boolean holdsActivator = settings.get().sorter().isActivatorFrame(frame, frame.getItem(), customItems::id);
         if (!FrameGeometry.attachedLoaded(frame)) {
             // Only frames that could make a sorter wait for the neighbouring chunk; the rest are never sorters.
-            if (holdsActivator && waiting.add(frame.getUniqueId())) {
-                Runnable done = () -> waiting.remove(frame.getUniqueId());
+            if (holdsActivator && awaitingRetry.add(frame.getUniqueId())) {
+                Runnable done = () -> awaitingRetry.remove(frame.getUniqueId());
                 ScheduledTask retry = frame.getScheduler().runDelayed(plugin, task -> {
                     done.run();
                     consider(frame);
-                }, done, RETRY_TICKS);
+                }, done, UNLOADED_DISPENSER_RETRY_TICKS);
                 if (retry == null) {
                     done.run();
                 }
@@ -108,7 +105,6 @@ public final class SorterService {
                 SorterSettings sorter = settings.get().sorter();
                 sorters.put(key, new Sorter(frame, block, tick + 1 + (nextPhase++ % sorter.tickRate())));
             }
-            // On every check, not only the first: a reload's look settings then reach the sorters that exist.
             if (existing == null || existing.frame.equals(frame)) {
                 applyLook(frame, true);
             }
@@ -123,9 +119,9 @@ public final class SorterService {
     }
 
     /**
-     * Re-checks a frame on the next tick: when an item-frame event fires, the frame still holds the old item. A
-     * sorter belongs to whoever put the activator in, not to whoever hung the frame; {@code placer} is {@code null}
-     * when the change was not putting an item in, such as rotating the frame of a sorter not yet created.
+     * Re-checks a frame on the next tick: when an item-frame event fires, the frame still holds the old item.
+     * {@code placer} is {@code null} when the change was not putting an item in, such as rotating the frame of a sorter
+     * not yet created.
      */
     public void considerLater(ItemFrame frame, @Nullable UUID placer, Consumer<Change> then) {
         frame.getScheduler().run(plugin, task -> {
@@ -137,7 +133,6 @@ public final class SorterService {
         }, null);
     }
 
-    /** The owner of the sorter on {@code block}: the owner of its frame, or {@code null} when nobody owns it. */
     public @Nullable UUID ownerOf(Block block) {
         Sorter sorter = sorters.get(FrameGeometry.key(block));
         return sorter == null ? null : FrameCodec.owner(sorter.frame);
@@ -170,8 +165,7 @@ public final class SorterService {
         return sorter != null && sorter.frame.equals(frame) ? sorter : null;
     }
 
-    /** Shows every loaded sorter's frame again, so nothing stays hidden while FrameSort is off. */
-    public void stopAll() {
+    public void showAllFrames() {
         sorters.values().forEach(sorter -> applyLook(sorter.frame, false));
     }
 
@@ -196,7 +190,7 @@ public final class SorterService {
         return sorters.values().stream().map(sorter -> sorter.block).toList();
     }
 
-    /** {@code null} when CraftEngine can't build the activator now: an ID it doesn't know, or a /ce reload. */
+    /** {@code null} when CraftEngine can't build the activator now. */
     public @Nullable ItemStack createActivator(int amount) {
         SorterSettings sorter = settings.get().sorter();
         ItemStack item = switch (sorter.activator()) {
@@ -204,7 +198,7 @@ public final class SorterService {
                     new ItemTemplate(material, sorter.activatorComponents(), sorter.activatorLook()).create(amount);
             case ItemReference.Custom custom -> {
                 ItemStack built = customItems.item(custom, amount);
-                yield built == null ? null : ItemOverlay.apply(built, sorter.activatorLook());
+                yield built == null ? null : ItemOverlay.applyReplacingLore(built, sorter.activatorLook());
             }
         };
         return item == null ? null : MarkerCodec.mark(item, Keys.ACTIVATOR, "sorter");
@@ -236,10 +230,8 @@ public final class SorterService {
         }
     }
 
-    /** Whether {@code item} in {@code frame} makes a sorter of the block the frame hangs on. */
     public boolean makesSorter(ItemFrame frame, ItemStack item) {
-        return FrameGeometry.attachedBlock(frame).getType() == Material.DISPENSER
-                && settings.get().sorter().isActivatorFrame(frame, item, customItems::id);
+        return settings.get().sorter().makesSorter(FrameGeometry.attachedBlock(frame), frame, item, customItems::id);
     }
 
     private void dispense(Sorter sorter) {
@@ -276,7 +268,6 @@ public final class SorterService {
         }
     }
 
-    /** How many items this sorter's dispenser has sent; the count stays with the block. */
     public long sorted(Block block) {
         return block.getState(false) instanceof Dispenser dispenser
                 ? dispenser.getPersistentDataContainer().getOrDefault(Keys.SORTED, PersistentDataType.LONG, 0L)
@@ -287,7 +278,6 @@ public final class SorterService {
         frame.setVisible(!active || !settings.get().sorter().hideFrame());
     }
 
-    /** A sorter opens a shulker box or bundle with contents first; it goes whole once nothing inside can go. */
     public static boolean opens(ItemStack item) {
         return !TargetResolver.contents(item).isEmpty();
     }
@@ -304,10 +294,8 @@ public final class SorterService {
         return null;
     }
 
-    /**
-     * Something in {@code slot} that has not missed this turn: a stack inside it first, or else the slot itself, so a
-     * shulker box or bundle goes whole once nothing inside it can go. {@code item} is what the slot holds, read once.
-     */
+    // A stack inside the slot first, else the slot itself, skipping what missed this turn. The item is what the slot
+    // holds, read once.
     private static @Nullable Slot pick(Slot slot, ItemStack item, List<ItemStack> missed, int depth) {
         if (missed.stream().anyMatch(item::isSimilar)) {
             return null;

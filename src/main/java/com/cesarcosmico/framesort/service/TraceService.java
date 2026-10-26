@@ -20,7 +20,7 @@ import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Supplier;
 
-/** With nobody tracing, a delivery costs one empty-map check. */
+/** Distances are in blocks. */
 public final class TraceService {
 
     private static final class Turn {
@@ -36,11 +36,8 @@ public final class TraceService {
         }
     }
 
-    // At most one sorter turn or pad sweep per player this often, so a busy sorter does not flood the screen. Every
-    // target of the turn that is shown still shows once: a turn is the same source in the same tick.
     private static final long MIN_INTERVAL_MILLIS = 150;
-    // The trail runs straight from the source to the frame, so it stays readable in tunnels.
-    private static final int STREAK = 6;
+    private static final int RING_TRAILS = 6;
     private static final double RING_RADIUS = 0.2;
     private static final double BLOCKS_PER_TICK = 1.0;
     private static final int MIN_TICKS = 8;
@@ -103,7 +100,6 @@ public final class TraceService {
                 continue;
             }
             Location from = delivered.from();
-            // A trail ends at the chest it fills, so only those who may inspect the source see it.
             if (!player.getWorld().equals(from.getWorld())
                     || player.getLocation().distanceSquared(from) > (double) radius * radius
                     || !trust.canView(player, delivered.owner())) {
@@ -137,6 +133,7 @@ public final class TraceService {
         drawTrail(player, delivered.from(), to, delivered.destination().color(settings.get().inspect().colors()));
     }
 
+    // Straight from the source to the frame, so it stays readable in tunnels.
     private void drawTrail(Player player, Location from, Location to, Color color) {
         Vector path = to.toVector().subtract(from.toVector());
         double length = path.length();
@@ -152,8 +149,8 @@ public final class TraceService {
         Location start = from.clone().add(axis.clone().multiply(Math.min(0.55, length / 2)));
         Color light = lighter(color);
         int ticks = (int) Math.clamp(Math.round(length / BLOCKS_PER_TICK), MIN_TICKS, MAX_TICKS);
-        for (int i = 0; i < STREAK; i++) {
-            double angle = 2 * Math.PI * i / STREAK;
+        for (int i = 0; i < RING_TRAILS; i++) {
+            double angle = 2 * Math.PI * i / RING_TRAILS;
             Location origin = start.clone()
                     .add(u.clone().multiply(RING_RADIUS * Math.cos(angle)))
                     .add(v.clone().multiply(RING_RADIUS * Math.sin(angle)));

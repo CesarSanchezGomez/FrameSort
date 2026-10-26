@@ -16,7 +16,6 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.function.Supplier;
 
-/** Indexed by chunk so a lookup only scans the chunks in range; the per-world epoch invalidates cached matches. */
 public final class TargetIndex {
 
     public static final String MARK_PERMISSION = "framesort.target.create";
@@ -24,8 +23,8 @@ public final class TargetIndex {
     private final Supplier<FrameSortSettings> settings;
     private final Map<ChunkKey, Set<ItemFrame>> frames = new HashMap<>();
     private final Map<UUID, Long> epochs = new HashMap<>();
-    // Added to every world's epoch: a change of trust can change any world's matches, even one with no epoch yet.
-    private long everywhere;
+    // A change of trust can change any world's matches, even one with no epoch yet.
+    private long epochEverywhere;
 
     public TargetIndex(Supplier<FrameSortSettings> settings) {
         this.settings = settings;
@@ -53,32 +52,29 @@ public final class TargetIndex {
     }
 
     public void changedEverywhere() {
-        everywhere++;
+        epochEverywhere++;
     }
 
     public long epoch(UUID world) {
-        return epochs.getOrDefault(world, 0L) + everywhere;
+        return epochs.getOrDefault(world, 0L) + epochEverywhere;
     }
 
     public boolean isMarked(ItemFrame frame) {
         return FrameCodec.isMarked(frame);
     }
 
-    /** A marked frame belongs to whoever marked it. */
     public void mark(ItemFrame frame, UUID owner) {
         FrameCodec.setOwner(frame, owner);
         FrameCodec.setMarked(frame, true);
         reindex(frame);
     }
 
-    /** Unmarking frees the frame, so anyone may mark it next. */
     public void unmark(ItemFrame frame) {
         FrameCodec.clearOwner(frame);
         FrameCodec.setMarked(frame, false);
         reindex(frame);
     }
 
-    /** A frame is a target for the item in it, so a new item ends its mark. */
     public void itemPlaced(ItemFrame frame) {
         if (isMarked(frame)) {
             unmark(frame);
@@ -122,7 +118,6 @@ public final class TargetIndex {
         epochs.replaceAll((world, epoch) -> epoch + 1);
     }
 
-    /** Whether this kind of frame can be a target at all. */
     public boolean markable(ItemFrame frame) {
         return settings.get().targets().frameTypes().contains(frame.getType());
     }

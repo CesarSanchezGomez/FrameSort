@@ -27,7 +27,6 @@ public final class CommandTree {
         private final String name;
         private final Map<String, Node> children = new LinkedHashMap<>();
         private @Nullable CommandFeature feature;
-        // Whether a source may see and run the feature here: its permission, and its condition if it has one.
         private Predicate<CommandSourceStack> usable = source -> false;
 
         private Node(String name) {

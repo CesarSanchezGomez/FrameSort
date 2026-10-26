@@ -41,21 +41,22 @@ public final class TagApplyCommand implements CommandFeature {
     }
 
     private int apply(CommandContext<CommandSourceStack> context) {
-        Player player = holder(context, messages.get());
+        Player player = playerHoldingItem(context, messages.get());
         if (player == null) {
             return Command.SINGLE_SUCCESS;
         }
         TagCatalog.TagView view = context.getArgument("tag", TagCatalog.TagView.class);
         String name = TagArgument.shortName(view.key());
         ItemStack held = player.getInventory().getItemInMainHand();
-        ItemTagCodec.apply(held, view.key(), settings.get().targets().taggedItem(), Placeholder.unparsed("tag", name));
+        ItemTagCodec.apply(held, view.key(), settings.get().targets().taggedItemLook(),
+                Placeholder.unparsed("tag", name));
         player.getInventory().setItemInMainHand(held);
         player.sendMessage(messages.get().get("tag-item.applied", Placeholder.unparsed("tag", name)));
         return Command.SINGLE_SUCCESS;
     }
 
-    // The player holding an item to work on, after telling the sender why there is none. tag-remove needs it too.
-    static @Nullable Player holder(CommandContext<CommandSourceStack> context, Messages messages) {
+    // Tells the sender why when there is none.
+    static @Nullable Player playerHoldingItem(CommandContext<CommandSourceStack> context, Messages messages) {
         if (!(context.getSource().getSender() instanceof Player player)) {
             context.getSource().getSender().sendMessage(messages.get("command.players-only"));
             return null;

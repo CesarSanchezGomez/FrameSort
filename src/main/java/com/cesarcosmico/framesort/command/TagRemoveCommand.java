@@ -31,7 +31,7 @@ public final class TagRemoveCommand implements CommandFeature {
 
     private int remove(CommandContext<CommandSourceStack> context) {
         Messages text = messages.get();
-        Player player = TagApplyCommand.holder(context, text);
+        Player player = TagApplyCommand.playerHoldingItem(context, text);
         if (player == null) {
             return Command.SINGLE_SUCCESS;
         }

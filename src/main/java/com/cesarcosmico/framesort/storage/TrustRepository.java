@@ -12,10 +12,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-/**
- * The SQL of the trust table. Each call takes the connection of a task already on the database thread, so whoever
- * calls it can change the in-memory list in that same task, in the order the database saw.
- */
 public final class TrustRepository {
 
     private static final String LOAD = "SELECT owner, trusted, created_at FROM framesort_trust";
@@ -60,7 +56,6 @@ public final class TrustRepository {
         }
     }
 
-    // Most significant half first: the one form a UUID has in 16 bytes.
     static byte[] bytes(UUID uuid) {
         return ByteBuffer.allocate(16).putLong(uuid.getMostSignificantBits())
                 .putLong(uuid.getLeastSignificantBits()).array();

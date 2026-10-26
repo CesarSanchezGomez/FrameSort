@@ -9,27 +9,17 @@ import java.util.Locale;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
-/**
- * Reads an item or block named in the config. The plugin name before the first {@code :} is matched ignoring case;
- * what follows is CraftEngine's ID, exactly as written. Only the syntax is checked, and that CraftEngine is installed:
- * it may not have loaded its items yet.
- */
 final class ItemReferences {
 
     private ItemReferences() {
     }
 
-    /** A CraftEngine item or block keeps its own model and components; FrameSort only lays its look over it. */
     static void ignoreComponents(ConfigReader section) {
         if (section.isSet("components")) {
             section.warn("components", "a CraftEngine item keeps its own model and components, ignored");
         }
     }
 
-    /**
-     * The item {@code text} names at {@code path}, or {@code fallback} after a warning when it names nothing usable or
-     * a material that is not an item.
-     */
     static ItemReference item(ConfigReader reader, String path, String text, ItemReference.Vanilla fallback,
                               Predicate<Material> isItem, boolean craftEngine) {
         String using = ", using " + fallback.material();
@@ -41,10 +31,7 @@ final class ItemReferences {
         return item == null ? fallback : item;
     }
 
-    /**
-     * The reference, or {@code null} after telling {@code problem} why {@code text} names nothing usable;
-     * {@code craftEngine} says whether CraftEngine is enabled.
-     */
+    // Null after telling the problem why the text names nothing usable.
     static @Nullable ItemReference parse(String text, boolean craftEngine, Consumer<String> problem) {
         String value = text.trim();
         int colon = value.indexOf(':');
@@ -68,7 +55,6 @@ final class ItemReferences {
                 return null;
             }
             int split = id.indexOf(':');
-            // Every CraftEngine ID has a namespace and two packs can share a value, so 'default' is never assumed.
             if (split <= 0 || split == id.length() - 1) {
                 problem.accept("'" + text + "' needs its namespace, such as 'craftengine:default:topaz_axe'");
                 return null;

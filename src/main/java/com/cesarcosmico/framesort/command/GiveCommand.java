@@ -29,7 +29,7 @@ import java.util.function.Supplier;
 public final class GiveCommand implements CommandFeature {
 
     private interface ItemSource {
-        /** {@code null} when CraftEngine can't build the item now. */
+        // Null when CraftEngine can't build the item now.
         @Nullable ItemStack create(CommandContext<CommandSourceStack> context, int amount)
                 throws CommandSyntaxException;
     }
@@ -84,6 +84,12 @@ public final class GiveCommand implements CommandFeature {
         return give(context, player, item, 1);
     }
 
+    private static void giveOrDrop(Player target, ItemStack stack) {
+        for (ItemStack left : target.getInventory().addItem(stack).values()) {
+            target.getWorld().dropItem(target.getLocation(), left);
+        }
+    }
+
     private int give(CommandContext<CommandSourceStack> context, Player target, ItemSource item, int amount)
             throws CommandSyntaxException {
         CommandSender sender = context.getSource().getSender();
@@ -92,10 +98,7 @@ public final class GiveCommand implements CommandFeature {
             sender.sendMessage(messages.get().get("give.unavailable"));
             return Command.SINGLE_SUCCESS;
         }
-        // Whatever does not fit is dropped at the player's feet instead of being lost.
-        for (ItemStack left : target.getInventory().addItem(stack).values()) {
-            target.getWorld().dropItem(target.getLocation(), left);
-        }
+        giveOrDrop(target, stack);
         sender.sendMessage(messages.get().get("give.done",
                 Placeholder.unparsed("amount", String.valueOf(amount)),
                 Placeholder.component("item", stack.effectiveName()),

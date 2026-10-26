@@ -5,7 +5,6 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
 import org.jspecify.annotations.Nullable;
 
-/** Marks an item FrameSort hands out (the activator, a pad item) so it can tell it from any item of that material. */
 public final class MarkerCodec {
 
     private MarkerCodec() {
