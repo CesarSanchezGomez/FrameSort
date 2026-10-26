@@ -76,9 +76,9 @@ public final class PadService {
     // Closer to the pad's centre than this along both axes, within half a block of its side, no arc comes over its edge
     // without a tall loop: the item hops instead.
     private static final double HOP_REACH = 1;
-    // The main inventory; the hotbar (0 to 8), armour and off hand are what the player is using.
-    private static final int FIRST_STORED = 9;
-    private static final int LAST_STORED = 35;
+    // Not the hotbar, armour or off hand: those are what the player is using.
+    private static final int FIRST_MAIN_SLOT = 9;
+    private static final int LAST_MAIN_SLOT = 35;
 
     private final Plugin plugin;
     private final Supplier<PadSettings> settings;
@@ -154,8 +154,7 @@ public final class PadService {
         return new Breaking.Removed(item);
     }
 
-    /** Whether {@code block} is the top block of a registered pad. */
-    public boolean isPad(Block block) {
+    public boolean isPadTop(Block block) {
         return registered(block) != null;
     }
 
@@ -262,7 +261,7 @@ public final class PadService {
             }
             PlayerInventory inventory = player.getInventory();
             List<Integer> filled = new ArrayList<>();
-            for (int index = FIRST_STORED; index <= LAST_STORED; index++) {
+            for (int index = FIRST_MAIN_SLOT; index <= LAST_MAIN_SLOT; index++) {
                 if (inventory.getItem(index) != null) {
                     filled.add(index);
                 }
@@ -281,34 +280,48 @@ public final class PadService {
 
     // Throws the loose items around the pad onto it, so a later sweep sends them.
     private void pull(Block top, int radius) {
-        // Every pull lands on the pad's surface: the block right over the pad must leave room on top (empty, or a
-        // carpet or slab on the pad), and the one above that must let the item come down through it.
-        Block above = top.getRelative(BlockFace.UP);
-        if (!above.isPassable() && above.getBoundingBox().getMaxY() >= above.getY() + 1
-                || !top.getRelative(BlockFace.UP, 2).isPassable()) {
+        if (!hasRoomToLand(top)) {
             return;
         }
+        Block above = top.getRelative(BlockFace.UP);
         Location surface = top.getLocation().add(0.5, 0, 0.5);
         surface.setY(above.isPassable() ? above.getY() : above.getBoundingBox().getMaxY());
         // A lying item is slowed by the block just under a block's height below it: the pad's top, also under a carpet
         // or slab.
         double grip = Pull.grip(top.getType().getSlipperiness());
         for (Item item : top.getWorld().getNearbyEntitiesByType(Item.class, surface, radius, radius, radius)) {
-            Location from = item.getLocation();
-            // Handlers of an earlier PadPullEvent may remove items, and one another pad threw this sweep still lies on
-            // the ground until its own tick. One over or under this pad is on it or can't get there.
-            if (!item.isValid() || !item.isOnGround() || item.getVelocity().getY() > 0 || DropCodec.isMarked(item)
-                    || from.distanceSquared(surface) > (double) radius * radius
-                    || Math.abs(from.getX() - surface.getX()) < 0.5 && Math.abs(from.getZ() - surface.getZ()) < 0.5
-                    || isPad(from.getBlock().getRelative(BlockFace.DOWN))) {
+            if (!isPullable(item, surface, radius)) {
                 continue;
             }
+            Location from = item.getLocation();
             if (Math.max(Math.abs(surface.getX() - from.getX()), Math.abs(surface.getZ() - from.getZ())) < HOP_REACH) {
                 hop(item, top, surface, grip);
             } else {
                 throwOnto(item, top, surface, grip);
             }
         }
+    }
+
+    // Every pull lands on the pad's surface: a carpet or slab on the pad still leaves room, and the item comes down
+    // through the block above it.
+    private static boolean hasRoomToLand(Block top) {
+        Block above = top.getRelative(BlockFace.UP);
+        return (above.isPassable() || above.getBoundingBox().getMaxY() < above.getY() + 1)
+                && top.getRelative(BlockFace.UP, 2).isPassable();
+    }
+
+    // Handlers of an earlier PadPullEvent may remove items, and one another pad threw this sweep still lies on the
+    // ground until its own tick.
+    private boolean isPullable(Item item, Location surface, int radius) {
+        Location from = item.getLocation();
+        return item.isValid() && item.isOnGround() && item.getVelocity().getY() <= 0 && !DropCodec.isMarked(item)
+                && from.distanceSquared(surface) <= (double) radius * radius && !inPadColumn(from, surface)
+                && !isPadTop(from.getBlock().getRelative(BlockFace.DOWN));
+    }
+
+    // An item over or under the pad is already on it, or can't get there.
+    private static boolean inPadColumn(Location at, Location surface) {
+        return Math.abs(at.getX() - surface.getX()) < 0.5 && Math.abs(at.getZ() - surface.getZ()) < 0.5;
     }
 
     // The rays pass under the curve between the points of the flight: a low overhang there can still catch the item,

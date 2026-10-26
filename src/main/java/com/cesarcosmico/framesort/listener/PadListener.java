@@ -99,24 +99,24 @@ public final class PadListener implements Listener {
     // top block with gravity still falls once its base is gone: the sweep then forgets the pad.
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onEntityChangeBlock(EntityChangeBlockEvent event) {
-        if (!(event.getEntity() instanceof FallingBlock) && pads.isPad(event.getBlock())) {
+        if (!(event.getEntity() instanceof FallingBlock) && pads.isPadTop(event.getBlock())) {
             event.setCancelled(true);
         }
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onEntityExplode(EntityExplodeEvent event) {
-        event.blockList().removeIf(pads::isPad);
+        event.blockList().removeIf(pads::isPadTop);
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onBlockExplode(BlockExplodeEvent event) {
-        event.blockList().removeIf(pads::isPad);
+        event.blockList().removeIf(pads::isPadTop);
     }
 
     private boolean movesPad(List<Block> blocks) {
         for (Block block : blocks) {
-            if (pads.isPad(block)) {
+            if (pads.isPadTop(block)) {
                 return true;
             }
         }
