@@ -48,8 +48,7 @@ public final class SorterService {
     private static final MiniMessage MINI_MESSAGE = MiniMessage.miniMessage();
     // Shulker boxes inside bundles inside shulker boxes…: deep enough for any real setup, and bounded.
     private static final int MAX_DEPTH = 8;
-    // A sorter frame whose dispenser sits in an unloaded chunk looks again this often.
-    private static final long RETRY_TICKS = 100;
+    private static final long UNLOADED_DISPENSER_RETRY_TICKS = 100;
     // A turn sends a stack's worth however the items are packed, so bundles of single items don't crawl; the same
     // bound caps the tries when items have nowhere to go, so one that doesn't fit never stalls the rest.
     private static final int PER_TURN = 64;
@@ -71,8 +70,8 @@ public final class SorterService {
     private final DeliveryService delivery;
     private final CustomItemResolver customItems;
     private final Map<BlockKey, Sorter> sorters = new HashMap<>();
-    // Frames with a retry pending; every load, reload or frame change would otherwise start another retry chain.
-    private final Set<UUID> waiting = new HashSet<>();
+    // Otherwise every load, reload or frame change would start another retry chain.
+    private final Set<UUID> awaitingRetry = new HashSet<>();
     private long tick;
     private int nextPhase;
 
@@ -88,12 +87,12 @@ public final class SorterService {
         boolean holdsActivator = settings.get().sorter().isActivatorFrame(frame, frame.getItem(), customItems::id);
         if (!FrameGeometry.attachedLoaded(frame)) {
             // Only frames that could make a sorter wait for the neighbouring chunk; the rest are never sorters.
-            if (holdsActivator && waiting.add(frame.getUniqueId())) {
-                Runnable done = () -> waiting.remove(frame.getUniqueId());
+            if (holdsActivator && awaitingRetry.add(frame.getUniqueId())) {
+                Runnable done = () -> awaitingRetry.remove(frame.getUniqueId());
                 ScheduledTask retry = frame.getScheduler().runDelayed(plugin, task -> {
                     done.run();
                     consider(frame);
-                }, done, RETRY_TICKS);
+                }, done, UNLOADED_DISPENSER_RETRY_TICKS);
                 if (retry == null) {
                     done.run();
                 }

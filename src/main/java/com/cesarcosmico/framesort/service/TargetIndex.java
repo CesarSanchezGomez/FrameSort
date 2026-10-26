@@ -23,8 +23,8 @@ public final class TargetIndex {
     private final Supplier<FrameSortSettings> settings;
     private final Map<ChunkKey, Set<ItemFrame>> frames = new HashMap<>();
     private final Map<UUID, Long> epochs = new HashMap<>();
-    // Added to every world's epoch: a change of trust can change any world's matches, even one with no epoch yet.
-    private long everywhere;
+    // A change of trust can change any world's matches, even one with no epoch yet.
+    private long epochEverywhere;
 
     public TargetIndex(Supplier<FrameSortSettings> settings) {
         this.settings = settings;
@@ -52,11 +52,11 @@ public final class TargetIndex {
     }
 
     public void changedEverywhere() {
-        everywhere++;
+        epochEverywhere++;
     }
 
     public long epoch(UUID world) {
-        return epochs.getOrDefault(world, 0L) + everywhere;
+        return epochs.getOrDefault(world, 0L) + epochEverywhere;
     }
 
     public boolean isMarked(ItemFrame frame) {

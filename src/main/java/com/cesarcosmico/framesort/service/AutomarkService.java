@@ -18,17 +18,16 @@ public final class AutomarkService {
     private final SorterService sorters;
     private final InspectService inspect;
     private final CustomItemResolver customItems;
-    // Whether the player may still switch it off: their choice is kept, but does nothing while they can't.
-    private final Predicate<Player> available;
+    private final Predicate<Player> maySwitchOff;
 
     public AutomarkService(Plugin plugin, TargetIndex index, SorterService sorters, InspectService inspect,
-                           CustomItemResolver customItems, Predicate<Player> available) {
+                           CustomItemResolver customItems, Predicate<Player> maySwitchOff) {
         this.plugin = plugin;
         this.index = index;
         this.sorters = sorters;
         this.inspect = inspect;
         this.customItems = customItems;
-        this.available = available;
+        this.maySwitchOff = maySwitchOff;
     }
 
     /** Switches {@code player} between marking by hand and marking what they fill. */
@@ -51,7 +50,7 @@ public final class AutomarkService {
         index.itemPlaced(frame);
         // Another plugin can empty the item before it goes in.
         if (item.isEmpty() || !PlayerCodec.automark(player) || !player.hasPermission(TargetIndex.MARK_PERMISSION)
-                || !available.test(player) || !index.markable(frame)
+                || !maySwitchOff.test(player) || !index.markable(frame)
                 || !FrameGeometry.isContainer(FrameGeometry.attachedBlock(frame), customItems)
                 || sorters.makesSorter(frame, item)) {
             return;

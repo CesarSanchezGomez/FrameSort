@@ -39,7 +39,7 @@ public final class TraceService {
     // target of the turn that is shown still shows once: a turn is the same source in the same tick.
     private static final long MIN_INTERVAL_MILLIS = 150;
     // The trail runs straight from the source to the frame, so it stays readable in tunnels.
-    private static final int STREAK = 6;
+    private static final int RING_TRAILS = 6;
     private static final double RING_RADIUS = 0.2;
     private static final double BLOCKS_PER_TICK = 1.0;
     private static final int MIN_TICKS = 8;
@@ -151,8 +151,8 @@ public final class TraceService {
         Location start = from.clone().add(axis.clone().multiply(Math.min(0.55, length / 2)));
         Color light = lighter(color);
         int ticks = (int) Math.clamp(Math.round(length / BLOCKS_PER_TICK), MIN_TICKS, MAX_TICKS);
-        for (int i = 0; i < STREAK; i++) {
-            double angle = 2 * Math.PI * i / STREAK;
+        for (int i = 0; i < RING_TRAILS; i++) {
+            double angle = 2 * Math.PI * i / RING_TRAILS;
             Location origin = start.clone()
                     .add(u.clone().multiply(RING_RADIUS * Math.cos(angle)))
                     .add(v.clone().multiply(RING_RADIUS * Math.sin(angle)));
