@@ -11,10 +11,12 @@ import org.bukkit.event.entity.EntityEvent;
  * it lies inside a claim you protect.
  *
  * <p>It fires only for an item that FrameSort would pull: lying on the ground within its type's {@code pull-radius}
- * (pads.yml), outside the pad's own column, not dropped by FrameSort itself, not on another pad, and low enough to
- * take off towards the point one and a half blocks over the pad; with nothing between it and that point but a carpet
- * or slab on the pad, or, for an item at the pad's foot, the pad itself and free room above the item. That is at most
- * once per item and pad on every pad check ({@code sweep-interval} in pads.yml).</p>
+ * (pads.yml), outside the pad's own column, not dropped by FrameSort itself, not on another pad, and not thrown by
+ * another pad on the same check; whose flight onto the pad its rays find clear. From further away, that is an arc
+ * that rises a block over the pad and over the item, takes at most two seconds and lands softly enough to stay on the
+ * pad, with rays through its top and where it comes over the pad's edge; from within half a block of the pad's side
+ * along both axes, a hop straight up with free room above the item, then a drift onto the pad.
+ * That is at most once per item and pad on every pad check ({@code sweep-interval} in pads.yml).</p>
  */
 public final class PadPullEvent extends EntityEvent implements Cancellable {
 

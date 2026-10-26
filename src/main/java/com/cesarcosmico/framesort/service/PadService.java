@@ -28,7 +28,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.plugin.Plugin;
-import org.bukkit.util.RayTraceResult;
 import org.bukkit.util.Vector;
 import org.jspecify.annotations.Nullable;
 
@@ -71,10 +70,12 @@ public final class PadService {
         }
     }
 
-    // The line of sight starts just off the block an item lies on, so it doesn't graze that block.
+    // A flight's rays start just off the block an item lies on and end just over the surface it lands on, so they don't
+    // graze either.
     private static final double RAY_LIFT = 0.05;
-    // How far from the pad's centre an item still counts as lying at its foot: up to a block from its side.
-    private static final double HOP_REACH = 1.5;
+    // Closer to the pad's centre than this along both axes, within half a block of its side, no arc comes over its edge
+    // without a tall loop: the item hops instead.
+    private static final double HOP_REACH = 1;
     // The main inventory; the hotbar (0 to 8), armour and off hand are what the player is using.
     private static final int FIRST_STORED = 9;
     private static final int LAST_STORED = 35;
@@ -281,79 +282,101 @@ public final class PadService {
 
     /** Throws the loose items around the pad onto it, so a later sweep sends them. */
     private void pull(Block top, int radius) {
-        // Every pull ends in the block two above the pad and drops the item onto it: that block must let the item
-        // through, and the one right over the pad must leave room on top (empty, or a carpet or slab on the pad).
+        // Every pull lands on the pad's surface: the block right over the pad must leave room on top (empty, or a
+        // carpet or slab on the pad), and the one above that must let the item come down through it.
         Block above = top.getRelative(BlockFace.UP);
         if (!above.isPassable() && above.getBoundingBox().getMaxY() >= above.getY() + 1
                 || !top.getRelative(BlockFace.UP, 2).isPassable()) {
             return;
         }
-        Location surface = top.getLocation().add(0.5, 1, 0.5);
-        Location target = surface.clone().add(0, Pull.AIM_ABOVE, 0);
+        Location surface = top.getLocation().add(0.5, 0, 0.5);
+        surface.setY(above.isPassable() ? above.getY() : above.getBoundingBox().getMaxY());
+        // A lying item is slowed by the block just under a block's height below it: the pad's top, also under a carpet
+        // or slab.
+        double grip = Pull.grip(top.getType().getSlipperiness());
         for (Item item : top.getWorld().getNearbyEntitiesByType(Item.class, surface, radius, radius, radius)) {
             Location from = item.getLocation();
-            // Handlers of an earlier PadPullEvent may remove items. One in the air is already on its way; one over or
-            // under this pad is on it or can't get there, and one on another pad goes with that pad's sweep.
-            if (!item.isValid() || !item.isOnGround() || DropCodec.isMarked(item)
+            // Handlers of an earlier PadPullEvent may remove items. One in the air is already on its way, and so is one
+            // another pad threw this sweep: it lies on the ground until its own tick. One over or under this pad is on
+            // it or can't get there, and one on another pad goes with that pad's sweep.
+            if (!item.isValid() || !item.isOnGround() || item.getVelocity().getY() > 0 || DropCodec.isMarked(item)
                     || from.distanceSquared(surface) > (double) radius * radius
                     || Math.abs(from.getX() - surface.getX()) < 0.5 && Math.abs(from.getZ() - surface.getZ()) < 0.5
                     || isPad(from.getBlock().getRelative(BlockFace.DOWN))) {
                 continue;
             }
-            Sight sight = sight(item, top, target);
-            if (sight == Sight.BLOCKED) {
-                continue;
+            if (Math.max(Math.abs(surface.getX() - from.getX()), Math.abs(surface.getZ() - from.getZ())) < HOP_REACH) {
+                hop(item, top, surface, grip);
+            } else {
+                throwOnto(item, top, surface, grip);
             }
-            // At the foot of the pad an arc would hit its side: the item hops straight up, and the stop below puts it
-            // over the pad.
-            boolean hop = sight == Sight.PAD;
-            Pull.Velocity velocity = Pull.velocity(hop ? 0 : target.getX() - from.getX(), target.getY() - from.getY(),
-                    hop ? 0 : target.getZ() - from.getZ());
-            if (velocity == null || !new PadPullEvent(item, top).callEvent()) {
-                continue;
-            }
-            item.setVelocity(new Vector(velocity.x(), velocity.y(), velocity.z()));
-            // It arrives still moving sideways, and a tick early or late would leave it a block off on a long throw:
-            // put exactly over the pad and stopped, it drops straight onto it. Harmless if FrameSort is gone by then,
-            // so the task isn't kept.
-            item.getScheduler().runDelayed(plugin, task -> {
-                item.teleport(target);
-                item.setVelocity(new Vector());
-            }, null, Pull.FLIGHT_TICKS);
         }
     }
 
-    /** How an item lying near a pad can reach the point over it. */
-    private enum Sight { CLEAR, PAD, BLOCKED }
-
-    // The arc passes above the straight line, so a clear line means a clear flight; the low block on the pad that
-    // pull allows doesn't stop it, and past it lies only the target's block. A side of the pad's own blocks means the
-    // item lies at its foot. Their bottom, or anything else, keeps it away.
-    private static Sight sight(Item item, Block top, Location target) {
-        Location start = item.getLocation().add(0, RAY_LIFT, 0);
-        Vector toTarget = target.toVector().subtract(start.toVector());
-        RayTraceResult hit = item.getWorld().rayTraceBlocks(start, toTarget.clone().normalize(), toTarget.length(),
-                FluidCollisionMode.NEVER, true);
-        if (hit == null) {
-            return Sight.CLEAR;
+    // Rays through the points of the flight: they meet a wall in the way, or a roof over its top. They pass under the
+    // curve between those points, so a low overhang there can still catch the item, which then lands elsewhere and is
+    // tried again on the next check.
+    private static void throwOnto(Item item, Block top, Location surface, double grip) {
+        Location from = item.getLocation();
+        Pull.Arc arc = Pull.toPad(surface.getX() - from.getX(), surface.getY() - from.getY(),
+                surface.getZ() - from.getZ(), grip);
+        if (arc == null) {
+            return;
         }
-        Block blocked = hit.getHitBlock();
-        if (blocked == null || hit.getHitBlockFace() == BlockFace.DOWN) {
-            return Sight.BLOCKED;
+        Location previous = from.clone().add(0, RAY_LIFT, 0);
+        List<Pull.Offset> path = arc.path();
+        for (int index = 0; index < path.size(); index++) {
+            Pull.Offset point = path.get(index);
+            Location next = from.clone().add(point.x(), point.y() + (index == path.size() - 1 ? RAY_LIFT : 0),
+                    point.z());
+            if (blocked(previous, next)) {
+                return;
+            }
+            previous = next;
         }
-        if (blocked.equals(top) || blocked.equals(top.getRelative(BlockFace.DOWN))) {
-            return canHop(item, start, target) ? Sight.PAD : Sight.BLOCKED;
+        if (new PadPullEvent(item, top).callEvent()) {
+            item.setVelocity(vector(arc.velocity()));
         }
-        return blocked.equals(top.getRelative(BlockFace.UP)) ? Sight.CLEAR : Sight.BLOCKED;
     }
 
-    // Only right at the foot, so the stop doesn't carry it far sideways, and with nothing over it up to the height it
-    // rises to.
-    private static boolean canHop(Item item, Location start, Location target) {
-        double dx = target.getX() - start.getX();
-        double dz = target.getZ() - start.getZ();
-        return dx * dx + dz * dz <= HOP_REACH * HOP_REACH && item.getWorld().rayTraceBlocks(start, new Vector(0, 1, 0),
-                target.getY() - start.getY(), FluidCollisionMode.NEVER, true) == null;
+    private void hop(Item item, Block top, Location surface, double grip) {
+        Location from = item.getLocation();
+        Pull.Hop hop = Pull.hop(surface.getX() - from.getX(), surface.getY() - from.getY(),
+                surface.getZ() - from.getZ());
+        // The drift down onto the pad runs above the line from the top of the hop to where it lands; the ray to the
+        // centre, a little past that, only adds the air over the pad, which the checks above already keep free.
+        Location peak = from.clone().add(0, hop.height(), 0);
+        if (blocked(from.clone().add(0, RAY_LIFT, 0), peak) || blocked(peak, surface.clone().add(0, RAY_LIFT, 0))
+                || !new PadPullEvent(item, top).callEvent()) {
+            return;
+        }
+        item.setVelocity(vector(hop.velocity()));
+        // Worked out when it runs, from where the item is then, so a tick before or after its highest point makes no
+        // difference. Harmless if FrameSort is gone by then, so the task isn't kept.
+        item.getScheduler().runDelayed(plugin, task -> {
+            Location at = item.getLocation();
+            // Water, a piston or another plugin may have moved it since.
+            Pull.Velocity drift = item.isOnGround() ? null : Pull.drift(surface.getX() - at.getX(),
+                    surface.getY() - at.getY(), surface.getZ() - at.getZ(), item.getVelocity().getY(), grip);
+            if (drift != null) {
+                item.setVelocity(vector(drift));
+            }
+        }, null, hop.ticks());
+    }
+
+    private static boolean blocked(Location from, Location to) {
+        Vector line = to.toVector().subtract(from.toVector());
+        // The corner where a throw comes over the pad's edge repeats the point before it on a tick that neither rises
+        // nor falls, and a ray needs a direction.
+        if (line.lengthSquared() == 0) {
+            return false;
+        }
+        return from.getWorld().rayTraceBlocks(from, line.clone().normalize(), line.length(), FluidCollisionMode.NEVER,
+                true) != null;
+    }
+
+    private static Vector vector(Pull.Velocity velocity) {
+        return new Vector(velocity.x(), velocity.y(), velocity.z());
     }
 
     private static boolean matches(PadBlock top, PadBlock base, PadType type) {
