@@ -13,8 +13,16 @@ import org.bukkit.event.entity.EntityEvent;
  * <p>It only fires for a frame the source may send to by owner: with ownership on, a frame of the source's owner or
  * of a player that owner trusts.</p>
  *
- * <p>Results are cached, so the event fires again only after targets near the source change, or after a change of
- * trust.</p>
+ * <p>It fires for each frame in the source's range that could take items from it:</p>
+ * <ul>
+ *     <li>when a delivery finds no cached result for that source, its owner and that item. The cache is emptied when
+ *     targets near the source change, when trust changes, on {@code /framesort reload}, and when it reaches 4096
+ *     entries;</li>
+ *     <li>every time a player inspects the source, or turns a page of that inspection;</li>
+ *     <li>when a player inspects a frame: once for each source in range of it.</li>
+ * </ul>
+ *
+ * <p>So it can fire many times a second on a busy server: keep a listener cheap.</p>
  */
 public final class TargetBindEvent extends EntityEvent implements Cancellable {
 
