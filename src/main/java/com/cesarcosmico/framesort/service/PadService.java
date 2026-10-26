@@ -260,16 +260,21 @@ public final class PadService {
 
     public void tick() {
         tick++;
-        if (tick % settings.get().sweepInterval() != 0) {
-            return;
-        }
-        for (Map<BlockKey, PadEntry> inChunk : List.copyOf(pads.values())) {
-            for (Map.Entry<BlockKey, PadEntry> pad : Map.copyOf(inChunk).entrySet()) {
-                BlockKey key = pad.getKey();
-                World world = plugin.getServer().getWorld(key.world());
-                if (world != null) {
-                    sweep(world.getBlockAt(key.x(), key.y(), key.z()), pad.getValue());
+        int interval = settings.get().sweepInterval();
+        int phase = (int) (tick % interval);
+        List<Map.Entry<BlockKey, PadEntry>> due = new ArrayList<>();
+        for (Map<BlockKey, PadEntry> inChunk : pads.values()) {
+            for (Map.Entry<BlockKey, PadEntry> pad : inChunk.entrySet()) {
+                if (Math.floorMod(pad.getKey().hashCode(), interval) == phase) {
+                    due.add(Map.entry(pad.getKey(), pad.getValue()));
                 }
+            }
+        }
+        for (Map.Entry<BlockKey, PadEntry> pad : due) {
+            BlockKey key = pad.getKey();
+            World world = plugin.getServer().getWorld(key.world());
+            if (world != null) {
+                sweep(world.getBlockAt(key.x(), key.y(), key.z()), pad.getValue());
             }
         }
     }
