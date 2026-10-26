@@ -110,7 +110,7 @@ public final class DeliveryService {
         if (block.getType() == Material.COMPOSTER) {
             notAccepted = compost(block, stack, amount);
         } else {
-            Inventory inventory = FrameGeometry.storage(block);
+            Inventory inventory = TargetBlocks.storage(block);
             if (inventory != null) {
                 Map<Integer, ItemStack> left = inventory.addItem(stack.asQuantity(amount));
                 notAccepted = left.values().stream().mapToInt(ItemStack::getAmount).sum();

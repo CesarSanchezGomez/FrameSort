@@ -44,7 +44,7 @@ public final class AutomarkService {
      * composter is automarked, so a decorative one never becomes a drop spot or a trash can.
      */
     public void itemPlaced(Player player, ItemFrame frame, ItemStack item) {
-        index.itemPlaced(frame);
+        index.unmarkForNewItem(frame);
         if (!shouldAutomark(player, frame, item)) {
             return;
         }
@@ -57,7 +57,7 @@ public final class AutomarkService {
     private boolean shouldAutomark(Player player, ItemFrame frame, ItemStack item) {
         return !item.isEmpty() && PlayerCodec.automark(player) && player.hasPermission(TargetIndex.MARK_PERMISSION)
                 && maySwitchOff.test(player) && index.markable(frame)
-                && FrameGeometry.isContainer(FrameGeometry.attachedBlock(frame), customItems)
+                && TargetBlocks.isContainer(FrameGeometry.attachedBlock(frame), customItems)
                 && !sorters.makesSorter(frame, item);
     }
 }

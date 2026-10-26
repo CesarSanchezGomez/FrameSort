@@ -200,7 +200,7 @@ public final class PadService {
      * {@code block} broke: drops the special item built for it, if its drops are still off ({@code dropsRemoved}), and
      * forgets its pad. Returns whether it was one.
      */
-    public boolean broken(Block block, boolean dropsRemoved) {
+    public boolean removeBrokenPad(Block block, boolean dropsRemoved) {
         ItemStack item = handBack.remove(FrameGeometry.key(block));
         // A break cancelled and let through again by other plugins never passed breaking(): an old item isn't its own.
         if (item != null && dropsRemoved) {

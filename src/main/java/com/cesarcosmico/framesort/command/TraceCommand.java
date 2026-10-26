@@ -40,8 +40,8 @@ public final class TraceCommand implements CommandFeature {
     }
 
     private int start(CommandContext<CommandSourceStack> context, int seconds, String path) {
-        if (!(context.getSource().getSender() instanceof Player player)) {
-            context.getSource().getSender().sendMessage(messages.get().get("command.players-only"));
+        Player player = Senders.player(context, messages.get());
+        if (player == null) {
             return Command.SINGLE_SUCCESS;
         }
         int granted = trace.start(player, seconds);
@@ -53,8 +53,8 @@ public final class TraceCommand implements CommandFeature {
     }
 
     private int stop(CommandContext<CommandSourceStack> context) {
-        if (!(context.getSource().getSender() instanceof Player player)) {
-            context.getSource().getSender().sendMessage(messages.get().get("command.players-only"));
+        Player player = Senders.player(context, messages.get());
+        if (player == null) {
             return Command.SINGLE_SUCCESS;
         }
         player.sendMessage(messages.get().get(trace.stop(player) ? "trace.stopped" : "trace.not-running"));

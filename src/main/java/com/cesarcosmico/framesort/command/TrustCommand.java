@@ -40,8 +40,8 @@ public final class TrustCommand implements CommandFeature {
     }
 
     private int trust(CommandContext<CommandSourceStack> context) {
-        if (!(context.getSource().getSender() instanceof Player player)) {
-            context.getSource().getSender().sendMessage(messages.get().get("command.players-only"));
+        Player player = Senders.player(context, messages.get());
+        if (player == null) {
             return Command.SINGLE_SUCCESS;
         }
         trust.trust(player, StringArgumentType.getString(context, "player"), (result, name) -> {

@@ -19,6 +19,7 @@ import net.kyori.adventure.text.Component;
 import org.bukkit.Color;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
+import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.ItemFrame;
@@ -111,8 +112,7 @@ public final class TargetResolver {
         boolean stale = false;
         for (Match match : matches(source, owner, range, item)) {
             ItemFrame frame = match.frame();
-            if (!frame.isValid() || !FrameGeometry.attachedLoaded(frame)
-                    || !frame.getItem().equals(match.frameItem())) {
+            if (isStale(match)) {
                 stale = true;
                 continue;
             }
@@ -141,6 +141,12 @@ public final class TargetResolver {
         return new Plan(levels, stale);
     }
 
+    // Gone, unloaded, or holding another item than when it was cached.
+    private static boolean isStale(Match match) {
+        ItemFrame frame = match.frame();
+        return !frame.isValid() || !FrameGeometry.attachedLoaded(frame) || !frame.getItem().equals(match.frameItem());
+    }
+
     public Destination destination(ItemFrame frame) {
         return destination(settings.get(), frame);
     }
@@ -153,11 +159,11 @@ public final class TargetResolver {
     }
 
     private Destination destination(FrameSortSettings current, ItemFrame frame) {
-        if (FrameGeometry.isLava(frame)) {
+        if (TargetBlocks.isLava(frame)) {
             return Destination.DESTROYED;
         }
         return current.delivery().insertIntoContainers()
-                && FrameGeometry.isContainer(FrameGeometry.attachedBlock(frame), customItems)
+                && TargetBlocks.isContainer(FrameGeometry.attachedBlock(frame), customItems)
                 ? Destination.CONTAINER : Destination.DROPPED;
     }
 
@@ -189,6 +195,12 @@ public final class TargetResolver {
 
     public void clear() {
         cache.clear();
+    }
+
+    /** Drops the matches of sources in {@code world}, which hold its frames, when it unloads. */
+    public void forget(World world) {
+        UUID id = world.getUID();
+        cache.keySet().removeIf(key -> key.source().world().equals(id));
     }
 
     private int priority(ItemStack frameItem, ItemStack item, @Nullable String itemId) {

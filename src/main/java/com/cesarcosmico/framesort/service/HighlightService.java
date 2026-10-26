@@ -24,6 +24,12 @@ public final class HighlightService {
 
     // Enough for any inspection a player can read; bounds the entities one click can spawn.
     private static final int MAX_SHOWN = 64;
+    // Where Minecraft's item frame renderer draws the item, so the copy lies exactly over it.
+    private static final float FACE_OFFSET = 0.46875f;
+    private static final float DEPTH_IN_VISIBLE_FRAME = 0.4375f;
+    private static final float DEPTH_IN_INVISIBLE_FRAME = 0.5f;
+    private static final float DEGREES_PER_ROTATION = 45f;
+    private static final float ITEM_SCALE = 0.5f;
 
     private final Plugin plugin;
     private final Map<UUID, List<ItemDisplay>> shown = new HashMap<>();
@@ -95,14 +101,14 @@ public final class HighlightService {
         boolean horizontal = facing.getModY() == 0;
         float xRot = horizontal ? 0 : -90f * facing.getModY();
         float yRot = horizontal ? 180f - yRot(facing) : 180f;
-        float offset = 0.46875f;
         return new Matrix4f()
-                .translate(facing.getModX() * offset, facing.getModY() * offset, facing.getModZ() * offset)
+                .translate(facing.getModX() * FACE_OFFSET, facing.getModY() * FACE_OFFSET,
+                        facing.getModZ() * FACE_OFFSET)
                 .rotateX((float) Math.toRadians(xRot))
                 .rotateY((float) Math.toRadians(yRot))
-                .translate(0, 0, visibleFrame ? 0.4375f : 0.5f)
-                .rotateZ((float) Math.toRadians(rotation * 45f))
-                .scale(0.5f)
+                .translate(0, 0, visibleFrame ? DEPTH_IN_VISIBLE_FRAME : DEPTH_IN_INVISIBLE_FRAME)
+                .rotateZ((float) Math.toRadians(rotation * DEGREES_PER_ROTATION))
+                .scale(ITEM_SCALE)
                 .rotateY((float) -Math.PI);
     }
 

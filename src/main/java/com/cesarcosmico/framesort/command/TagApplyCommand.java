@@ -57,8 +57,8 @@ public final class TagApplyCommand implements CommandFeature {
 
     // Tells the sender why when there is none.
     static @Nullable Player playerHoldingItem(CommandContext<CommandSourceStack> context, Messages messages) {
-        if (!(context.getSource().getSender() instanceof Player player)) {
-            context.getSource().getSender().sendMessage(messages.get("command.players-only"));
+        Player player = Senders.player(context, messages);
+        if (player == null) {
             return null;
         }
         if (player.getInventory().getItemInMainHand().isEmpty()) {

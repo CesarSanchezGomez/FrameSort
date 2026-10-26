@@ -143,8 +143,8 @@ public final class SorterService {
         sorters.values().removeIf(sorter -> sorter.frame.equals(frame));
     }
 
-    /** @return whether the frame made a sorter */
-    public boolean broken(ItemFrame frame) {
+    /** Removes the sorter {@code frame} makes and shows the frame again; whether it made one. */
+    public boolean removeSorterOf(ItemFrame frame) {
         Sorter sorter = sorterOf(frame);
         if (sorter == null) {
             return false;
@@ -237,7 +237,6 @@ public final class SorterService {
     private void dispense(Sorter sorter) {
         UUID owner = FrameCodec.owner(sorter.frame);
         int sent = 0;
-        // What found nowhere to go this turn is not tried again.
         List<ItemStack> missed = new ArrayList<>();
         for (int tries = 0; tries < PER_TURN && sent < PER_TURN; tries++) {
             // Other plugins' handlers run during a delivery and may break the dispenser.
@@ -282,7 +281,7 @@ public final class SorterService {
         List<ItemStack> contents = Arrays.stream(inventory.getContents())
                 .map(item -> item == null ? ItemStack.empty() : item).toList();
         for (int index : shuffledFilled(contents)) {
-            Slot found = pick(new Slot.InventorySlot(inventory, index), contents.get(index), missed, 0);
+            Slot found = innermostToSend(new Slot.InventorySlot(inventory, index), contents.get(index), missed, 0);
             if (found != null) {
                 return found;
             }
@@ -290,9 +289,7 @@ public final class SorterService {
         return null;
     }
 
-    // A stack inside the slot first, else the slot itself, skipping what missed this turn. The item is what the slot
-    // holds, read once.
-    private static @Nullable Slot pick(Slot slot, ItemStack item, List<ItemStack> missed, int depth) {
+    private static @Nullable Slot innermostToSend(Slot slot, ItemStack item, List<ItemStack> missed, int depth) {
         if (missed.stream().anyMatch(item::isSimilar)) {
             return null;
         }
@@ -303,7 +300,7 @@ public final class SorterService {
                     : bundle != null ? bundle.contents() : List.of();
             for (int index : shuffledFilled(inside)) {
                 Slot child = container != null ? new Slot.ContainerSlot(slot, index) : new Slot.BundleSlot(slot, index);
-                Slot found = pick(child, inside.get(index), missed, depth + 1);
+                Slot found = innermostToSend(child, inside.get(index), missed, depth + 1);
                 if (found != null) {
                     return found;
                 }

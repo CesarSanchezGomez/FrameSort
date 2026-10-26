@@ -31,8 +31,8 @@ public final class AutomarkCommand implements CommandFeature {
     }
 
     private int toggle(CommandContext<CommandSourceStack> context) {
-        if (!(context.getSource().getSender() instanceof Player player)) {
-            context.getSource().getSender().sendMessage(messages.get().get("command.players-only"));
+        Player player = Senders.player(context, messages.get());
+        if (player == null) {
             return Command.SINGLE_SUCCESS;
         }
         String key = switch (automark.toggle(player)) {

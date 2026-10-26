@@ -75,7 +75,7 @@ public final class TargetIndex {
         reindex(frame);
     }
 
-    public void itemPlaced(ItemFrame frame) {
+    public void unmarkForNewItem(ItemFrame frame) {
         if (isMarked(frame)) {
             unmark(frame);
         }

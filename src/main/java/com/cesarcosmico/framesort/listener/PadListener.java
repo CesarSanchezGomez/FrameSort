@@ -92,7 +92,7 @@ public final class PadListener implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onBroken(BlockBreakEvent event) {
-        if (pads.broken(event.getBlock(), !event.isDropItems())) {
+        if (pads.removeBrokenPad(event.getBlock(), !event.isDropItems())) {
             event.getPlayer().sendMessage(messages.get().get("pad.removed"));
         }
     }

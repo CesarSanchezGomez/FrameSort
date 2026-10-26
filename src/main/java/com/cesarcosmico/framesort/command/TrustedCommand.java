@@ -52,8 +52,8 @@ public final class TrustedCommand implements CommandFeature {
     }
 
     private int send(CommandContext<CommandSourceStack> context, String path, int page) {
-        if (!(context.getSource().getSender() instanceof Player player)) {
-            context.getSource().getSender().sendMessage(messages.get().get("command.players-only"));
+        Player player = Senders.player(context, messages.get());
+        if (player == null) {
             return Command.SINGLE_SUCCESS;
         }
         Messages text = messages.get();

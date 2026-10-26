@@ -41,8 +41,8 @@ public final class UntrustCommand implements CommandFeature {
     }
 
     private int untrust(CommandContext<CommandSourceStack> context) {
-        if (!(context.getSource().getSender() instanceof Player player)) {
-            context.getSource().getSender().sendMessage(messages.get().get("command.players-only"));
+        Player player = Senders.player(context, messages.get());
+        if (player == null) {
             return Command.SINGLE_SUCCESS;
         }
         trust.untrust(player, StringArgumentType.getString(context, "player"), (result, name) -> {

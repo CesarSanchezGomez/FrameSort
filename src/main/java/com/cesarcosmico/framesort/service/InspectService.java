@@ -232,7 +232,6 @@ public final class InspectService {
             TagCatalog.TagView view = resolver.tag(shown);
             if (view != null) {
                 String tagCommand = commands.usageFor("tag-show", player::hasPermission);
-                // Only a line that has the click says to click it.
                 Component accepts = text.get(tagCommand == null ? "frame.accepts.tag" : "frame.accepts.tag-link",
                         Placeholder.unparsed("tag", view.key().asString()),
                         Placeholder.unparsed("count",
@@ -280,7 +279,8 @@ public final class InspectService {
         }
         boolean mark = !index.isMarked(frame);
         UUID owner = FrameCodec.owner(frame);
-        if (!mark && settings.get().ownership() && owner != null && !owner.equals(player.getUniqueId())) {
+        boolean someoneElses = settings.get().ownership() && owner != null && !owner.equals(player.getUniqueId());
+        if (!mark && someoneElses) {
             player.sendActionBar(text.get("mark.not-yours", Placeholder.unparsed("player", trust.name(owner))));
             return;
         }

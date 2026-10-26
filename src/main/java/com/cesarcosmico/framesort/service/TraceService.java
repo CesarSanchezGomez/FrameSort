@@ -10,6 +10,7 @@ import org.bukkit.Server;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.util.Vector;
+import org.jspecify.annotations.Nullable;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -37,6 +38,12 @@ public final class TraceService {
     }
 
     private static final long MIN_INTERVAL_MILLIS = 150;
+    // Shorter than this, a trail has no direction to draw.
+    private static final double MIN_TRAIL_LENGTH = 1e-3;
+    // A path closer to vertical than this takes its ring's plane from the x axis instead of the y axis.
+    private static final double NEARLY_VERTICAL = 0.9;
+    // From the source's face: inside the block nobody would see the start.
+    private static final double START_BEYOND_CENTRE = 0.55;
     private static final int RING_TRAILS = 6;
     private static final double RING_RADIUS = 0.2;
     private static final double BLOCKS_PER_TICK = 1.0;
@@ -72,8 +79,7 @@ public final class TraceService {
         // A restart or stop changes the deadline, so a stale run does nothing.
         player.getScheduler().runDelayed(plugin, task -> {
             if (until.remove(player, deadline)) {
-                lastShown.remove(player);
-                player.sendMessage(messages.get().get("trace.ended"));
+                ended(player);
             }
         }, () -> stop(player), granted * 20L);
         return granted;
@@ -95,19 +101,16 @@ public final class TraceService {
             Player player = entry.getKey();
             if (entry.getValue() < now) {
                 it.remove();
-                lastShown.remove(player);
-                player.sendMessage(messages.get().get("trace.ended"));
+                ended(player);
                 continue;
             }
             Location from = delivered.from();
-            if (!player.getWorld().equals(from.getWorld())
-                    || player.getLocation().distanceSquared(from) > (double) radius * radius
-                    || !trust.canView(player, delivered.owner())) {
+            if (!sees(player, delivered, radius)) {
                 continue;
             }
             Turn last = lastShown.get(player);
             int tick = server.getCurrentTick();
-            if (last == null || last.tick != tick || !last.from.equals(from)) {
+            if (startsNewTurn(last, tick, from)) {
                 if (last != null && now - last.millis < MIN_INTERVAL_MILLIS) {
                     continue;
                 }
@@ -118,6 +121,23 @@ public final class TraceService {
                 show(player, delivered);
             }
         }
+    }
+
+    private void ended(Player player) {
+        lastShown.remove(player);
+        player.sendMessage(messages.get().get("trace.ended"));
+    }
+
+    private boolean sees(Player player, DeliveryService.Delivered delivered, int radius) {
+        Location from = delivered.from();
+        return player.getWorld().equals(from.getWorld())
+                && player.getLocation().distanceSquared(from) <= (double) radius * radius
+                && trust.canView(player, delivered.owner());
+    }
+
+    // A source's deliveries on one tick are one turn, drawn together.
+    private static boolean startsNewTurn(@Nullable Turn last, int tick, Location from) {
+        return last == null || last.tick != tick || !last.from.equals(from);
     }
 
     private void show(Player player, DeliveryService.Delivered delivered) {
@@ -137,16 +157,15 @@ public final class TraceService {
     private void drawTrail(Player player, Location from, Location to, Color color) {
         Vector path = to.toVector().subtract(from.toVector());
         double length = path.length();
-        if (length < 1e-3) {
+        if (length < MIN_TRAIL_LENGTH) {
             return;
         }
         Vector axis = path.multiply(1 / length);
         // Any vector not parallel to the path gives the plane of the ring.
-        Vector side = Math.abs(axis.getY()) < 0.9 ? new Vector(0, 1, 0) : new Vector(1, 0, 0);
+        Vector side = Math.abs(axis.getY()) < NEARLY_VERTICAL ? new Vector(0, 1, 0) : new Vector(1, 0, 0);
         Vector u = axis.getCrossProduct(side).normalize();
         Vector v = axis.getCrossProduct(u);
-        // From the source's face towards the frame: inside the block nobody would see the start.
-        Location start = from.clone().add(axis.clone().multiply(Math.min(0.55, length / 2)));
+        Location start = from.clone().add(axis.clone().multiply(Math.min(START_BEYOND_CENTRE, length / 2)));
         Color light = lighter(color);
         int ticks = (int) Math.clamp(Math.round(length / BLOCKS_PER_TICK), MIN_TICKS, MAX_TICKS);
         for (int i = 0; i < RING_TRAILS; i++) {

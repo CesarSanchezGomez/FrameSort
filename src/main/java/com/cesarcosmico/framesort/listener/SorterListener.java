@@ -48,8 +48,11 @@ public final class SorterListener implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onBreak(HangingBreakEvent event) {
-        if (event.getEntity() instanceof ItemFrame frame && sorters.broken(frame)
-                && event instanceof HangingBreakByEntityEvent byEntity
+        if (!(event.getEntity() instanceof ItemFrame frame)) {
+            return;
+        }
+        boolean wasSorter = sorters.removeSorterOf(frame);
+        if (wasSorter && event instanceof HangingBreakByEntityEvent byEntity
                 && byEntity.getRemover() instanceof Player player) {
             tell(player, SorterService.Change.REMOVED);
         }
