@@ -87,22 +87,14 @@ public final class PadListener implements Listener {
                 event.setCancelled(true);
                 player.sendMessage(messages.get().get("pad.unavailable"));
             }
-            case PadService.Breaking.NotAPad() -> {
-            }
         }
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onBroken(BlockBreakEvent event) {
-        Block block = event.getBlock();
-        PadService.Removed removed = pads.broken(block);
-        if (removed == null) {
-            return;
+        if (pads.broken(event.getBlock(), !event.isDropItems())) {
+            event.getPlayer().sendMessage(messages.get().get("pad.removed"));
         }
-        if (removed.item() != null) {
-            block.getWorld().dropItemNaturally(block.getLocation().toCenterLocation(), removed.item());
-        }
-        event.getPlayer().sendMessage(messages.get().get("pad.removed"));
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)

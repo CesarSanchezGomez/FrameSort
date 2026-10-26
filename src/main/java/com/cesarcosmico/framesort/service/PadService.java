@@ -81,13 +81,6 @@ public final class PadService {
         /** CraftEngine can't build the special item now, so the pad stays rather than lose it. */
         record Kept() implements Breaking {
         }
-
-        record NotAPad() implements Breaking {
-        }
-    }
-
-    /** A pad that is gone; {@code item} is the special item to drop instead of the block, if any. */
-    public record Removed(@Nullable ItemStack item) {
     }
 
     // A flight's rays start just off the block an item lies on and end just over the surface it lands on, so they don't
@@ -159,23 +152,29 @@ public final class PadService {
     public Placing placing(Block block, ItemStack hand) {
         PadSettings current = settings.get();
         String marker = MarkerCodec.read(hand, Keys.PAD_ITEM);
-        PadType type = marker == null || current.creation() != PadMode.ITEM ? null : current.type(marker);
+        boolean specialBlock = marker != null && current.creation() == PadMode.ITEM;
+        PadType type = specialBlock ? current.type(marker) : null;
         if (type == null) {
             return new Placing.Fine();
         }
         PadBlock top = read(block);
         PadBlock base = read(block.getRelative(BlockFace.DOWN));
-        if (top.unbound() || base.unbound()) {
+        boolean waitsForCraftEngine = top.unbound() && type.top() instanceof ItemReference.Custom
+                || base.unbound() && type.base() instanceof ItemReference.Custom;
+        if (waitsForCraftEngine) {
             return new Placing.NotReady();
         }
-        if (matches(top, base, type)) {
-            return new Placing.Fine();
-        }
-        Component name = customItems.blockName(type.base());
-        return new Placing.NeedsBase(type, name != null ? name : Component.text(switch (type.base()) {
-            case ItemReference.Vanilla vanilla -> vanilla.material().getKey().asString();
-            case ItemReference.Custom custom -> custom.reference();
-        }));
+        return matches(top, base, type) ? new Placing.Fine() : new Placing.NeedsBase(type, name(type.base()));
+    }
+
+    private Component name(ItemReference block) {
+        return switch (block) {
+            case ItemReference.Vanilla vanilla -> Component.translatable(vanilla.material());
+            case ItemReference.Custom custom -> {
+                Component name = customItems.blockName(custom);
+                yield name != null ? name : Component.text(custom.reference());
+            }
+        };
     }
 
     /**
@@ -186,10 +185,8 @@ public final class PadService {
         BlockKey key = FrameGeometry.key(block);
         handBack.remove(key);
         PadType type = registered(block);
-        if (type == null) {
-            return new Breaking.NotAPad();
-        }
-        if (!drops || settings.get().creation() != PadMode.ITEM) {
+        boolean givesItemBack = drops && settings.get().creation() == PadMode.ITEM;
+        if (type == null || !givesItemBack) {
             return new Breaking.Allowed(false);
         }
         ItemStack item = createItem(type, 1);
@@ -200,14 +197,21 @@ public final class PadService {
         return new Breaking.Allowed(true);
     }
 
-    /** {@code block} broke: forgets its pad, or {@code null} when it was none. */
-    public @Nullable Removed broken(Block block) {
+    /**
+     * {@code block} broke: drops the special item built for it, if its drops are still off ({@code dropsRemoved}), and
+     * forgets its pad. Returns whether it was one.
+     */
+    public boolean broken(Block block, boolean dropsRemoved) {
         ItemStack item = handBack.remove(FrameGeometry.key(block));
+        // A break cancelled and let through again by other plugins never passed breaking(): an old item isn't its own.
+        if (item != null && dropsRemoved) {
+            block.getWorld().dropItemNaturally(block.getLocation().toCenterLocation(), item);
+        }
         if (registered(block) == null) {
-            return null;
+            return false;
         }
         unregister(block);
-        return new Removed(item);
+        return true;
     }
 
     public boolean isPadTop(Block block) {

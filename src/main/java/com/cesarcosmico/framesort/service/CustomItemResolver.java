@@ -46,18 +46,10 @@ public interface CustomItemResolver {
         return null;
     }
 
-    /**
-     * The block's name as players see it: a vanilla block's translation, or the name of the item that places the
-     * plugin's block, {@code null} when {@link #blockItem} can't build it.
-     */
-    default @Nullable Component blockName(ItemReference block) {
-        return switch (block) {
-            case ItemReference.Vanilla vanilla -> Component.translatable(vanilla.material());
-            case ItemReference.Custom custom -> {
-                ItemStack item = blockItem(custom, 1);
-                yield item == null ? null : item.effectiveName();
-            }
-        };
+    /** The name of the item that places the plugin's {@code block}, or {@code null} when {@link #blockItem} can't. */
+    default @Nullable Component blockName(ItemReference.Custom block) {
+        ItemStack item = blockItem(block, 1);
+        return item == null ? null : item.effectiveName();
     }
 
     /** Whether the plugin's block at {@code block} stores items that a hopper may put in. */
