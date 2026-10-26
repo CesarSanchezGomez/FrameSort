@@ -37,8 +37,8 @@ public final class Pull {
 
     static final double GRAVITY = 0.04;
     static final double DRAG = 0.98;
-    // Over the pad's surface and over where the item lay, so the arc shows.
-    static final double LIFT = 1;
+    // So the arc shows.
+    static final double MIN_RISE = 1;
     // Half a pad plus half an item: further from the pad's centre along both axes, an item can't touch it.
     static final double EDGE = 0.625;
     // So an arc never clips the pad's corner.
@@ -70,9 +70,10 @@ public final class Pull {
 
     /**
      * The throw from beside the pad that lands short of its centre by as much as the item then slides, so it stops
-     * there. It rises {@link #LIFT} over the pad and over the item, comes over the pad's edge {@link #EDGE_CLEARANCE}
-     * over its surface and lands on the pad; the further the item, the longer it flies. The item lies at least a block
-     * from the centre along one axis. {@code null} when no throw up to {@link #MAX_TICKS} does all that.
+     * there. It rises {@link #MIN_RISE} over the pad and over the item, comes over the pad's edge
+     * {@link #EDGE_CLEARANCE} over its surface and lands on the pad; the further the item, the longer it flies. The
+     * item lies at least a block from the centre along one axis. {@code null} when no throw up to {@link #MAX_TICKS}
+     * does all that.
      */
     public static @Nullable Arc toPad(double dx, double dy, double dz, double grip) {
         double distance = Math.hypot(dx, dz);
@@ -92,9 +93,9 @@ public final class Pull {
         return null;
     }
 
-    /** The hop of an item beside the pad, straight up to {@link #LIFT} over the pad and over the item. */
+    /** The hop of an item beside the pad, straight up to {@link #MIN_RISE} over the pad and over the item. */
     public static Hop hop(double dx, double dy, double dz) {
-        double rise = Math.max(dy, 0) + LIFT;
+        double rise = Math.max(dy, 0) + MIN_RISE;
         double low = 0;
         double high = MAX_UP;
         for (int step = 0; step < SEARCH_STEPS; step++) {
@@ -154,7 +155,7 @@ public final class Pull {
             speed *= DRAG;
             vy *= DRAG;
         }
-        if (edgeTick == ticks || heights[apexTick] < Math.max(dy, 0) + LIFT
+        if (edgeTick == ticks || heights[apexTick] < Math.max(dy, 0) + MIN_RISE
                 || heights[edgeTick] < dy + EDGE_CLEARANCE) {
             return null;
         }

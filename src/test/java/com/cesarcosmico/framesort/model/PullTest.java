@@ -127,7 +127,8 @@ class PullTest {
                     String from = "from " + distance + " at height " + height;
                     Flight flight = throwFrom(distance, height, direction);
                     flight.assertOnCentre(from);
-                    assertTrue(flight.apex >= Math.max(-height, 0) + Pull.LIFT - 1e-9, from + ", rises " + flight.apex);
+                    assertTrue(flight.apex >= Math.max(-height, 0) + Pull.MIN_RISE - 1e-9,
+                            from + ", rises " + flight.apex);
                 }
             }
         }
@@ -165,7 +166,7 @@ class PullTest {
                     flight.strict = true;
                     String what = "beside at " + at[0] + ", " + at[1] + ", height " + height + ", " + late + " late";
                     if (late == 0) {
-                        assertEquals(Math.max(-height, 0) + Pull.LIFT, flight.y, 0.05, what);
+                        assertEquals(Math.max(-height, 0) + Pull.MIN_RISE, flight.y, 0.05, what);
                         assertEquals(hop.height(), flight.y, 1e-9, what);
                     }
                     Pull.Velocity drift = Pull.drift(pad.x() - flight.x, pad.surface() - flight.y,

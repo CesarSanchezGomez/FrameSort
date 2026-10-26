@@ -276,12 +276,15 @@ public final class TargetResolver {
             return false;
         }
         Block attached = FrameGeometry.attachedBlock(frame);
-        // Never send a source's items back into itself, and never treat a sorter's own frame as a target.
-        if (attached.equals(source) || attached.getType() == Material.DISPENSER
-                && current.sorter().isActivatorFrame(frame, shown, customItems::id)) {
+        if (attached.equals(source) || holdsActivator(current, attached, frame, shown)) {
             return false;
         }
         return !current.ownership() || trust.get().allows(owner, FrameCodec.owner(frame));
+    }
+
+    private boolean holdsActivator(FrameSortSettings current, Block attached, ItemFrame frame, ItemStack shown) {
+        return attached.getType() == Material.DISPENSER
+                && current.sorter().isActivatorFrame(frame, shown, customItems::id);
     }
 
     private boolean wouldLoop(FrameSortSettings current, Block source, ItemFrame frame) {

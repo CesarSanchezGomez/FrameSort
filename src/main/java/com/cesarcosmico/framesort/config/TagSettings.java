@@ -16,11 +16,10 @@ import java.util.function.Predicate;
 
 public record TagSettings(Map<NamespacedKey, CustomTag> tags) {
 
-    /** A tag's vanilla items, the game tags whose items it takes, and its custom item references. */
-    public record CustomTag(List<Material> items, List<NamespacedKey> includes, List<String> customItems) {
+    public record CustomTag(List<Material> items, List<NamespacedKey> gameTags, List<String> customItems) {
         public CustomTag {
             items = List.copyOf(items);
-            includes = List.copyOf(includes);
+            gameTags = List.copyOf(gameTags);
             customItems = List.copyOf(customItems);
         }
     }
@@ -57,7 +56,7 @@ public record TagSettings(Map<NamespacedKey, CustomTag> tags) {
     private static @Nullable CustomTag parseTag(ConfigReader tags, String name, Predicate<Material> isItem,
                                                 Predicate<NamespacedKey> isGameTag, boolean craftEngine) {
         List<Material> items = new ArrayList<>();
-        List<NamespacedKey> includes = new ArrayList<>();
+        List<NamespacedKey> gameTags = new ArrayList<>();
         List<String> customItems = new ArrayList<>();
         for (String entry : tags.strings(name)) {
             String member = entry.trim();
@@ -68,7 +67,7 @@ public record TagSettings(Map<NamespacedKey, CustomTag> tags) {
                 } else if (!isGameTag.test(include)) {
                     tags.warn(name, "the game has no tag called '" + member + "'; ignored");
                 } else {
-                    includes.add(include);
+                    gameTags.add(include);
                 }
                 continue;
             }
@@ -84,10 +83,10 @@ public record TagSettings(Map<NamespacedKey, CustomTag> tags) {
                 }
             }
         }
-        if (items.isEmpty() && includes.isEmpty() && customItems.isEmpty()) {
+        if (items.isEmpty() && gameTags.isEmpty() && customItems.isEmpty()) {
             tags.warn(name, "no valid members (items, '#tags' or 'craftengine:<namespace>:<id>'); tag ignored");
             return null;
         }
-        return new CustomTag(items, includes, customItems);
+        return new CustomTag(items, gameTags, customItems);
     }
 }

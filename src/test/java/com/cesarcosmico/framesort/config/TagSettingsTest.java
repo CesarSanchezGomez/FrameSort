@@ -55,7 +55,7 @@ class TagSettingsTest {
         TagSettings.CustomTag axes = settings.tags().get(NamespacedKey.minecraft("axes"));
         assertNotNull(axes);
         assertEquals(List.of(Material.DIAMOND_AXE, Material.GOLDEN_AXE), axes.items());
-        assertEquals(List.of(NamespacedKey.minecraft("axes")), axes.includes());
+        assertEquals(List.of(NamespacedKey.minecraft("axes")), axes.gameTags());
         assertEquals(List.of("craftengine:default:Topaz_Axe"), axes.customItems());
         TagSettings.CustomTag gems = settings.tags().get(NamespacedKey.fromString("server:gems"));
         assertNotNull(gems);
@@ -110,7 +110,7 @@ class TagSettingsTest {
                 settings.tags().keySet());
         // The first of two names for one tag counts.
         assertEquals(List.of(NamespacedKey.minecraft("logs")),
-                settings.tags().get(NamespacedKey.minecraft("logs")).includes());
+                settings.tags().get(NamespacedKey.minecraft("logs")).gameTags());
         assertEquals(List.of(Material.STONE), settings.tags().get(NamespacedKey.minecraft("mixed")).items());
         // The bad name, the repeated name, eight bad members and the tag left empty.
         assertEquals(11, warnings.size(), warnings::toString);

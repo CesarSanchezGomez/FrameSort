@@ -18,12 +18,10 @@ public final class ItemOverlay {
     private ItemOverlay() {
     }
 
-    /** On an item FrameSort hands out: its lore, if it has one, stands in for the item's own. */
-    public static ItemStack apply(ItemStack item, ItemLook look, TagResolver... resolvers) {
+    public static ItemStack applyReplacingLore(ItemStack item, ItemLook look, TagResolver... resolvers) {
         return apply(item, look, List.of(), resolvers);
     }
 
-    /** On a player's item: its lore goes below the item's own lines, which still say something about it. */
     public static ItemStack applyBelowOwnLore(ItemStack item, ItemLook look, TagResolver... resolvers) {
         ItemLore own = item.getData(DataComponentTypes.LORE);
         return apply(item, look, own == null ? List.of() : own.lines(), resolvers);

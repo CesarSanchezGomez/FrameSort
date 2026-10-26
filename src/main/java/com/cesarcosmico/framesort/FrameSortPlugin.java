@@ -196,7 +196,7 @@ public final class FrameSortPlugin extends JavaPlugin {
         }
         if (ticker != null) {
             ticker.cancel();
-            sorters.stopAll();
+            sorters.showAllFrames();
             highlights.clearAll();
         }
         // Also when the start failed after opening it.

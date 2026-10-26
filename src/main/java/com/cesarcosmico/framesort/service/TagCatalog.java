@@ -88,7 +88,7 @@ public final class TagCatalog {
     private static TagView fromFile(NamespacedKey key, TagSettings.CustomTag tag) {
         Set<Material> materials = new TreeSet<>(BY_KEY);
         materials.addAll(tag.items());
-        for (NamespacedKey include : tag.includes()) {
+        for (NamespacedKey include : tag.gameTags()) {
             // tags.yml checked it on load, but a datapack reload can drop a game tag after that.
             TagView game = gameTag(include);
             if (game != null) {

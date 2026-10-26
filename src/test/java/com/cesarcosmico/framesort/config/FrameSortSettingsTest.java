@@ -59,8 +59,8 @@ class FrameSortSettingsTest {
         assertTrue(settings.delivery().insertIntoContainers());
         assertEquals(COMPASS, settings.delivery().defaultTargetItem());
         assertEquals(Map.of(), settings.sorter().activatorComponents());
-        assertEquals("<gradient:#F7B733:#FC4A1A>#<tag></gradient>", settings.targets().taggedItem().name());
-        assertTrue(settings.targets().taggedItem().glint());
+        assertEquals("<gradient:#F7B733:#FC4A1A>#<tag></gradient>", settings.targets().taggedItemLook().name());
+        assertTrue(settings.targets().taggedItemLook().glint());
         assertEquals(5, settings.inspect().highlightSeconds());
         assertEquals(Color.fromRGB(0x55FF55), settings.inspect().colors().container());
         assertEquals(Color.fromRGB(0xFF5555), settings.inspect().colors().lava());
@@ -76,7 +76,7 @@ class FrameSortSettingsTest {
         assertEquals(Set.of(EntityType.ITEM_FRAME, EntityType.GLOW_ITEM_FRAME), settings.sorter().frameTypes());
         assertEquals(8, settings.inspect().pageSize());
         // Without the section a tag changes nothing in the item's look.
-        assertEquals(new ItemLook(null, List.of(), false), settings.targets().taggedItem());
+        assertEquals(new ItemLook(null, List.of(), false), settings.targets().taggedItemLook());
     }
 
     @Test
@@ -139,7 +139,7 @@ class FrameSortSettingsTest {
         SorterSettings sorter = parse(live, warnings).sorter();
 
         assertEquals(List.of(), warnings);
-        assertEquals(new ItemLook(null, List.of(), false), parse(live, warnings).targets().taggedItem());
+        assertEquals(new ItemLook(null, List.of(), false), parse(live, warnings).targets().taggedItemLook());
         assertNull(sorter.activatorLook().name());
         assertEquals(List.of(), sorter.activatorLook().lore());
         assertFalse(sorter.activatorLook().glint());
@@ -171,7 +171,7 @@ class FrameSortSettingsTest {
         ConfigValidator.compare(live, bundled, "config.yml", FrameSortSettings.OPEN_KEYS,
                 FrameSortSettings.OPTIONAL_KEYS, warnings::add);
         assertEquals(List.of(), warnings);
-        assertEquals(List.of("<gray>Sorted by tag</gray>"), parse(live, warnings).targets().taggedItem().lore());
+        assertEquals(List.of("<gray>Sorted by tag</gray>"), parse(live, warnings).targets().taggedItemLook().lore());
 
         live.set("targets.tagged-item.components.item_model", "mypack:tag");
         ConfigValidator.compare(live, bundled, "config.yml", FrameSortSettings.OPEN_KEYS,

@@ -187,7 +187,7 @@ public final class PadService {
                     new ItemTemplate(material, Map.of(), type.look()).create(amount);
             case ItemReference.Custom custom -> {
                 ItemStack built = customItems.blockItem(custom, amount);
-                yield built == null ? null : ItemOverlay.apply(built, type.look());
+                yield built == null ? null : ItemOverlay.applyReplacingLore(built, type.look());
             }
         };
         return item == null ? null : MarkerCodec.mark(item, Keys.PAD_ITEM, type.id());
@@ -239,10 +239,7 @@ public final class PadService {
 
     private void takeInventories(Block top, PadEntry pad, PadType type, Location above) {
         for (Player player : top.getWorld().getNearbyEntitiesByType(Player.class, above, 0.5, 0.5, 0.5)) {
-            // The search also finds whoever brushes the space over the pad from beside it, and spectators, who crouch
-            // to fly down.
-            if (!player.isSneaking() || player.getGameMode() == GameMode.SPECTATOR
-                    || !player.getLocation().getBlock().equals(top.getRelative(BlockFace.UP))) {
+            if (!isCrouchingOnTop(player, top)) {
                 continue;
             }
             PlayerInventory inventory = player.getInventory();
@@ -261,6 +258,11 @@ public final class PadService {
                 }
             }
         }
+    }
+
+    private static boolean isCrouchingOnTop(Player player, Block top) {
+        return player.isSneaking() && player.getGameMode() != GameMode.SPECTATOR
+                && player.getLocation().getBlock().equals(top.getRelative(BlockFace.UP));
     }
 
     private void pull(Block top, int radius) {

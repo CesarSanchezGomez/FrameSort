@@ -165,8 +165,7 @@ public final class SorterService {
         return sorter != null && sorter.frame.equals(frame) ? sorter : null;
     }
 
-    /** Shows every loaded sorter's frame again, so nothing stays hidden while FrameSort is off. */
-    public void stopAll() {
+    public void showAllFrames() {
         sorters.values().forEach(sorter -> applyLook(sorter.frame, false));
     }
 
@@ -199,7 +198,7 @@ public final class SorterService {
                     new ItemTemplate(material, sorter.activatorComponents(), sorter.activatorLook()).create(amount);
             case ItemReference.Custom custom -> {
                 ItemStack built = customItems.item(custom, amount);
-                yield built == null ? null : ItemOverlay.apply(built, sorter.activatorLook());
+                yield built == null ? null : ItemOverlay.applyReplacingLore(built, sorter.activatorLook());
             }
         };
         return item == null ? null : MarkerCodec.mark(item, Keys.ACTIVATOR, "sorter");

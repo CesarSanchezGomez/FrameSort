@@ -5,8 +5,7 @@ import org.bukkit.entity.EntityType;
 
 import java.util.Set;
 
-/** {@code taggedItem} is the look /framesort tag apply puts on the item in the player's hand. */
-public record TargetSettings(Set<EntityType> frameTypes, ItemLook taggedItem) {
+public record TargetSettings(Set<EntityType> frameTypes, ItemLook taggedItemLook) {
 
     public TargetSettings {
         frameTypes = Set.copyOf(frameTypes);
