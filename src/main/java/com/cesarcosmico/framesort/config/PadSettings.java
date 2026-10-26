@@ -33,6 +33,11 @@ public record PadSettings(PadMode creation, int sweepInterval, Map<String, PadTy
         ConfigReader section = reader.section("types");
         if (section != null) {
             for (String id : section.childKeys()) {
+                String lowerId = id.toLowerCase(Locale.ROOT);
+                if (types.containsKey(lowerId)) {
+                    section.warn(id, "names " + lowerId + " again; only the first one counts");
+                    continue;
+                }
                 PadType type = parseType(section, id, isBlock, isItem, craftEngine);
                 if (type != null) {
                     types.put(type.id(), type);

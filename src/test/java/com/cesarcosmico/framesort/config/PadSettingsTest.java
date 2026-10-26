@@ -140,6 +140,30 @@ class PadSettingsTest {
     }
 
     @Test
+    void aTypeIdThatDiffersOnlyInCaseWarnsAndTheFirstCounts() throws Exception {
+        YamlConfiguration yaml = new YamlConfiguration();
+        yaml.loadFromString("""
+                types:
+                  Copper:
+                    structure: [CRYING_OBSIDIAN, GILDED_BLACKSTONE]
+                    range: 32
+                    pull-radius: 4
+                    takes-from-inventory: false
+                  copper:
+                    structure: [LODESTONE, SMOOTH_STONE]
+                    range: 64
+                    pull-radius: 4
+                    takes-from-inventory: false
+                """);
+        List<String> warnings = new ArrayList<>();
+        PadSettings settings = parse(yaml, warnings);
+
+        assertEquals(1, settings.types().size());
+        assertEquals(32, settings.type("copper").range());
+        assertEquals(List.of("pads.yml > types.copper: names copper again; only the first one counts"), warnings);
+    }
+
+    @Test
     void aTypeIdWithACommaIsSkipped() throws Exception {
         YamlConfiguration yaml = new YamlConfiguration();
         yaml.loadFromString("""
