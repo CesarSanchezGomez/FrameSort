@@ -21,4 +21,15 @@ class FrameSortLoaderTest {
         String hikari = "com.zaxxer:HikariCP:" + gradle.getProperty("hikaricp_version");
         assertTrue(FrameSortLoader.LIBRARIES.contains(hikari), FrameSortLoader.LIBRARIES + " lacks " + hikari);
     }
+
+    // The dialect tests run against gradle.properties' MariaDB driver; servers must get the same one.
+    @Test
+    void theServerGetsTheMariaDbDriverTheDialectTestsUse() throws Exception {
+        Properties gradle = new Properties();
+        try (Reader in = Files.newBufferedReader(Path.of("gradle.properties"))) {
+            gradle.load(in);
+        }
+        String driver = "org.mariadb.jdbc:mariadb-java-client:" + gradle.getProperty("mariadb_client_version");
+        assertTrue(FrameSortLoader.LIBRARIES.contains(driver), FrameSortLoader.LIBRARIES + " lacks " + driver);
+    }
 }
