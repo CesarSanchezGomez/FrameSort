@@ -366,11 +366,11 @@ public final class PadService {
                 && top.getRelative(BlockFace.UP, 2).isPassable();
     }
 
-    // Handlers of an earlier PadPullEvent may remove items.
     private boolean isPullable(Item item, Location surface, int radius) {
         return isLooseOnGround(item) && liesInReach(item.getLocation(), surface, radius);
     }
 
+    // Handlers of an earlier PadPullEvent may remove items.
     private static boolean isLooseOnGround(Item item) {
         return item.isValid() && item.isOnGround() && !thrownThisSweep(item) && !DropCodec.isMarked(item);
     }

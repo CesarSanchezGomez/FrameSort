@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+// Distances are in blocks, speeds in blocks per tick and times in ticks.
 class PullTest {
 
     // Most blocks, and ice.
