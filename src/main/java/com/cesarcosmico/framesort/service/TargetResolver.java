@@ -120,7 +120,7 @@ public final class TargetResolver {
             if (destination == Destination.CONTAINER && !takes(FrameGeometry.attachedBlock(frame), item)) {
                 continue;
             }
-            if (wouldLoop(current, source, frame)) {
+            if (wouldLoop(current, source, frame, destination)) {
                 continue;
             }
             ranking.add(match.priority(), frame);
@@ -145,7 +145,6 @@ public final class TargetResolver {
         return destination(settings.get(), frame);
     }
 
-    // A composter only takes what composts, and a shulker box never takes another one, as in vanilla.
     private boolean takes(Block container, ItemStack item) {
         if (container.getType() == Material.COMPOSTER) {
             return item.getType().isCompostable();
@@ -193,10 +192,11 @@ public final class TargetResolver {
     }
 
     private int priority(ItemStack frameItem, ItemStack item, @Nullable String itemId) {
-        int direct = facts(frameItem, item, itemId).priority(false);
-        // Nothing inside the frame item can beat the exact item, so its contents aren't read.
-        List<Integer> nested = direct == MatchTier.EXACT.priority(false) ? List.of() : contents(frameItem).stream()
-                .map(content -> facts(content, item, itemId).priority(true)).toList();
+        List<ItemStack> contents = contents(frameItem);
+        int direct = facts(frameItem, contents, item, itemId).priority(false);
+        // Nothing inside the frame item can beat the exact item, so its contents aren't matched.
+        List<Integer> nested = direct == MatchTier.EXACT.priority(false) ? List.of() : contents.stream()
+                .map(content -> facts(content, contents(content), item, itemId).priority(true)).toList();
         return MatchTier.best(direct, nested, isDefaultTarget(frameItem));
     }
 
@@ -233,7 +233,8 @@ public final class TargetResolver {
     /** Whether {@code source} may send to {@code frame} at all, whatever the item; the caller checks the distance. */
     public boolean reaches(Block source, @Nullable UUID owner, ItemFrame frame) {
         FrameSortSettings current = settings.get();
-        return eligible(current, source, owner, frame) && !wouldLoop(current, source, frame)
+        return eligible(current, source, owner, frame)
+                && !wouldLoop(current, source, frame, destination(current, frame))
                 && new TargetBindEvent(source, frame).callEvent();
     }
 
@@ -279,12 +280,11 @@ public final class TargetResolver {
         return !current.ownership() || trust.get().allows(owner, FrameCodec.owner(frame));
     }
 
-    private boolean wouldLoop(FrameSortSettings current, Block source, ItemFrame frame) {
+    private boolean wouldLoop(FrameSortSettings current, Block source, ItemFrame frame, Destination destination) {
         if (isSorter(current, FrameGeometry.attachedBlock(frame)) && isSorter(current, source)) {
             return true;
         }
-        return destination(current, frame) == Destination.DROPPED
-                && landsOnPad(FrameGeometry.dropPoint(frame).getBlock());
+        return destination == Destination.DROPPED && landsOnPad(FrameGeometry.dropPoint(frame).getBlock());
     }
 
     private static boolean landsOnPad(Block drop) {
@@ -316,12 +316,13 @@ public final class TargetResolver {
         return false;
     }
 
-    private MatchFacts facts(ItemStack target, ItemStack item, @Nullable String itemId) {
+    private MatchFacts facts(ItemStack target, List<ItemStack> targetContents, ItemStack item,
+                             @Nullable String itemId) {
         boolean tagged = ItemTagCodec.read(target) != null;
         TagCatalog.TagView tag = tagged ? tag(target) : null;
         boolean inTag = tag != null && (itemId == null ? tag.lookup().contains(item.getType())
                 : tag.customItems().contains(itemId));
-        return new MatchFacts(tagged, inTag, !contents(target).isEmpty(), target.isSimilar(item),
+        return new MatchFacts(tagged, inTag, !targetContents.isEmpty(), target.isSimilar(item),
                 sameKind(target, item, itemId));
     }
 
