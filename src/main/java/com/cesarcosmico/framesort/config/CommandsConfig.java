@@ -53,7 +53,6 @@ public final class CommandsConfig {
         return parse(live, bundled == null ? new MemoryConfiguration() : bundled, warn);
     }
 
-    /** {@code bundled} decides which features exist; {@code live} overrides their values. */
     public static CommandsConfig parse(ConfigurationSection live, ConfigurationSection bundled, Consumer<String> warn) {
         Map<String, Feature> features = new LinkedHashMap<>();
         Map<List<String>, String> taken = new HashMap<>();

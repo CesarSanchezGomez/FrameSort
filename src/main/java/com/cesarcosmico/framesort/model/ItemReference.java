@@ -9,7 +9,6 @@ import org.jspecify.annotations.Nullable;
  */
 public sealed interface ItemReference {
 
-    /** The plugin name that starts a CraftEngine reference. */
     String CRAFT_ENGINE = "craftengine";
 
     record Vanilla(Material material) implements ItemReference {

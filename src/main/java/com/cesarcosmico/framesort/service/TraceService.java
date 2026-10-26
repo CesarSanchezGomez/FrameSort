@@ -20,7 +20,6 @@ import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Supplier;
 
-/** With nobody tracing, a delivery costs one empty-map check. */
 public final class TraceService {
 
     private static final class Turn {

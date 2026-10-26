@@ -41,24 +41,23 @@ public final class Pull {
     // ItemEntity#getDefaultGravity and Entity#getAirDrag; they change with Minecraft, not with Paper.
     static final double GRAVITY = 0.04;
     static final double DRAG = 0.98;
-    // How far every pull rises over the pad's surface and over where the item lay, so the arc shows.
+    // Over the pad's surface and over where the item lay, so the arc shows.
     static final double LIFT = 1;
-    // Half a pad plus half an item: sideways from the pad's centre, an item further than this along both axes can't
-    // touch the pad.
+    // Half a pad plus half an item: further from the pad's centre along both axes, an item can't touch it.
     static final double EDGE = 0.625;
-    // An arc comes over the pad's edge at least this high over its surface, so it never clips the corner.
+    // So an arc never clips the pad's corner.
     static final double EDGE_CLEARANCE = 0.25;
-    // An item landing this far from the centre has landed on the pad, whose top is a block wide.
+    // Still on the pad, whose top is a block wide.
     static final double MAX_SLIDE = 0.4;
     // Aiming a little under the surface makes the item touch it on the throw's last tick, not on the tick after.
     static final double SINK = 0.05;
-    // An item's box is a quarter block tall: at the top of the flight, that is what meets a roof.
+    // At the top of the flight, the item's box is what meets a roof.
     static final double ITEM_HEIGHT = 0.25;
-    // A throw takes half a second plus 1.5 ticks per block, up to 22 ticks, so a far item doesn't fly like a dart.
+    // A farther item flies longer, so it doesn't fly like a dart.
     static final int MIN_TICKS = 10;
     static final double TICKS_PER_BLOCK = 1.5;
     static final int PACED_TICKS = 22;
-    // Two seconds: an item that no throw brings in by then stays where it is.
+    // An item that no throw brings in by then stays where it is.
     static final int MAX_TICKS = 40;
     // A lying item with less sideways speed than about 0.003 moves on one tick in four; this keeps it moving.
     static final double NUDGE = 0.01;

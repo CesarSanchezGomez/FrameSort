@@ -36,12 +36,10 @@ public record TrustList(Map<UUID, Map<UUID, Long>> grants) {
         return trustedBy(owner).containsKey(trusted);
     }
 
-    /** The players {@code owner} trusts, with when. */
     public Map<UUID, Long> trustedBy(UUID owner) {
         return grants.getOrDefault(owner, Map.of());
     }
 
-    /** The owners who trust {@code player}. */
     public List<UUID> trusting(UUID player) {
         List<UUID> owners = new ArrayList<>();
         grants.forEach((owner, trusted) -> {

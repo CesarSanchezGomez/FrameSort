@@ -137,7 +137,7 @@ public final class SorterService {
         }, null);
     }
 
-    /** The owner of the sorter on {@code block}: the owner of its frame, or {@code null} when nobody owns it. */
+    /** The owner of the sorter's frame. */
     public @Nullable UUID ownerOf(Block block) {
         Sorter sorter = sorters.get(FrameGeometry.key(block));
         return sorter == null ? null : FrameCodec.owner(sorter.frame);
@@ -236,7 +236,6 @@ public final class SorterService {
         }
     }
 
-    /** Whether {@code item} in {@code frame} makes a sorter of the block the frame hangs on. */
     public boolean makesSorter(ItemFrame frame, ItemStack item) {
         return FrameGeometry.attachedBlock(frame).getType() == Material.DISPENSER
                 && settings.get().sorter().isActivatorFrame(frame, item, customItems::id);
@@ -304,10 +303,8 @@ public final class SorterService {
         return null;
     }
 
-    /**
-     * Something in {@code slot} that has not missed this turn: a stack inside it first, or else the slot itself, so a
-     * shulker box or bundle goes whole once nothing inside it can go. {@code item} is what the slot holds, read once.
-     */
+    // A stack inside the slot first, else the slot itself, skipping what missed this turn: a shulker box or bundle
+    // goes whole once nothing inside it can go. The item is what the slot holds, read once.
     private static @Nullable Slot pick(Slot slot, ItemStack item, List<ItemStack> missed, int depth) {
         if (missed.stream().anyMatch(item::isSimilar)) {
             return null;

@@ -23,7 +23,6 @@ import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Consumer;
 
-/** Containers are looked up the moment items go in, so one that vanished is skipped instead of duplicating items. */
 public final class DeliveryService {
 
     public interface Source {
@@ -63,10 +62,7 @@ public final class DeliveryService {
         this.observer = observer;
     }
 
-    /**
-     * Returns how many items left the source, whether into containers, dropped or destroyed. {@code owner} owns the
-     * source, or is {@code null} when nobody does; {@code range} is how far from it its targets may be.
-     */
+    /** Returns how many items left the source, whether into containers, dropped or destroyed. */
     public int deliver(Block origin, @Nullable UUID owner, int range, Source source) {
         ItemStack stack = source.stack().clone();
         if (stack.isEmpty()) {
@@ -133,10 +129,8 @@ public final class DeliveryService {
         return notAccepted;
     }
 
-    /**
-     * Composts like a hopper feeding the composter; returns how many items it did not take. The plan only sends
-     * compostable items to a composter.
-     */
+    // Like a hopper feeding the composter; returns how many items it did not take. The plan only sends compostable
+    // items to a composter.
     private int compost(Block composter, ItemStack stack, int amount) {
         Levelled data = (Levelled) composter.getBlockData();
         int before = data.getLevel();

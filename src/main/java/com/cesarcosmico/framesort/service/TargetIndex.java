@@ -16,7 +16,6 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.function.Supplier;
 
-/** Indexed by chunk so a lookup only scans the chunks in range; the per-world epoch invalidates cached matches. */
 public final class TargetIndex {
 
     public static final String MARK_PERMISSION = "framesort.target.create";
@@ -64,21 +63,18 @@ public final class TargetIndex {
         return FrameCodec.isMarked(frame);
     }
 
-    /** A marked frame belongs to whoever marked it. */
     public void mark(ItemFrame frame, UUID owner) {
         FrameCodec.setOwner(frame, owner);
         FrameCodec.setMarked(frame, true);
         reindex(frame);
     }
 
-    /** Unmarking frees the frame, so anyone may mark it next. */
     public void unmark(ItemFrame frame) {
         FrameCodec.clearOwner(frame);
         FrameCodec.setMarked(frame, false);
         reindex(frame);
     }
 
-    /** A frame is a target for the item in it, so a new item ends its mark. */
     public void itemPlaced(ItemFrame frame) {
         if (isMarked(frame)) {
             unmark(frame);
@@ -122,7 +118,6 @@ public final class TargetIndex {
         epochs.replaceAll((world, epoch) -> epoch + 1);
     }
 
-    /** Whether this kind of frame can be a target at all. */
     public boolean markable(ItemFrame frame) {
         return settings.get().targets().frameTypes().contains(frame.getType());
     }

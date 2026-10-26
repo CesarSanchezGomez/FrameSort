@@ -41,7 +41,7 @@ import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Supplier;
 
-/** Pads live in their chunk's data, so only loaded pads are swept; sweeping also catches items that arrive late. */
+/** Sweeping also catches items that arrive late. */
 public final class PadService {
 
     private static final String CREATE_PERMISSION = "framesort.pad.create";
@@ -165,13 +165,12 @@ public final class PadService {
         return type != null && matches(read(top), read(top.getRelative(BlockFace.DOWN)), type) ? type : null;
     }
 
-    /** The owner of the pad whose top block this is, or {@code null} when nobody owns it. */
+    /** The owner of the pad whose top block this is. */
     public @Nullable UUID ownerOf(Block top) {
         PadEntry entry = entry(top);
         return entry == null ? null : entry.owner();
     }
 
-    /** A registered pad: its top block, its type and its owner, or {@code null} when nobody owns it. */
     public record Pad(Block top, PadType type, @Nullable UUID owner) {
     }
 
@@ -280,7 +279,7 @@ public final class PadService {
         }
     }
 
-    /** Throws the loose items around the pad onto it, so a later sweep sends them. */
+    // Throws the loose items around the pad onto it, so a later sweep sends them.
     private void pull(Block top, int radius) {
         // Every pull lands on the pad's surface: the block right over the pad must leave room on top (empty, or a
         // carpet or slab on the pad), and the one above that must let the item come down through it.
@@ -296,9 +295,8 @@ public final class PadService {
         double grip = Pull.grip(top.getType().getSlipperiness());
         for (Item item : top.getWorld().getNearbyEntitiesByType(Item.class, surface, radius, radius, radius)) {
             Location from = item.getLocation();
-            // Handlers of an earlier PadPullEvent may remove items. One in the air is already on its way, and so is one
-            // another pad threw this sweep: it lies on the ground until its own tick. One over or under this pad is on
-            // it or can't get there, and one on another pad goes with that pad's sweep.
+            // Handlers of an earlier PadPullEvent may remove items, and one another pad threw this sweep still lies on
+            // the ground until its own tick. One over or under this pad is on it or can't get there.
             if (!item.isValid() || !item.isOnGround() || item.getVelocity().getY() > 0 || DropCodec.isMarked(item)
                     || from.distanceSquared(surface) > (double) radius * radius
                     || Math.abs(from.getX() - surface.getX()) < 0.5 && Math.abs(from.getZ() - surface.getZ()) < 0.5
@@ -313,9 +311,8 @@ public final class PadService {
         }
     }
 
-    // Rays through the points of the flight: they meet a wall in the way, or a roof over its top. They pass under the
-    // curve between those points, so a low overhang there can still catch the item, which then lands elsewhere and is
-    // tried again on the next check.
+    // The rays pass under the curve between the points of the flight: a low overhang there can still catch the item,
+    // which then lands elsewhere and is tried again on the next check.
     private static void throwOnto(Item item, Block top, Location surface, double grip) {
         Location from = item.getLocation();
         Pull.Arc arc = Pull.toPad(surface.getX() - from.getX(), surface.getY() - from.getY(),

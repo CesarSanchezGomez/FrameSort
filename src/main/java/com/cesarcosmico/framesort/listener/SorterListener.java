@@ -46,7 +46,7 @@ public final class SorterListener implements Listener {
         }
     }
 
-    // MONITOR: the sorter is forgotten only once the break is final; the event is left alone.
+    // MONITOR, so the sorter is forgotten only once the break is final.
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onBreak(HangingBreakEvent event) {
         if (event.getEntity() instanceof ItemFrame frame && sorters.broken(frame)
@@ -64,7 +64,7 @@ public final class SorterListener implements Listener {
         }
     }
 
-    // MONITOR: the frame is re-checked only once the change is final; the event is left alone.
+    // MONITOR, so the frame is re-checked only once the change is final.
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onFrameChange(PlayerItemFrameChangeEvent event) {
         Player player = event.getPlayer();

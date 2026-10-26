@@ -8,10 +8,9 @@ import org.bukkit.inventory.ItemStack;
 import org.jspecify.annotations.Nullable;
 
 /**
- * What FrameSort needs from a custom item plugin: an item's reference as tags.yml writes it (the plugin's name in
- * lowercase, {@code :} and the ID that plugin gave it, such as {@code craftengine:default:ruby}) and its name, which
- * placed blocks are the plugin's and which one, its blocks that store items, and the items the plugin builds for a
- * reference or a block. {@link #NONE} when no such plugin is installed.
+ * What FrameSort needs from a custom item plugin. A reference is written as tags.yml writes it: the plugin's name in
+ * lowercase, {@code :} and the ID that plugin gave it, such as {@code craftengine:default:ruby}. {@link #NONE} when no
+ * such plugin is installed.
  */
 @FunctionalInterface
 public interface CustomItemResolver {

@@ -79,7 +79,6 @@ public final class FrameSortPlugin extends JavaPlugin {
     private static final String COMMAND_DESCRIPTION = "Sort items into item frames";
     // The server does not take players before onEnable returns, so a slow database only delays the start.
     private static final long TRUST_LOAD_SECONDS = 10;
-    // Trust given on another server sharing the database reaches this one within this time.
     private static final long TRUST_REFRESH_TICKS = 60 * 20L;
 
     private ConfigHolder<FrameSortSettings> settings;
@@ -95,7 +94,6 @@ public final class FrameSortPlugin extends JavaPlugin {
     // Null in onDisable when the plugin failed to start, or before it got that far.
     private @Nullable BukkitTask ticker;
     private @Nullable Database database;
-    // Only with MySQL or MariaDB, where another server can change the trust table.
     private @Nullable BukkitTask trustRefresh;
     // Read once on enable: CraftEngine loads before FrameSort, and a reload checks the config against it too.
     private boolean craftEngine;
@@ -121,7 +119,6 @@ public final class FrameSortPlugin extends JavaPlugin {
                     new ConfigReader(ConfigFiles.load(this, "database.yml"), "database.yml", warn)));
             database = opened;
             trustRepository = new TrustRepository(opened.type());
-            // Sorters work while their owners are offline, so the whole list is needed before anything runs.
             trustList = opened.query(trustRepository::load).get(TRUST_LOAD_SECONDS, TimeUnit.SECONDS);
         } catch (Exception e) {
             getLogger().log(Level.SEVERE, "FrameSort could not start: " + e.getMessage(), e);
@@ -132,7 +129,6 @@ public final class FrameSortPlugin extends JavaPlugin {
         tags = new TagCatalog(tagSettings);
         index = new TargetIndex(settings);
         TrustService trust = new TrustService(this, opened, trustRepository, trustList, settings, index);
-        // Only this check loads the integration's classes, so FrameSort runs without CraftEngine installed.
         CustomItemResolver customItems = craftEngine ? new CraftEngineItemResolver() : CustomItemResolver.NONE;
         resolver = new TargetResolver(settings, index, tags, customItems, trust);
         TraceService trace = new TraceService(this, settings, messages, trust);
@@ -149,7 +145,6 @@ public final class FrameSortPlugin extends JavaPlugin {
 
         register(new TargetListener(index, automark), new SorterListener(sorters, messages),
                 new PadListener(padService, messages), new InspectListener(inspect, sorters, padService));
-        // Only this check loads the integration's classes, so FrameSort runs without WorldGuard installed.
         if (getServer().getPluginManager().isPluginEnabled("WorldGuard")) {
             register(new WorldGuardListener());
         }
@@ -205,17 +200,13 @@ public final class FrameSortPlugin extends JavaPlugin {
             sorters.stopAll();
             highlights.clearAll();
         }
-        // Also when the start failed after opening it: it waits for queued writes, then closes the pool.
+        // Also when the start failed after opening it.
         if (database != null) {
             database.close();
         }
     }
 
-    /**
-     * Loads everything first and swaps only when all of it parsed, so a broken file keeps the old state.
-     *
-     * @return how many settings were invalid and fell back to their defaults
-     */
+    // Every file loads before anything is swapped, so a broken one keeps the previous state.
     private int reload() throws IOException, InvalidConfigurationException {
         List<String> warnings = new ArrayList<>();
         Consumer<String> warn = warning -> {

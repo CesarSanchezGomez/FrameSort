@@ -15,10 +15,6 @@ import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 
-/**
- * Who lets whom receive from their sorters and pads. Sorters work while their owner is offline, so the whole list
- * lives in memory and a delivery never waits for the database.
- */
 public final class TrustService implements Supplier<TrustList> {
 
     public enum Grant { GRANTED, ALREADY, SELF, UNKNOWN_PLAYER, FAILED }

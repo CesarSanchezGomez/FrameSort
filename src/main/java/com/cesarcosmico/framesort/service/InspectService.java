@@ -40,7 +40,7 @@ public final class InspectService {
     private static final ClickCallback.Options PAGE_BUTTON = ClickCallback.Options.builder()
             .uses(ClickCallback.UNLIMITED_USES).build();
 
-    /** How a listing was opened: its page buttons check the same again. */
+    // How a listing was opened: its page buttons check the same again.
     private enum Opened {
         GESTURE,
         WHERE
@@ -163,7 +163,7 @@ public final class InspectService {
         render(viewer, source, filter, opened, page);
     }
 
-    /** The sorter or pad still at {@code key}, or {@code null}; never loads its chunk. */
+    // The sorter or pad still at the key, or null; never loads its chunk.
     private @Nullable Source sourceAt(Player viewer, BlockKey key, boolean pad) {
         World world = viewer.getServer().getWorld(key.world());
         if (world == null || !world.isChunkLoaded(key.x() >> 4, key.z() >> 4)) {
@@ -372,7 +372,6 @@ public final class InspectService {
         return new HighlightService.Highlight(frame, destination.color(settings.get().inspect().colors()));
     }
 
-    /** The sorters and pads whose range reaches {@code center}. */
     private List<Source> sourcesNear(Block center) {
         int range = settings.get().sorter().range();
         long rangeSquared = (long) range * range;

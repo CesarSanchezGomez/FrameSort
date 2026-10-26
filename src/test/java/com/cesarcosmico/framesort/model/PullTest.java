@@ -22,7 +22,7 @@ class PullTest {
     // Along an axis, close to an axis, diagonal, and at an odd angle.
     private static final double[][] DIRECTIONS = {{1, 0}, {0.96, 0.28}, {Math.sqrt(0.5), -Math.sqrt(0.5)}, {-0.6, 0.8}};
 
-    /** The pad's top at height {@code surface}, its centre at ({@code x}, {@code z}), from where the item starts. */
+    // The pad's top at height surface, its centre at (x, z), from where the item starts.
     private record Pad(double x, double surface, double z) {
         // The item's box overlaps the pad, seen from above.
         boolean under(double itemX, double itemZ) {
@@ -30,10 +30,8 @@ class PullTest {
         }
     }
 
-    // Steps an item as ItemEntity#tick and Paper's collisions do: gravity; a lying item with almost no sideways speed
-    // skips three ticks in four; the move, up or down first and then sideways, which stops on the pad's top without a
-    // bounce; then the ground's grip, or the air's drag, on the sideways speed. It fails if the item falls past the
-    // pad's top, or hits its side while `strict`; otherwise the side stops it sideways, as a bounciness of 0 does.
+    // Steps an item as ItemEntity#tick and Paper's collisions do. It fails if the item falls past the pad's top, or
+    // hits its side while `strict`; otherwise the side stops it sideways, as a bounciness of 0 does.
     private static final class Flight {
         private final Pad pad;
         private boolean strict = true;

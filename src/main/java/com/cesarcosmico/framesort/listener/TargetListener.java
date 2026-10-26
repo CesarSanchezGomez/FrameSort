@@ -35,9 +35,8 @@ public final class TargetListener implements Listener {
         }
     }
 
-    // MONITOR: only an item that really went in ends the mark, or makes one; the event is left alone. Every item a
-    // player puts in passes here, while an item can leave a frame with no event that confirms it (an arrow, another
-    // plugin). The frame still holds the old item: the event's item is the one going in.
+    // MONITOR, so only an item that really went in ends the mark or makes one. The frame still holds the old item:
+    // the event's item is the one going in.
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onFrameChange(PlayerItemFrameChangeEvent event) {
         ItemFrame frame = event.getItemFrame();

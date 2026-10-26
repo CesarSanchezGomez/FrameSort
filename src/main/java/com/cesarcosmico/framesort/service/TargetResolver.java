@@ -112,11 +112,6 @@ public final class TargetResolver {
         this.trust = trust;
     }
 
-    /**
-     * Deliveries and inspections both plan here, so an inspection always shows what a delivery would do.
-     * {@code owner} is the source's owner, or {@code null} when nobody owns it; {@code range} is how far from the
-     * source its targets may be.
-     */
     public Plan plan(Block source, @Nullable UUID owner, int range, ItemStack item) {
         FrameSortSettings current = settings.get();
         Ranking<ItemFrame> ranking = new Ranking<>();
@@ -197,7 +192,7 @@ public final class TargetResolver {
         cache.clear();
     }
 
-    /** The best priority this frame item accepts {@code item} at, or {@code -1}. */
+    // The best priority at which the frame item accepts the item, or NO_MATCH.
     private int priority(ItemStack frameItem, ItemStack item, @Nullable String itemId) {
         int best = direct(frameItem, item, itemId, false);
         if (best != MatchTier.EXACT.priority(false)) {
