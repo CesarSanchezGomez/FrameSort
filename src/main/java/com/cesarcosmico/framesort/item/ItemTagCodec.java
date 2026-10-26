@@ -33,12 +33,16 @@ public final class ItemTagCodec {
         });
     }
 
+    /** Takes the tag off and gives the item back its own look, when the tag saved it. */
     public static void clear(ItemStack item) {
         byte[] snapshot = item.getPersistentDataContainer().get(Keys.ITEM_TAG_ORIGINAL, PersistentDataType.BYTE_ARRAY);
-        ItemStack own = ItemStack.deserializeBytes(snapshot);
-        // resetData, never unsetData: on a nether star that would remove its own glint, and it would stop stacking.
-        CHANGED_BY_TAG.forEach(item::resetData);
-        item.copyDataFrom(own, CHANGED_BY_TAG::contains);
+        // A tag key alone comes from outside FrameSort (a /give, another plugin copying part of the data).
+        if (snapshot != null) {
+            ItemStack own = ItemStack.deserializeBytes(snapshot);
+            // resetData, never unsetData: on a nether star that would remove its own glint, and it would stop stacking.
+            CHANGED_BY_TAG.forEach(item::resetData);
+            item.copyDataFrom(own, CHANGED_BY_TAG::contains);
+        }
         item.editPersistentDataContainer(pdc -> {
             pdc.remove(Keys.ITEM_TAG);
             pdc.remove(Keys.ITEM_TAG_ORIGINAL);
