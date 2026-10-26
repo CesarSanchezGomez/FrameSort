@@ -15,5 +15,5 @@ remote:
   database: 'framesort'
   username: 'root'
   password: ''
-  # Extra JDBC URL parameters.
-  properties: 'useSSL=false'
+  # Extra JDBC URL parameters, such as 'sslMode=REQUIRED'. Empty: the driver's defaults (MySQL uses TLS when it can).
+  properties: ''

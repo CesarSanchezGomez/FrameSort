@@ -88,14 +88,14 @@ class CommandsConfigTest {
         YamlConfiguration bundled = yaml("""
                 tag: {permission: 'p.tag', usage: ['/p tag']}
                 open: {permission: '', usage: ['/p open']}
-                off: {enabled: false, usage: ['/p off']}
+                closed: {enabled: false, usage: ['/p closed']}
                 """);
         CommandsConfig config = CommandsConfig.parse(bundled, bundled, warning -> { });
 
         assertEquals("/p tag", config.usageFor("tag", permission -> true));
         assertNull(config.usageFor("tag", permission -> false));
         assertEquals("/p open", config.usageFor("open", permission -> false));
-        assertNull(config.usageFor("off", permission -> true));
+        assertNull(config.usageFor("closed", permission -> true));
         assertNull(config.usageFor("missing", permission -> true));
     }
 

@@ -25,6 +25,8 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 /**
  * The connection pool, the migrations and the single thread every query runs on. One thread keeps writes in order,
@@ -50,34 +52,42 @@ public final class Database implements AutoCloseable {
     private final DatabaseType type;
     private final Executor executor;
     private final @Nullable ExecutorService ownedExecutor;
+    private final Logger logger;
 
     private Database(HikariDataSource dataSource, DatabaseType type, Executor executor,
-                     @Nullable ExecutorService ownedExecutor) {
+                     @Nullable ExecutorService ownedExecutor, Logger logger) {
         this.dataSource = dataSource;
         this.type = type;
         this.executor = executor;
         this.ownedExecutor = ownedExecutor;
+        this.logger = logger;
     }
 
     /**
      * Opens the pool and applies pending migrations. Blocks: call it from {@code onEnable}, before players join. The
-     * applied versions go in {@code <plugin>_schema_version}, the plugin's name in lower case, because servers often
-     * give several plugins one MySQL database.
+     * applied versions go in {@code <plugin>_schema_version}, the plugin's name in lower case with anything but a
+     * letter, a digit or {@code _} as {@code _}, because servers often give several plugins one MySQL database.
      */
     public static Database open(Plugin plugin, DatabaseSettings settings) throws SQLException {
-        String name = plugin.getName().toLowerCase(Locale.ROOT);
+        String name = tablePrefix(plugin.getName());
         ExecutorService executor = Executors.newSingleThreadExecutor(task -> {
             Thread thread = new Thread(task, name + "-db");
             thread.setDaemon(true);
             return thread;
         });
-        return open(settings, plugin.getDataFolder(), name, executor, executor, MIGRATIONS);
+        return open(settings, plugin.getDataFolder(), name, executor, executor, MIGRATIONS, plugin.getLogger());
+    }
+
+    // Plugin names may hold '-', '.' and spaces, which an unquoted table name can't.
+    static String tablePrefix(String pluginName) {
+        return pluginName.toLowerCase(Locale.ROOT).replaceAll("[^a-z0-9_]", "_");
     }
 
     static Database open(DatabaseSettings settings, File dataFolder, String name, Executor executor,
-                         @Nullable ExecutorService ownedExecutor, String migrations) throws SQLException {
+                         @Nullable ExecutorService ownedExecutor, String migrations, Logger logger)
+            throws SQLException {
         HikariDataSource dataSource = new HikariDataSource(poolConfig(settings, dataFolder, name));
-        Database database = new Database(dataSource, settings.type(), executor, ownedExecutor);
+        Database database = new Database(dataSource, settings.type(), executor, ownedExecutor, logger);
         try {
             database.migrate(migrations, name + "_schema_version");
         } catch (SQLException | RuntimeException e) {
@@ -113,21 +123,27 @@ public final class Database implements AutoCloseable {
         return query(connection -> inTransaction(connection, work));
     }
 
-    /** Waits for queued work, then closes the pool. */
+    /** Waits for queued work, then closes the pool. Work still queued after {@value SHUTDOWN_SECONDS} s is logged. */
     @Override
     public void close() {
         if (ownedExecutor != null) {
             ownedExecutor.shutdown();
             try {
                 if (!ownedExecutor.awaitTermination(SHUTDOWN_SECONDS, TimeUnit.SECONDS)) {
-                    ownedExecutor.shutdownNow();
+                    dropped(ownedExecutor.shutdownNow().size());
                 }
             } catch (InterruptedException e) {
-                ownedExecutor.shutdownNow();
+                dropped(ownedExecutor.shutdownNow().size());
                 Thread.currentThread().interrupt();
             }
         }
         dataSource.close();
+    }
+
+    private void dropped(int tasks) {
+        if (tasks > 0) {
+            logger.warning(tasks + " database task(s) were still queued at shutdown and did not run.");
+        }
     }
 
     private static HikariConfig poolConfig(DatabaseSettings settings, File dataFolder, String name) {
@@ -163,16 +179,22 @@ public final class Database implements AutoCloseable {
     private static <T> T inTransaction(Connection connection, SqlFunction<T> work) throws SQLException {
         boolean autoCommit = connection.getAutoCommit();
         connection.setAutoCommit(false);
+        T result;
         try {
-            T result = work.apply(connection);
+            result = work.apply(connection);
             connection.commit();
-            return result;
         } catch (SQLException | RuntimeException | Error e) {
-            connection.rollback();
+            // On a dead connection the cleanup fails too; the first error is the one that explains it.
+            try {
+                connection.rollback();
+                connection.setAutoCommit(autoCommit);
+            } catch (SQLException cleanup) {
+                e.addSuppressed(cleanup);
+            }
             throw e;
-        } finally {
-            connection.setAutoCommit(autoCommit);
         }
+        connection.setAutoCommit(autoCommit);
+        return result;
     }
 
     // MySQL commits DDL implicitly, so a failing MySQL migration can leave its earlier statements applied.
@@ -211,27 +233,28 @@ public final class Database implements AutoCloseable {
         }
     }
 
-    // Statements are split on ';', so a migration must not have ';' inside a string or a trigger body.
     private static @Nullable List<String> migration(String resource) {
         try (InputStream in = Database.class.getClassLoader().getResourceAsStream(resource)) {
-            if (in == null) {
-                return null;
-            }
-            StringBuilder sql = new StringBuilder();
-            for (String line : new String(in.readAllBytes(), StandardCharsets.UTF_8).split("\n")) {
-                if (!line.trim().startsWith("--")) {
-                    sql.append(line).append('\n');
-                }
-            }
-            List<String> statements = new ArrayList<>();
-            for (String statement : sql.toString().split(";")) {
-                if (!statement.isBlank()) {
-                    statements.add(statement.trim());
-                }
-            }
-            return statements;
+            return in == null ? null : statements(new String(in.readAllBytes(), StandardCharsets.UTF_8));
         } catch (IOException e) {
             throw new IllegalStateException("Could not read the migration " + resource, e);
         }
+    }
+
+    // Split on ';', so a migration must not have ';' inside a string, a comment or a trigger body.
+    static List<String> statements(String sql) {
+        List<String> statements = new ArrayList<>();
+        for (String piece : withoutComments(sql).split(";")) {
+            // A comment after the last ';' of a line starts the next piece: alone, MySQL rejects it as empty.
+            String statement = withoutComments(piece).trim();
+            if (!statement.isEmpty()) {
+                statements.add(statement);
+            }
+        }
+        return statements;
+    }
+
+    private static String withoutComments(String sql) {
+        return sql.lines().filter(line -> !line.trim().startsWith("--")).collect(Collectors.joining("\n"));
     }
 }

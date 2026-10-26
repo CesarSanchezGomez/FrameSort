@@ -16,8 +16,8 @@ import java.util.List;
  */
 public final class FrameSortLoader implements PluginLoader {
 
-    // Same HikariCP version as gradle.properties.
-    private static final List<String> LIBRARIES = List.of(
+    // Same HikariCP version as gradle.properties, which FrameSortLoaderTest checks.
+    static final List<String> LIBRARIES = List.of(
             "com.zaxxer:HikariCP:7.1.0",
             "org.mariadb.jdbc:mariadb-java-client:3.5.10");
     // The server provides slf4j-api; a second copy would leave Hikari logging to nowhere.

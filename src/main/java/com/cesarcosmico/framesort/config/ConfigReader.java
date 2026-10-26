@@ -49,7 +49,15 @@ public final class ConfigReader {
     }
 
     public List<String> strings(String path) {
+        warnIfNotList(path);
         return List.copyOf(root.getStringList(path));
+    }
+
+    // getStringList reads a single value as an empty list, with no sign of the lost text.
+    private void warnIfNotList(String path) {
+        if (root.isSet(path) && !root.isList(path)) {
+            warn(path, "expected a list, ignored");
+        }
     }
 
     public boolean bool(String path, boolean fallback) {
@@ -124,6 +132,7 @@ public final class ConfigReader {
 
     /** Unknown entries are reported and skipped. */
     public List<Material> materials(String path) {
+        warnIfNotList(path);
         List<Material> materials = new ArrayList<>();
         for (String name : root.getStringList(path)) {
             Material material = Material.matchMaterial(name);

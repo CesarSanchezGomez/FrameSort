@@ -1,6 +1,7 @@
 package com.cesarcosmico.framesort.text;
 
 import com.cesarcosmico.framesort.config.ConfigFiles;
+import com.cesarcosmico.framesort.config.ConfigValidator;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
@@ -46,8 +47,10 @@ public final class Messages {
             warn.accept("Unknown language '" + language + "', using " + DEFAULT_LANGUAGE + ".");
             path = path(DEFAULT_LANGUAGE);
         }
-        return of(ConfigFiles.load(plugin, path), ConfigFiles.bundled(plugin, path),
-                ConfigFiles.bundled(plugin, path(DEFAULT_LANGUAGE)), plugin.getLogger()::warning);
+        YamlConfiguration live = ConfigFiles.load(plugin, path);
+        ConfigValidator.check(plugin, live, path, warn);
+        return of(live, ConfigFiles.bundled(plugin, path), ConfigFiles.bundled(plugin, path(DEFAULT_LANGUAGE)),
+                plugin.getLogger()::warning);
     }
 
     static Messages of(YamlConfiguration live, @Nullable YamlConfiguration bundled,

@@ -115,8 +115,9 @@ public final class FrameSortPlugin extends JavaPlugin {
             BooleanSupplier ownership = () -> settings.get().ownership();
             commands = CommandsConfig.load(this, warn).onlyWhen("trust", ownership).onlyWhen("untrust", ownership)
                     .onlyWhen("trusted", ownership);
-            opened = Database.open(this, DatabaseSettings.parse(
-                    new ConfigReader(ConfigFiles.load(this, "database.yml"), "database.yml", warn)));
+            YamlConfiguration databaseFile = ConfigFiles.load(this, "database.yml");
+            ConfigValidator.check(this, databaseFile, "database.yml", warn);
+            opened = Database.open(this, DatabaseSettings.parse(new ConfigReader(databaseFile, "database.yml", warn)));
             database = opened;
             trustRepository = new TrustRepository(opened.type());
             trustList = opened.query(trustRepository::load).get(TRUST_LOAD_SECONDS, TimeUnit.SECONDS);

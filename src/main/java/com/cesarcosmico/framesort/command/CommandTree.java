@@ -86,17 +86,18 @@ public final class CommandTree {
                                Predicate<CommandSourceStack> allowed, String path) {
         LiteralArgumentBuilder<CommandSourceStack> own = Commands.literal(builder.getLiteral());
         feature.attach(own, path);
+        Predicate<CommandSourceStack> gate = allowed.and(own.getRequirement());
         Command<CommandSourceStack> command = own.getCommand();
         if (command != null) {
             builder.executes(context -> {
-                if (!allowed.test(context.getSource())) {
+                if (!gate.test(context.getSource())) {
                     throw CommandSyntaxException.BUILT_IN_EXCEPTIONS.dispatcherUnknownCommand().create();
                 }
                 return command.run(context);
             });
         }
         for (CommandNode<CommandSourceStack> argument : own.getArguments()) {
-            builder.then(restrict(argument, allowed));
+            builder.then(restrict(argument, gate));
         }
     }
 

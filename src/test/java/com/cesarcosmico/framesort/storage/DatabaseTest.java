@@ -9,8 +9,10 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
+import java.util.logging.Logger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
@@ -28,7 +30,7 @@ class DatabaseTest {
 
     private Database open(String name, String migrations) throws SQLException {
         return Database.open(DatabaseSettings.sqlite("data.db"), dir.toFile(), name, Runnable::run, null,
-                migrations);
+                migrations, Logger.getLogger("test"));
     }
 
     private static int count(Database database, String sql) {
@@ -90,6 +92,23 @@ class DatabaseTest {
             assertThrows(CompletionException.class, future::join);
             assertEquals(0, count(database, "SELECT COUNT(*) FROM items"));
         }
+    }
+
+    @Test
+    void aCommentAfterAStatementIsNotAStatement() {
+        assertEquals(List.of("CREATE TABLE a (id INTEGER)", "CREATE TABLE b (id INTEGER)"), Database.statements("""
+                -- V1: two tables; one comment line
+                CREATE TABLE a (id INTEGER); -- players
+                CREATE TABLE b (id INTEGER); -- notes
+                -- the end
+                """));
+    }
+
+    @Test
+    void tablePrefixesAreValidSqlNames() {
+        assertEquals("myplugin", Database.tablePrefix("MyPlugin"));
+        assertEquals("sorter_x_2", Database.tablePrefix("Sorter-X.2"));
+        assertEquals("my_plugin", Database.tablePrefix("My Plugin"));
     }
 
     @Test

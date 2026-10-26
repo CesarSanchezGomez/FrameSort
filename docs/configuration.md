@@ -300,7 +300,7 @@ Where FrameSort keeps who trusts whom. Everything else stays in the world. Read 
 | `type` | `sqlite` | `sqlite`: a file in `plugins/FrameSort/`, nothing to set up. `mysql` or `mariadb`: the `remote` server, so several servers share the trust list. An unknown type stops FrameSort from starting. |
 | `sqlite.file` | `data.db` | The SQLite file, inside `plugins/FrameSort/`. |
 | `remote.host`, `port`, `database`, `username`, `password` | `localhost`, `3306`, `framesort`, `root`, `''` | The MySQL or MariaDB server. FrameSort's tables start with `framesort_`, so it can share a database with other plugins. |
-| `remote.properties` | `useSSL=false` | Extra JDBC URL parameters. |
+| `remote.properties` | `''` | Extra JDBC URL parameters, such as `sslMode=REQUIRED`. Empty uses the driver's defaults: MySQL connects with TLS when the server offers it, which MySQL 8.4's default login needs after each restart. |
 
 FrameSort reads the whole list when it starts; if the database can't be reached, FrameSort does not start. Each
 `/framesort trust` or `untrust` is saved before it applies. With MySQL or MariaDB, each server reads the list again

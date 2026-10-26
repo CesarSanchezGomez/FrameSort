@@ -12,6 +12,7 @@ import org.testcontainers.mysql.MySQLContainer;
 import java.nio.file.Path;
 import java.util.Map;
 import java.util.UUID;
+import java.util.logging.Logger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -47,7 +48,8 @@ class TrustRepositoryDialectTest {
                 server.getHost(), server.getMappedPort(3306), server.getDatabaseName(), server.getUsername(),
                 server.getPassword(), properties));
         TrustRepository repository = new TrustRepository(type);
-        try (Database database = Database.open(settings, dir.toFile(), "framesort", Runnable::run, null, "db")) {
+        try (Database database = Database.open(settings, dir.toFile(), "framesort", Runnable::run, null, "db",
+                Logger.getLogger("test"))) {
             database.update(c -> {
                 repository.grant(c, ANA, BETO, 10);
                 repository.grant(c, ANA, BETO, 99);

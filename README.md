@@ -60,7 +60,7 @@ keeps its hidden frame until it loads with FrameSort installed, so before removi
    a special pad block.
 
    ![A player dropping an item onto a copper pad, which sends it to the target frame on a chest](docs/pad.gif)
-   ![A lodestone pad throwing a loose item onto its top and sending it to the target frame on a chest](docs/lodestone-pad.gif)
+   ![A lodestone pad pulling a loose item onto its top and sending it to a target frame](docs/lodestone-pad.gif)
    ![A player crouching on a tuff pad, sending their inventory to the target frame on a chest](docs/inventory-pad.gif)
 
 4. **Inspect.** Sneak + right-click a sorter or pad with an empty hand: its targets' items glow (only for you, in

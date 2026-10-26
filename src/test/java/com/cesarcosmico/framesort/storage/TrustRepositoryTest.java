@@ -11,6 +11,7 @@ import java.sql.SQLException;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletionException;
+import java.util.logging.Logger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
@@ -29,7 +30,8 @@ class TrustRepositoryTest {
     Path dir;
 
     private Database open() throws SQLException {
-        return Database.open(DatabaseSettings.sqlite("data.db"), dir.toFile(), "framesort", Runnable::run, null, "db");
+        return Database.open(DatabaseSettings.sqlite("data.db"), dir.toFile(), "framesort", Runnable::run, null, "db",
+                Logger.getLogger("test"));
     }
 
     @Test

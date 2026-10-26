@@ -53,6 +53,15 @@ class ConfigReaderTest {
     }
 
     @Test
+    void aListWrittenAsOneValueWarns() throws Exception {
+        ConfigReader reader = reader("lore: '<gray>One line'\nblocks: STONE\n");
+        assertEquals(List.of(), reader.strings("lore"));
+        assertEquals(List.of(), reader.materials("blocks"));
+        assertEquals(List.of("config.yml > lore: expected a list, ignored",
+                "config.yml > blocks: expected a list, ignored"), warnings);
+    }
+
+    @Test
     void decimalsAcceptWholeNumbers() throws Exception {
         assertEquals(2.0, reader("price: 2\n").decimal("price", 1, 0, 10));
     }

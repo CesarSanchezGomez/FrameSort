@@ -21,7 +21,7 @@ public final class ReloadCommand implements CommandFeature {
     private final Logger logger;
     private final String pluginName;
 
-    /** @param reload reloads everything and returns how many values fell back to their defaults */
+    /** @param reload reloads everything and returns how many warnings it logged */
     public ReloadCommand(Supplier<Messages> messages, Callable<Integer> reload, Logger logger, String pluginName) {
         this.messages = messages;
         this.reload = reload;
