@@ -142,7 +142,7 @@ trace:
   stopped: '<prefix><gray>Tracing stopped.</gray>'
   not-running: '<prefix><gray>You are not tracing.</gray>'
   ended: '<prefix><gray>Tracing ended.</gray>'
-  action-bar: '<white><amount>× <item></white> <dark_gray>→</dark_gray> <kind> <gray>(<x>, <y>, <z>)</gray>'
+  action-bar: '<prefix><white><amount>× <item></white> <dark_gray>→</dark_gray> <kind> <gray>(<x>, <y>, <z>)</gray>'
   kind:
     container: '<green>container</green>'
     dropped: '<yellow>dropped</yellow>'

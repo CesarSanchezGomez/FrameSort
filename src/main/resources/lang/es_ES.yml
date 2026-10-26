@@ -142,7 +142,7 @@ trace:
   stopped: '<prefix><gray>Rastreo detenido.</gray>'
   not-running: '<prefix><gray>No estás rastreando.</gray>'
   ended: '<prefix><gray>El rastreo ha terminado.</gray>'
-  action-bar: '<white><amount>× <item></white> <dark_gray>→</dark_gray> <kind> <gray>(<x>, <y>, <z>)</gray>'
+  action-bar: '<prefix><white><amount>× <item></white> <dark_gray>→</dark_gray> <kind> <gray>(<x>, <y>, <z>)</gray>'
   kind:
     container: '<green>contenedor</green>'
     dropped: '<yellow>suelto</yellow>'
