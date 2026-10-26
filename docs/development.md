@@ -99,11 +99,19 @@ SELECT HEX(owner), HEX(trusted), FROM_UNIXTIME(created_at / 1000) FROM framesort
   exactly as in vanilla and Paper can skip that event.
 - **Pads.** Pads are registered in their chunk, so only loaded pads are checked, every `sweep-interval` ticks. With its
   type's `pull-radius` on, a check also looks for loose items within it: each one that passes the cheap checks (on the
-  ground, not dropped by FrameSort, outside the pad's column, not on another pad) costs one ray, and each one in
-  sight that can take off one `PadPullEvent`. `model.Pull` gives the starting velocity that carries the item to a
-  point over the pad in ten ticks under the game's item physics, so the arc clears the pad's edge; an item at the
-  pad's foot, whose ray to that point hits the pad, hops straight up instead. A one-shot task on the item's own
-  scheduler then puts it exactly there and stops it, so it drops onto the pad. The ray doesn't load a chunk. An
+  ground, not dropped by FrameSort, not just thrown by another pad, outside the pad's column, not on another pad)
+  costs up to five rays, and each one whose flight they find clear one `PadPullEvent`. `model.Pull` works out, under
+  the game's item physics, an arc that lands short of the pad's centre by as much as the item then slides on the
+  friction of the pad's top (`Material#getSlipperiness`; the block a lying item slides on is the one just under a
+  block's height below it, so a carpet or slab on the pad doesn't change it), so it stops there with no task. It
+  rises a block over the pad and over the item, takes 10 ticks plus 1.5 per block (up to 22), longer if needed, up to
+  40. Paper moves an item up or down before sideways, so the item must already be over the pad on the tick before it
+  lands, and it comes over the edge, a quarter block over the surface, at the height that tick has just reached. The
+  rays go through the top of the flight (raised by the item's height), the corner where it comes over the edge and
+  where it lands: they meet a wall or a roof, but pass under the curve between those points. An item within half a
+  block of the pad's side along both axes hops straight up instead, nudged just enough sideways that the ground
+  doesn't hold it, and a one-shot task on the item's own scheduler, at the top of the hop, works out from where the
+  item is then the drift that lands it on the pad. The rays don't load a chunk. An
   item dropped at a drop spot that merges with an unmarked one can lose the mark and be pulled back once; the drop
   that sends it there again marks it. A type that takes inventories also looks for players in the box over the
   pad: one crouching with their feet in the block over the top, and not in spectator mode, sends one stack of slots
@@ -162,8 +170,11 @@ Tracing ends on a timer per player, so the "tracing ended" message arrives on ti
 (`@MinecraftVersionDependent`) behind item templates, the overlay on tagged and CraftEngine items, and shulker box
 and bundle contents. Check them again whenever Paper or Minecraft changes.
 
-`model.Pull` copies the game's item physics (gravity 0.04 and air drag 0.98 per tick, from `ItemEntity` and
-`Entity#getAirDrag` in 26.2). If a Minecraft version changes them, pulled items land short or long of the pad.
+`model.Pull` copies the game's item physics in 26.2: gravity 0.04 and air drag 0.98 per tick (`ItemEntity`,
+`Entity#getAirDrag`); the move up or down before sideways (Paper's `CollisionUtil`); on the ground, sideways speed
+times 0.98 × the friction of the block under it after every move; no bounce on landing on a normal block
+(`Entity#restituteMovementAfterCollisions`); and a lying item with almost no sideways speed moving one tick in four.
+If a Minecraft version changes them, pulled items stop short or long of the pad's centre, or hit its side.
 
 The activator's `components` reach Minecraft as `/give` syntax through `ItemFactory#createItemStack`, which checks
 them on load and reload with the server's registries (main thread). Component names belong to Minecraft: one that a

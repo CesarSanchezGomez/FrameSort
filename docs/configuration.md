@@ -211,16 +211,21 @@ block, nor a mob change it.
 Items resting up to one block above the top block count, so carpets or slabs on the pad are fine.
 
 **Pads pull loose items in.** On every check, a pad throws the items lying on the ground within its type's
-`pull-radius` blocks of its top in an arc that ends, half a second later, one and a half blocks over its centre;
-there the item is put right over the pad, stops and drops onto it, and a check sends it. It only pulls what it can
-see on a straight line to that point: a wall in between stops it, but a carpet or slab resting on the pad doesn't. An
-item lying within a block of the pad's side, whose arc would hit it, hops straight up instead, if nothing is over it,
-and is put over the pad the same way; one under the pad stays. A pad only pulls while the block right over it is
-empty or leaves room on top (a carpet, a bottom slab) and the one above that is free. It doesn't pull items already
-on a pad, items so far above the pad that they couldn't take off, or what FrameSort itself dropped at a drop spot,
-except once if that item merged with another one lying there. Items no target takes stay on top of the pad. With
-WorldGuard, a pad only pulls items lying in exactly its own regions; without it, or another plugin cancelling
-`PadPullEvent`, a pad pulls across claim borders, so set every type's `pull-radius` to `0` on servers that need it.
+`pull-radius` blocks of its top in an arc that rises at least a block over the pad and over the item, lands on the
+pad and slides to its centre, where a check sends it. The further the item, the longer it flies: about a second from
+4 blocks, up to two seconds. An item lying within half a block of the pad's side, which no arc could bring over the
+pad's edge, hops straight up instead, if nothing is over it, and drifts onto the pad as it comes down; one under the
+pad stays. Before throwing, a pad checks the flight with straight rays through its top and through where it comes
+over the pad's edge: a wall in between, or a roof over the top of the flight, stops it, but a carpet or slab resting
+on the pad doesn't. A low overhang under the arc between those points, or something the item flies through, like a
+cobweb or water, can still make it land elsewhere; the next check tries again. A pad only pulls while the block right
+over it is empty or leaves room on top (a carpet, a bottom slab) and the one above that is free. On a slippery top,
+like ice, an item slides much further, so such a pad only pulls items close enough to land softly. It doesn't pull
+items already on a pad, items no flight of two seconds or less can bring in, or what FrameSort itself dropped at a
+drop spot, except once if that item merged with another one lying there. Where two pads reach the same item, it goes
+to one of them. Items no target takes stay on top of the pad. With WorldGuard, a pad only pulls items lying in exactly
+its own regions; without it, or another plugin cancelling `PadPullEvent`, a pad pulls across claim borders, so set
+every type's `pull-radius` to `0` on servers that need it.
 
 **Pads that take inventories.** On every check, a pad whose type has `takes-from-inventory: true` sends one stack
 from the main inventory (the 27 slots above the hotbar) of every player crouching on its top, picked at random like a
