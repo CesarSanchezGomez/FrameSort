@@ -96,34 +96,33 @@ SELECT HEX(owner), HEX(trusted), FROM_UNIXTIME(created_at / 1000) FROM framesort
 - **One plan.** `TargetResolver.plan` ranks the targets into levels of preference, each split into containers,
   drop spots and lava, nearest to the source first. Deliveries and inspections (`/framesort where`, inspecting with
   an item in the off hand) both use it, so an inspection shows exactly what a delivery would do, in its order. The
-  priority of each frame is pure Java with its tests: `model.MatchFacts` for one frame item, `MatchTier.best` for it
+  priority of each frame is pure Java: `model.MatchFacts` for one frame item, `MatchTier.best` for it
   and the items inside it; `TargetResolver` only reads those facts from the items.
 - **No duplication.** Containers are looked up the moment items go in, and the source is updated after each
   container (`model.Delivery`). A container that vanished in between is skipped, so it can't duplicate items, and
   a drop whose spawn another plugin cancels leaves the items in their slot instead of losing them.
 - **No hopper listener.** FrameSort never listens to or cancels `InventoryMoveItemEvent`, so hoppers behave
   exactly as in vanilla and Paper can skip that event.
-- **Pads.** Pads are registered in their chunk, so only loaded pads are checked, every `sweep-interval` ticks, each on a
-  tick of its own inside that interval (from its block's hash), so a server's pads never all work on the same tick, as
-  sorters don't. With its type's `pull-radius` on, a check also looks for loose items within it: each one that passes
-  the cheap checks (on the ground, not dropped by FrameSort, not just thrown by another pad, outside the pad's column,
-  not on another pad) costs up to five rays, and each one whose flight they find clear one `PadPullEvent`. `model.Pull`
-  works out, under the game's item physics, an arc that lands short of the pad's centre by as much as the item then
-  slides on the friction of the pad's top (`Material#getSlipperiness`; the block a lying item slides on is the one just
-  under a block's height below it, so a carpet or slab on the pad doesn't change it), so it stops there with no task. It
-  rises a block over the pad and over the item, takes 10 ticks plus 1.5 per block (up to 22), longer if needed, up to
-  40. Paper moves an item up or down before sideways, so the item must already be over the pad on the tick before it
-  lands, and it comes over the edge, a quarter block over the surface, at the height that tick has just reached. The
-  rays go through the top of the flight (raised by the item's height), the corner where it comes over the edge and where
-  it lands: they meet a wall or a roof, but pass under the curve between those points. An item within half a block of
-  the pad's side along both axes hops straight up instead, nudged just enough sideways that the ground doesn't hold it,
-  and a one-shot task on the item's own scheduler, at the top of the hop, works out from where the item is then the
-  drift that lands it on the pad. The rays don't load a chunk. An item dropped at a drop spot that merges with an
-  unmarked one can lose the mark and be pulled back once; the drop that sends it there again marks it. A type that takes
-  inventories also looks for players in the box over the pad: one crouching with their feet in the block over the top,
-  and not in spectator mode, sends one stack of slots 9 to 35 per check, each a `SlotSource`, trying them at random
-  until one moves something. It stops when the player stops being valid, since another plugin's handler may kill them or
-  make them leave during a delivery.
+- **Pads.** Pads are registered in their chunk, so only loaded pads are checked, every `sweep-interval` ticks, spread
+  over that interval by their block's hash, so they don't all work on the same tick (sorters are spread too). With its
+  type's `pull-radius` on, a check also looks for loose items within it: each one that passes the cheap checks (on the
+  ground, not dropped by FrameSort, not just thrown by another pad, outside the pad's column, not on another pad) costs
+  up to five rays, and each one whose flight they find clear one `PadPullEvent`. `model.Pull` works out, under the
+  game's item physics, an arc that lands short of the pad's centre by as much as the item then slides on the friction of
+  the pad's top (`Material#getSlipperiness`; the block a lying item slides on is the one just under a block's height
+  below it, so a carpet or slab on the pad doesn't change it), so it stops there with no task. It rises a block over the
+  pad and over the item, takes 10 ticks plus 1.5 per block (up to 22), longer if needed, up to 40. Paper moves an item
+  up or down before sideways, so the item must already be over the pad on the tick before it lands, and it comes over
+  the edge, a quarter block over the surface, at the height that tick has just reached. The rays go through the top of
+  the flight (raised by the item's height), the corner where it comes over the edge and where it lands: they meet a wall
+  or a roof, but pass under the curve between those points. An item within half a block of the pad's side along both
+  axes hops straight up instead, nudged just enough sideways that the ground doesn't hold it, and a one-shot task on the
+  item's own scheduler, at the top of the hop, works out from where the item is then the drift that lands it on the pad.
+  The rays don't load a chunk. An item dropped at a drop spot that merges with an unmarked one can lose the mark and be
+  pulled back once; the drop that sends it there again marks it. A type that takes inventories also looks for players in
+  the box over the pad: one crouching with their feet in the block over the top, and not in spectator mode, sends one
+  stack of slots 9 to 35 per check, each a `SlotSource`, trying them at random until one moves something. It stops when
+  the player stops being valid, since another plugin's handler may kill them or make them leave during a delivery.
 - **Chunk borders.** A frame on a chunk border can hang on a block of the next chunk. That block is only read when
   its chunk is loaded, so FrameSort never loads chunks.
 - **Tracing.** With nobody tracing, a delivery costs one empty-map check.

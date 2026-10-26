@@ -124,7 +124,7 @@ mark:
   not-yours: '<prefix><red>Only <white><player></white> can unmark this target</red>'
 
 automark:
-  enabled: '<prefix><green><hover:show_text:"<gray>An item you put in a frame on a<newline>container or composter marks it.<newline>Walls and lava: sneak + right-click.</gray>">Automark on</hover></green>'
+  enabled: '<prefix><green><hover:show_text:"<gray>An item you put in a frame on a<newline>container or composter marks it.<newline>Other blocks: sneak + right-click.</gray>">Automark on</hover></green>'
   disabled: '<prefix><yellow><hover:show_text:"<gray>Sneak + right-click a frame<newline>with an empty hand to mark it.</gray>">Automark off</hover></yellow>'
 
 tag-item:

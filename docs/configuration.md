@@ -1,11 +1,13 @@
 # Configuration
 
-`config.yml`, `pads.yml`, `tags.yml` and `commands.yml` have a `config-version`. When FrameSort's defaults change, the
-console lists their missing and unknown keys; your files are never rewritten. Keys marked *optional* can be left out
-without a warning: leaving one out means none of it, such as an activator with no lore. Language files fill missing keys
-on their own (see [Language](#language)). Invalid values are reported with their path and replaced by the default.
-`/framesort reload` applies `config.yml`, `pads.yml`, `tags.yml` and the language file and tells you how many values
-fell back to their defaults. A file that is not valid YAML stops the reload and the previous configuration stays active.
+`config.yml`, `pads.yml`, `tags.yml`, `commands.yml`, `database.yml` and the language files have a `config-version`.
+When it is older than FrameSort's, or a key is missing or unknown (a typo), the console says so; your files are never
+rewritten. Keys marked *optional* can be left out without a warning: leaving one out means none of it, such as an
+activator with no lore. A key missing from a language file still shows its text (see [Language](#language)). Invalid
+values are reported with their path and replaced by the default, and a list written as a single value (`lore: 'text'`
+instead of `lore: ['text']`) is reported and ignored. `/framesort reload` applies `config.yml`, `pads.yml`, `tags.yml`
+and the language file and tells you how many warnings there were. A file that is not valid YAML stops the reload and
+the previous configuration stays active.
 `commands.yml` and `database.yml` need a restart.
 
 Text values are written in single quotes; an apostrophe inside one is written twice (`'can''t'`). Text with
@@ -162,7 +164,7 @@ is never filled: a frame can't hang on furniture, and CraftEngine keeps hoppers 
 **Lava cauldrons are trash cans.** A target frame on a lava cauldron holds the item to destroy and is chosen like
 any other frame (exact item, tag, material). If a container with the same or a better priority also takes that
 item, the lava only gets what doesn't fit; containers with a worse priority get nothing. With the default target
-item (an item frame) in the frame, it destroys whatever has no other target or no room left in one. An empty
+item (a recovery compass) in the frame, it destroys whatever has no other target or no room left in one. An empty
 frame does nothing.
 
 ### ownership
@@ -314,7 +316,8 @@ MariaDB's driver is downloaded on the first start, like HikariCP; the SQLite and
 
 `language` in `config.yml` picks `lang/<language>.yml` (`en_US`, `es_ES`), written the first time it is used. A
 key missing from your file comes from the bundled copy of that language, then from the bundled `en_US`; a key missing
-everywhere shows as the key and is reported once in the console. Messages use
+everywhere shows as the key and is reported once in the console. Your file is compared with the bundled one of its
+language when it loads: missing keys, unknown ones (a typo) and an old `config-version` are reported. Messages use
 [MiniMessage](https://docs.papermc.io/adventure/minimessage/format/); `<prefix>` is the `prefix` key.
 
 ### Help

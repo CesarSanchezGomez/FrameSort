@@ -124,7 +124,7 @@ mark:
   not-yours: '<prefix><red>Solo <white><player></white> puede desmarcar este destino</red>'
 
 automark:
-  enabled: '<prefix><green><hover:show_text:"<gray>Un item que metes en un marco sobre<newline>un contenedor o compostador lo marca.<newline>Paredes y lava: shift + clic derecho.</gray>">Automarcado activado</hover></green>'
+  enabled: '<prefix><green><hover:show_text:"<gray>Un item que metes en un marco sobre<newline>un contenedor o compostador lo marca.<newline>Otros bloques: shift + clic derecho.</gray>">Automarcado activado</hover></green>'
   disabled: '<prefix><yellow><hover:show_text:"<gray>Shift + clic derecho a un marco<newline>con la mano vacía para marcarlo.</gray>">Automarcado desactivado</hover></yellow>'
 
 tag-item:
