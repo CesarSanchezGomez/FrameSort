@@ -144,7 +144,7 @@ public final class FrameSortPlugin extends JavaPlugin {
         AutomarkService automark = new AutomarkService(this, index, sorters, inspect, customItems,
                 player -> commands.usageFor("automark", player::hasPermission) != null);
 
-        register(new TargetListener(index, automark), new SorterListener(sorters, messages),
+        register(new TargetListener(index, automark, resolver), new SorterListener(sorters, messages),
                 new PadListener(padService, messages), new InspectListener(inspect, sorters, padService));
         if (getServer().getPluginManager().isPluginEnabled("WorldGuard")) {
             register(new WorldGuardListener());

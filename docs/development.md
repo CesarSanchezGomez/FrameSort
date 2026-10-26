@@ -92,7 +92,8 @@ SELECT HEX(owner), HEX(trusted), FROM_UNIXTIME(created_at / 1000) FROM framesort
   when a frame becomes a target or stops being one. A cached frame is checked again before use: one that is gone,
   unloaded or holds another item now makes the plan stale and its cache entry is dropped, so taking an item out,
   rotating or hitting a frame needs no epoch. The loop guards (a frame on another sorter, items that would land on a
-  pad) are checked again too: sorters and the blocks below change without touching a frame.
+  pad) are checked again too: sorters and the blocks below change without touching a frame. Cached matches hold live
+  frames, so a world's entries go when it unloads, and the cache empties itself at 4096 entries.
 - **One plan.** `TargetResolver.plan` ranks the targets into levels of preference, each split into containers,
   drop spots and lava, nearest to the source first. Deliveries and inspections (`/framesort where`, inspecting with
   an item in the off hand) both use it, so an inspection shows exactly what a delivery would do, in its order. The
