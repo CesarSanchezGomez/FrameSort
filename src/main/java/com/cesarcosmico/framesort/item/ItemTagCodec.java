@@ -13,8 +13,7 @@ import java.util.Set;
 // The tag lives in the item's data, not in its name, so renaming a tagged item never changes what it accepts.
 public final class ItemTagCodec {
 
-    // What a tag changes on the item, and so what it gives back when it comes off.
-    private static final Set<DataComponentType> LOOK = Set.of(DataComponentTypes.CUSTOM_NAME,
+    private static final Set<DataComponentType> CHANGED_BY_TAG = Set.of(DataComponentTypes.CUSTOM_NAME,
             DataComponentTypes.LORE, DataComponentTypes.ENCHANTMENT_GLINT_OVERRIDE);
 
     private ItemTagCodec() {
@@ -27,7 +26,7 @@ public final class ItemTagCodec {
             clear(item);
         }
         ItemStack own = ItemStack.of(item.getType());
-        own.copyDataFrom(item, LOOK::contains);
+        own.copyDataFrom(item, CHANGED_BY_TAG::contains);
         byte[] snapshot = own.serializeAsBytes();
         ItemOverlay.applyBelowOwnLore(item, look, resolvers);
         item.editPersistentDataContainer(pdc -> {
@@ -41,8 +40,8 @@ public final class ItemTagCodec {
         byte[] snapshot = item.getPersistentDataContainer().get(Keys.ITEM_TAG_ORIGINAL, PersistentDataType.BYTE_ARRAY);
         ItemStack own = ItemStack.deserializeBytes(snapshot);
         // resetData, never unsetData: on a nether star that would remove its own glint, and it would stop stacking.
-        LOOK.forEach(item::resetData);
-        item.copyDataFrom(own, LOOK::contains);
+        CHANGED_BY_TAG.forEach(item::resetData);
+        item.copyDataFrom(own, CHANGED_BY_TAG::contains);
         item.editPersistentDataContainer(pdc -> {
             pdc.remove(Keys.ITEM_TAG);
             pdc.remove(Keys.ITEM_TAG_ORIGINAL);
