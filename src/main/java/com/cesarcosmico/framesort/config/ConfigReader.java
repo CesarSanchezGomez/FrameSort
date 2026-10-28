@@ -22,6 +22,7 @@ import java.util.regex.Pattern;
 public final class ConfigReader {
 
     private static final Pattern HEX_COLOR = Pattern.compile("#?[0-9a-fA-F]{6}");
+    private static final Pattern LEGACY_CODE = Pattern.compile("§[0-9a-fk-or]", Pattern.CASE_INSENSITIVE);
 
     private final ConfigurationSection root;
     private final String file;
@@ -31,6 +32,11 @@ public final class ConfigReader {
         this.root = root;
         this.file = file;
         this.warn = warn;
+    }
+
+    /** Whether MiniMessage would reject {@code text}: a § code makes it throw, even when lenient. */
+    public static boolean hasLegacyCode(String text) {
+        return LEGACY_CODE.matcher(text).find();
     }
 
     public void warn(String path, String problem) {

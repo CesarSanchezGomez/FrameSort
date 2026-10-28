@@ -53,6 +53,19 @@ class ItemLookParserTest {
     }
 
     @Test
+    void aNameOrLoreWithALegacyCodeIsWarnedAndLeftOut() throws Exception {
+        ItemTemplate template = template("""
+                name: '§aSorter'
+                lore: ['ok', '§lbold']
+                """, ACCEPT_ALL);
+        assertNull(template.look().name());
+        assertEquals(List.of(), template.look().lore());
+        String problem = "uses § codes, which MiniMessage cannot read; write MiniMessage tags. Ignored";
+        assertEquals(List.of("config.yml > activator.name: " + problem, "config.yml > activator.lore: " + problem),
+                warnings);
+    }
+
+    @Test
     void aBlankNameMeansNone() throws Exception {
         assertNull(template("name: ''\n", ACCEPT_ALL).look().name());
         assertNull(template("name: '  '\n", ACCEPT_ALL).look().name());

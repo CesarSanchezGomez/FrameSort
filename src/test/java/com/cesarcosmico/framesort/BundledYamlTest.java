@@ -1,5 +1,6 @@
 package com.cesarcosmico.framesort;
 
+import com.cesarcosmico.framesort.config.ConfigReader;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.junit.jupiter.api.Test;
 
@@ -42,6 +43,14 @@ class BundledYamlTest {
                 String last = key.substring(key.lastIndexOf('.') + 1);
                 assertFalse(last.equals("true") || last.equals("false"), file + ": " + key);
             }
+        }
+    }
+
+    // MiniMessage throws on a § code, so a bundled text with one would never be shown.
+    @Test
+    void noBundledTextHasALegacyCode() throws Exception {
+        for (Path file : yamlFiles()) {
+            assertFalse(ConfigReader.hasLegacyCode(Files.readString(file)), file + " has a § code");
         }
     }
 

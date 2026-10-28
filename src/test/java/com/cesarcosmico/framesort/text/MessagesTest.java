@@ -74,6 +74,24 @@ class MessagesTest {
     }
 
     @Test
+    void aTextWithALegacyCodeFallsBackToTheJarWithAWarning() throws Exception {
+        YamlConfiguration live = yaml("""
+                greeting: '§aHi'
+                lines:
+                  - 'ok'
+                  - '§lbold'
+                """);
+        List<String> warnings = new ArrayList<>();
+        Messages.dropLegacyCodes(live, "lang/es_ES.yml", warnings::add);
+        Messages messages = Messages.of(live, yaml(ES_ES), yaml(EN_US), missing::add);
+        assertEquals("Hola", plain(messages.get("greeting")));
+        assertEquals("one\ntwo", plain(messages.get("lines")));
+        assertEquals(2, warnings.size());
+        assertEquals("lang/es_ES.yml > greeting: uses § codes, which MiniMessage cannot read; write MiniMessage tags."
+                + " Using the jar's text.", warnings.get(0));
+    }
+
+    @Test
     void keyMissingEverywhereIsShownAndReportedOnce() throws Exception {
         Messages messages = messages("other: 'x'\n", ES_ES, EN_US);
         assertEquals("no.such.key", plain(messages.get("no.such.key")));

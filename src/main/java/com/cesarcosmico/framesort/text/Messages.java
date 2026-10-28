@@ -1,6 +1,7 @@
 package com.cesarcosmico.framesort.text;
 
 import com.cesarcosmico.framesort.config.ConfigFiles;
+import com.cesarcosmico.framesort.config.ConfigReader;
 import com.cesarcosmico.framesort.config.ConfigValidator;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
@@ -13,6 +14,7 @@ import org.jspecify.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -49,6 +51,7 @@ public final class Messages {
         }
         YamlConfiguration live = ConfigFiles.load(plugin, path);
         ConfigValidator.check(plugin, live, path, warn);
+        dropLegacyCodes(live, path, warn);
         return of(live, ConfigFiles.bundled(plugin, path), ConfigFiles.bundled(plugin, path(DEFAULT_LANGUAGE)),
                 plugin.getLogger()::warning);
     }
@@ -63,6 +66,22 @@ public final class Messages {
             live.setDefaults(defaults);
         }
         return new Messages(live, missingKey);
+    }
+
+    // A text with a § code is invalid like any other value (warned, and the jar's copy used): the message would never
+    // be sent, because MiniMessage throws on it.
+    static void dropLegacyCodes(YamlConfiguration live, String path, Consumer<String> warn) {
+        for (String key : live.getKeys(true)) {
+            Object value = live.get(key);
+            boolean legacy = value instanceof String text ? ConfigReader.hasLegacyCode(text)
+                    : value instanceof List<?> lines && lines.stream().anyMatch(line -> line instanceof String text
+                            && ConfigReader.hasLegacyCode(text));
+            if (legacy) {
+                warn.accept(path + " > " + key + ": uses § codes, which MiniMessage cannot read;"
+                        + " write MiniMessage tags. Using the jar's text.");
+                live.set(key, null);
+            }
+        }
     }
 
     /** A message; a YAML list is one message whose lines are joined with {@code <newline>}. */

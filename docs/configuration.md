@@ -321,6 +321,11 @@ everywhere shows as the key and is reported once in the console. Your file is co
 language when it loads: missing keys, unknown ones (a typo) and an old `config-version` are reported. Messages use
 [MiniMessage](https://docs.papermc.io/adventure/minimessage/format/); `<prefix>` is the `prefix` key.
 
+MiniMessage is read in its lenient mode: a misspelt or unknown tag shows as plain text instead of failing. Legacy
+`§` codes (`§a`, `§l`) are the exception, because MiniMessage cannot read them: a message, an item name or a lore
+written with one is reported when the file loads, and the bundled text is used instead (an item gets no name or lore).
+Write colours as tags (`<green>`, `<bold>`).
+
 ### Help
 
 The help is one message built from `command.help.layout` (a list: one line per entry). `<entries>` in it is one

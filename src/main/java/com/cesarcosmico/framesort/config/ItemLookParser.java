@@ -20,13 +20,25 @@ import java.util.function.Function;
  */
 public final class ItemLookParser {
 
+    private static final String LEGACY_PROBLEM = "uses § codes, which MiniMessage cannot read; write MiniMessage "
+            + "tags. Ignored";
+
     private ItemLookParser() {
     }
 
-    /** A blank name means none, as a missing one does. */
+    /** A blank name means none, as a missing one does; so does a name or lore with a § code, which is warned. */
     public static ItemLook look(ConfigReader reader) {
         String name = reader.string("name", "");
-        return new ItemLook(name.isBlank() ? null : name, reader.strings("lore"), reader.bool("glint", false));
+        if (ConfigReader.hasLegacyCode(name)) {
+            reader.warn("name", LEGACY_PROBLEM);
+            name = "";
+        }
+        List<String> lore = reader.strings("lore");
+        if (lore.stream().anyMatch(ConfigReader::hasLegacyCode)) {
+            reader.warn("lore", LEGACY_PROBLEM);
+            lore = List.of();
+        }
+        return new ItemLook(name.isBlank() ? null : name, lore, reader.bool("glint", false));
     }
 
     /**
