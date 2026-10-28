@@ -1,6 +1,5 @@
 package com.cesarcosmico.framesort.config;
 
-import java.util.Objects;
 import java.util.function.Supplier;
 
 /**
@@ -12,7 +11,7 @@ public final class ConfigHolder<T> implements Supplier<T> {
     private volatile T value;
 
     public ConfigHolder(T initial) {
-        this.value = Objects.requireNonNull(initial);
+        this.value = initial;
     }
 
     @Override
@@ -21,6 +20,6 @@ public final class ConfigHolder<T> implements Supplier<T> {
     }
 
     public void set(T value) {
-        this.value = Objects.requireNonNull(value);
+        this.value = value;
     }
 }

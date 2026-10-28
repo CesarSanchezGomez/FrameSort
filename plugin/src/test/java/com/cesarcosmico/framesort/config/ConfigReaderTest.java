@@ -38,6 +38,24 @@ class ConfigReaderTest {
     }
 
     @Test
+    void miniMessageWithASectionCodeWarnsAndUsesTheFallback() throws Exception {
+        ConfigReader reader = reader("title: '§aSorter'\nname: '<green>Sorter'\n");
+        assertEquals("", reader.miniMessage("title", ""));
+        assertEquals("<green>Sorter", reader.miniMessage("name", ""));
+        assertEquals(List.of("config.yml > title: uses § codes, which MiniMessage cannot read; write MiniMessage tags."
+                + " Ignored"), warnings);
+    }
+
+    @Test
+    void aMiniMessageListWithASectionCodeInOneLineIsWarnedAndLeftEmpty() throws Exception {
+        ConfigReader reader = reader("lore:\n  - '<gray>one'\n  - '§atwo'\nhelp:\n  - '<gray>fine'\n");
+        assertEquals(List.of(), reader.miniMessages("lore"));
+        assertEquals(List.of("<gray>fine"), reader.miniMessages("help"));
+        assertEquals(List.of("config.yml > lore: uses § codes, which MiniMessage cannot read; write MiniMessage tags."
+                + " Ignored"), warnings);
+    }
+
+    @Test
     void invalidValuesWarnWithFileAndPathAndUseTheDefault() throws Exception {
         ConfigReader reader = reader("limits:\n  radius: 'far'\n");
         assertEquals(64, reader.sectionOrEmpty("limits").integer("radius", 64, 1, 128));

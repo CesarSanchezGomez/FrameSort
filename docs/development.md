@@ -140,8 +140,9 @@ Everything that touches the world runs on the main thread, and a single repeatin
 
 `/framesort reload` reads and checks its files on Paper's async scheduler, as Paper's docs ask for loading files,
 then parses them on the main thread, where materials, items and tags can be read, and swaps them there. The command
-answers once that is done; a second reload while one runs is refused. The first load, at enable, runs on the main
-thread, before the server takes players.
+answers once that is done, a player through their own scheduler, so nothing is sent to one who left; a reload asked
+while another runs is not started, and says so. The first load, at enable, runs on the main thread, because nothing can
+be registered before the configuration is read.
 
 The only I/O is the trust table, on the database's single thread (`storage.Database`):
 - at enable, the whole table is read with a timeout before anything else runs; if it fails, FrameSort disables
@@ -170,13 +171,11 @@ Players' names come from the server's profile cache (`PlayerProfile#completeFrom
 
 Highlights are temporary item displays that copy each frame's item, glowing in an exact colour
 (`Display#setGlowColorOverride`). The display's transformation repeats what the vanilla item frame renderer does
-(`ItemFrameRenderer#submit` in 26.2: offset, facing, rotation, half scale, minus the half turn the item display
-renderer adds), so the copy lands exactly on the real item. They are hidden from
-everyone but the inspecting player (`setVisibleByDefault(false)` + `Player#showEntity`), never saved, and removed
-after `highlight-seconds`, each on its own scheduler, or when the plugin disables; a player who leaves first
-just stops seeing them, since nobody else can. Making the frame itself glow would
-show it to every player, in a colour that depends on scoreboard teams, and Paper has no per-player glow without
-packets.
+(`ItemFrameRenderer#submit` in 26.2: offset, facing, rotation, half scale, minus the half turn the item display renderer
+adds), so the copy lands exactly on the real item. They are hidden from everyone but the inspecting player
+(`setVisibleByDefault(false)` + `Player#showEntity`), never saved, and removed after `highlight-seconds`, each on its
+own scheduler, when their player leaves, or when the plugin disables. Making the frame itself glow would show it to
+every player, in a colour that depends on scoreboard teams, and Paper has no per-player glow without packets.
 
 Tracing ends on a timer per player, so the "tracing ended" message arrives on time even when nothing is delivered.
 
@@ -187,11 +186,12 @@ Tracing ends on a timer per player, so the "tracing ended" message arrives on ti
 (`@MinecraftVersionDependent`) behind item templates, the overlay on tagged and CraftEngine items, and shulker box
 and bundle contents. Check them again whenever Paper or Minecraft changes.
 
-`model.Pull` copies the game's item physics in 26.2: gravity 0.04 and air drag 0.98 per tick (`ItemEntity`,
-`Entity#getAirDrag`); the move up or down before sideways (Paper's `CollisionUtil`); on the ground, sideways speed
-times 0.98 × the friction of the block under it after every move; no bounce on landing on a normal block
-(`Entity#restituteMovementAfterCollisions`); and a lying item with almost no sideways speed moving one tick in four.
-If a Minecraft version changes them, pulled items stop short or long of the pad's centre, or hit its side.
+`model.Pull` copies the game's item physics in 26.2 and 26.3: gravity 0.04 and air drag 0.98 per tick (`ItemEntity`,
+`Entity#getAirDrag`); the move up or down before sideways (Paper's `CollisionUtil`); on the ground, sideways speed times
+0.98 × the friction of the block under it after every move; no bounce on landing on a normal block
+(`Entity#restituteMovementAfterCollisions`; 26.3 also calls `Block#bounceOn` on a bouncy one); and a lying item with
+almost no sideways speed moving one tick in four. If a Minecraft version changes them, pulled items stop short or long
+of the pad's centre, or hit its side.
 
 The activator's `components` reach Minecraft as `/give` syntax through `ItemFactory#createItemStack`, which checks
 them on load and reload with the server's registries (main thread). Component names belong to Minecraft: one that a

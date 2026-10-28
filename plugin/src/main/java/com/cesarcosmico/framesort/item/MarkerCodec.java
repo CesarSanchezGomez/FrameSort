@@ -16,9 +16,6 @@ public final class MarkerCodec {
     }
 
     public static @Nullable String read(ItemStack item, NamespacedKey marker) {
-        if (item.isEmpty()) {
-            return null;
-        }
         return item.getPersistentDataContainer().get(marker, PersistentDataType.STRING);
     }
 }

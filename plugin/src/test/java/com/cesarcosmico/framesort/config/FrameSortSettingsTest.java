@@ -147,6 +147,17 @@ class FrameSortSettingsTest {
     }
 
     @Test
+    void aSorterTitleWithSectionCodesIsWarnedAndLeftOut() throws Exception {
+        YamlConfiguration yaml = bundled("config.yml");
+        yaml.set("sorter.custom-name", "§aSorter");
+        List<String> warnings = new ArrayList<>();
+
+        assertNull(parse(yaml, warnings).sorter().customName());
+        assertEquals(List.of("config.yml > sorter.custom-name: uses § codes, which MiniMessage cannot read; write"
+                + " MiniMessage tags. Ignored"), warnings);
+    }
+
+    @Test
     void activatorComponentsAreKnownAndChecked() throws Exception {
         YamlConfiguration bundled = bundled("config.yml");
         YamlConfiguration live = bundled("config.yml");

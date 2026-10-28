@@ -7,7 +7,6 @@ import com.cesarcosmico.framesort.service.TagCatalog;
 import com.cesarcosmico.framesort.text.ChatPager;
 import com.cesarcosmico.framesort.text.Messages;
 import com.mojang.brigadier.Command;
-import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
@@ -48,10 +47,7 @@ public final class TagShowCommand implements CommandFeature {
 
     @Override
     public void attach(LiteralArgumentBuilder<CommandSourceStack> node, String path) {
-        node.then(Commands.argument("tag", tag)
-                .executes(context -> send(context, path, 1))
-                .then(Commands.argument("page", IntegerArgumentType.integer(1))
-                        .executes(context -> send(context, path, IntegerArgumentType.getInteger(context, "page")))));
+        node.then(PageArgument.optional(Commands.argument("tag", tag), (context, page) -> send(context, path, page)));
     }
 
     private int send(CommandContext<CommandSourceStack> context, String path, int page) {

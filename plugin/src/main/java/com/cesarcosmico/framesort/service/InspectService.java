@@ -131,7 +131,7 @@ public final class InspectService {
         } else {
             title = text.get("inspect.title-item", Placeholder.component("source", kind),
                     Placeholder.component("item", filter.effectiveName()), details);
-            filtered(text, source, owner, shown.range(), center, filter, lines, marks);
+            filtered(text, shown, center, filter, lines, marks);
         }
         ChatPager.send(player, text, title, lines, page, settings.get().inspect().pageSize(),
                 target -> pageButton(center, pad, filter, opened, target));
@@ -301,9 +301,9 @@ public final class InspectService {
         highlight(player, List.of(new HighlightService.Highlight(frame, marked ? colors.container() : colors.lava())));
     }
 
-    private void filtered(Messages text, Block source, @Nullable UUID owner, int range, BlockKey center,
-                          ItemStack filter, List<Component> lines, List<HighlightService.Highlight> marks) {
-        List<TargetResolver.Level> levels = resolver.plan(source, owner, range, filter).levels();
+    private void filtered(Messages text, Source shown, BlockKey center, ItemStack filter, List<Component> lines,
+                          List<HighlightService.Highlight> marks) {
+        List<TargetResolver.Level> levels = resolver.plan(shown.block(), shown.owner(), shown.range(), filter).levels();
         for (int i = 0; i < levels.size(); i++) {
             TargetResolver.Level level = levels.get(i);
             Target end = level.end();

@@ -19,7 +19,7 @@
 | `/framesort trusted [page]` | Whom you trust, since when, and who trusts you. |
 | `/framesort give sorter [player] [amount]` | The sorter activator from `config.yml`. Needed when `sorter.activator.require-marked` is true. A CraftEngine activator is built by CraftEngine; while it can't (an ID it doesn't know, or during `/ce reload`) nothing is given and you are told so. |
 | `/framesort give pad <type> [player] [amount]` | The special top block of a pad type. Needed when `pads.yml` has `creation: item`. A CraftEngine top block's item is built by CraftEngine; while it can't, nothing is given and you are told so. |
-| `/framesort reload` | Reloads `config.yml`, `pads.yml`, `tags.yml` and the language file. If a file is broken, the previous configuration stays active. |
+| `/framesort reload` | Reloads `config.yml`, `pads.yml`, `tags.yml` and the language file. If a file is broken, the previous configuration stays active. Asked while another reload runs, it says so and does nothing. |
 
 ## Inspecting
 
@@ -104,7 +104,8 @@ trace:
   usage:
     - '/framesort trace'
     - '/fs trace'
-    - '/fstrace'      # also /fstrace [seconds|stop]
+    # Also /fstrace [seconds|stop].
+    - '/fstrace'
 ```
 
 Moving the tag list to `/fs tags`, while only staff may apply tags:
@@ -119,7 +120,8 @@ tag-list:
 
 tag-apply:
   enabled: true
-  permission: 'myserver.staff'   # not declared by FrameSort, so ops only unless a permissions plugin grants it
+  # Not declared by FrameSort, so ops only unless a permissions plugin grants it.
+  permission: 'myserver.staff'
   usage:
     - '/framesort tag apply'
     - '/fs tag apply'

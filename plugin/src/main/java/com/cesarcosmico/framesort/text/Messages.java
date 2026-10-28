@@ -45,7 +45,7 @@ public final class Messages {
     public static Messages load(Plugin plugin, String language, Consumer<String> warn)
             throws IOException, InvalidConfigurationException {
         String path = path(language);
-        if (plugin.getResource(path) == null && !new File(plugin.getDataFolder(), path).exists()) {
+        if (!ConfigFiles.inJar(plugin, path) && !new File(plugin.getDataFolder(), path).exists()) {
             warn.accept("Unknown language '" + language + "', using " + DEFAULT_LANGUAGE + ".");
             path = path(DEFAULT_LANGUAGE);
         }
@@ -77,8 +77,7 @@ public final class Messages {
                     : value instanceof List<?> lines && lines.stream().anyMatch(line -> line instanceof String text
                             && ConfigReader.hasLegacyCode(text));
             if (legacy) {
-                warn.accept(path + " > " + key + ": uses § codes, which MiniMessage cannot read;"
-                        + " write MiniMessage tags. Using the jar's text.");
+                warn.accept(path + " > " + key + ": " + ConfigReader.LEGACY_CODES + " Using the jar's text.");
                 live.set(key, null);
             }
         }

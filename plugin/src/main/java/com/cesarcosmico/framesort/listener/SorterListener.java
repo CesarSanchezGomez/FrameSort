@@ -6,6 +6,7 @@ import com.destroystokyo.paper.event.entity.EntityAddToWorldEvent;
 import com.destroystokyo.paper.event.entity.EntityRemoveFromWorldEvent;
 import io.papermc.paper.event.player.PlayerItemFrameChangeEvent;
 import net.kyori.adventure.text.Component;
+import org.bukkit.Server;
 import org.bukkit.block.Dispenser;
 import org.bukkit.entity.ItemFrame;
 import org.bukkit.entity.Player;
@@ -69,9 +70,16 @@ public final class SorterListener implements Listener {
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onFrameChange(PlayerItemFrameChangeEvent event) {
         Player player = event.getPlayer();
-        UUID placer = event.getAction() == PlayerItemFrameChangeEvent.ItemFrameChangeAction.PLACE
-                ? player.getUniqueId() : null;
-        sorters.considerLater(event.getItemFrame(), placer, change -> tell(player, change));
+        UUID id = player.getUniqueId();
+        UUID placer = event.getAction() == PlayerItemFrameChangeEvent.ItemFrameChangeAction.PLACE ? id : null;
+        Server server = player.getServer();
+        // The frame's task runs a tick later, when the player may have left.
+        sorters.considerLater(event.getItemFrame(), placer, change -> {
+            Player now = server.getPlayer(id);
+            if (now != null) {
+                tell(now, change);
+            }
+        });
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)

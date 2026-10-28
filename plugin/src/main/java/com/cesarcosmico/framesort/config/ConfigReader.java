@@ -23,6 +23,8 @@ public final class ConfigReader {
 
     private static final Pattern HEX_COLOR = Pattern.compile("#?[0-9a-fA-F]{6}");
     private static final Pattern LEGACY_CODE = Pattern.compile("§[0-9a-fk-or]", Pattern.CASE_INSENSITIVE);
+    public static final String LEGACY_CODES = "uses § codes, which MiniMessage cannot read; write MiniMessage tags.";
+    static final String LEGACY_PROBLEM = LEGACY_CODES + " Ignored";
 
     private final ConfigurationSection root;
     private final String file;
@@ -52,6 +54,26 @@ public final class ConfigReader {
     public String string(String path, String fallback) {
         String value = root.getString(path);
         return value == null ? fallback : value;
+    }
+
+    /** A MiniMessage text; one with a § code is warned and replaced by {@code fallback}. */
+    public String miniMessage(String path, String fallback) {
+        String value = string(path, fallback);
+        if (!hasLegacyCode(value)) {
+            return value;
+        }
+        warn(path, LEGACY_PROBLEM);
+        return fallback;
+    }
+
+    /** Lines of MiniMessage text; with a § code in any of them, the list is warned and left empty. */
+    public List<String> miniMessages(String path) {
+        List<String> lines = strings(path);
+        if (lines.stream().noneMatch(ConfigReader::hasLegacyCode)) {
+            return lines;
+        }
+        warn(path, LEGACY_PROBLEM);
+        return List.of();
     }
 
     public List<String> strings(String path) {

@@ -2,7 +2,10 @@ package com.cesarcosmico.framesort.model;
 
 import java.util.function.DoubleSupplier;
 
-/** Vanilla's composter rule (ComposterBlock in Minecraft 26.2), applied one item at a time as a hopper does. */
+/**
+ * Vanilla's composter rule, applied one item at a time as a hopper does: {@code ComposterBlock} in Minecraft 26.2, and
+ * the {@code compostable} item data in 26.3, whose vanilla values give the same result.
+ */
 public final class Composting {
 
     public static final int FULL = 7;

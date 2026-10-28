@@ -518,8 +518,10 @@ public final class PadService {
         }
 
         @Override
-        public Item moveTo(Location destination) {
-            item.teleport(destination);
+        public @Nullable Item moveTo(Location destination) {
+            if (!item.teleport(destination)) {
+                return null;
+            }
             item.setVelocity(new Vector());
             return item;
         }

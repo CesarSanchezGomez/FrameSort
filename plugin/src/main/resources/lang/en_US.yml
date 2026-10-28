@@ -32,6 +32,7 @@ command:
   reloaded: '<prefix><green>Configuration reloaded.</green>'
   reloaded-with-warnings: '<prefix><yellow><hover:show_text:"<gray>Those settings use their defaults.<newline>See the console.</gray>">Reloaded with <count> warning(s)</hover></yellow>'
   reload-failed: '<prefix><red><hover:show_text:"<gray><error><newline>The previous configuration is still active.</gray>">Reload failed: see the console</hover></red>'
+  reload-running: '<prefix><yellow><hover:show_text:"<gray>Try again when it ends.</gray>">A reload is already running</hover></yellow>'
   players-only: '<prefix><red>Only players can use this command.</red>'
 
 pager:

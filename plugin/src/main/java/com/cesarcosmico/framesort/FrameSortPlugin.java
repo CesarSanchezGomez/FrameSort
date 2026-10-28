@@ -57,10 +57,12 @@ import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents;
 import org.bukkit.Chunk;
 import org.bukkit.Material;
 import org.bukkit.World;
+import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.ItemFrame;
+import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitTask;
@@ -75,7 +77,6 @@ import java.util.concurrent.CompletionException;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -84,7 +85,7 @@ import java.util.logging.Level;
 public final class FrameSortPlugin extends JavaPlugin {
 
     private static final String COMMAND_DESCRIPTION = "Sort items into item frames";
-    // The server does not take players before onEnable returns, so a slow database only delays the start.
+    // Nothing can check trust before the whole table is in memory, so a slow database only delays the start.
     private static final long TRUST_LOAD_SECONDS = 10;
     private static final long TRUST_REFRESH_TICKS = Ticks.ofSeconds(60);
 
@@ -98,19 +99,17 @@ public final class FrameSortPlugin extends JavaPlugin {
     private record Loaded(Parsed parsed, Messages messages) {
     }
 
-    private final AtomicBoolean reloading = new AtomicBoolean();
     // Null in onDisable when the plugin failed to start, or before it got that far.
     private @Nullable BukkitTask ticker;
     private @Nullable Database database;
     private @Nullable BukkitTask trustRefresh;
     private @Nullable SorterService sorters;
     private @Nullable HighlightService highlights;
-    // Read once on enable: CraftEngine loads before FrameSort, and a reload checks the config against it too.
-    private boolean craftEngine;
 
     @Override
     public void onEnable() {
-        craftEngine = getServer().getPluginManager().isPluginEnabled("CraftEngine");
+        // Read once: CraftEngine loads before FrameSort, and a reload checks the config against it too.
+        boolean craftEngine = getServer().getPluginManager().isPluginEnabled("CraftEngine");
         Consumer<String> warn = getLogger()::warning;
         // Locals, not fields: a failed start would leave fields null, and only onEnable and what it hands out use them.
         ConfigHolder<FrameSortSettings> settings;
@@ -122,9 +121,10 @@ public final class FrameSortPlugin extends JavaPlugin {
         TrustRepository trustRepository;
         TrustList trustList;
         try {
-            settings = new ConfigHolder<>(parseSettings(readConfig(warn), warn));
-            pads = new ConfigHolder<>(parsePads(readPads(warn), warn));
-            tagSettings = new ConfigHolder<>(parseTags(readTags(warn), warn));
+            Parsed parsed = parse(readFiles(warn), warn, craftEngine);
+            settings = new ConfigHolder<>(parsed.settings());
+            pads = new ConfigHolder<>(parsed.pads());
+            tagSettings = new ConfigHolder<>(parsed.tags());
             messages = new ConfigHolder<>(Messages.load(this, settings.get().language(), warn));
             // Trusting players means nothing without owners, so those commands follow the setting.
             BooleanSupplier ownership = () -> settings.get().ownership();
@@ -162,7 +162,7 @@ public final class FrameSortPlugin extends JavaPlugin {
                 player -> commands.usageFor("automark", player::hasPermission) != null);
 
         register(new TargetListener(index, automark, resolver), new SorterListener(sorters, messages),
-                new PadListener(padService, messages), new InspectListener(inspect, sorters, padService));
+                new PadListener(padService, messages), new InspectListener(inspect, sorters, padService, highlights));
         if (getServer().getPluginManager().isPluginEnabled("WorldGuard")) {
             register(new WorldGuardListener());
         }
@@ -190,8 +190,8 @@ public final class FrameSortPlugin extends JavaPlugin {
                 new UntrustCommand(trust, messages),
                 new TrustedCommand(trust, messages, settings),
                 new GiveCommand(sorters, padService, pads, messages),
-                new ReloadCommand(messages, () -> reload(settings, pads, tagSettings, messages, refresh),
-                        getServer().getScheduler().getMainThreadExecutor(this), getLogger(), getName()));
+                new ReloadCommand(messages, () -> reload(settings, pads, tagSettings, messages, refresh, craftEngine),
+                        this::replies, getServer().getScheduler().getMainThreadExecutor(this), getLogger(), getName()));
         getLifecycleManager().registerEventHandler(LifecycleEvents.COMMANDS, event -> {
             for (LiteralCommandNode<CommandSourceStack> root : CommandTree.build(features, commands)) {
                 event.registrar().register(root, COMMAND_DESCRIPTION);
@@ -235,14 +235,9 @@ public final class FrameSortPlugin extends JavaPlugin {
         }
     }
 
-    // Every file loads before anything is swapped, so a broken one keeps the previous state. Paper's docs ask to load
-    // files off the main thread: they are read there, and parsing, which reads the server, and the swap run on it.
     private CompletableFuture<Integer> reload(ConfigHolder<FrameSortSettings> settings, ConfigHolder<PadSettings> pads,
                                               ConfigHolder<TagSettings> tagSettings, ConfigHolder<Messages> messages,
-                                              Runnable refresh) {
-        if (!reloading.compareAndSet(false, true)) {
-            return CompletableFuture.failedFuture(new IllegalStateException("a reload is already running"));
-        }
+                                              Runnable refresh, boolean craftEngine) {
         List<String> warnings = new CopyOnWriteArrayList<>();
         Consumer<String> warn = warning -> {
             warnings.add(warning);
@@ -251,8 +246,7 @@ public final class FrameSortPlugin extends JavaPlugin {
         Executor files = task -> getServer().getScheduler().runTaskAsynchronously(this, task);
         Executor main = getServer().getScheduler().getMainThreadExecutor(this);
         return CompletableFuture.supplyAsync(io(() -> readFiles(warn)), files)
-                .thenApplyAsync(read -> new Parsed(parseSettings(read.config(), warn), parsePads(read.pads(), warn),
-                        parseTags(read.tags(), warn)), main)
+                .thenApplyAsync(read -> parse(read, warn, craftEngine), main)
                 .thenApplyAsync(parsed -> io(() -> new Loaded(parsed,
                         Messages.load(this, parsed.settings().language(), warn))).get(), files)
                 .thenApplyAsync(loaded -> {
@@ -265,8 +259,14 @@ public final class FrameSortPlugin extends JavaPlugin {
                     messages.set(loaded.messages());
                     refresh.run();
                     return warnings.size();
-                }, main)
-                .whenComplete((count, error) -> reloading.set(false));
+                }, main);
+    }
+
+    // A player hears back through its own scheduler, which drops the reply if it quit; anyone else on the main thread.
+    private Executor replies(CommandSender sender) {
+        return sender instanceof Player player
+                ? task -> player.getScheduler().run(this, scheduled -> task.run(), null)
+                : getServer().getScheduler().getMainThreadExecutor(this);
     }
 
     private Files readFiles(Consumer<String> warn) throws IOException, InvalidConfigurationException {
@@ -316,19 +316,14 @@ public final class FrameSortPlugin extends JavaPlugin {
         return yaml;
     }
 
-    private FrameSortSettings parseSettings(YamlConfiguration yaml, Consumer<String> warn) {
-        return FrameSortSettings.parse(new ConfigReader(yaml, "config.yml", warn), FrameSortPlugin::isItem,
-                ItemTemplate::problem, craftEngine);
-    }
-
-    private PadSettings parsePads(YamlConfiguration yaml, Consumer<String> warn) {
-        return PadSettings.parse(new ConfigReader(yaml, "pads.yml", warn), Material::isBlock, FrameSortPlugin::isItem,
-                craftEngine);
-    }
-
-    private TagSettings parseTags(YamlConfiguration yaml, Consumer<String> warn) {
-        return TagSettings.parse(new ConfigReader(yaml, "tags.yml", warn), FrameSortPlugin::isItem,
-                TagCatalog::isGameTag, craftEngine);
+    private static Parsed parse(Files read, Consumer<String> warn, boolean craftEngine) {
+        return new Parsed(
+                FrameSortSettings.parse(new ConfigReader(read.config(), "config.yml", warn), FrameSortPlugin::isItem,
+                        ItemTemplate::problem, craftEngine),
+                PadSettings.parse(new ConfigReader(read.pads(), "pads.yml", warn), Material::isBlock,
+                        FrameSortPlugin::isItem, craftEngine),
+                TagSettings.parse(new ConfigReader(read.tags(), "tags.yml", warn), FrameSortPlugin::isItem,
+                        TagCatalog::isGameTag, craftEngine));
     }
 
     // Air is an item type too (ItemType.AIR), but no stack can hold it.

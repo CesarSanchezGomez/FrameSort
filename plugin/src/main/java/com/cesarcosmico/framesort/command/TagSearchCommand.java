@@ -1,7 +1,6 @@
 package com.cesarcosmico.framesort.command;
 
 import com.mojang.brigadier.Command;
-import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
@@ -25,10 +24,8 @@ public final class TagSearchCommand implements CommandFeature {
 
     @Override
     public void attach(LiteralArgumentBuilder<CommandSourceStack> node, String path) {
-        node.then(Commands.argument("text", StringArgumentType.word())
-                .executes(context -> send(context, path, 1))
-                .then(Commands.argument("page", IntegerArgumentType.integer(1))
-                        .executes(context -> send(context, path, IntegerArgumentType.getInteger(context, "page")))));
+        node.then(PageArgument.optional(Commands.argument("text", StringArgumentType.word()),
+                (context, page) -> send(context, path, page)));
     }
 
     private int send(CommandContext<CommandSourceStack> context, String path, int page) {

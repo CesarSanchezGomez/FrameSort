@@ -32,6 +32,7 @@ command:
   reloaded: '<prefix><green>Configuración recargada.</green>'
   reloaded-with-warnings: '<prefix><yellow><hover:show_text:"<gray>Esos ajustes usan su valor por defecto.<newline>Mira la consola.</gray>">Recargada con <count> aviso(s)</hover></yellow>'
   reload-failed: '<prefix><red><hover:show_text:"<gray><error><newline>Sigue activa la configuración anterior.</gray>">La recarga falló: mira la consola</hover></red>'
+  reload-running: '<prefix><yellow><hover:show_text:"<gray>Vuelve a intentarlo cuando termine.</gray>">Ya hay una recarga en curso</hover></yellow>'
   players-only: '<prefix><red>Solo los jugadores pueden usar este comando.</red>'
 
 pager:

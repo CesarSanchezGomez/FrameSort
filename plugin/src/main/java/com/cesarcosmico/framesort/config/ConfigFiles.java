@@ -23,10 +23,17 @@ public final class ConfigFiles {
     /** The file in the data folder, written from the jar first when it does not exist. */
     public static YamlConfiguration load(Plugin plugin, String path) throws IOException, InvalidConfigurationException {
         File file = new File(plugin.getDataFolder(), path);
-        if (!file.exists() && plugin.getResource(path) != null) {
+        if (!file.exists() && inJar(plugin, path)) {
             plugin.saveResource(path, false);
         }
         return read(file, path);
+    }
+
+    // getResource opens a new stream on the jar each call, so it is closed here instead of left to the collector.
+    public static boolean inJar(Plugin plugin, String path) throws IOException {
+        try (InputStream in = plugin.getResource(path)) {
+            return in != null;
+        }
     }
 
     /** The copy bundled in the jar, or {@code null} when the jar has none. */

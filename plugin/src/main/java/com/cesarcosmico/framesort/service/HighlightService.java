@@ -73,7 +73,7 @@ public final class HighlightService {
     }
 
     // Removing an entity runs its scheduler's retired callbacks at once, and they change these lists: remove copies.
-    private void clear(UUID player) {
+    public void clear(UUID player) {
         List<ItemDisplay> displays = shown.remove(player);
         if (displays != null) {
             List.copyOf(displays).forEach(Entity::remove);

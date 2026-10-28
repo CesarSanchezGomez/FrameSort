@@ -58,7 +58,7 @@ final class TagArgument implements CustomArgumentType.Converted<TagCatalog.TagVi
             String full = name.asString();
             String shortName = shortName(name);
             if (full.startsWith(typed) || shortName.startsWith(typed)) {
-                builder.suggest(full.startsWith(typed) && !shortName.startsWith(typed) ? full : shortName);
+                builder.suggest(shortName.startsWith(typed) ? shortName : full);
             }
         }
         return builder.buildFuture();

@@ -33,8 +33,10 @@ sorter:
   activator:
     material: PLAYER_HEAD
     components:
-      item_model: 'mypack:sorter'   # a model from your resource pack
-      profile:                      # a player head's texture
+      # A model from your resource pack.
+      item_model: 'mypack:sorter'
+      # A player head's texture.
+      profile:
         properties:
           - {name: textures, value: 'eyJ0ZXh0dXJlcyI6...'}
       tooltip_display: {hidden_components: ['minecraft:enchantments']}
@@ -322,8 +324,9 @@ language when it loads: missing keys, unknown ones (a typo) and an old `config-v
 [MiniMessage](https://docs.papermc.io/adventure/minimessage/format/); `<prefix>` is the `prefix` key.
 
 MiniMessage is read in its lenient mode: a misspelt or unknown tag shows as plain text instead of failing. Legacy
-`§` codes (`§a`, `§l`) are the exception, because MiniMessage cannot read them: a message, an item name or a lore
-written with one is reported when the file loads, and the bundled text is used instead (an item gets no name or lore).
+`§` codes (`§a`, `§l`) are the exception, because MiniMessage cannot read them: a message, an item name or a lore,
+or the sorter's `custom-name`, written with one is reported when the file loads, and the bundled text is used instead
+(an item gets no name or lore, and a sorter shows the dispenser's own name).
 Write colours as tags (`<green>`, `<bold>`).
 
 ### Help

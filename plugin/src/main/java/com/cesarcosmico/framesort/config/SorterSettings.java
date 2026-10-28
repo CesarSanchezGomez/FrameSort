@@ -45,7 +45,7 @@ public record SorterSettings(ItemReference activator, ItemLook activatorLook, Ma
             look = ItemLookParser.look(activator);
             components = Map.of();
         }
-        String customName = reader.string("custom-name", "");
+        String customName = reader.miniMessage("custom-name", "");
         return new SorterSettings(
                 item,
                 look,

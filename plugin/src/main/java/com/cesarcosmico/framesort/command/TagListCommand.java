@@ -1,11 +1,9 @@
 package com.cesarcosmico.framesort.command;
 
 import com.mojang.brigadier.Command;
-import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
-import io.papermc.paper.command.brigadier.Commands;
 
 public final class TagListCommand implements CommandFeature {
 
@@ -22,9 +20,7 @@ public final class TagListCommand implements CommandFeature {
 
     @Override
     public void attach(LiteralArgumentBuilder<CommandSourceStack> node, String path) {
-        node.executes(context -> send(context, path, 1))
-                .then(Commands.argument("page", IntegerArgumentType.integer(1))
-                        .executes(context -> send(context, path, IntegerArgumentType.getInteger(context, "page"))));
+        PageArgument.optional(node, (context, page) -> send(context, path, page));
     }
 
     private int send(CommandContext<CommandSourceStack> context, String path, int page) {

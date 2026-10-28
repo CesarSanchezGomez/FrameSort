@@ -75,21 +75,22 @@ public final class TrustService implements Supplier<TrustList> {
             then.accept(Grant.UNKNOWN_PLAYER, typed);
             return;
         }
+        UUID self = owner.getUniqueId();
         UUID trusted = target.getUniqueId();
         String cached = target.getName();
         String name = cached == null ? typed : cached;
-        if (trusted.equals(owner.getUniqueId())) {
+        if (trusted.equals(self)) {
             then.accept(Grant.SELF, name);
             return;
         }
-        if (list.trusts(owner.getUniqueId(), trusted)) {
+        if (list.trusts(self, trusted)) {
             then.accept(Grant.ALREADY, name);
             return;
         }
         long since = System.currentTimeMillis();
         database.update(connection -> {
-            repository.grant(connection, owner.getUniqueId(), trusted, since);
-            list = list.with(owner.getUniqueId(), trusted, since);
+            repository.grant(connection, self, trusted, since);
+            list = list.with(self, trusted, since);
         }).whenComplete((done, error) -> {
             applied(error, "save");
             reply(owner, () -> then.accept(error == null ? Grant.GRANTED : Grant.FAILED, name));
@@ -98,9 +99,10 @@ public final class TrustService implements Supplier<TrustList> {
 
     /** Found by the name in {@code owner}'s own list, so it works for a player this server no longer knows. */
     public void untrust(Player owner, String typed, BiConsumer<Revoke, String> then) {
+        UUID self = owner.getUniqueId();
         UUID trusted = null;
         String name = typed;
-        for (UUID candidate : list.trustedBy(owner.getUniqueId()).keySet()) {
+        for (UUID candidate : list.trustedBy(self).keySet()) {
             String candidateName = name(candidate);
             if (candidateName.equalsIgnoreCase(typed)) {
                 trusted = candidate;
@@ -114,8 +116,8 @@ public final class TrustService implements Supplier<TrustList> {
         UUID revoked = trusted;
         String shown = name;
         database.update(connection -> {
-            repository.revoke(connection, owner.getUniqueId(), revoked);
-            list = list.without(owner.getUniqueId(), revoked);
+            repository.revoke(connection, self, revoked);
+            list = list.without(self, revoked);
         }).whenComplete((done, error) -> {
             applied(error, "remove");
             reply(owner, () -> then.accept(error == null ? Revoke.REVOKED : Revoke.FAILED, shown));

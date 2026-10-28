@@ -1,6 +1,7 @@
 package com.cesarcosmico.framesort.listener;
 
 import com.cesarcosmico.framesort.config.PadType;
+import com.cesarcosmico.framesort.service.HighlightService;
 import com.cesarcosmico.framesort.service.InspectService;
 import com.cesarcosmico.framesort.service.PadService;
 import com.cesarcosmico.framesort.service.SorterService;
@@ -15,6 +16,7 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.player.PlayerInteractAtEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.jspecify.annotations.Nullable;
 
@@ -23,11 +25,19 @@ public final class InspectListener implements Listener {
     private final InspectService inspect;
     private final SorterService sorters;
     private final PadService pads;
+    private final HighlightService highlights;
 
-    public InspectListener(InspectService inspect, SorterService sorters, PadService pads) {
+    public InspectListener(InspectService inspect, SorterService sorters, PadService pads,
+                           HighlightService highlights) {
         this.inspect = inspect;
         this.sorters = sorters;
         this.pads = pads;
+        this.highlights = highlights;
+    }
+
+    @EventHandler
+    public void onQuit(PlayerQuitEvent event) {
+        highlights.clear(event.getPlayer().getUniqueId());
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
