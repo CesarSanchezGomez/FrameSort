@@ -10,7 +10,6 @@ import org.bukkit.Server;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.util.Vector;
-import org.jspecify.annotations.Nullable;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -110,7 +109,7 @@ public final class TraceService {
             }
             Turn last = lastShown.get(player);
             int tick = server.getCurrentTick();
-            if (startsNewTurn(last, tick, from)) {
+            if (last == null || startsNewTurn(last, tick, from)) {
                 if (last != null && now - last.millis < MIN_INTERVAL_MILLIS) {
                     continue;
                 }
@@ -131,13 +130,13 @@ public final class TraceService {
     private boolean sees(Player player, DeliveryService.Delivered delivered, int radius) {
         Location from = delivered.from();
         return player.getWorld().equals(from.getWorld())
-                && player.getLocation().distanceSquared(from) <= (double) radius * radius
+                && Players.location(player).distanceSquared(from) <= (double) radius * radius
                 && trust.canView(player, delivered.owner());
     }
 
     // A source's deliveries on one tick are one turn, drawn together.
-    private static boolean startsNewTurn(@Nullable Turn last, int tick, Location from) {
-        return last == null || last.tick != tick || !last.from.equals(from);
+    private static boolean startsNewTurn(Turn last, int tick, Location from) {
+        return last.tick != tick || !last.from.equals(from);
     }
 
     private void show(Player player, DeliveryService.Delivered delivered) {

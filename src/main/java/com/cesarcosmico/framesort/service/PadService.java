@@ -151,8 +151,7 @@ public final class PadService {
     public Placing placing(Block block, ItemStack hand) {
         PadSettings current = settings.get();
         String marker = MarkerCodec.read(hand, Keys.PAD_ITEM);
-        boolean specialBlock = marker != null && current.creation() == PadMode.ITEM;
-        PadType type = specialBlock ? current.type(marker) : null;
+        PadType type = marker != null && current.creation() == PadMode.ITEM ? current.type(marker) : null;
         if (type == null) {
             return new Placing.Fine();
         }
@@ -335,7 +334,7 @@ public final class PadService {
 
     private static boolean isCrouchingOnTop(Player player, Block top) {
         return player.isSneaking() && player.getGameMode() != GameMode.SPECTATOR
-                && player.getLocation().getBlock().equals(top.getRelative(BlockFace.UP));
+                && Players.location(player).getBlock().equals(top.getRelative(BlockFace.UP));
     }
 
     private void pull(Block top, int radius) {

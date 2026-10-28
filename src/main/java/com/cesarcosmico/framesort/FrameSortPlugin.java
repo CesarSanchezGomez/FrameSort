@@ -82,20 +82,12 @@ public final class FrameSortPlugin extends JavaPlugin {
     private static final long TRUST_LOAD_SECONDS = 10;
     private static final long TRUST_REFRESH_TICKS = Ticks.ofSeconds(60);
 
-    private ConfigHolder<FrameSortSettings> settings;
-    private ConfigHolder<PadSettings> pads;
-    private ConfigHolder<TagSettings> tagSettings;
-    private ConfigHolder<Messages> messages;
-    private TagCatalog tags;
-    private TargetIndex index;
-    private TargetResolver resolver;
-    private SorterService sorters;
-    private PadService padService;
-    private HighlightService highlights;
     // Null in onDisable when the plugin failed to start, or before it got that far.
     private @Nullable BukkitTask ticker;
     private @Nullable Database database;
     private @Nullable BukkitTask trustRefresh;
+    private @Nullable SorterService sorters;
+    private @Nullable HighlightService highlights;
     // Read once on enable: CraftEngine loads before FrameSort, and a reload checks the config against it too.
     private boolean craftEngine;
 
@@ -103,6 +95,11 @@ public final class FrameSortPlugin extends JavaPlugin {
     public void onEnable() {
         craftEngine = getServer().getPluginManager().isPluginEnabled("CraftEngine");
         Consumer<String> warn = getLogger()::warning;
+        // Locals, not fields: a failed start would leave fields null, and only onEnable and what it hands out use them.
+        ConfigHolder<FrameSortSettings> settings;
+        ConfigHolder<PadSettings> pads;
+        ConfigHolder<TagSettings> tagSettings;
+        ConfigHolder<Messages> messages;
         CommandsConfig commands;
         Database opened;
         TrustRepository trustRepository;
@@ -128,16 +125,18 @@ public final class FrameSortPlugin extends JavaPlugin {
             return;
         }
 
-        tags = new TagCatalog(tagSettings);
-        index = new TargetIndex(settings);
+        TagCatalog tags = new TagCatalog(tagSettings);
+        TargetIndex index = new TargetIndex(settings);
         TrustService trust = new TrustService(this, opened, trustRepository, trustList, settings, index);
         CustomItemResolver customItems = craftEngine ? new CraftEngineItemResolver() : CustomItemResolver.NONE;
-        resolver = new TargetResolver(settings, index, tags, customItems, trust);
+        TargetResolver resolver = new TargetResolver(settings, index, tags, customItems, trust);
         TraceService trace = new TraceService(this, settings, messages, trust);
         DeliveryService delivery = new DeliveryService(this, resolver, customItems, trace::report);
-        sorters = new SorterService(this, settings, delivery, customItems);
-        padService = new PadService(this, pads, delivery, customItems);
-        highlights = new HighlightService(this);
+        SorterService sorters = new SorterService(this, settings, delivery, customItems);
+        PadService padService = new PadService(this, pads, delivery, customItems);
+        HighlightService highlights = new HighlightService(this);
+        this.sorters = sorters;
+        this.highlights = highlights;
         InspectService inspect = new InspectService(this, highlights, settings, messages, index, resolver, trust,
                 sorters, padService, commands);
 
@@ -153,6 +152,13 @@ public final class FrameSortPlugin extends JavaPlugin {
         List<String> helpLines = List.of("automark", "tag-list", "tag-search", "tag-show", "tag-apply", "tag-remove",
                 "where", "trace", "trust", "untrust", "trusted", "give", "reload");
         TagListing listing = new TagListing(tags, messages, settings, commands);
+        // After a reload swaps the files, what was built from the old ones is read again.
+        Runnable refresh = () -> {
+            tags.clear();
+            resolver.clear();
+            index.clear();
+            scanFrames(index, sorters);
+        };
         List<CommandFeature> features = List.of(
                 new HelpCommand(messages, commands, helpLines),
                 new AutomarkCommand(automark, messages),
@@ -167,7 +173,8 @@ public final class FrameSortPlugin extends JavaPlugin {
                 new UntrustCommand(trust, messages),
                 new TrustedCommand(trust, messages, settings),
                 new GiveCommand(sorters, padService, pads, messages),
-                new ReloadCommand(messages, this::reload, getLogger(), getName()));
+                new ReloadCommand(messages, () -> reload(settings, pads, tagSettings, messages, refresh), getLogger(),
+                        getName()));
         getLifecycleManager().registerEventHandler(LifecycleEvents.COMMANDS, event -> {
             for (LiteralCommandNode<CommandSourceStack> root : CommandTree.build(features, commands)) {
                 event.registrar().register(root, COMMAND_DESCRIPTION);
@@ -180,7 +187,7 @@ public final class FrameSortPlugin extends JavaPlugin {
                 padService.load(chunk);
             }
         }
-        scanFrames();
+        scanFrames(index, sorters);
         ticker = getServer().getScheduler().runTaskTimer(this, () -> {
             sorters.tick();
             padService.tick();
@@ -198,7 +205,11 @@ public final class FrameSortPlugin extends JavaPlugin {
         }
         if (ticker != null) {
             ticker.cancel();
+        }
+        if (sorters != null) {
             sorters.showAllFrames();
+        }
+        if (highlights != null) {
             highlights.clearAll();
         }
         // Also when the start failed after opening it.
@@ -208,7 +219,9 @@ public final class FrameSortPlugin extends JavaPlugin {
     }
 
     // Every file loads before anything is swapped, so a broken one keeps the previous state.
-    private int reload() throws IOException, InvalidConfigurationException {
+    private int reload(ConfigHolder<FrameSortSettings> settings, ConfigHolder<PadSettings> pads,
+                       ConfigHolder<TagSettings> tagSettings, ConfigHolder<Messages> messages, Runnable refresh)
+            throws IOException, InvalidConfigurationException {
         List<String> warnings = new ArrayList<>();
         Consumer<String> warn = warning -> {
             warnings.add(warning);
@@ -224,14 +237,11 @@ public final class FrameSortPlugin extends JavaPlugin {
         pads.set(newPads);
         tagSettings.set(newTags);
         messages.set(newMessages);
-        tags.clear();
-        resolver.clear();
-        index.clear();
-        scanFrames();
+        refresh.run();
         return warnings.size();
     }
 
-    private void scanFrames() {
+    private void scanFrames(TargetIndex index, SorterService sorters) {
         for (World world : getServer().getWorlds()) {
             for (Chunk chunk : world.getLoadedChunks()) {
                 for (Entity entity : chunk.getEntities()) {

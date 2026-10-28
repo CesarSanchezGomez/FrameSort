@@ -39,7 +39,7 @@ public final class Database implements AutoCloseable {
     private static final long CONNECTION_TIMEOUT_MILLIS = 10_000;
 
     @FunctionalInterface
-    public interface SqlFunction<T> {
+    public interface SqlFunction<T extends @Nullable Object> {
         T apply(Connection connection) throws SQLException;
     }
 
@@ -101,7 +101,7 @@ public final class Database implements AutoCloseable {
         return type;
     }
 
-    public <T> CompletableFuture<T> query(SqlFunction<T> work) {
+    public <T extends @Nullable Object> CompletableFuture<T> query(SqlFunction<T> work) {
         return CompletableFuture.supplyAsync(() -> {
             try (Connection connection = dataSource.getConnection()) {
                 return work.apply(connection);
@@ -111,7 +111,7 @@ public final class Database implements AutoCloseable {
         }, executor);
     }
 
-    public CompletableFuture<Void> update(SqlConsumer work) {
+    public CompletableFuture<@Nullable Void> update(SqlConsumer work) {
         return query(connection -> {
             work.accept(connection);
             return null;
@@ -119,7 +119,7 @@ public final class Database implements AutoCloseable {
     }
 
     /** Runs {@code work} in one transaction: commit when it returns, rollback on any exception. */
-    public <T> CompletableFuture<T> transaction(SqlFunction<T> work) {
+    public <T extends @Nullable Object> CompletableFuture<T> transaction(SqlFunction<T> work) {
         return query(connection -> inTransaction(connection, work));
     }
 
@@ -176,7 +176,8 @@ public final class Database implements AutoCloseable {
         return config;
     }
 
-    private static <T> T inTransaction(Connection connection, SqlFunction<T> work) throws SQLException {
+    private static <T extends @Nullable Object> T inTransaction(Connection connection, SqlFunction<T> work)
+            throws SQLException {
         boolean autoCommit = connection.getAutoCommit();
         connection.setAutoCommit(false);
         T result;

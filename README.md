@@ -6,7 +6,7 @@ polished tuff) send items straight to the **target frames** that ask for them: i
 hopper, dispenser or dropper behind the frame, composted by a composter, or dropped in front of the frame on any
 other block.
 
-- **Server:** Paper 26.2 or newer, Java 25.
+- **Server:** Paper 26.2 – 26.3 (checked on 26.2 build 135 and 26.3 build 226), Java 25.
 - **Dependencies:** none. With [WorldGuard](https://enginehub.org/worldguard) installed, sorters and pads respect its
   regions; with [CraftEngine](https://github.com/Xiao-MoMi/craft-engine) installed, its custom items are sorted by
   their ID (see below).

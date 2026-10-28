@@ -184,7 +184,7 @@ public final class InspectService {
      * were in the off hand; false if there is none.
      */
     public boolean inspectNearest(Player player, ItemStack item) {
-        Block here = player.getLocation().getBlock();
+        Block here = Players.location(player).getBlock();
         BlockKey key = FrameGeometry.key(here);
         long best = Long.MAX_VALUE;
         Source nearest = null;
@@ -278,8 +278,7 @@ public final class InspectService {
         }
         boolean mark = !index.isMarked(frame);
         UUID owner = FrameCodec.owner(frame);
-        boolean someoneElses = settings.get().ownership() && owner != null && !owner.equals(player.getUniqueId());
-        if (!mark && someoneElses) {
+        if (!mark && owner != null && isSomeoneElses(owner, player)) {
             player.sendActionBar(text.get("mark.not-yours", Placeholder.unparsed("player", trust.name(owner))));
             return;
         }
@@ -289,6 +288,10 @@ public final class InspectService {
             index.unmark(frame);
         }
         showMark(player, frame, mark);
+    }
+
+    private boolean isSomeoneElses(UUID owner, Player player) {
+        return settings.get().ownership() && !owner.equals(player.getUniqueId());
     }
 
     /** How marking or unmarking a frame answers, by hand or by automark: the action bar, and the item glowing. */

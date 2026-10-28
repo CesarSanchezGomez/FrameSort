@@ -3,6 +3,7 @@ package com.cesarcosmico.framesort.command;
 import com.cesarcosmico.framesort.config.PadSettings;
 import com.cesarcosmico.framesort.config.PadType;
 import com.cesarcosmico.framesort.service.PadService;
+import com.cesarcosmico.framesort.service.Players;
 import com.cesarcosmico.framesort.service.SorterService;
 import com.cesarcosmico.framesort.text.Messages;
 import com.mojang.brigadier.Command;
@@ -86,7 +87,7 @@ public final class GiveCommand implements CommandFeature {
 
     private static void giveOrDrop(Player target, ItemStack stack) {
         for (ItemStack left : target.getInventory().addItem(stack).values()) {
-            target.getWorld().dropItem(target.getLocation(), left);
+            target.getWorld().dropItem(Players.location(target), left);
         }
     }
 
