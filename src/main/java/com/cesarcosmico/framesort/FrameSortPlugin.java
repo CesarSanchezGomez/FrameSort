@@ -154,7 +154,7 @@ public final class FrameSortPlugin extends JavaPlugin {
         TagListing listing = new TagListing(tags, messages, settings, commands);
         // After a reload swaps the files, what was built from the old ones is read again.
         Runnable refresh = () -> {
-            tags.clear();
+            tags.reload();
             resolver.clear();
             index.clear();
             scanFrames(index, sorters);

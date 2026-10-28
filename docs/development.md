@@ -150,13 +150,18 @@ The only I/O is the trust table, on the database's single thread (`storage.Datab
 - `onDisable` cancels that timer and the tick task, then closes the database, which waits for queued writes;
   nothing is scheduled any more once the plugin is disabling.
 
+Command arguments can be parsed off the main thread: on Paper 26.3, when another plugin answers
+`AsyncTabCompleteEvent`, Paper parses the command on its suggestion thread. The tag and pad-type arguments therefore
+read only snapshots. `TagCatalog` keeps tags.yml and the game's item and block tags in one immutable snapshot,
+rebuilt on the main thread at enable and on reload, and pad types come from the reloadable settings.
+
 An inspection's page buttons (`InspectService`) are Adventure click callbacks, not a command: Paper runs them on the
 main thread, and they last 12 hours and any number of clicks. Each keeps the source's position and a copy of the
 inspected item, never live objects, and on a click checks again that the source is there in a loaded chunk and that
 the player may still see it, then lists the targets anew.
 
 Players' names come from the server's profile cache (`PlayerProfile#completeFromCache`), never from
-`OfflinePlayer#getName`, which for an offline player reads their file in `playerdata/` on every call.
+`OfflinePlayer#getName`, which for an offline player reads their file in `players/data/` on every call.
 
 Highlights are temporary item displays that copy each frame's item, glowing in an exact colour
 (`Display#setGlowColorOverride`). The display's transformation repeats what the vanilla item frame renderer does

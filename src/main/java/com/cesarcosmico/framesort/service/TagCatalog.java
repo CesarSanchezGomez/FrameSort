@@ -14,7 +14,6 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -22,7 +21,7 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.function.Supplier;
 
-/** Tags by name, from tags.yml and from Paper's item and block registries, cached until the next reload. */
+/** Tags by name, from tags.yml and from Paper's item and block registries, read again on every reload. */
 public final class TagCatalog {
 
     public enum Kind { ITEM, BLOCK, CUSTOM }
@@ -36,106 +35,90 @@ public final class TagCatalog {
         }
     }
 
+    private record Snapshot(Map<NamespacedKey, TagView> views, List<NamespacedKey> names, Set<Material> shulkerBoxes) {
+    }
+
     private static final Comparator<Material> BY_KEY = Comparator.comparing(material -> material.getKey().asString());
     private static final NamespacedKey SHULKER_BOXES = NamespacedKey.minecraft("shulker_boxes");
 
     private final Supplier<TagSettings> settings;
-    private final Map<NamespacedKey, TagView> found = new HashMap<>();
-    private final Set<NamespacedKey> missing = new HashSet<>();
-    private @Nullable List<NamespacedKey> names;
-    private @Nullable Set<Material> shulkerBoxes;
+    // Built on the main thread and swapped whole: command parsing can read it from Paper's suggestion thread.
+    private volatile Snapshot snapshot;
 
     public TagCatalog(Supplier<TagSettings> settings) {
         this.settings = settings;
+        this.snapshot = build(settings.get());
     }
 
-    /** An item tag wins over a block tag: frames sort items. */
+    /** A tag in tags.yml wins over a game tag of the same name, and an item tag over a block tag: frames sort items. */
     public @Nullable TagView find(NamespacedKey key) {
-        TagView cached = found.get(key);
-        if (cached != null || missing.contains(key)) {
-            return cached;
-        }
-        TagSettings.CustomTag custom = settings.get().tags().get(key);
-        TagView view = custom == null ? gameTag(key) : fromFile(key, custom);
-        if (view == null) {
-            missing.add(key);
-        } else {
-            found.put(key, view);
-        }
-        return view;
+        return snapshot.views().get(key);
     }
 
     public List<NamespacedKey> names() {
-        if (names == null) {
-            Set<NamespacedKey> all = new TreeSet<>(Comparator.comparing(NamespacedKey::asString));
-            all.addAll(settings.get().tags().keySet());
-            collect(RegistryKey.ITEM, all);
-            collect(RegistryKey.BLOCK, all);
-            names = List.copyOf(all);
-        }
-        return names;
+        return snapshot.names();
     }
 
-    public void clear() {
-        found.clear();
-        missing.clear();
-        names = null;
-        shulkerBoxes = null;
+    /** Reads tags.yml and the game's tags again; on the main thread, because it reads the registries. */
+    public void reload() {
+        snapshot = build(settings.get());
     }
 
     /** Whether {@code material} is a shulker box, by the game's own tag whatever tags.yml says. */
     public boolean isShulkerBox(Material material) {
-        if (shulkerBoxes == null) {
-            TagView game = gameTag(SHULKER_BOXES);
-            shulkerBoxes = game == null ? Set.of() : game.lookup();
-        }
-        return shulkerBoxes.contains(material);
+        return snapshot.shulkerBoxes().contains(material);
     }
 
     /** Whether the game has an item or block tag called {@code key}, whatever tags.yml says. */
     public static boolean isGameTag(NamespacedKey key) {
-        return gameTag(key) != null;
+        return hasTag(RegistryKey.ITEM, key) || hasTag(RegistryKey.BLOCK, key);
     }
 
-    private static TagView fromFile(NamespacedKey key, TagSettings.CustomTag tag) {
+    private static Snapshot build(TagSettings settings) {
+        Map<NamespacedKey, TagView> game = new HashMap<>();
+        collect(RegistryKey.BLOCK, Kind.BLOCK, game);
+        collect(RegistryKey.ITEM, Kind.ITEM, game);
+        Map<NamespacedKey, TagView> views = new HashMap<>(game);
+        settings.tags().forEach((key, custom) -> views.put(key, fromFile(key, custom, game)));
+        List<NamespacedKey> names = views.keySet().stream()
+                .sorted(Comparator.comparing(NamespacedKey::asString))
+                .toList();
+        TagView shulkers = game.get(SHULKER_BOXES);
+        return new Snapshot(Map.copyOf(views), names, shulkers == null ? Set.of() : shulkers.lookup());
+    }
+
+    private static TagView fromFile(NamespacedKey key, TagSettings.CustomTag tag, Map<NamespacedKey, TagView> game) {
         Set<Material> materials = new TreeSet<>(BY_KEY);
         materials.addAll(tag.items());
         for (NamespacedKey gameTagKey : tag.gameTags()) {
             // tags.yml checked it on load, but a datapack reload can drop a game tag after that.
-            TagView game = gameTag(gameTagKey);
-            if (game != null) {
-                materials.addAll(game.materials());
+            TagView gameTag = game.get(gameTagKey);
+            if (gameTag != null) {
+                materials.addAll(gameTag.materials());
             }
         }
         List<String> customItems = tag.customItems().stream().distinct().sorted().toList();
         return new TagView(key, Kind.CUSTOM, List.copyOf(materials), materials, customItems);
     }
 
-    private static @Nullable TagView gameTag(NamespacedKey key) {
-        TagView view = load(RegistryKey.ITEM, key, Kind.ITEM);
-        return view != null ? view : load(RegistryKey.BLOCK, key, Kind.BLOCK);
-    }
-
-    private static <T extends Keyed> @Nullable TagView load(RegistryKey<T> registryKey, NamespacedKey key, Kind kind) {
-        Registry<T> registry = RegistryAccess.registryAccess().getRegistry(registryKey);
-        TagKey<T> tagKey = TagKey.create(registryKey, key);
-        if (!registry.hasTag(tagKey)) {
-            return null;
-        }
-        List<Material> materials = registry.getTag(tagKey).values().stream()
-                .map(TypedKey::key)
-                .map(member -> Material.matchMaterial(member.asString()))
-                .filter(Objects::nonNull)
-                .sorted(BY_KEY)
-                .toList();
-        return new TagView(key, kind, materials, Set.copyOf(materials), List.of());
-    }
-
-    private static <T extends Keyed> void collect(RegistryKey<T> registryKey, Set<NamespacedKey> into) {
+    // Puts every tag of the registry, so an item tag collected after a block one replaces it.
+    private static <T extends Keyed> void collect(RegistryKey<T> registryKey, Kind kind,
+                                                  Map<NamespacedKey, TagView> into) {
         Registry<T> registry = RegistryAccess.registryAccess().getRegistry(registryKey);
         registry.getTags().forEach(tag -> {
             Key key = tag.tagKey().key();
-            into.add(new NamespacedKey(key.namespace(), key.value()));
+            NamespacedKey name = new NamespacedKey(key.namespace(), key.value());
+            List<Material> materials = tag.values().stream()
+                    .map(TypedKey::key)
+                    .map(member -> Material.matchMaterial(member.asString()))
+                    .filter(Objects::nonNull)
+                    .sorted(BY_KEY)
+                    .toList();
+            into.put(name, new TagView(name, kind, materials, Set.copyOf(materials), List.of()));
         });
+    }
+
+    private static <T extends Keyed> boolean hasTag(RegistryKey<T> registryKey, NamespacedKey key) {
+        return RegistryAccess.registryAccess().getRegistry(registryKey).hasTag(TagKey.create(registryKey, key));
     }
 }
