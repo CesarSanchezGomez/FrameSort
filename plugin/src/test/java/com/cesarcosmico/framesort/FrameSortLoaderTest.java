@@ -12,7 +12,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class FrameSortLoaderTest {
 
     private static String catalogVersion(String name) throws Exception {
-        String catalog = Files.readString(Path.of("gradle/libs.versions.toml"));
+        String catalog = Files.readString(Path.of("../gradle/libs.versions.toml"));
         Matcher version = Pattern.compile("(?m)^" + Pattern.quote(name) + " = \"([^\"]+)\"").matcher(catalog);
         assertTrue(version.find(), "gradle/libs.versions.toml has no " + name + " version");
         return version.group(1);

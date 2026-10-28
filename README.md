@@ -150,7 +150,7 @@ See [docs/configuration.md](docs/configuration.md).
 ```
 
 Needs nothing installed beyond a JDK: Gradle downloads Java 25 if it is missing. The jar is written to
-`build/libs/`. `./gradlew runServer` starts a Paper 26.3 test server with it, and `./gradlew runServerMinimum` a
+`plugin/build/libs/`. `./gradlew runServer` starts a Paper 26.3 test server with it, and `./gradlew runServerMinimum` a
 Paper 26.2 one. How the plugin is put together (packages, stored data, threads) is in
 [docs/development.md](docs/development.md).
 

@@ -10,6 +10,8 @@ plugins {
 
 group = property("group") as String
 version = property("version") as String
+// The jar takes the plugin's name, not the subproject's.
+base.archivesName = rootProject.name
 
 fun v(name: String): String = property(name) as String
 

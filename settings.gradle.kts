@@ -34,3 +34,5 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "FrameSort"
+// The plugin's sources live in their own project, never in the root one (Gradle's best practices).
+include("plugin")
