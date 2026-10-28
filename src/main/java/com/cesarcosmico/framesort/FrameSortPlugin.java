@@ -67,12 +67,18 @@ import org.bukkit.scheduler.BukkitTask;
 import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 import java.util.logging.Level;
 
 public final class FrameSortPlugin extends JavaPlugin {
@@ -82,6 +88,17 @@ public final class FrameSortPlugin extends JavaPlugin {
     private static final long TRUST_LOAD_SECONDS = 10;
     private static final long TRUST_REFRESH_TICKS = Ticks.ofSeconds(60);
 
+    // What a reload reads off the main thread, what it parses on it, and what it swaps.
+    private record Files(YamlConfiguration config, YamlConfiguration pads, YamlConfiguration tags) {
+    }
+
+    private record Parsed(FrameSortSettings settings, PadSettings pads, TagSettings tags) {
+    }
+
+    private record Loaded(Parsed parsed, Messages messages) {
+    }
+
+    private final AtomicBoolean reloading = new AtomicBoolean();
     // Null in onDisable when the plugin failed to start, or before it got that far.
     private @Nullable BukkitTask ticker;
     private @Nullable Database database;
@@ -105,9 +122,9 @@ public final class FrameSortPlugin extends JavaPlugin {
         TrustRepository trustRepository;
         TrustList trustList;
         try {
-            settings = new ConfigHolder<>(loadSettings(warn));
-            pads = new ConfigHolder<>(loadPads(warn));
-            tagSettings = new ConfigHolder<>(loadTags(warn));
+            settings = new ConfigHolder<>(parseSettings(readConfig(warn), warn));
+            pads = new ConfigHolder<>(parsePads(readPads(warn), warn));
+            tagSettings = new ConfigHolder<>(parseTags(readTags(warn), warn));
             messages = new ConfigHolder<>(Messages.load(this, settings.get().language(), warn));
             // Trusting players means nothing without owners, so those commands follow the setting.
             BooleanSupplier ownership = () -> settings.get().ownership();
@@ -173,8 +190,8 @@ public final class FrameSortPlugin extends JavaPlugin {
                 new UntrustCommand(trust, messages),
                 new TrustedCommand(trust, messages, settings),
                 new GiveCommand(sorters, padService, pads, messages),
-                new ReloadCommand(messages, () -> reload(settings, pads, tagSettings, messages, refresh), getLogger(),
-                        getName()));
+                new ReloadCommand(messages, () -> reload(settings, pads, tagSettings, messages, refresh),
+                        getServer().getScheduler().getMainThreadExecutor(this), getLogger(), getName()));
         getLifecycleManager().registerEventHandler(LifecycleEvents.COMMANDS, event -> {
             for (LiteralCommandNode<CommandSourceStack> root : CommandTree.build(features, commands)) {
                 event.registrar().register(root, COMMAND_DESCRIPTION);
@@ -218,27 +235,53 @@ public final class FrameSortPlugin extends JavaPlugin {
         }
     }
 
-    // Every file loads before anything is swapped, so a broken one keeps the previous state.
-    private int reload(ConfigHolder<FrameSortSettings> settings, ConfigHolder<PadSettings> pads,
-                       ConfigHolder<TagSettings> tagSettings, ConfigHolder<Messages> messages, Runnable refresh)
-            throws IOException, InvalidConfigurationException {
-        List<String> warnings = new ArrayList<>();
+    // Every file loads before anything is swapped, so a broken one keeps the previous state. Paper's docs ask to load
+    // files off the main thread: they are read there, and parsing, which reads the server, and the swap run on it.
+    private CompletableFuture<Integer> reload(ConfigHolder<FrameSortSettings> settings, ConfigHolder<PadSettings> pads,
+                                              ConfigHolder<TagSettings> tagSettings, ConfigHolder<Messages> messages,
+                                              Runnable refresh) {
+        if (!reloading.compareAndSet(false, true)) {
+            return CompletableFuture.failedFuture(new IllegalStateException("a reload is already running"));
+        }
+        List<String> warnings = new CopyOnWriteArrayList<>();
         Consumer<String> warn = warning -> {
             warnings.add(warning);
             getLogger().warning(warning);
         };
-        FrameSortSettings newSettings = loadSettings(warn);
-        PadSettings newPads = loadPads(warn);
-        TagSettings newTags = loadTags(warn);
-        Messages newMessages = Messages.load(this, newSettings.language(), warn);
-        // Only once nothing can fail any more: a broken file keeps the old pads, and they wouldn't go.
-        newPads.warnTopChanges(pads.get(), warn);
-        settings.set(newSettings);
-        pads.set(newPads);
-        tagSettings.set(newTags);
-        messages.set(newMessages);
-        refresh.run();
-        return warnings.size();
+        Executor files = task -> getServer().getScheduler().runTaskAsynchronously(this, task);
+        Executor main = getServer().getScheduler().getMainThreadExecutor(this);
+        return CompletableFuture.supplyAsync(io(() -> readFiles(warn)), files)
+                .thenApplyAsync(read -> new Parsed(parseSettings(read.config(), warn), parsePads(read.pads(), warn),
+                        parseTags(read.tags(), warn)), main)
+                .thenApplyAsync(parsed -> io(() -> new Loaded(parsed,
+                        Messages.load(this, parsed.settings().language(), warn))).get(), files)
+                .thenApplyAsync(loaded -> {
+                    Parsed parsed = loaded.parsed();
+                    // Only once nothing can fail any more: a broken file keeps the old pads, and they wouldn't go.
+                    parsed.pads().warnTopChanges(pads.get(), warn);
+                    settings.set(parsed.settings());
+                    pads.set(parsed.pads());
+                    tagSettings.set(parsed.tags());
+                    messages.set(loaded.messages());
+                    refresh.run();
+                    return warnings.size();
+                }, main)
+                .whenComplete((count, error) -> reloading.set(false));
+    }
+
+    private Files readFiles(Consumer<String> warn) throws IOException, InvalidConfigurationException {
+        return new Files(readConfig(warn), readPads(warn), readTags(warn));
+    }
+
+    // A stage of a future cannot throw a checked exception; the reload command reports the cause.
+    private static <T> Supplier<T> io(Callable<T> call) {
+        return () -> {
+            try {
+                return call.call();
+            } catch (Exception e) {
+                throw new CompletionException(e);
+            }
+        };
     }
 
     private void scanFrames(TargetIndex index, SorterService sorters) {
@@ -254,24 +297,36 @@ public final class FrameSortPlugin extends JavaPlugin {
         }
     }
 
-    private FrameSortSettings loadSettings(Consumer<String> warn) throws IOException, InvalidConfigurationException {
+    private YamlConfiguration readConfig(Consumer<String> warn) throws IOException, InvalidConfigurationException {
         YamlConfiguration yaml = ConfigFiles.load(this, "config.yml");
         ConfigValidator.check(this, yaml, "config.yml", FrameSortSettings.OPEN_KEYS, FrameSortSettings.OPTIONAL_KEYS,
                 warn);
+        return yaml;
+    }
+
+    private YamlConfiguration readPads(Consumer<String> warn) throws IOException, InvalidConfigurationException {
+        YamlConfiguration yaml = ConfigFiles.load(this, "pads.yml");
+        ConfigValidator.check(this, yaml, "pads.yml", Set.of("types"), warn);
+        return yaml;
+    }
+
+    private YamlConfiguration readTags(Consumer<String> warn) throws IOException, InvalidConfigurationException {
+        YamlConfiguration yaml = ConfigFiles.load(this, "tags.yml");
+        ConfigValidator.check(this, yaml, "tags.yml", Set.of("tags"), warn);
+        return yaml;
+    }
+
+    private FrameSortSettings parseSettings(YamlConfiguration yaml, Consumer<String> warn) {
         return FrameSortSettings.parse(new ConfigReader(yaml, "config.yml", warn), FrameSortPlugin::isItem,
                 ItemTemplate::problem, craftEngine);
     }
 
-    private PadSettings loadPads(Consumer<String> warn) throws IOException, InvalidConfigurationException {
-        YamlConfiguration yaml = ConfigFiles.load(this, "pads.yml");
-        ConfigValidator.check(this, yaml, "pads.yml", Set.of("types"), warn);
+    private PadSettings parsePads(YamlConfiguration yaml, Consumer<String> warn) {
         return PadSettings.parse(new ConfigReader(yaml, "pads.yml", warn), Material::isBlock, FrameSortPlugin::isItem,
                 craftEngine);
     }
 
-    private TagSettings loadTags(Consumer<String> warn) throws IOException, InvalidConfigurationException {
-        YamlConfiguration yaml = ConfigFiles.load(this, "tags.yml");
-        ConfigValidator.check(this, yaml, "tags.yml", Set.of("tags"), warn);
+    private TagSettings parseTags(YamlConfiguration yaml, Consumer<String> warn) {
         return TagSettings.parse(new ConfigReader(yaml, "tags.yml", warn), FrameSortPlugin::isItem,
                 TagCatalog::isGameTag, craftEngine);
     }

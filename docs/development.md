@@ -138,6 +138,11 @@ SELECT HEX(owner), HEX(trusted), FROM_UNIXTIME(created_at / 1000) FROM framesort
 
 Everything that touches the world runs on the main thread, and a single repeating task ticks sorters and pads.
 
+`/framesort reload` reads and checks its files on Paper's async scheduler, as Paper's docs ask for loading files,
+then parses them on the main thread, where materials, items and tags can be read, and swaps them there. The command
+answers once that is done; a second reload while one runs is refused. The first load, at enable, runs on the main
+thread, before the server takes players.
+
 The only I/O is the trust table, on the database's single thread (`storage.Database`):
 - at enable, the whole table is read with a timeout before anything else runs; if it fails, FrameSort disables
   itself instead of starting with nobody trusted;
