@@ -9,7 +9,7 @@ worldguard = "7.0.19"
 craftengine = "26.9.1"
 # Database. FrameSortLoader downloads these same HikariCP and MariaDB driver versions; its test checks them.
 hikaricp = "7.1.0"
-mariadb-java-client = "3.5.10"
+mariadb-java-client = "3.5.11"
 # The drivers the server ships (Paper's paper-server/build.gradle.kts).
 sqlite-jdbc = "3.49.1.0"
 mysql-connector-j = "9.2.0"

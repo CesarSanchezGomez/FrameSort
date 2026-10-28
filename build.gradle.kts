@@ -1,5 +1,6 @@
 import net.ltgt.gradle.errorprone.CheckSeverity
 import net.ltgt.gradle.errorprone.errorprone
+import xyz.jpenilla.runpaper.task.RunServer
 
 plugins {
     java
@@ -66,13 +67,21 @@ tasks.test {
 }
 
 tasks.register<Test>("mysqlTest") {
-    testClassesDirs = sourceSets.test.get().output.classesDirs
-    classpath = sourceSets.test.get().runtimeClasspath
+    testClassesDirs = files(sourceSets.test.map { it.output.classesDirs })
+    classpath = files(sourceSets.test.map { it.runtimeClasspath })
     useJUnitPlatform { includeTags("mysql") }
 }
 
+// The full check runs on the newest supported line; the minimum line gets its own server for the start-up check.
 tasks.runServer {
     minecraftVersion(v("minecraft_version"))
+}
+
+tasks.register<RunServer>("runServerMinimum") {
+    minecraftVersion(v("minecraft_version_minimum"))
+    // run-paper finds the plugin jar only for runServer.
+    pluginJars(tasks.jar.flatMap { it.archiveFile })
+    runDirectory(layout.projectDirectory.dir("run-minimum").asFile)
 }
 
 tasks.processResources {

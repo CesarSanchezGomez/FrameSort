@@ -19,7 +19,7 @@ public final class FrameSortLoader implements PluginLoader {
     // Same HikariCP and MariaDB driver versions as gradle/libs.versions.toml, which FrameSortLoaderTest checks.
     static final List<String> LIBRARIES = List.of(
             "com.zaxxer:HikariCP:7.1.0",
-            "org.mariadb.jdbc:mariadb-java-client:3.5.10");
+            "org.mariadb.jdbc:mariadb-java-client:3.5.11");
     // The server provides slf4j-api; a second copy would leave Hikari logging to nowhere.
     private static final List<Exclusion> WITHOUT_SLF4J = List.of(new Exclusion("org.slf4j", "slf4j-api", "*", "*"));
 
