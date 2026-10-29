@@ -1,11 +1,13 @@
 # Configuration
 
-`config.yml`, `pads.yml`, `tags.yml` and `commands.yml` have a `config-version`. When FrameSort's defaults change, the
-console lists their missing and unknown keys; your files are never rewritten. Keys marked *optional* can be left out
-without a warning: leaving one out means none of it, such as an activator with no lore. Language files fill missing keys
-on their own (see [Language](#language)). Invalid values are reported with their path and replaced by the default.
-`/framesort reload` applies `config.yml`, `pads.yml`, `tags.yml` and the language file and tells you how many values
-fell back to their defaults. A file that is not valid YAML stops the reload and the previous configuration stays active.
+`config.yml`, `pads.yml`, `tags.yml`, `commands.yml`, `database.yml` and the language files have a `config-version`.
+When it is older than FrameSort's, or a key is missing or unknown (a typo), the console says so; your files are never
+rewritten. Keys marked *optional* can be left out without a warning: leaving one out means none of it, such as an
+activator with no lore. A key missing from a language file still shows its text (see [Language](#language)). Invalid
+values are reported with their path and replaced by the default, and a list written as a single value (`lore: 'text'`
+instead of `lore: ['text']`) is reported and ignored. `/framesort reload` applies `config.yml`, `pads.yml`, `tags.yml`
+and the language file and tells you how many warnings there were. A file that is not valid YAML stops the reload and
+the previous configuration stays active.
 `commands.yml` and `database.yml` need a restart.
 
 Text values are written in single quotes; an apostrophe inside one is written twice (`'can''t'`). Text with
@@ -31,8 +33,10 @@ sorter:
   activator:
     material: PLAYER_HEAD
     components:
-      item_model: 'mypack:sorter'   # a model from your resource pack
-      profile:                      # a player head's texture
+      # A model from your resource pack.
+      item_model: 'mypack:sorter'
+      # A player head's texture.
+      profile:
         properties:
           - {name: textures, value: 'eyJ0ZXh0dXJlcyI6...'}
       tooltip_display: {hidden_components: ['minecraft:enchantments']}
@@ -107,7 +111,7 @@ the lid of an upright barrel, the side of a chest or the bottom of one in a ceil
 
 | Key | Default | Meaning |
 |---|---|---|
-| `insert-into-containers` | `true` | `true`: items go into the container behind the frame (CraftEngine's storage blocks and drawers too, see [CraftEngine containers](#delivery)), or are composted by a composter. `false`: frames on containers or composters drop the items in front of them instead; frames on lava cauldrons still destroy them. |
+| `insert-into-containers` | `true` | `true`: items go into the container behind the frame (CraftEngine's storage blocks and drawers too, see [CraftEngine containers](#delivery)), or are composted by a composter. The containers are chests (copper and trapped ones too), barrels, shulker boxes, hoppers, dispensers and droppers, whose every slot takes any item; a frame on any other block, a furnace or a brewing stand among them, drops the items in front of it. A shulker box never goes into a shulker box, as in vanilla. `false`: frames on containers or composters drop the items in front of them instead, whatever the item; frames on lava cauldrons still destroy them. |
 | `default-target-item` | `RECOVERY_COMPASS` | Frames holding it (a recovery compass inside the frame) take whatever matches no other frame, and whatever the other targets have no room for: a material (but not a CraftEngine item made from it) or a CraftEngine item (`'craftengine:<namespace>:<id>'`). `''` = off. A material that is not an item falls back to the default. |
 
 How a destination is chosen:
@@ -147,7 +151,8 @@ untagged ones again; a name given in an anvil after tagging is lost then.
 **Composters compost.** A target frame on a composter takes only compostable items and composts them as a hopper
 feeding it would: every item is used up, the level rises with that item's vanilla chance, and a full composter turns
 ready a second later and takes nothing more until it is emptied. A hopper under it collects the bone meal, as in
-vanilla. Items it doesn't take go on to the other targets as usual.
+vanilla. Items it doesn't take go on to the other targets as usual. With `insert-into-containers: false` the frame is
+a drop spot like any other, for any item.
 
 **CraftEngine containers.** With CraftEngine installed, a target frame on one of its storage blocks
 (`simple_storage_block`, such as the safe of its default pack) or drawers (`drawer_block`) fills it as a hopper
@@ -161,7 +166,7 @@ is never filled: a frame can't hang on furniture, and CraftEngine keeps hoppers 
 **Lava cauldrons are trash cans.** A target frame on a lava cauldron holds the item to destroy and is chosen like
 any other frame (exact item, tag, material). If a container with the same or a better priority also takes that
 item, the lava only gets what doesn't fit; containers with a worse priority get nothing. With the default target
-item (an item frame) in the frame, it destroys whatever has no other target or no room left in one. An empty
+item (a recovery compass) in the frame, it destroys whatever has no other target or no room left in one. An empty
 frame does nothing.
 
 ### ownership
@@ -193,7 +198,7 @@ breaking and placing a pad's top block again gives it an owner. More in
 |---|---|---|
 | `creation` | `anyone` | `anyone`: any player who places the top block on its base. `permission`: only players with `framesort.pad.create`. `item`: only by placing the pad's special item (from `/framesort give pad`) as the top block. |
 | `sweep-interval` | `10` | Ticks between checks for items resting on pads, for loose items near them to pull, and for players crouching on pads that take inventories. Items that arrive by water or fall onto a pad are picked up then. |
-| `types.<id>.structure` | | Exactly two blocks: the top, where items rest, then its base. The `<id>` can't contain `,`: each pad keeps it in its chunk between commas. Each one is a material or a CraftEngine block (`'craftengine:<namespace>:<id>'`). Players build pads by hand, so a material must be a block a player can place (not `STICK`, `WATER` or `AIR`); otherwise the type is skipped with a warning. |
+| `types.<id>.structure` | | Exactly two blocks: the top, where items rest, then its base. The `<id>` ignores case (an id named again is reported and the first one counts) and can't contain `,`: each pad keeps it in its chunk between commas. Each one is a material or a CraftEngine block (`'craftengine:<namespace>:<id>'`). Players build pads by hand, so a material must be a block a player can place (not `STICK`, `WATER` or `AIR`); otherwise the type is skipped with a warning. |
 | `types.<id>.range` | `64` | Targets of a pad of this type are searched within this many blocks of it (1 to 512). Left out, it is reported and `64` is used. |
 | `types.<id>.pull-radius` | `4` | Blocks around a pad of this type whose loose items it pulls onto itself (0 to 16; `0` = off). See below. Left out, it is reported and `4` is used. |
 | `types.<id>.takes-from-inventory` | `false` | `true`: a player crouching on a pad of this type sends a stack of their main inventory on every check. See below. Left out, it is reported and `false` is used. |
@@ -201,12 +206,14 @@ breaking and placing a pad's top block again gives it an owner. More in
 
 A key a type doesn't take, in it or in its `item`, is reported with its path as a typo and ignored.
 
-A pad is created when its top block is placed on its base, so place the base first. It counts as long as both
-blocks stay; breaking the top block removes it, and whoever broke it is told so. If the top block goes any other
-way (WorldEdit, a command, gravity), the pad is forgotten at the next sweep. Without its base a pad waits, and works
-again once the base is back. In `item` mode, breaking it gives the special item back. The top block of a registered
-pad can't be pushed by pistons, blown up or changed where it stands: an axe can't scrape the wax off a copper top
-block, nor a mob change it.
+A pad is created when its top block is placed on its base, so place the base first. It counts as long as both blocks
+stay; breaking the top block removes it, and whoever broke it is told so. If the top block goes any other way
+(WorldEdit, a command, gravity), the pad is forgotten at the next sweep. Without its base a pad waits, and works again
+once the base is back. Changing a type's top block in `pads.yml` forgets, at their next check, its pads built with the
+old one (`/framesort reload` says so); changing only the base leaves them waiting for it. In `item` mode, breaking it
+gives the special item back, and the special block can't be placed where it wouldn't complete its own pad: the player is
+told which base it goes on and keeps the block. The top block of a registered pad can't be pushed by pistons, blown up
+or changed where it stands: an axe can't scrape the wax off a copper top block, nor a mob change it.
 
 Items resting up to one block above the top block count, so carpets or slabs on the pad are fine.
 
@@ -247,7 +254,8 @@ furniture can't be part of a pad: it is not a block. A pad with a CraftEngine bl
 - in `item` mode, the special item is CraftEngine's item for that block with FrameSort's mark, so it doesn't stack
   with the same item from `/ce give`, and breaking the pad gives it back;
 - while `/ce reload` runs, the pad is kept and protected but sends nothing, because CraftEngine's blocks can't be
-  told apart until it ends;
+  told apart until it ends; in `item` mode its special block can't be placed then either, and the player is told
+  to try again;
 - in `item` mode, a pad whose item CraftEngine can't build (while `/ce reload` runs, or for an ID it no longer knows)
   can't be broken, so its item is never lost; the player is told why. A player in creative mode can still break it;
 - an ID CraftEngine doesn't know never makes a pad.
@@ -300,7 +308,7 @@ Where FrameSort keeps who trusts whom. Everything else stays in the world. Read 
 | `type` | `sqlite` | `sqlite`: a file in `plugins/FrameSort/`, nothing to set up. `mysql` or `mariadb`: the `remote` server, so several servers share the trust list. An unknown type stops FrameSort from starting. |
 | `sqlite.file` | `data.db` | The SQLite file, inside `plugins/FrameSort/`. |
 | `remote.host`, `port`, `database`, `username`, `password` | `localhost`, `3306`, `framesort`, `root`, `''` | The MySQL or MariaDB server. FrameSort's tables start with `framesort_`, so it can share a database with other plugins. |
-| `remote.properties` | `useSSL=false` | Extra JDBC URL parameters. |
+| `remote.properties` | `''` | Extra JDBC URL parameters, such as `sslMode=REQUIRED`. Empty uses the driver's defaults: MySQL connects with TLS when the server offers it, which MySQL 8.4's default login needs after each restart. |
 
 FrameSort reads the whole list when it starts; if the database can't be reached, FrameSort does not start. Each
 `/framesort trust` or `untrust` is saved before it applies. With MySQL or MariaDB, each server reads the list again
@@ -311,8 +319,15 @@ MariaDB's driver is downloaded on the first start, like HikariCP; the SQLite and
 
 `language` in `config.yml` picks `lang/<language>.yml` (`en_US`, `es_ES`), written the first time it is used. A
 key missing from your file comes from the bundled copy of that language, then from the bundled `en_US`; a key missing
-everywhere shows as the key and is reported once in the console. Messages use
+everywhere shows as the key and is reported once in the console. Your file is compared with the bundled one of its
+language when it loads: missing keys, unknown ones (a typo) and an old `config-version` are reported. Messages use
 [MiniMessage](https://docs.papermc.io/adventure/minimessage/format/); `<prefix>` is the `prefix` key.
+
+MiniMessage is read in its lenient mode: a misspelt or unknown tag shows as plain text instead of failing. Legacy
+`§` codes (`§a`, `§l`) are the exception, because MiniMessage cannot read them: a message, an item name or a lore,
+or the sorter's `custom-name`, written with one is reported when the file loads, and the bundled text is used instead
+(an item gets no name or lore, and a sorter shows the dispenser's own name).
+Write colours as tags (`<green>`, `<bold>`).
 
 ### Help
 

@@ -5,7 +5,7 @@
 | Command | What it does |
 |---|---|
 | `/framesort` | Help: how to inspect, then one line for each command you may run. |
-| `/framesort automark` | Switches between marking frames by hand and automark. With automark on, an item you put in a frame on a container or composter marks the frame as your target as sneak + right-click does: its item glows and the action bar says so; frames on walls or lava cauldrons are still marked by hand, and putting the sorter activator in never marks its frame. Your choice stays with you on this server, also after leaving, and only acts while you may run this command and mark targets (`framesort.target.create`); without the latter the command says you can't mark targets. Off by default. |
+| `/framesort automark` | Switches between marking frames by hand and automark. With automark on, an item you put in a frame on a container (see [`insert-into-containers`](configuration.md#delivery)) or composter marks the frame as your target as sneak + right-click does: its item glows and the action bar says so; frames on any other block (walls, lava cauldrons, furnaces…) are still marked by hand, and putting the sorter activator in never marks its frame. Your choice stays with you on this server, also after leaving, and only acts while you may run this command and mark targets (`framesort.target.create`); without the latter the command says you can't mark targets. Off by default. |
 | `/framesort tag show <tag> [page]` | The items or blocks in a tag, 8 per page (`inspect.page-size`), in a framed list with « » buttons. Hover an entry to see its id. A tag from `tags.yml` lists its custom items after them, by their CraftEngine name, translated as in your inventory; hovering one shows its reference. Vanilla tags can be written without `minecraft:`. |
 | `/framesort tag list [page]` | Every item and block tag, and the tags in `tags.yml`. Click a tag to show its contents. |
 | `/framesort tag search <text> [page]` | Only the tags whose name contains `<text>`. |
@@ -19,7 +19,7 @@
 | `/framesort trusted [page]` | Whom you trust, since when, and who trusts you. |
 | `/framesort give sorter [player] [amount]` | The sorter activator from `config.yml`. Needed when `sorter.activator.require-marked` is true. A CraftEngine activator is built by CraftEngine; while it can't (an ID it doesn't know, or during `/ce reload`) nothing is given and you are told so. |
 | `/framesort give pad <type> [player] [amount]` | The special top block of a pad type. Needed when `pads.yml` has `creation: item`. A CraftEngine top block's item is built by CraftEngine; while it can't, nothing is given and you are told so. |
-| `/framesort reload` | Reloads `config.yml`, `pads.yml`, `tags.yml` and the language file. If a file is broken, the previous configuration stays active. |
+| `/framesort reload` | Reloads `config.yml`, `pads.yml`, `tags.yml` and the language file. If a file is broken, the previous configuration stays active. Asked while another reload runs, it says so and does nothing. |
 
 ## Inspecting
 
@@ -104,7 +104,8 @@ trace:
   usage:
     - '/framesort trace'
     - '/fs trace'
-    - '/fstrace'      # also /fstrace [seconds|stop]
+    # Also /fstrace [seconds|stop].
+    - '/fstrace'
 ```
 
 Moving the tag list to `/fs tags`, while only staff may apply tags:
@@ -119,7 +120,8 @@ tag-list:
 
 tag-apply:
   enabled: true
-  permission: 'myserver.staff'   # not declared by FrameSort, so ops only unless a permissions plugin grants it
+  # Not declared by FrameSort, so ops only unless a permissions plugin grants it.
+  permission: 'myserver.staff'
   usage:
     - '/framesort tag apply'
     - '/fs tag apply'

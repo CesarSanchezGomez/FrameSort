@@ -2,10 +2,11 @@
 
 Item sorting without hopper chains. A **sorter** (a dispenser with a hopper in an item frame on it) and **sorting
 pads** (a waxed copper grate on a waxed block of copper, a lodestone on smooth stone, or chiseled tuff on
-polished tuff) send items straight to the **target frames** that ask for them: into the chest, barrel or hopper
-behind the frame, composted by a composter, or dropped in front of the frame when there is no container.
+polished tuff) send items straight to the **target frames** that ask for them: into the chest, barrel, shulker box,
+hopper, dispenser or dropper behind the frame, composted by a composter, or dropped in front of the frame on any
+other block.
 
-- **Server:** Paper 26.2 or newer, Java 25.
+- **Server:** Paper 26.2 – 26.3 (checked on 26.2 build 135 and 26.3 build 226), Java 25.
 - **Dependencies:** none. With [WorldGuard](https://enginehub.org/worldguard) installed, sorters and pads respect its
   regions; with [CraftEngine](https://github.com/Xiao-MoMi/craft-engine) installed, its custom items are sorted by
   their ID (see below).
@@ -60,7 +61,7 @@ keeps its hidden frame until it loads with FrameSort installed, so before removi
    a special pad block.
 
    ![A player dropping an item onto a copper pad, which sends it to the target frame on a chest](docs/pad.gif)
-   ![A lodestone pad throwing a loose item onto its top and sending it to the target frame on a chest](docs/lodestone-pad.gif)
+   ![A lodestone pad pulling a loose item onto its top and sending it to a target frame](docs/lodestone-pad.gif)
    ![A player crouching on a tuff pad, sending their inventory to the target frame on a chest](docs/inventory-pad.gif)
 
 4. **Inspect.** Sneak + right-click a sorter or pad with an empty hand: its targets' items glow (only for you, in
@@ -149,8 +150,9 @@ See [docs/configuration.md](docs/configuration.md).
 ```
 
 Needs nothing installed beyond a JDK: Gradle downloads Java 25 if it is missing. The jar is written to
-`build/libs/`, and `./gradlew runServer` starts a Paper 26.2 test server with it. How the plugin is put together
-(packages, stored data, threads) is in [docs/development.md](docs/development.md).
+`plugin/build/libs/`. `./gradlew runServer` starts a Paper 26.3 test server with it, and `./gradlew runServerMinimum` a
+Paper 26.2 one. How the plugin is put together (packages, stored data, threads) is in
+[docs/development.md](docs/development.md).
 
 ## License
 

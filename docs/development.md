@@ -37,8 +37,10 @@ Interfaces exist only with several implementations, as closed sets, or to keep a
 - `CommandFeature`: one per command feature;
 - `GiveCommand.ItemSource`: a sorter activator or a pad block;
 - sealed `model.ItemReference`: an item or block named in the config, a vanilla material or a CraftEngine reference;
-- sealed `PadService.Placement`: what placing a pad block did;
-- sealed `PadService.Breaking`: what breaking a pad's top block did;
+- sealed `PadService.Placing`: whether a pad's special block may go where it is being placed (`HIGHEST`);
+- sealed `PadService.Placement`: what placing a pad block did (`MONITOR`);
+- sealed `PadService.Breaking`: what breaking a pad's top block may do, decided at `HIGHEST`; the pad is only
+  forgotten, and its special item dropped, at `MONITOR`, once no plugin can cancel the break;
 - sealed `Slot`: an inventory slot, or one inside a shulker box or bundle, which only a sorter opens.
 
 `commands.yml` only places features: `CommandTree` joins every enabled path into Brigadier literals, makes a literal
@@ -86,37 +88,42 @@ SELECT HEX(owner), HEX(trusted), FROM_UNIXTIME(created_at / 1000) FROM framesort
 - **Target index.** Target frames are indexed by chunk as entities enter and leave the world (which includes chunk
   loads and unloads). Finding targets only looks at the chunks within the source's `range`, never at every entity
   in the world.
-- **Cache.** Matches are cached per source and item (amount ignored) and invalidated by a per-world epoch that
-  changes with any target change. A cached frame is checked again before use, and so are the loop guards (a frame
-  on another sorter, items that would land on a pad): sorters and the blocks below change without touching a frame.
+- **Cache.** Matches are cached per source and item (amount ignored) and invalidated by a per-world epoch that rises
+  when a frame becomes a target or stops being one. A cached frame is checked again before use: one that is gone,
+  unloaded or holds another item now makes the plan stale and its cache entry is dropped, so taking an item out,
+  rotating or hitting a frame needs no epoch. The loop guards (a frame on another sorter, items that would land on a
+  pad) are checked again too: sorters and the blocks below change without touching a frame. Cached matches hold live
+  frames, so a world's entries go when it unloads, and the cache empties itself at 4096 entries.
 - **One plan.** `TargetResolver.plan` ranks the targets into levels of preference, each split into containers,
   drop spots and lava, nearest to the source first. Deliveries and inspections (`/framesort where`, inspecting with
-  an item in the off hand) both use it, so an inspection shows exactly what a delivery would do, in its order.
+  an item in the off hand) both use it, so an inspection shows exactly what a delivery would do, in its order. The
+  priority of each frame is pure Java: `model.MatchFacts` for one frame item, `MatchTier.best` for it
+  and the items inside it; `TargetResolver` only reads those facts from the items.
 - **No duplication.** Containers are looked up the moment items go in, and the source is updated after each
   container (`model.Delivery`). A container that vanished in between is skipped, so it can't duplicate items, and
   a drop whose spawn another plugin cancels leaves the items in their slot instead of losing them.
 - **No hopper listener.** FrameSort never listens to or cancels `InventoryMoveItemEvent`, so hoppers behave
   exactly as in vanilla and Paper can skip that event.
-- **Pads.** Pads are registered in their chunk, so only loaded pads are checked, every `sweep-interval` ticks. With its
+- **Pads.** Pads are registered in their chunk, so only loaded pads are checked, every `sweep-interval` ticks, spread
+  over that interval by their block's hash, so they don't all work on the same tick (sorters are spread too). With its
   type's `pull-radius` on, a check also looks for loose items within it: each one that passes the cheap checks (on the
-  ground, not dropped by FrameSort, not just thrown by another pad, outside the pad's column, not on another pad)
-  costs up to five rays, and each one whose flight they find clear one `PadPullEvent`. `model.Pull` works out, under
-  the game's item physics, an arc that lands short of the pad's centre by as much as the item then slides on the
-  friction of the pad's top (`Material#getSlipperiness`; the block a lying item slides on is the one just under a
-  block's height below it, so a carpet or slab on the pad doesn't change it), so it stops there with no task. It
-  rises a block over the pad and over the item, takes 10 ticks plus 1.5 per block (up to 22), longer if needed, up to
-  40. Paper moves an item up or down before sideways, so the item must already be over the pad on the tick before it
-  lands, and it comes over the edge, a quarter block over the surface, at the height that tick has just reached. The
-  rays go through the top of the flight (raised by the item's height), the corner where it comes over the edge and
-  where it lands: they meet a wall or a roof, but pass under the curve between those points. An item within half a
-  block of the pad's side along both axes hops straight up instead, nudged just enough sideways that the ground
-  doesn't hold it, and a one-shot task on the item's own scheduler, at the top of the hop, works out from where the
-  item is then the drift that lands it on the pad. The rays don't load a chunk. An
-  item dropped at a drop spot that merges with an unmarked one can lose the mark and be pulled back once; the drop
-  that sends it there again marks it. A type that takes inventories also looks for players in the box over the
-  pad: one crouching with their feet in the block over the top, and not in spectator mode, sends one stack of slots
-  9 to 35 per check, each a `SlotSource`, trying them at random until one moves something. It stops when the player
-  stops being valid, since another plugin's handler may kill them or make them leave during a delivery.
+  ground, not dropped by FrameSort, not just thrown by another pad, outside the pad's column, not on another pad) costs
+  up to five rays, and each one whose flight they find clear one `PadPullEvent`. `model.Pull` works out, under the
+  game's item physics, an arc that lands short of the pad's centre by as much as the item then slides on the friction of
+  the pad's top (`Material#getSlipperiness`; the block a lying item slides on is the one just under a block's height
+  below it, so a carpet or slab on the pad doesn't change it), so it stops there with no task. It rises a block over the
+  pad and over the item, takes 10 ticks plus 1.5 per block (up to 22), longer if needed, up to 40. Paper moves an item
+  up or down before sideways, so the item must already be over the pad on the tick before it lands, and it comes over
+  the edge, a quarter block over the surface, at the height that tick has just reached. The rays go through the top of
+  the flight (raised by the item's height), the corner where it comes over the edge and where it lands: they meet a wall
+  or a roof, but pass under the curve between those points. An item within half a block of the pad's side along both
+  axes hops straight up instead, nudged just enough sideways that the ground doesn't hold it, and a one-shot task on the
+  item's own scheduler, at the top of the hop, works out from where the item is then the drift that lands it on the pad.
+  The rays don't load a chunk. An item dropped at a drop spot that merges with an unmarked one can lose the mark and be
+  pulled back once; the drop that sends it there again marks it. A type that takes inventories also looks for players in
+  the box over the pad: one crouching with their feet in the block over the top, and not in spectator mode, sends one
+  stack of slots 9 to 35 per check, each a `SlotSource`, trying them at random until one moves something. It stops when
+  the player stops being valid, since another plugin's handler may kill them or make them leave during a delivery.
 - **Chunk borders.** A frame on a chunk border can hang on a block of the next chunk. That block is only read when
   its chunk is loaded, so FrameSort never loads chunks.
 - **Tracing.** With nobody tracing, a delivery costs one empty-map check.
@@ -131,6 +138,12 @@ SELECT HEX(owner), HEX(trusted), FROM_UNIXTIME(created_at / 1000) FROM framesort
 
 Everything that touches the world runs on the main thread, and a single repeating task ticks sorters and pads.
 
+`/framesort reload` reads and checks its files on Paper's async scheduler, as Paper's docs ask for loading files,
+then parses them on the main thread, where materials, items and tags can be read, and swaps them there. The command
+answers once that is done, a player through their own scheduler, so nothing is sent to one who left; a reload asked
+while another runs is not started, and says so. The first load, at enable, runs on the main thread, because nothing can
+be registered before the configuration is read.
+
 The only I/O is the trust table, on the database's single thread (`storage.Database`):
 - at enable, the whole table is read with a timeout before anything else runs; if it fails, FrameSort disables
   itself instead of starting with nobody trusted;
@@ -143,23 +156,26 @@ The only I/O is the trust table, on the database's single thread (`storage.Datab
 - `onDisable` cancels that timer and the tick task, then closes the database, which waits for queued writes;
   nothing is scheduled any more once the plugin is disabling.
 
+Command arguments can be parsed off the main thread: on Paper 26.3, when another plugin answers
+`AsyncTabCompleteEvent`, Paper parses the command on its suggestion thread. The tag and pad-type arguments therefore
+read only snapshots. `TagCatalog` keeps tags.yml and the game's item and block tags in one immutable snapshot,
+rebuilt on the main thread at enable and on reload, and pad types come from the reloadable settings.
+
 An inspection's page buttons (`InspectService`) are Adventure click callbacks, not a command: Paper runs them on the
 main thread, and they last 12 hours and any number of clicks. Each keeps the source's position and a copy of the
 inspected item, never live objects, and on a click checks again that the source is there in a loaded chunk and that
 the player may still see it, then lists the targets anew.
 
 Players' names come from the server's profile cache (`PlayerProfile#completeFromCache`), never from
-`OfflinePlayer#getName`, which for an offline player reads their file in `playerdata/` on every call.
+`OfflinePlayer#getName`, which for an offline player reads their file in `players/data/` on every call.
 
 Highlights are temporary item displays that copy each frame's item, glowing in an exact colour
 (`Display#setGlowColorOverride`). The display's transformation repeats what the vanilla item frame renderer does
-(`ItemFrameRenderer#submit` in 26.2: offset, facing, rotation, half scale, minus the half turn the item display
-renderer adds), so the copy lands exactly on the real item. They are hidden from
-everyone but the inspecting player (`setVisibleByDefault(false)` + `Player#showEntity`), never saved, and removed
-after `highlight-seconds`, each on its own scheduler, or when the plugin disables; a player who leaves first
-just stops seeing them, since nobody else can. Making the frame itself glow would
-show it to every player, in a colour that depends on scoreboard teams, and Paper has no per-player glow without
-packets.
+(`ItemFrameRenderer#submit` in 26.2: offset, facing, rotation, half scale, minus the half turn the item display renderer
+adds), so the copy lands exactly on the real item. They are hidden from everyone but the inspecting player
+(`setVisibleByDefault(false)` + `Player#showEntity`), never saved, and removed after `highlight-seconds`, each on its
+own scheduler, when their player leaves, or when the plugin disables. Making the frame itself glow would show it to
+every player, in a colour that depends on scoreboard teams, and Paper has no per-player glow without packets.
 
 Tracing ends on a timer per player, so the "tracing ended" message arrives on time even when nothing is delivered.
 
@@ -170,11 +186,12 @@ Tracing ends on a timer per player, so the "tracing ended" message arrives on ti
 (`@MinecraftVersionDependent`) behind item templates, the overlay on tagged and CraftEngine items, and shulker box
 and bundle contents. Check them again whenever Paper or Minecraft changes.
 
-`model.Pull` copies the game's item physics in 26.2: gravity 0.04 and air drag 0.98 per tick (`ItemEntity`,
-`Entity#getAirDrag`); the move up or down before sideways (Paper's `CollisionUtil`); on the ground, sideways speed
-times 0.98 × the friction of the block under it after every move; no bounce on landing on a normal block
-(`Entity#restituteMovementAfterCollisions`); and a lying item with almost no sideways speed moving one tick in four.
-If a Minecraft version changes them, pulled items stop short or long of the pad's centre, or hit its side.
+`model.Pull` copies the game's item physics in 26.2 and 26.3: gravity 0.04 and air drag 0.98 per tick (`ItemEntity`,
+`Entity#getAirDrag`); the move up or down before sideways (Paper's `CollisionUtil`); on the ground, sideways speed times
+0.98 × the friction of the block under it after every move; no bounce on landing on a normal block
+(`Entity#restituteMovementAfterCollisions`; 26.3 also calls `Block#bounceOn` on a bouncy one); and a lying item with
+almost no sideways speed moving one tick in four. If a Minecraft version changes them, pulled items stop short or long
+of the pad's centre, or hit its side.
 
 The activator's `components` reach Minecraft as `/give` syntax through `ItemFactory#createItemStack`, which checks
 them on load and reload with the server's registries (main thread). Component names belong to Minecraft: one that a
