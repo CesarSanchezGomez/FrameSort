@@ -87,7 +87,7 @@ public final class InspectService {
         player.sendMessage(owner == null
                 ? text.get("inspect.no-owner", Placeholder.component("source", kind))
                 : text.get("inspect.not-trusted", Placeholder.component("source", kind),
-                        Placeholder.unparsed("player", trust.name(owner))));
+                        trust.named(owner, player.getUniqueId())));
     }
 
     private void open(Player player, Source shown, ItemStack filter, Opened opened) {
@@ -109,31 +109,31 @@ public final class InspectService {
         List<Component> lines = new ArrayList<>();
         List<HighlightService.Highlight> marks = new ArrayList<>();
         List<Component> facts = new ArrayList<>();
-        facts.add(text.get("inspect.details.place", coordinates(source.getLocation())));
         facts.add(owner == null ? text.get("inspect.details.no-owner")
-                : text.get("inspect.details.owner", Placeholder.unparsed("player", trust.name(owner))));
+                : text.get("inspect.details.owner", trust.named(owner, player.getUniqueId())));
         if (!pad) {
             facts.add(text.get("inspect.details.sorted",
                     Placeholder.unparsed("count", String.valueOf(sorters.sorted(source)))));
         }
-        TagResolver details = Placeholder.component("details", Component.join(JoinConfiguration.newlines(), facts));
+        TagResolver place = coordinates(source.getLocation());
         Component title;
         if (filter.isEmpty()) {
-            title = text.get("inspect.title", Placeholder.component("source", kind), details);
+            title = text.get("inspect.title", Placeholder.component("source", kind), place);
             List<ItemFrame> frames = new ArrayList<>(resolver.targets(source, owner, shown.range()));
             frames.sort(Comparator.comparingLong(frame -> FrameGeometry.distanceSquared(frame, center)));
             for (ItemFrame frame : frames) {
                 Destination destination = resolver.destination(frame);
                 lines.add(text.get("inspect.line",
-                        Placeholder.component("entry", entry(text, frame, destination, center))));
+                        Placeholder.component("entry", entry(text, "inspect.entry", frame, destination, center))));
                 marks.add(highlight(frame, destination));
             }
         } else {
             title = text.get("inspect.title-item", Placeholder.component("source", kind),
-                    Placeholder.component("item", filter.effectiveName()), details);
+                    Placeholder.component("item", filter.effectiveName()), place);
             filtered(text, shown, center, filter, lines, marks);
         }
-        ChatPager.send(player, text, title, lines, page, settings.get().inspect().pageSize(),
+        ChatPager.send(player, text, new ChatPager.Heading(title, facts), lines, page,
+                settings.get().inspect().pageSize(),
                 target -> pageButton(center, pad, filter, opened, target));
         highlight(player, marks);
     }
@@ -207,13 +207,16 @@ public final class InspectService {
 
     public void inspectFrame(Player player, ItemFrame frame) {
         Messages text = messages.get();
-        List<Component> lines = new ArrayList<>();
-        lines.add(status(text, frame));
-        if (index.isTarget(frame)) {
-            UUID owner = FrameCodec.owner(frame);
-            lines.add(owner != null ? text.get("frame.owner", Placeholder.unparsed("player", trust.name(owner)))
-                    : text.get("frame.no-owner"));
+        if (!index.isTarget(frame)) {
+            boolean canBeMarked = index.markable(frame);
+            sendFrameCard(player, text, frame, canBeMarked ? "frame.title.unmarked" : "frame.title.wrong-type",
+                    List.of(text.get(canBeMarked ? "frame.not-target.unmarked" : "frame.not-target.wrong-type")));
+            return;
         }
+        List<Component> lines = new ArrayList<>();
+        UUID owner = FrameCodec.owner(frame);
+        lines.add(owner != null ? text.get("frame.owner", trust.named(owner, player.getUniqueId()))
+                : text.get("frame.no-owner"));
 
         lines.add(switch (resolver.destination(frame)) {
             case CONTAINER -> text.get("frame.into.container",
@@ -225,8 +228,19 @@ public final class InspectService {
             lines.add(text.get("frame.on-sorter"));
         }
 
-        ItemStack shown = frame.getItem();
+        addAcceptsLines(text, player, frame.getItem(), lines);
+
+        long sources = sourcesNear(frame.getLocation().getBlock()).stream()
+                .filter(source -> resolver.reaches(source.block(), source.owner(), frame))
+                .count();
+        lines.add(text.get("frame.sources", Placeholder.unparsed("count", String.valueOf(sources))));
+        sendFrameCard(player, text, frame, "frame.title.target", lines);
+        highlight(player, List.of(highlight(frame, resolver.destination(frame))));
+    }
+
+    private void addAcceptsLines(Messages text, Player player, ItemStack shown, List<Component> lines) {
         List<ItemStack> contents = TargetResolver.contents(shown);
+        boolean isDefaultTarget = resolver.isDefaultTarget(shown);
         if (ItemTagCodec.read(shown) != null) {
             TagCatalog.TagView view = resolver.tag(shown);
             if (view != null) {
@@ -238,32 +252,33 @@ public final class InspectService {
                 lines.add(tagCommand == null ? accepts
                         : accepts.clickEvent(ClickEvent.runCommand(tagCommand + " " + view.key().asString())));
             }
-        } else if (contents.isEmpty()) {
-            lines.add(text.get("frame.accepts.exact", Placeholder.component("item", shown.effectiveName())));
+        } else if (contents.isEmpty() && !isDefaultTarget) {
             String customId = resolver.customId(shown);
-            // The ID, not the name: an anvil renames an item, and two custom items can share a name.
-            lines.add(customId != null
-                    ? text.get("frame.accepts.custom", Placeholder.unparsed("id", customId))
-                    : text.get("frame.accepts.similar",
-                            Placeholder.component("material", Component.translatable(shown.getType()))));
+            boolean isPlain = customId == null && shown.isSimilar(ItemStack.of(shown.getType()));
+            lines.add(text.get(isPlain ? "frame.accepts.plain" : "frame.accepts.exact",
+                    Placeholder.component("item", shown.effectiveName())));
+            if (customId != null) {
+                // The ID, not the name: an anvil renames an item, and two custom items can share a name.
+                lines.add(text.get("frame.accepts.custom", Placeholder.unparsed("id", customId)));
+            } else if (!isPlain) {
+                lines.add(text.get("frame.accepts.similar",
+                        Placeholder.component("material", Component.translatable(shown.getType()))));
+            }
         }
         if (!contents.isEmpty()) {
             lines.add(text.get("frame.accepts.contents",
                     Placeholder.unparsed("count", String.valueOf(contents.size()))));
         }
-        if (resolver.isDefaultTarget(shown)) {
+        if (isDefaultTarget) {
             lines.add(text.get("frame.accepts.default"));
         }
+    }
 
-        long sources = sourcesNear(frame.getLocation().getBlock()).stream()
-                .filter(source -> resolver.reaches(source.block(), source.owner(), frame))
-                .count();
-        lines.add(text.get("frame.sources", Placeholder.unparsed("count", String.valueOf(sources))));
+    private void sendFrameCard(Player player, Messages text, ItemFrame frame, String titleKey, List<Component> lines) {
         // One message, like a page of a list, so the card stays together in chat.
         player.sendMessage(text.get("frame.layout",
-                Placeholder.component("title", text.get("frame.title", coordinates(frame.getLocation()))),
+                Placeholder.component("title", text.get(titleKey, coordinates(frame.getLocation()))),
                 Placeholder.component("lines", Component.join(JoinConfiguration.newlines(), lines))));
-        highlight(player, List.of(highlight(frame, resolver.destination(frame))));
     }
 
     public void toggleMark(Player player, ItemFrame frame) {
@@ -279,7 +294,7 @@ public final class InspectService {
         boolean mark = !index.isMarked(frame);
         UUID owner = FrameCodec.owner(frame);
         if (!mark && owner != null && isSomeoneElses(owner, player)) {
-            player.sendActionBar(text.get("mark.not-yours", Placeholder.unparsed("player", trust.name(owner))));
+            player.sendActionBar(text.get("mark.not-yours", trust.named(owner, player.getUniqueId())));
             return;
         }
         if (mark) {
@@ -310,14 +325,18 @@ public final class InspectService {
             List<Target> targets = Stream.concat(
                     level.containers().stream().map(frame -> new Target(frame, Destination.CONTAINER)),
                     Stream.ofNullable(end)).toList();
-            Component header = text.get(i == 0 ? "inspect.level.first" : "inspect.level.next",
+            Component levelTitle = text.get(i == 0 ? "inspect.level.first" : "inspect.level.next",
                     Placeholder.unparsed("number", String.valueOf(i + 1)));
             for (int j = 0; j < targets.size(); j++) {
                 Target target = targets.get(j);
+                String entryKey = target.frame().getItem().isSimilar(filter)
+                        ? "inspect.entry-same-item" : "inspect.entry";
                 Component branch = text.get(j < targets.size() - 1 ? "inspect.branch.middle" : "inspect.branch.last",
-                        Placeholder.component("entry", entry(text, target.frame(), target.destination(), center)));
-                // A header shares the pager line of its first target, so the total and the page size count targets.
-                lines.add(j == 0 ? Component.join(JoinConfiguration.newlines(), header, branch) : branch);
+                        Placeholder.component("entry",
+                                entry(text, entryKey, target.frame(), target.destination(), center)));
+                // A level's title shares the pager line of its first target, so the total and the page size count
+                // targets.
+                lines.add(j == 0 ? Component.join(JoinConfiguration.newlines(), levelTitle, branch) : branch);
                 marks.add(highlight(target.frame(), target.destination()));
             }
             if (end != null) {
@@ -336,26 +355,19 @@ public final class InspectService {
         lines.set(lines.size() - 1, Component.join(JoinConfiguration.newlines(), lines.getLast(), closing));
     }
 
-    private Component entry(Messages text, ItemFrame frame, Destination destination, BlockKey center) {
+    private Component entry(Messages text, String key, ItemFrame frame, Destination destination, BlockKey center) {
         Component target = switch (destination) {
             case CONTAINER -> resolver.blockName(FrameGeometry.attachedBlock(frame));
             case DROPPED -> text.get("inspect.target.dropped");
             case DESTROYED -> text.get("inspect.target.lava");
         };
         Location location = frame.getLocation();
-        return text.get("inspect.entry",
+        return text.get(key,
                 Placeholder.component("item", frame.getItem().effectiveName()),
                 Placeholder.component("target", target),
                 coordinates(location),
                 Placeholder.unparsed("distance",
                         String.valueOf(Math.round(Math.sqrt(FrameGeometry.distanceSquared(frame, center))))));
-    }
-
-    private Component status(Messages text, ItemFrame frame) {
-        if (!index.markable(frame)) {
-            return text.get("frame.status.wrong-type");
-        }
-        return text.get(index.isTarget(frame) ? "frame.status.target" : "frame.status.unmarked");
     }
 
     private HighlightService.Highlight highlight(ItemFrame frame, Destination destination) {
