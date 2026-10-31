@@ -4,7 +4,10 @@ import com.cesarcosmico.framesort.config.FrameSortSettings;
 import com.cesarcosmico.framesort.model.TrustList;
 import com.cesarcosmico.framesort.storage.Database;
 import com.cesarcosmico.framesort.storage.TrustRepository;
+import com.cesarcosmico.framesort.text.PlayerHeads;
 import com.destroystokyo.paper.profile.PlayerProfile;
+import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
+import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
@@ -62,6 +65,16 @@ public final class TrustService implements Supplier<TrustList> {
         profile.completeFromCache();
         String name = profile.getName();
         return name == null || name.isEmpty() ? player.toString() : name;
+    }
+
+    /** {@code <player>} and {@code <player-head>} of {@code player}, for a message that {@code viewer} reads. */
+    public TagResolver named(UUID player, UUID viewer) {
+        return named(player, name(player), viewer);
+    }
+
+    /** Like {@link #named(UUID, UUID)}, for a caller that already has {@code name}. */
+    public TagResolver named(UUID player, String name, UUID viewer) {
+        return TagResolver.resolver(Placeholder.unparsed("player", name), PlayerHeads.head(player, viewer));
     }
 
     /**

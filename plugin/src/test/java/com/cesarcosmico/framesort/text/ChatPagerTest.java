@@ -22,7 +22,7 @@ class ChatPagerTest {
     private static final String LANG = """
             pager:
               layout:
-                - '<title> (<total>)'
+                - '<title> (<total>)<header>'
                 - '<entries>'
                 - '<previous> <page>/<pages> <next>'
               empty: 'Nothing'
@@ -120,6 +120,18 @@ class ChatPagerTest {
         ChatPager.send(audience, messages(), Component.text("Tags"), lines(5), 2, 2,
                 (IntFunction<ClickEvent<?>>) null);
         assertNull(firstClick(audience.received.getFirst()));
+    }
+
+    @Test
+    void theHeaderGoesUnderTheTitleOnEveryPage() throws Exception {
+        Recorder audience = new Recorder();
+        ChatPager.Heading heading = new ChatPager.Heading(Component.text("Sorter"),
+                List.of(Component.text("Owner: Cesar"), Component.text("Sorted: 3")));
+        ChatPager.send(audience, messages(), heading, lines(5), 1, 2, (String) null);
+        ChatPager.send(audience, messages(), heading, lines(5), 3, 2, (String) null);
+
+        assertEquals("Sorter (5)\nOwner: Cesar\nSorted: 3\ne1\ne2\n- 01/03 >2", plain(audience.received.get(0)));
+        assertEquals("Sorter (5)\nOwner: Cesar\nSorted: 3\ne5\n<2 03/03 -", plain(audience.received.get(1)));
     }
 
     @Test

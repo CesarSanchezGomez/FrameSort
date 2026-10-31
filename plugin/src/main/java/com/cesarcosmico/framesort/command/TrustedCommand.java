@@ -16,9 +16,7 @@ import org.bukkit.entity.Player;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.Comparator;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 import java.util.function.Supplier;
@@ -58,13 +56,13 @@ public final class TrustedCommand implements CommandFeature {
         List<Component> lines = Stream.concat(
                 list.trustedBy(self).entrySet().stream()
                         .sorted(Map.Entry.comparingByValue())
-                        .map(entry -> text.get("trust.list.trusted",
-                                Placeholder.unparsed("player", trust.name(entry.getKey())),
+                        .map(entry -> text.get("trust.list.trusted", trust.named(entry.getKey(), self),
                                 Placeholder.unparsed("date", date(entry.getValue())))),
                 list.trusting(self).stream()
-                        .map(trust::name)
-                        .sorted(Comparator.comparing(name -> name.toLowerCase(Locale.ROOT)))
-                        .map(name -> text.get("trust.list.trusting", Placeholder.unparsed("player", name))))
+                        .map(trusting -> Map.entry(trusting, trust.name(trusting)))
+                        .sorted(Map.Entry.comparingByValue(String.CASE_INSENSITIVE_ORDER))
+                        .map(entry -> text.get("trust.list.trusting",
+                                trust.named(entry.getKey(), entry.getValue(), self))))
                 .toList();
         ChatPager.send(player, text, text.get("trust.list.title"), lines, page, settings.get().inspect().pageSize(),
                 path + " %d");

@@ -19,7 +19,7 @@
 | `/framesort trusted [page]` | Whom you trust, since when, and who trusts you. |
 | `/framesort give sorter [player] [amount]` | The sorter activator from `config.yml`. Needed when `sorter.activator.require-marked` is true. A CraftEngine activator is built by CraftEngine; while it can't (an ID it doesn't know, or during `/ce reload`) nothing is given and you are told so. |
 | `/framesort give pad <type> [player] [amount]` | The special top block of a pad type. Needed when `pads.yml` has `creation: item`. A CraftEngine top block's item is built by CraftEngine; while it can't, nothing is given and you are told so. |
-| `/framesort reload` | Reloads `config.yml`, `pads.yml`, `tags.yml` and the language file. If a file is broken, the previous configuration stays active. Asked while another reload runs, it says so and does nothing. |
+| `/framesort reload` | Reloads `config.yml`, `pads.yml`, `tags.yml` and the language file, and says how many milliseconds it took until the answer, and how many warnings there were (see the console). If a file is broken, the previous configuration stays active. Asked while another reload runs, it says so and does nothing. |
 
 ## Inspecting
 
@@ -28,7 +28,7 @@ Sneak with an empty main hand; this needs `framesort.inspect`. Standing up, ever
 | Action | Result |
 |---|---|
 | Sneak + right-click a sorter or the top block of a pad | Only yours, those of a player who trusts you, or any with `framesort.inspect.others` (see [Owners and trust](#owners-and-trust)). The items in the target frames it can send to glow for you only (green: into a container, yellow: dropped, red: lava; see `inspect.colors`) and those targets are listed, nearest first. Frames that WorldGuard regions (or another plugin cancelling `TargetBindEvent`) keep it from reaching are left out; a sorter's list also shows how many items it has sent. With an item in your off hand, only where that item would go, as numbered levels in order of preference: each level's containers nearest first, then the one drop spot or lava that takes the rest (the nearest, a drop spot before lava); the next level only gets what doesn't fit. From a sorter, a shulker box or bundle with contents comes with a note: the sorter opens it first, and the list shows where it goes whole once nothing inside can go. |
-| Sneak + left-click a frame with an item | Whether it is a target and, if so, who owns it; where its items go, what it accepts, and how many sorters and pads reach it. |
+| Sneak + left-click a frame with an item | Whether it is a target. If it is: who owns it, where its items go, what it accepts and how many sorters and pads reach it. If not: how to mark it, or that its kind of frame can't be one. |
 | Sneak + right- or left-click a sorter's frame | Inspects the sorter, as clicking its dispenser does. That frame is never a target. |
 | Sneak + right-click a frame with an item | Marks or unmarks it as a target (needs `framesort.inspect` and `framesort.target.create`). Its item glows green or red for you, and the action bar says whether it was marked or unmarked, or why it can't be. Marking makes it yours, and unmarking frees it; with `ownership.enabled`, only you unmark it then. A mark lives with the item: once another item is put in, the frame is no longer a target, without a message (with `/framesort automark` on, the new item marks a frame on a container or composter for whoever put it in); its card (sneak + left-click) says whether it is one. The item does not rotate. |
 
@@ -63,6 +63,10 @@ stops them from touching the frame.
 With `ownership.enabled: false`, `/framesort trust`, `untrust` and `trusted` leave the help, tab completion and
 links, and can't be run; `/framesort reload` with it back on brings them back. Names come from the server's profile
 cache: a player it no longer remembers shows as their UUID, which `untrust` also takes.
+
+Owners show with their head next to the name: when inspecting, in `/framesort trusted`, and when FrameSort says whose
+something is ([which head each account gets](configuration.md#language)).
+
 
 What has no owner (built before owners existed, or pasted without its data) works only with what has no owner, and
 only admins inspect it. Unmarking and marking a frame again, putting the activator back, or breaking and placing a

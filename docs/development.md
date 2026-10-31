@@ -11,7 +11,7 @@ com.cesarcosmico.framesort
 ├── storage/          the database and the trust table
 ├── config/           typed settings, pads.yml, tags.yml, commands.yml, strict loading, validation, reload holder
 ├── item/             persistent data keys, item templates, the overlay on items FrameSort doesn't build, codecs
-├── text/             messages and the chat pager
+├── text/             messages, the chat pager and player heads
 ├── command/          one class per command feature; CommandTree builds the roots from commands.yml
 ├── listener/         Bukkit listeners, one per feature
 ├── integration/      worldguard/, craftengine/: the only code that imports those plugins, each loaded only when enabled

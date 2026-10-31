@@ -279,7 +279,7 @@ tags:
 |---|---|
 | `'diamond_axe'`, `'minecraft:diamond_axe'` | A vanilla item. |
 | `'#minecraft:axes'` | Every item in that game tag, as the game has it, so it keeps up when Minecraft adds items. It never reads a tag from `tags.yml`, so tags can't loop. |
-| `'craftengine:default:topaz_axe'` | A CraftEngine item: `craftengine:` and the item's ID, namespace included. Sneak + left-click a frame holding the item to see what to write. |
+| `'craftengine:default:topaz_axe'` | A CraftEngine item: `craftengine:` and the item's ID, namespace included. Mark a frame holding the item, then sneak + left-click it, to see what to write. |
 
 - **Names.** A name without a namespace is a game tag (`axes` is `minecraft:axes`), so it replaces that tag entirely
   inside FrameSort; add `'#minecraft:axes'` to extend it instead of copying it. Give new tags a namespace of your own
@@ -323,6 +323,12 @@ everywhere shows as the key and is reported once in the console. Your file is co
 language when it loads: missing keys, unknown ones (a typo) and an old `config-version` are reported. Messages use
 [MiniMessage](https://docs.papermc.io/adventure/minimessage/format/); `<prefix>` is the `prefix` key.
 
+`<player-head>`, where a key has it, is the head of the player that `<player>` names: by the UUID of their Mojang
+account, which the client looks up, or Steve's on an offline-mode server or for a Bedrock player through Floodgate. A
+reader on Bedrock through Floodgate gets none, since Geyser would write it as text; one who can't be told apart (an
+account linked to a Java one, or Geyser without Floodgate) reads `[unknown player head]`. MiniMessage's own `<head:…>`
+tag still works anywhere.
+
 MiniMessage is read in its lenient mode: a misspelt or unknown tag shows as plain text instead of failing. Legacy
 `§` codes (`§a`, `§l`) are the exception, because MiniMessage cannot read them: a message, an item name or a lore,
 or the sorter's `custom-name`, written with one is reported when the file loads, and the bundled text is used instead
@@ -339,25 +345,29 @@ command, the help follows it, and so do `trace.started` (`<stop>`), `tag.unknown
 
 ### Pages
 
-Lists (`tag list`, `tag search`, `tag show` and the inspection lists) are built from the `pager` keys:
+Lists (`tag list`, `tag search`, `tag show`, `trusted` and the inspection lists) are built from the `pager` keys:
 
 | Key | Content |
 |---|---|
-| `pager.layout` | The whole page, one line per entry. Placeholders: `<entries>`, `<title>`, `<total>`, `<page>`, `<pages>`, `<previous>`, `<next>`. |
+| `pager.layout` | The whole page, one line per entry. Placeholders: `<entries>`, `<title>`, `<total>`, `<header>`, `<page>`, `<pages>`, `<previous>`, `<next>`. `<header>` is the lines a list shows under its title on every page (a sorter's owner); each starts with a line break, so put it at the end of the title's line, and a list without them gets no empty line. |
 | `pager.empty` | Shown instead of the entries when the list is empty. |
 | `pager.previous.enabled`, `pager.next.enabled` | The buttons; `<page>` is the page they open. Clicking is added by FrameSort, the hover is part of the text. |
 | `pager.previous.disabled`, `pager.next.disabled` | Shown when there is no page in that direction. |
 
-### Inspection title
+### Inspection header
 
-`inspect.title` and `inspect.title-item` stay short; `<details>` in them is the hover with the `inspect.details`
-lines that apply: where the source is (`place`), its owner (`owner`, or `no-owner`) and, for a sorter, how many items
-it has sent (`sorted`). Longer messages work the same way throughout `lang/`: a few words in chat, the rest in a
-hover.
+`inspect.title` and `inspect.title-item` carry where the sorter or pad is (`<x>`, `<y>`, `<z>`). Under them, on every
+page, are the `inspect.details` lines that apply, in `<header>`: its owner (`owner`, or `no-owner`) and, for a
+sorter, how many items it has sent (`sorted`). What you look up every time is in the text; the rest of `lang/`
+keeps explanations, and what would not fit on a chat line (each target's coordinates), in a hover. With an item in
+the off hand, a target holding that same item uses `inspect.entry-same-item`, without repeating its name.
 
 ### Frame card
 
 What a frame accepts is shown as one message built from `frame.layout`, framed like a page: `<title>` is
-`frame.title` and `<lines>` are the `frame.status`, `frame.owner`, `frame.into`, `frame.on-sorter`, `frame.accepts`
-and `frame.sources` lines that apply. A target without an owner shows `frame.no-owner`. A tag line is
-`frame.accepts.tag-link` when its click lists the tag, else `frame.accepts.tag`.
+`frame.title.target`, `.unmarked` or `.wrong-type`. On a target, `<lines>` are the `frame.owner`, `frame.into`,
+`frame.on-sorter`, `frame.accepts` and `frame.sources` lines that apply; on any other frame, its
+`frame.not-target` line. A target without an owner shows `frame.no-owner`. A tag line is `frame.accepts.tag-link` when
+its click lists the tag, else `frame.accepts.tag`. An item with nothing of its own uses `frame.accepts.plain`; a renamed
+or enchanted one, `frame.accepts.exact` and `frame.accepts.similar`, and a CraftEngine item, `exact` and `custom`. The
+default target only shows `frame.accepts.default`.

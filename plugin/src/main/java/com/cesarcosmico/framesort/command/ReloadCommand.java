@@ -6,6 +6,7 @@ import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
+import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import org.bukkit.Server;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -13,6 +14,7 @@ import org.bukkit.entity.Player;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.Executor;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -62,6 +64,7 @@ public final class ReloadCommand implements CommandFeature {
             sender.sendMessage(messages.get().get("command.reload-running"));
             return Command.SINGLE_SUCCESS;
         }
+        long start = System.nanoTime();
         // Logged here, not in the reply: a player who left gets no reply, and the failure must still be logged.
         CompletableFuture<Integer> done = reload.get().whenComplete((warnings, error) -> {
             reloading.set(false);
@@ -77,10 +80,15 @@ public final class ReloadCommand implements CommandFeature {
                 ? messages.get().get("command.reload-failed",
                         Placeholder.unparsed("error", String.valueOf(cause(error).getMessage())))
                 : warnings == 0
-                        ? messages.get().get("command.reloaded")
+                        ? messages.get().get("command.reloaded", elapsed(start))
                         : messages.get().get("command.reloaded-with-warnings",
-                                Placeholder.unparsed("count", String.valueOf(warnings)))), replies.apply(sender));
+                                Placeholder.unparsed("count", String.valueOf(warnings)), elapsed(start))),
+                replies.apply(sender));
         return Command.SINGLE_SUCCESS;
+    }
+
+    private static TagResolver elapsed(long start) {
+        return Placeholder.unparsed("ms", String.valueOf(TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - start)));
     }
 
     private static Throwable cause(Throwable error) {

@@ -87,7 +87,8 @@ it can reach. Targets are cached, so after changing regions run `/framesort relo
 (many custom items share one). Where a frame would take the same material, a custom item in it takes the same
 custom item instead, whatever its durability, name or random values; vanilla items of that material don't go there,
 and a custom item never goes to a frame for its material. No game tag takes a custom item; a tag in `tags.yml` takes
-the ones it lists, written as inspecting a frame that holds the item shows them (`craftengine:default:topaz_axe`). A
+the ones it lists, written as the card of a target frame holding the item shows them
+(`craftengine:default:topaz_axe`). A
 custom item in a frame is never the default target, even one made from a recovery compass, nor the sorter activator,
 even one made from a hopper, unless the config names that custom item
 (`activator.material: 'craftengine:default:ruby'`, and the same in `default-target-item`). A pad's blocks can be
