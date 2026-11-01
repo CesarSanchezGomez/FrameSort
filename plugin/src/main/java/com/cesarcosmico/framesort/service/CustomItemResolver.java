@@ -1,6 +1,5 @@
 package com.cesarcosmico.framesort.service;
 
-import com.cesarcosmico.framesort.model.Delivery;
 import com.cesarcosmico.framesort.model.ItemReference;
 import net.kyori.adventure.text.Component;
 import org.bukkit.block.Block;
@@ -57,11 +56,8 @@ public interface CustomItemResolver {
         return false;
     }
 
-    /**
-     * Puts {@code items} into the plugin's block at {@code block} as a hopper would and returns how many it didn't
-     * take, or {@link Delivery#GONE} when that block stores no items ({@link #isContainer}).
-     */
+    /** Puts {@code items} into the plugin's block at {@code block}, as a hopper would; returns what it didn't take. */
     default int store(Block block, ItemStack items) {
-        return Delivery.GONE;
+        return items.getAmount();
     }
 }

@@ -9,10 +9,8 @@ import org.bukkit.entity.ItemFrame;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 import java.util.function.Supplier;
 
@@ -20,8 +18,11 @@ public final class TargetIndex {
 
     public static final String MARK_PERMISSION = "framesort.target.create";
 
+    public record Near(ItemFrame frame, long distanceSquared) {
+    }
+
     private final Supplier<FrameSortSettings> settings;
-    private final Map<ChunkKey, Set<ItemFrame>> frames = new HashMap<>();
+    private final Map<ChunkKey, Map<ItemFrame, BlockKey>> frames = new HashMap<>();
     private final Map<UUID, Long> epochs = new HashMap<>();
     // A change of trust can change any world's matches, even one with no epoch yet.
     private long epochEverywhere;
@@ -31,15 +32,17 @@ public final class TargetIndex {
     }
 
     public void add(ItemFrame frame) {
-        if (qualifies(frame) && frames.computeIfAbsent(chunk(frame), key -> new HashSet<>()).add(frame)) {
+        BlockKey position = position(frame);
+        if (qualifies(frame) && frames.computeIfAbsent(position.chunk(), key -> new HashMap<>())
+                .putIfAbsent(frame, position) == null) {
             changed(frame.getWorld());
         }
     }
 
     public void remove(ItemFrame frame) {
-        ChunkKey chunk = chunk(frame);
-        Set<ItemFrame> inChunk = frames.get(chunk);
-        if (inChunk != null && inChunk.remove(frame)) {
+        ChunkKey chunk = position(frame).chunk();
+        Map<ItemFrame, BlockKey> inChunk = frames.get(chunk);
+        if (inChunk != null && inChunk.remove(frame) != null) {
             if (inChunk.isEmpty()) {
                 frames.remove(chunk);
             }
@@ -88,22 +91,23 @@ public final class TargetIndex {
     }
 
     public boolean isTarget(ItemFrame frame) {
-        Set<ItemFrame> inChunk = frames.get(chunk(frame));
-        return inChunk != null && inChunk.contains(frame);
+        Map<ItemFrame, BlockKey> inChunk = frames.get(position(frame).chunk());
+        return inChunk != null && inChunk.containsKey(frame);
     }
 
-    public List<ItemFrame> near(BlockKey center, int radius) {
+    public List<Near> near(BlockKey center, int radius) {
         long radiusSquared = (long) radius * radius;
-        List<ItemFrame> found = new ArrayList<>();
+        List<Near> found = new ArrayList<>();
         for (int cx = (center.x() - radius) >> 4; cx <= (center.x() + radius) >> 4; cx++) {
             for (int cz = (center.z() - radius) >> 4; cz <= (center.z() + radius) >> 4; cz++) {
-                Set<ItemFrame> inChunk = frames.get(new ChunkKey(center.world(), cx, cz));
+                Map<ItemFrame, BlockKey> inChunk = frames.get(new ChunkKey(center.world(), cx, cz));
                 if (inChunk == null) {
                     continue;
                 }
-                for (ItemFrame frame : inChunk) {
-                    if (FrameGeometry.distanceSquared(frame, center) <= radiusSquared) {
-                        found.add(frame);
+                for (Map.Entry<ItemFrame, BlockKey> entry : inChunk.entrySet()) {
+                    long distanceSquared = entry.getValue().distanceSquared(center);
+                    if (distanceSquared <= radiusSquared) {
+                        found.add(new Near(entry.getKey(), distanceSquared));
                     }
                 }
             }
@@ -124,7 +128,7 @@ public final class TargetIndex {
         return markable(frame) && isMarked(frame);
     }
 
-    private static ChunkKey chunk(ItemFrame frame) {
-        return FrameGeometry.key(frame.getLocation().getBlock()).chunk();
+    private static BlockKey position(ItemFrame frame) {
+        return FrameGeometry.key(frame.getLocation().getBlock());
     }
 }

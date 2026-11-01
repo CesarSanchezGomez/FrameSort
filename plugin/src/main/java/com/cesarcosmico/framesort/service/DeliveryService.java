@@ -2,9 +2,7 @@ package com.cesarcosmico.framesort.service;
 
 import com.cesarcosmico.framesort.item.DropCodec;
 import com.cesarcosmico.framesort.model.Composting;
-import com.cesarcosmico.framesort.model.Delivery;
 import com.cesarcosmico.framesort.service.TargetResolver.Destination;
-import com.cesarcosmico.framesort.service.TargetResolver.Target;
 import org.bukkit.Effect;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -17,7 +15,6 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 import org.jspecify.annotations.Nullable;
 
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
@@ -68,20 +65,14 @@ public final class DeliveryService {
         if (stack.isEmpty()) {
             return 0;
         }
-        TargetResolver.Plan plan = resolver.plan(origin, owner, range, stack);
         int amount = stack.getAmount();
-        List<Delivery.Level<ItemFrame, Target>> levels = plan.levels().stream()
-                .map(level -> new Delivery.Level<>(level.containers(), level.end())).toList();
         // From the source block, not the item: a pad's items rest anywhere on it, and one sweep is one turn.
         Location from = origin.getLocation().toCenterLocation();
-        Delivery.Outcome<ItemFrame, Target> outcome = Delivery.deliver(amount, levels,
+        TargetResolver.Filled filled = resolver.deliver(origin, owner, range, stack,
                 (frame, offered) -> offer(frame, stack, offered, from, owner), source::commit);
-        if (plan.stale() || !outcome.gone().isEmpty()) {
-            resolver.forget(origin, owner, range, stack);
-        }
 
-        int remaining = outcome.remaining();
-        Target end = outcome.end();
+        int remaining = filled.remaining();
+        TargetResolver.Target end = filled.end();
         if (end == null) {
             return amount - remaining;
         }
@@ -102,9 +93,6 @@ public final class DeliveryService {
     }
 
     private int offer(ItemFrame frame, ItemStack stack, int amount, Location from, @Nullable UUID owner) {
-        if (!frame.isValid() || !FrameGeometry.attachedLoaded(frame)) {
-            return Delivery.GONE;
-        }
         Block block = FrameGeometry.attachedBlock(frame);
         int notAccepted;
         if (block.getType() == Material.COMPOSTER) {
@@ -116,9 +104,6 @@ public final class DeliveryService {
                 notAccepted = left.values().stream().mapToInt(ItemStack::getAmount).sum();
             } else {
                 notAccepted = customItems.store(block, stack.asQuantity(amount));
-                if (notAccepted == Delivery.GONE) {
-                    return Delivery.GONE;
-                }
             }
         }
         if (notAccepted < amount) {
@@ -128,7 +113,7 @@ public final class DeliveryService {
         return notAccepted;
     }
 
-    // The plan only sends compostable items to a composter.
+    // Only compostable items are routed to a composter.
     private int compost(Block composter, ItemStack stack, int amount) {
         Levelled data = (Levelled) composter.getBlockData();
         int before = data.getLevel();
@@ -146,8 +131,7 @@ public final class DeliveryService {
             // Vanilla turns a full composter ready on a tick it schedules itself; a level set through the API
             // schedules none, so FrameSort asks for that tick. Extra ticks on a ready composter do nothing.
             plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
-                if (composter.getWorld().isChunkLoaded(composter.getX() >> 4, composter.getZ() >> 4)
-                        && composter.getType() == Material.COMPOSTER) {
+                if (FrameGeometry.isLoaded(composter) && composter.getType() == Material.COMPOSTER) {
                     composter.tick();
                 }
             }, READY_DELAY_TICKS);

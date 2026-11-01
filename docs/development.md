@@ -88,20 +88,27 @@ SELECT HEX(owner), HEX(trusted), FROM_UNIXTIME(created_at / 1000) FROM framesort
 - **Target index.** Target frames are indexed by chunk as entities enter and leave the world (which includes chunk
   loads and unloads). Finding targets only looks at the chunks within the source's `range`, never at every entity
   in the world.
-- **Cache.** Matches are cached per source and item (amount ignored) and invalidated by a per-world epoch that rises
-  when a frame becomes a target or stops being one. A cached frame is checked again before use: one that is gone,
-  unloaded or holds another item now makes the plan stale and its cache entry is dropped, so taking an item out,
-  rotating or hitting a frame needs no epoch. The loop guards (a frame on another sorter, items that would land on a
-  pad) are checked again too: sorters and the blocks below change without touching a frame. Cached matches hold live
-  frames, so a world's entries go when it unloads, and the cache empties itself at 4096 entries.
-- **One plan.** `TargetResolver.plan` ranks the targets into levels of preference, each split into containers,
-  drop spots and lava, nearest to the source first. Deliveries and inspections (`/framesort where`, inspecting with
-  an item in the off hand) both use it, so an inspection shows exactly what a delivery would do, in its order. The
-  priority of each frame is pure Java: `model.MatchFacts` for one frame item, `MatchTier.best` for it
-  and the items inside it; `TargetResolver` only reads those facts from the items.
-- **No duplication.** Containers are looked up the moment items go in, and the source is updated after each
-  container (`model.Delivery`). A container that vanished in between is skipped, so it can't duplicate items, and
-  a drop whose spawn another plugin cancels leaves the items in their slot instead of losing them.
+- **Cache.** Matches are cached per source and item (amount ignored), ranked and nearest first, and invalidated by a
+  per-world epoch that rises when a frame becomes a target or stops being one. A cached frame is checked again when it
+  is reached: one that is gone, unloaded or holds another item is skipped and its cache entry is dropped, so taking an
+  item out, rotating or hitting a frame needs no epoch. The loop guards (a frame on another sorter, items that would
+  land on a pad) are checked at that moment too: sorters and the blocks below change without touching a frame.
+  Cached matches hold live frames, so a world's entries go when it unloads. Memory follows the matches held, not the
+  entries, so the cache empties itself at about 8 million matches. A miss stays cheap: the frames in range are read
+  once, and each distinct item in them is matched once.
+- **What the cache can't see.** Another plugin that changes a frame's item through the API, or moves a frame, raises no
+  epoch: a frame a delivery doesn't reach keeps its cached place until the epoch rises or a delivery gets there. A
+  player's changes always show: putting an item in unmarks the frame, and taking it out leaves a frame that no longer
+  matches.
+- **One order.** Targets go in levels of preference, nearest to the source first, and one method decides what each
+  frame does (fill, drop, destroy or nothing). A delivery asks it frame by frame and stops at the frame that takes the
+  last item, so the frames past it cost nothing. `/framesort where` and inspecting with an item in the off hand ask it
+  for every frame, so an inspection shows exactly what a delivery would do, in its order. The priority of each frame
+  is pure Java: `model.MatchFacts` for one frame item, `MatchTier.best` for it and the items inside it;
+  `TargetResolver` only reads those facts from the items.
+- **No duplication.** Each frame's block is read right before items go in, and the source is updated after each
+  container (`model.Delivery`), so another plugin's handler can't duplicate items between two containers. A drop whose
+  spawn another plugin cancels leaves the items in their slot instead of losing them.
 - **No hopper listener.** FrameSort never listens to or cancels `InventoryMoveItemEvent`, so hoppers behave
   exactly as in vanilla and Paper can skip that event.
 - **Pads.** Pads are registered in their chunk, so only loaded pads are checked, every `sweep-interval` ticks, spread
