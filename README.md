@@ -144,6 +144,14 @@ Every command also runs as `/fs`. Where each command lives, its permission and w
 `tags.yml` (tags of your own and replacements for the game's), `database.yml` (where trust is kept) and `lang/`.
 See [docs/configuration.md](docs/configuration.md).
 
+## Performance
+
+A server has 50 ms for each tick. On a large test server (50 sorters, 100 pads, 2000 chests with target frames),
+measured with [spark](https://spark.lucko.me), FrameSort used under 1 ms of them while sorting non-stop, and 9 ms with
+every chest full and every sorter still trying. At four times that size it holds too, except when all the sorters are
+stuck on full chests at once: that takes 110 ms a tick. Results, screenshots and how to check it on your own server are
+in [docs/performance.md](docs/performance.md).
+
 ## Build
 
 ```bash
