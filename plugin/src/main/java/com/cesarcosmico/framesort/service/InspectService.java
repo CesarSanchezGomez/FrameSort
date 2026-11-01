@@ -318,7 +318,7 @@ public final class InspectService {
 
     private void filtered(Messages text, Source shown, BlockKey center, ItemStack filter, List<Component> lines,
                           List<HighlightService.Highlight> marks) {
-        List<TargetResolver.Level> levels = resolver.plan(shown.block(), shown.owner(), shown.range(), filter).levels();
+        List<TargetResolver.Level> levels = resolver.plan(shown.block(), shown.owner(), shown.range(), filter);
         for (int i = 0; i < levels.size(); i++) {
             TargetResolver.Level level = levels.get(i);
             Target end = level.end();

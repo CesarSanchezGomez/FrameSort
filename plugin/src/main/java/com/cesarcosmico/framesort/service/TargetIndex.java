@@ -18,10 +18,10 @@ public final class TargetIndex {
 
     public static final String MARK_PERMISSION = "framesort.target.create";
 
-    private final Supplier<FrameSortSettings> settings;
     public record Near(ItemFrame frame, long distanceSquared) {
     }
 
+    private final Supplier<FrameSortSettings> settings;
     private final Map<ChunkKey, Map<ItemFrame, BlockKey>> frames = new HashMap<>();
     private final Map<UUID, Long> epochs = new HashMap<>();
     // A change of trust can change any world's matches, even one with no epoch yet.
@@ -104,10 +104,10 @@ public final class TargetIndex {
                 if (inChunk == null) {
                     continue;
                 }
-                for (Map.Entry<ItemFrame, BlockKey> frame : inChunk.entrySet()) {
-                    long distanceSquared = frame.getValue().distanceSquared(center);
+                for (Map.Entry<ItemFrame, BlockKey> entry : inChunk.entrySet()) {
+                    long distanceSquared = entry.getValue().distanceSquared(center);
                     if (distanceSquared <= radiusSquared) {
-                        found.add(new Near(frame.getKey(), distanceSquared));
+                        found.add(new Near(entry.getKey(), distanceSquared));
                     }
                 }
             }

@@ -17,7 +17,10 @@ public final class FrameGeometry {
     }
 
     public static boolean attachedLoaded(ItemFrame frame) {
-        Block block = attachedBlock(frame);
+        return isLoaded(attachedBlock(frame));
+    }
+
+    public static boolean isLoaded(Block block) {
         return block.getWorld().isChunkLoaded(block.getX() >> 4, block.getZ() >> 4);
     }
 

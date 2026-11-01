@@ -9,7 +9,6 @@ import org.bukkit.block.Dispenser;
 import org.bukkit.block.Dropper;
 import org.bukkit.block.Hopper;
 import org.bukkit.block.ShulkerBox;
-import org.bukkit.entity.ItemFrame;
 import org.bukkit.inventory.Inventory;
 import org.jspecify.annotations.Nullable;
 
@@ -31,14 +30,19 @@ final class TargetBlocks {
 
     // Inventory#addItem ignores a block's slot rules, so only blocks whose every slot takes any item are filled.
     private static boolean isStorage(Container container) {
-        return STORAGE.stream().anyMatch(type -> type.isInstance(container));
+        for (Class<? extends Container> type : STORAGE) {
+            if (type.isInstance(container)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     static boolean isContainer(Block block, CustomItemResolver customItems) {
         return block.getType() == Material.COMPOSTER || storage(block) != null || customItems.isContainer(block);
     }
 
-    static boolean isLava(ItemFrame frame) {
-        return FrameGeometry.attachedBlock(frame).getType() == Material.LAVA_CAULDRON;
+    static boolean isLava(Block attached) {
+        return attached.getType() == Material.LAVA_CAULDRON;
     }
 }

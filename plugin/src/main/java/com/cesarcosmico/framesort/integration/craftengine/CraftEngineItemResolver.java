@@ -1,6 +1,5 @@
 package com.cesarcosmico.framesort.integration.craftengine;
 
-import com.cesarcosmico.framesort.model.Delivery;
 import com.cesarcosmico.framesort.model.ItemReference;
 import com.cesarcosmico.framesort.service.CustomItemResolver;
 import net.kyori.adventure.text.Component;
@@ -74,12 +73,12 @@ public final class CraftEngineItemResolver implements CustomItemResolver {
 
     @Override
     public int store(Block block, ItemStack items) {
-        BlockEntity entity = blockEntity(block);
-        if (entity == null) {
-            return Delivery.GONE;
-        }
         // addItem leaves in items what didn't fit, so the amount offered is read first.
         int offered = items.getAmount();
+        BlockEntity entity = blockEntity(block);
+        if (entity == null) {
+            return offered;
+        }
         SimpleStorageBlockEntityController storage = storage(entity);
         if (storage != null) {
             int left = storage.inventory().addItem(items).values().stream().mapToInt(ItemStack::getAmount).sum();
@@ -91,7 +90,7 @@ public final class CraftEngineItemResolver implements CustomItemResolver {
         }
         DrawerBlockEntityController drawer = drawer(entity);
         if (drawer == null) {
-            return Delivery.GONE;
+            return offered;
         }
         // Not addItem, which would replace what the drawer holds.
         return offered - drawer.put(BukkitAdaptor.adapt(items), offered);
