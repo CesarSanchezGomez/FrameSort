@@ -5,6 +5,7 @@ import com.cesarcosmico.framesort.service.HighlightService;
 import com.cesarcosmico.framesort.service.InspectService;
 import com.cesarcosmico.framesort.service.PadService;
 import com.cesarcosmico.framesort.service.SorterService;
+import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.ItemFrame;
@@ -20,19 +21,23 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.jspecify.annotations.Nullable;
 
+import java.util.function.Predicate;
+
 public final class InspectListener implements Listener {
 
     private final InspectService inspect;
     private final SorterService sorters;
     private final PadService pads;
     private final HighlightService highlights;
+    private final Predicate<World> worksIn;
 
     public InspectListener(InspectService inspect, SorterService sorters, PadService pads,
-                           HighlightService highlights) {
+                           HighlightService highlights, Predicate<World> worksIn) {
         this.inspect = inspect;
         this.sorters = sorters;
         this.pads = pads;
         this.highlights = highlights;
+        this.worksIn = worksIn;
     }
 
     @EventHandler
@@ -101,8 +106,9 @@ public final class InspectListener implements Listener {
         return entity instanceof ItemFrame frame && !frame.getItem().isEmpty() && inspects(player) ? frame : null;
     }
 
-    private static boolean inspects(Player player) {
-        return player.isSneaking() && player.getInventory().getItemInMainHand().isEmpty()
+    private boolean inspects(Player player) {
+        return player.isSneaking() && worksIn.test(player.getWorld())
+                && player.getInventory().getItemInMainHand().isEmpty()
                 && player.hasPermission(InspectService.INSPECT_PERMISSION);
     }
 }

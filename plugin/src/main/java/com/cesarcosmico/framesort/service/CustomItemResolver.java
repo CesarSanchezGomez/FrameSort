@@ -56,6 +56,11 @@ public interface CustomItemResolver {
         return false;
     }
 
+    /** How full the plugin's block at {@code block} is, from 0 to 1, only for one {@link #isContainer} accepts. */
+    default double fullness(Block block) {
+        return 0;
+    }
+
     /** Puts {@code items} into the plugin's block at {@code block}, as a hopper would; returns what it didn't take. */
     default int store(Block block, ItemStack items) {
         return items.getAmount();

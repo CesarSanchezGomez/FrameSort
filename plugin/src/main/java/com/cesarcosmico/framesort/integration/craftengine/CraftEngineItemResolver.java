@@ -2,6 +2,7 @@ package com.cesarcosmico.framesort.integration.craftengine;
 
 import com.cesarcosmico.framesort.model.ItemReference;
 import com.cesarcosmico.framesort.service.CustomItemResolver;
+import com.cesarcosmico.framesort.service.TargetBlocks;
 import net.kyori.adventure.text.Component;
 import net.momirealms.craftengine.bukkit.api.BukkitAdaptor;
 import net.momirealms.craftengine.bukkit.api.CraftEngineBlocks;
@@ -72,6 +73,24 @@ public final class CraftEngineItemResolver implements CustomItemResolver {
     }
 
     @Override
+    public double fullness(Block block) {
+        BlockEntity entity = blockEntity(block);
+        if (entity == null) {
+            return 0;
+        }
+        SimpleStorageBlockEntityController storage = storage(entity);
+        if (storage != null) {
+            return TargetBlocks.fullness(storage.inventory());
+        }
+        DrawerBlockEntityController drawer = drawer(entity);
+        if (drawer == null || drawer.itemCount() == 0) {
+            return 0;
+        }
+        // Not maxCount(): with compatible_mode it counts stacks. A pack can lower max_stacks below what a drawer holds.
+        return Math.min(1, (double) drawer.itemCount() / (drawer.behavior.maxStacks * drawer.item().maxStackSize()));
+    }
+
+    @Override
     public int store(Block block, ItemStack items) {
         // addItem leaves in items what didn't fit, so the amount offered is read first.
         int offered = items.getAmount();
@@ -89,7 +108,8 @@ public final class CraftEngineItemResolver implements CustomItemResolver {
             return left;
         }
         DrawerBlockEntityController drawer = drawer(entity);
-        if (drawer == null) {
+        // Above its capacity, after a pack lowers max_stacks, put would take items out of the drawer.
+        if (drawer == null || drawer.isFull()) {
             return offered;
         }
         // Not addItem, which would replace what the drawer holds.

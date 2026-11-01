@@ -110,7 +110,7 @@ public final class SorterListener implements Listener {
         switch (change) {
             case CREATED -> player.sendMessage(messages.get().get("sorter.created"));
             case REMOVED -> player.sendMessage(messages.get().get("sorter.removed"));
-            case UNCHANGED -> {
+            case UNCHANGED, DISABLED -> {
             }
         }
     }

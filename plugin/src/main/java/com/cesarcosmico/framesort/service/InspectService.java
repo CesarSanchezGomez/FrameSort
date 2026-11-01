@@ -189,7 +189,7 @@ public final class InspectService {
         long best = Long.MAX_VALUE;
         Source nearest = null;
         for (Source source : sourcesNear(here)) {
-            if (isIncompletePad(source)) {
+            if (isIdlePad(source)) {
                 continue;
             }
             long distance = FrameGeometry.key(source.block()).distanceSquared(key);
@@ -365,9 +365,16 @@ public final class InspectService {
         return text.get(key,
                 Placeholder.component("item", frame.getItem().effectiveName()),
                 Placeholder.component("target", target),
+                Placeholder.component("fill", fill(text, frame, destination)),
                 coordinates(location),
                 Placeholder.unparsed("distance",
                         String.valueOf(Math.round(Math.sqrt(FrameGeometry.distanceSquared(frame, center))))));
+    }
+
+    private Component fill(Messages text, ItemFrame frame, Destination destination) {
+        return destination != Destination.CONTAINER ? Component.empty() : text.get("inspect.fill",
+                Placeholder.unparsed("percent",
+                        String.valueOf(resolver.fillPercent(FrameGeometry.attachedBlock(frame)))));
     }
 
     private HighlightService.Highlight highlight(ItemFrame frame, Destination destination) {
@@ -397,7 +404,7 @@ public final class InspectService {
                 Placeholder.unparsed("z", String.valueOf(location.getBlockZ())));
     }
 
-    private boolean isIncompletePad(Source source) {
+    private boolean isIdlePad(Source source) {
         return source.pad() && pads.padAt(source.block()) == null;
     }
 }

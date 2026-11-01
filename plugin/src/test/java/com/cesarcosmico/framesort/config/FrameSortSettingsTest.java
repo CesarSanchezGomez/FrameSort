@@ -4,6 +4,7 @@ import com.cesarcosmico.framesort.item.ItemLook;
 import com.cesarcosmico.framesort.model.ItemReference;
 import org.bukkit.Color;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.EntityType;
 import org.jspecify.annotations.Nullable;
@@ -269,6 +270,55 @@ class FrameSortSettingsTest {
         yaml.loadFromString("ownership: {enabled: 'nope'}");
         assertTrue(parse(yaml, warnings).ownership());
         assertEquals(List.of("config.yml > ownership.enabled: expected true or false, using true"), warnings);
+    }
+
+    @Test
+    void itWorksInEveryWorldUnlessTheListNamesIt() throws Exception {
+        List<String> warnings = new ArrayList<>();
+        NamespacedKey anyWorld = NamespacedKey.minecraft("any_world");
+        assertTrue(parse(bundled("config.yml"), warnings).worksIn(anyWorld));
+        assertTrue(parse(new YamlConfiguration(), warnings).worksIn(anyWorld));
+
+        YamlConfiguration yaml = new YamlConfiguration();
+        yaml.loadFromString("disabled-worlds: ['Off_World', 'minecraft:off_world', 'custom:the_nether']");
+        FrameSortSettings settings = parse(yaml, warnings);
+        assertFalse(settings.worksIn(NamespacedKey.minecraft("off_world")));
+        assertFalse(settings.worksIn(new NamespacedKey("custom", "the_nether")));
+        assertTrue(settings.worksIn(NamespacedKey.minecraft("the_nether")));
+        assertEquals(List.of(), warnings);
+    }
+
+    @Test
+    void disabledWorldsThatAreNotAListAreWarnedAndIgnored() throws Exception {
+        YamlConfiguration yaml = new YamlConfiguration();
+        yaml.loadFromString("disabled-worlds: 'off_world'");
+        List<String> warnings = new ArrayList<>();
+
+        assertTrue(parse(yaml, warnings).worksIn(NamespacedKey.minecraft("off_world")));
+        assertEquals(List.of("config.yml > disabled-worlds: expected a list, ignored"), warnings);
+    }
+
+    @Test
+    void aWorldThatIsNotAValidKeyIsWarnedAndIgnored() throws Exception {
+        YamlConfiguration yaml = new YamlConfiguration();
+        yaml.loadFromString("disabled-worlds: ['my world', '', 'off_world']");
+        List<String> warnings = new ArrayList<>();
+
+        assertEquals(Set.of(NamespacedKey.minecraft("off_world")), parse(yaml, warnings).disabledWorlds());
+        assertEquals(List.of("config.yml > disabled-worlds: 'my world' is not a valid world key, ignored",
+                "config.yml > disabled-worlds: '' is not a valid world key, ignored"), warnings);
+    }
+
+    @Test
+    void onlyADisabledWorldThatDoesNotExistIsWarned() throws Exception {
+        YamlConfiguration yaml = new YamlConfiguration();
+        yaml.loadFromString("disabled-worlds: ['real_world', 'typo_world']");
+        List<String> warnings = new ArrayList<>();
+
+        parse(yaml, warnings).warnUnknownWorlds(NamespacedKey.minecraft("real_world")::equals, warnings::add);
+
+        assertEquals(List.of("config.yml > disabled-worlds: no world has the key 'minecraft:typo_world'; check it"),
+                warnings);
     }
 
     @Test

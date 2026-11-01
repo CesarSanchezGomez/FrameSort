@@ -79,6 +79,7 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 
@@ -149,8 +150,9 @@ public final class FrameSortPlugin extends JavaPlugin {
         TargetResolver resolver = new TargetResolver(settings, index, tags, customItems, trust);
         TraceService trace = new TraceService(this, settings, messages, trust);
         DeliveryService delivery = new DeliveryService(this, resolver, customItems, trace::report);
-        SorterService sorters = new SorterService(this, settings, delivery, customItems);
-        PadService padService = new PadService(this, pads, delivery, customItems);
+        Predicate<World> worksIn = world -> settings.get().worksIn(world.getKey());
+        SorterService sorters = new SorterService(this, settings, delivery, customItems, worksIn);
+        PadService padService = new PadService(this, pads, delivery, customItems, worksIn);
         HighlightService highlights = new HighlightService(this);
         this.sorters = sorters;
         this.highlights = highlights;
@@ -159,10 +161,11 @@ public final class FrameSortPlugin extends JavaPlugin {
 
         // Without the command a player could not switch it off, so it only acts while they may run it.
         AutomarkService automark = new AutomarkService(this, index, sorters, inspect, customItems,
-                player -> commands.usageFor("automark", player::hasPermission) != null);
+                player -> commands.usageFor("automark", player::hasPermission) != null, worksIn);
 
         register(new TargetListener(index, automark, resolver), new SorterListener(sorters, messages),
-                new PadListener(padService, messages), new InspectListener(inspect, sorters, padService, highlights));
+                new PadListener(padService, messages),
+                new InspectListener(inspect, sorters, padService, highlights, worksIn));
         if (getServer().getPluginManager().isPluginEnabled("WorldGuard")) {
             register(new WorldGuardListener());
         }
@@ -253,6 +256,7 @@ public final class FrameSortPlugin extends JavaPlugin {
                     Parsed parsed = loaded.parsed();
                     // Only once nothing can fail any more: a broken file keeps the old pads, and they wouldn't go.
                     parsed.pads().warnTopChanges(pads.get(), warn);
+                    parsed.settings().warnUnknownWorlds(key -> getServer().getWorld(key) != null, warn);
                     settings.set(parsed.settings());
                     pads.set(parsed.pads());
                     tagSettings.set(parsed.tags());

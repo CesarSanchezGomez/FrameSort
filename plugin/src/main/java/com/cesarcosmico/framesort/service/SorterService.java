@@ -17,6 +17,7 @@ import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Material;
+import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.Dispenser;
 import org.bukkit.entity.ItemFrame;
@@ -36,13 +37,14 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 /** Sorters are spread over the ticks so they never all act at once. */
 public final class SorterService {
 
-    /** What checking a frame did to its dispenser. */
-    public enum Change { CREATED, REMOVED, UNCHANGED }
+    /** What checking a frame did to its dispenser; {@code DISABLED}: it would make a sorter in any other world. */
+    public enum Change { CREATED, REMOVED, UNCHANGED, DISABLED }
 
     private static final MiniMessage MINI_MESSAGE = MiniMessage.miniMessage();
     // Shulker boxes inside bundles inside shulker boxes…: deep enough for any real setup, and bounded.
@@ -66,6 +68,7 @@ public final class SorterService {
     private final Supplier<FrameSortSettings> settings;
     private final DeliveryService delivery;
     private final CustomItemResolver customItems;
+    private final Predicate<World> worksIn;
     private final Map<BlockKey, Sorter> sorters = new HashMap<>();
     // Otherwise every load, reload or frame change would start another retry chain.
     private final Set<UUID> awaitingRetry = new HashSet<>();
@@ -73,14 +76,20 @@ public final class SorterService {
     private int nextPhase;
 
     public SorterService(Plugin plugin, Supplier<FrameSortSettings> settings, DeliveryService delivery,
-                         CustomItemResolver customItems) {
+                         CustomItemResolver customItems, Predicate<World> worksIn) {
         this.plugin = plugin;
         this.settings = settings;
         this.delivery = delivery;
         this.customItems = customItems;
+        this.worksIn = worksIn;
     }
 
     public Change consider(ItemFrame frame) {
+        boolean works = worksIn.test(frame.getWorld());
+        // Before the chunk check: a sorter whose dispenser isn't loaded would start again when it is.
+        if (!works && removeSorterOf(frame)) {
+            return Change.REMOVED;
+        }
         boolean holdsActivator =
                 SorterFrames.holdsActivator(settings.get().sorter(), frame, frame.getItem(), customItems);
         if (!FrameGeometry.attachedLoaded(frame)) {
@@ -101,6 +110,11 @@ public final class SorterService {
         BlockKey key = FrameGeometry.key(block);
         Sorter existing = sorters.get(key);
         if (holdsActivator && SorterFrames.isSorterBlock(block)) {
+            if (!works) {
+                // Its chunk may have been unloaded when the world was turned off, with the frame still hidden.
+                applyLook(frame, false);
+                return Change.DISABLED;
+            }
             if (existing == null) {
                 SorterSettings sorter = settings.get().sorter();
                 sorters.put(key, new Sorter(frame, block, tick + 1 + (nextPhase++ % sorter.tickRate())));
@@ -126,7 +140,7 @@ public final class SorterService {
     public void considerLater(ItemFrame frame, @Nullable UUID placer, Consumer<Change> then) {
         frame.getScheduler().run(plugin, task -> {
             Change change = consider(frame);
-            if (change == Change.CREATED && placer != null) {
+            if ((change == Change.CREATED || change == Change.DISABLED) && placer != null) {
                 FrameCodec.setOwner(frame, placer);
             }
             then.accept(change);

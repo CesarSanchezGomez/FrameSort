@@ -195,6 +195,11 @@ public final class TargetResolver {
                 ? Destination.CONTAINER : Destination.DROPPED;
     }
 
+    /** Only for a {@link Destination#CONTAINER}. */
+    public int fillPercent(Block container) {
+        return (int) (100 * TargetBlocks.fullness(container, customItems));
+    }
+
     public Component blockName(Block block) {
         String id = customItems.blockId(block);
         Component custom = id == null ? null : customItems.blockName(new ItemReference.Custom(id));
