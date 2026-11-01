@@ -26,13 +26,14 @@ the integrations. Dependencies are wired by constructor in `FrameSortPlugin`; th
 Interfaces exist only with several implementations, as closed sets, or to keep an optional plugin out:
 - `CustomItemResolver`: a custom item as `tags.yml` writes it (`craftengine:<namespace>:<id>`), its name, the item
   built from a reference, whether a placed block is CraftEngine's and which one, the item that places a block, and
-  CraftEngine's storage blocks and drawers (`isContainer`, `store`), or `NONE` without CraftEngine, so no other class
-  loads CraftEngine's classes. All but `id` and `isCustomBlock` go through types outside CraftEngine's stable `api`
-  package (`BukkitItemDefinition`, `ImmutableBlockState`, `BlockDefinition`; for containers `BukkitWorld`, `CEWorld`,
-  `BlockPos`, `BlockEntity`, `BlockEntityController#get`, `BlockBehavior#getFirst`,
+  CraftEngine's storage blocks and drawers (`isContainer`, `store`, `fullness`), or `NONE` without CraftEngine, so no
+  other class loads CraftEngine's classes. All but `id` and `isCustomBlock` go through types outside CraftEngine's
+  stable `api` package (`BukkitItemDefinition`, `ImmutableBlockState`, `BlockDefinition`; for containers `BukkitWorld`,
+  `CEWorld`, `BlockPos`, `BlockEntity`, `BlockEntityController#get`, `BlockBehavior#getFirst`,
   `SimpleStorageBlockEntityController`, `SimpleStorageBlockBehavior`, `DrawerBlockEntityController`,
-  `DrawerBlockBehavior` and `BukkitItem`): check them on every CraftEngine update. CraftEngine saves a storage block
-  only once told it changed, which Bukkit's `addItem` never does, so `store` tells it (`CEWorld#blockEntityChanged`);
+  `DrawerBlockBehavior`, `BukkitItem` and `Item#maxStackSize`): check them on every CraftEngine update. CraftEngine
+  saves a storage block only once told it changed, which Bukkit's `addItem` never does, so `store` tells it
+  (`CEWorld#blockEntityChanged`);
 - `DeliveryService.Source`: a slot (`SlotSource`), of a sorter or of a player's inventory, or a pad item entity;
 - `CommandFeature`: one per command feature;
 - `GiveCommand.ItemSource`: a sorter activator or a pad block;
@@ -131,6 +132,10 @@ SELECT HEX(owner), HEX(trusted), FROM_UNIXTIME(created_at / 1000) FROM framesort
   the box over the pad: one crouching with their feet in the block over the top, and not in spectator mode, sends one
   stack of slots 9 to 35 per check, each a `SlotSource`, trying them at random until one moves something. It stops when
   the player stops being valid, since another plugin's handler may kill them or make them leave during a delivery.
+- **Disabled worlds.** A sorter never exists in one: `SorterService.consider` removes it, and a reload runs that for
+  every loaded frame, so its tick costs nothing. Pads stay loaded, because their protections and giving their block
+  back still apply: the sweep stops after forgetting a pad whose top block is gone, and `PadService.padAt` answers as
+  if there were no pad, which covers inspecting it and `/framesort where`.
 - **Chunk borders.** A frame on a chunk border can hang on a block of the next chunk. That block is only read when
   its chunk is loaded, so FrameSort never loads chunks.
 - **Tracing.** With nobody tracing, a delivery costs one empty-map check.

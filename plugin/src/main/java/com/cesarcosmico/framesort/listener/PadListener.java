@@ -57,6 +57,10 @@ public final class PadListener implements Listener {
                 event.setCancelled(true);
                 event.getPlayer().sendMessage(messages.get().get("pad.unavailable"));
             }
+            case PadService.Placing.WorldDisabled() -> {
+                event.setCancelled(true);
+                event.getPlayer().sendMessage(messages.get().get("pad.world-disabled"));
+            }
             case PadService.Placing.Fine() -> {
             }
         }

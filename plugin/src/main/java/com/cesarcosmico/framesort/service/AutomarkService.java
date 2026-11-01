@@ -1,6 +1,7 @@
 package com.cesarcosmico.framesort.service;
 
 import com.cesarcosmico.framesort.item.PlayerCodec;
+import org.bukkit.World;
 import org.bukkit.entity.ItemFrame;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -19,15 +20,17 @@ public final class AutomarkService {
     private final InspectService inspect;
     private final CustomItemResolver customItems;
     private final Predicate<Player> maySwitchOff;
+    private final Predicate<World> worksIn;
 
     public AutomarkService(Plugin plugin, TargetIndex index, SorterService sorters, InspectService inspect,
-                           CustomItemResolver customItems, Predicate<Player> maySwitchOff) {
+                           CustomItemResolver customItems, Predicate<Player> maySwitchOff, Predicate<World> worksIn) {
         this.plugin = plugin;
         this.index = index;
         this.sorters = sorters;
         this.inspect = inspect;
         this.customItems = customItems;
         this.maySwitchOff = maySwitchOff;
+        this.worksIn = worksIn;
     }
 
     public Toggle toggle(Player player) {
@@ -55,7 +58,7 @@ public final class AutomarkService {
 
     // Another plugin can empty the item before it goes in.
     private boolean shouldAutomark(Player player, ItemFrame frame, ItemStack item) {
-        return !item.isEmpty() && usesAutomark(player) && makesTarget(frame, item);
+        return !item.isEmpty() && worksIn.test(frame.getWorld()) && usesAutomark(player) && makesTarget(frame, item);
     }
 
     private boolean usesAutomark(Player player) {

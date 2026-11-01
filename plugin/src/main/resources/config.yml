@@ -7,6 +7,10 @@ config-version: 1
 # File in lang/ that player messages come from: en_US, es_ES or a copy of your own.
 language: 'en_US'
 
+# Worlds where sorters, pads and frame gestures are off, by key, such as ['minecraft:the_nether', 'my_world'].
+# /execute in suggests the keys; without a namespace it is minecraft:.
+disabled-worlds: []
+
 # Sorters: a dispenser with the activator in an item frame on it.
 sorter:
   activator:

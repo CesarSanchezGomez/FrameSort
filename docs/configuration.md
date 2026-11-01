@@ -73,6 +73,32 @@ the rest are CraftEngine's (they are reported and ignored).
 
 ## config.yml
 
+### disabled-worlds
+
+The worlds where sorters, pads and frame gestures are off. Empty by default, so they work in all of them;
+`/framesort reload` applies the list.
+
+```yaml
+disabled-worlds: ['minecraft:the_nether', 'my_world']
+```
+
+Each entry is a world's key, which `/execute in` suggests, and without a namespace it is `minecraft:`. The server's main
+worlds are `minecraft:overworld`, `minecraft:the_nether` and `minecraft:the_end`, whatever their folders are called. A
+world another plugin creates by name usually has its name in lowercase, with `_` for spaces. The reload warns about a
+key no world has; the server start doesn't, because another plugin may load its worlds later. In a listed world:
+
+- **Sorters** are plain dispensers: the frame shows, and redstone fires what is inside, as in vanilla. Whoever puts the
+  activator in is still recorded as the owner.
+- **Pads** send nothing, pull nothing and can't be inspected, and no new ones are created. With `creation: item`, the
+  special block can't be placed, because it would be lost as a plain block. A pad already built stays protected, and
+  breaking it still gives its special block back.
+- **Frames** behave as in vanilla: sneaking and clicking neither marks nor inspects them, and automark marks nothing.
+  Marks stay, except that a new item in a marked frame ends its mark, as everywhere; it can only be marked again once
+  the world is off the list.
+- **Commands** work as usual, but `/framesort where` finds nothing to answer with.
+
+Taking a world off the list brings its sorters and pads back, with their owners and counts.
+
 ### sorter
 
 | Key | Default | Meaning |
@@ -157,11 +183,12 @@ a drop spot like any other, for any item.
 **CraftEngine containers.** With CraftEngine installed, a target frame on one of its storage blocks
 (`simple_storage_block`, such as the safe of its default pack) or drawers (`drawer_block`) fills it as a hopper
 feeding it would, whatever the block is called or looks like. A drawer only takes the item it already holds, or the
-first one that comes while it is empty, as many as fit. A block whose `allow_input` is `false` takes nothing from
-FrameSort: its frame drops the items in front of it, like a frame on a wall. A change to `allow_input` reaches a
-block already placed once its chunk loads again. The frame card and inspection name the block as CraftEngine does,
-or as the vanilla block it shows as while `/ce reload` runs or when no CraftEngine item places it. Storage furniture
-is never filled: a frame can't hang on furniture, and CraftEngine keeps hoppers out of it.
+first one that comes while it is empty, as many as fit. One left above its capacity by a lower `max_stacks` keeps what
+it holds and takes nothing more. A block whose `allow_input` is `false` takes nothing from FrameSort: its frame drops
+the items in front of it, like a frame on a wall. A change to `allow_input` reaches a block already placed once its
+chunk loads again. The frame card and inspection name the block as CraftEngine does, or as the vanilla block it shows
+as while `/ce reload` runs or when no CraftEngine item places it. Storage furniture is never filled: a frame can't
+hang on furniture, and CraftEngine keeps hoppers out of it.
 
 **Lava cauldrons are trash cans.** A target frame on a lava cauldron holds the item to destroy and is chosen like
 any other frame (exact item, tag, material). If a container with the same or a better priority also takes that
@@ -361,6 +388,10 @@ page, are the `inspect.details` lines that apply, in `<header>`: its owner (`own
 sorter, how many items it has sent (`sorted`). What you look up every time is in the text; the rest of `lang/`
 keeps explanations, and what would not fit on a chat line (each target's coordinates), in a hover. With an item in
 the off hand, a target holding that same item uses `inspect.entry-same-item`, without repeating its name.
+
+Both entries end with `<fill>`: how full the target's container or composter is, from `inspect.fill` (`<percent>`), and
+nothing for a drop spot or lava. It counts slot by slot, so a stack at half its maximum counts as half a slot. It is
+rounded down, so 100% means nothing more fits. A drawer counts its items against all it can hold of the item it stores.
 
 ### Frame card
 

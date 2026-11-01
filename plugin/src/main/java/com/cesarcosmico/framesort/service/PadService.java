@@ -40,6 +40,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 /** Distances are in blocks. */
@@ -70,6 +71,10 @@ public final class PadService {
         /** CraftEngine is reloading, so its blocks can't be told apart yet. */
         record NotReady() implements Placing {
         }
+
+        /** Pads are turned off in this world. */
+        record WorldDisabled() implements Placing {
+        }
     }
 
     /** What a break of a block may do, decided before it happens. */
@@ -93,17 +98,19 @@ public final class PadService {
     private final Supplier<PadSettings> settings;
     private final DeliveryService delivery;
     private final CustomItemResolver customItems;
+    private final Predicate<World> worksIn;
     private final Map<ChunkKey, Map<BlockKey, PadEntry>> pads = new HashMap<>();
     // Built before the break so a /ce reload before it happens can't lose the item; every break attempt replaces it.
     private final Map<BlockKey, ItemStack> handBack = new HashMap<>();
     private long tick;
 
     public PadService(Plugin plugin, Supplier<PadSettings> settings, DeliveryService delivery,
-                      CustomItemResolver customItems) {
+                      CustomItemResolver customItems, Predicate<World> worksIn) {
         this.plugin = plugin;
         this.settings = settings;
         this.delivery = delivery;
         this.customItems = customItems;
+        this.worksIn = worksIn;
     }
 
     public void load(Chunk chunk) {
@@ -119,6 +126,9 @@ public final class PadService {
 
     /** Registers a pad when {@code block}, just placed by {@code player} from {@code hand}, completes one. */
     public Placement registerPlaced(Player player, Block block, ItemStack hand) {
+        if (!worksIn.test(block.getWorld())) {
+            return new Placement.NotAPad();
+        }
         PadSettings current = settings.get();
         String marker = MarkerCodec.read(hand, Keys.PAD_ITEM);
         PadBlock top = read(block);
@@ -154,6 +164,9 @@ public final class PadService {
         PadType type = marker != null && current.creation() == PadMode.ITEM ? current.type(marker) : null;
         if (type == null) {
             return new Placing.Fine();
+        }
+        if (!worksIn.test(block.getWorld())) {
+            return new Placing.WorldDisabled();
         }
         PadBlock top = read(block);
         PadBlock base = read(block.getRelative(BlockFace.DOWN));
@@ -216,10 +229,11 @@ public final class PadService {
         return registered(block) != null;
     }
 
-    /** The pad whose top block this is, if it is registered and its column is still complete. */
+    /** The pad whose top block this is, if it is registered, its column is complete and its world isn't turned off. */
     public @Nullable PadType padAt(Block top) {
         PadType type = stored(top);
-        return type != null && matches(read(top), read(top.getRelative(BlockFace.DOWN)), type) ? type : null;
+        return type != null && worksIn.test(top.getWorld())
+                && matches(read(top), read(top.getRelative(BlockFace.DOWN)), type) ? type : null;
     }
 
     public @Nullable UUID ownerOf(Block top) {
@@ -292,7 +306,7 @@ public final class PadService {
             unregister(top);
             return;
         }
-        if (!matches(seen, read(top.getRelative(BlockFace.DOWN)), type)) {
+        if (!worksIn.test(top.getWorld()) || !matches(seen, read(top.getRelative(BlockFace.DOWN)), type)) {
             return;
         }
         Location above = top.getLocation().add(0.5, 1.5, 0.5);

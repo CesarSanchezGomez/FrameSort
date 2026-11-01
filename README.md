@@ -65,7 +65,8 @@ keeps its hidden frame until it loads with FrameSort installed, so before removi
    ![A player crouching on a tuff pad, sending their inventory to the target frame on a chest](docs/inventory-pad.gif)
 
 4. **Inspect.** Sneak + right-click a sorter or pad with an empty hand: its targets' items glow (only for you, in
-   configurable colours) and are listed page by page. Sneak + left-click a target frame to see what it accepts.
+   configurable colours) and are listed page by page, each container with how full it is. Sneak + left-click a target
+   frame to see what it accepts.
    `/framesort trace` shows the deliveries around you live.
 
    ![Inspecting a sorter: its targets glow by what they do with the items, and the chat lists them](docs/inspect.gif)
@@ -140,9 +141,9 @@ Every command also runs as `/fs`. Where each command lives, its permission and w
 
 ## Configuration
 
-`config.yml` (sorters, targets, delivery, ownership, inspection), `pads.yml` (pad types and who can create them),
-`tags.yml` (tags of your own and replacements for the game's), `database.yml` (where trust is kept) and `lang/`.
-See [docs/configuration.md](docs/configuration.md).
+`config.yml` (worlds to leave out, sorters, targets, delivery, ownership, inspection), `pads.yml` (pad types and who
+can create them), `tags.yml` (tags of your own and replacements for the game's), `database.yml` (where trust is kept)
+and `lang/`. See [docs/configuration.md](docs/configuration.md).
 
 ## Performance
 
