@@ -77,17 +77,27 @@ public final class TargetResolver {
         }
     }
 
-    private record Match(ItemFrame frame, int priority, ItemStack frameItem) {
+    // Shared by the frames of an entry that hold the same item, so it keeps one copy of it.
+    private record Shown(ItemStack item, int priority) {
+    }
+
+    private record Match(ItemFrame frame, Shown shown) {
+    }
+
+    private record Found(Match match, long distanceSquared) {
     }
 
     private record CacheKey(BlockKey source, @Nullable UUID owner, int range, ItemStack item) {
     }
 
-    private record Entry(long epoch, List<Match> matches) {
+    // Levels go best first, and each level nearest first.
+    private record Entry(long epoch, List<List<Match>> levels, int cost) {
     }
 
-    // Bounds memory on servers with many distinct items; a full clear is cheap to rebuild from the index.
-    private static final int MAX_CACHED = 4096;
+    // Memory follows the matches an entry holds, not how many entries there are.
+    private static final int MAX_CACHE_COST = 8_000_000;
+    // What an entry weighs by itself, in matches: its key, its copies of the item and its lists.
+    private static final int ENTRY_COST = 16;
 
     private final Supplier<FrameSortSettings> settings;
     private final TargetIndex index;
@@ -95,6 +105,7 @@ public final class TargetResolver {
     private final CustomItemResolver customItems;
     private final Supplier<TrustList> trust;
     private final Map<CacheKey, Entry> cache = new HashMap<>();
+    private int cacheCost;
 
     public TargetResolver(Supplier<FrameSortSettings> settings, TargetIndex index, TagCatalog tags,
                           CustomItemResolver customItems, Supplier<TrustList> trust) {
@@ -107,43 +118,37 @@ public final class TargetResolver {
 
     public Plan plan(Block source, @Nullable UUID owner, int range, ItemStack item) {
         FrameSortSettings current = settings.get();
-        Ranking<ItemFrame> ranking = new Ranking<>();
-        Map<ItemFrame, Destination> destinations = new HashMap<>();
-        boolean stale = false;
-        for (Match match : matches(source, owner, range, item)) {
-            ItemFrame frame = match.frame();
-            if (isStale(match)) {
-                stale = true;
-                continue;
-            }
-            Destination destination = destination(current, frame);
-            if (destination == Destination.CONTAINER && !takes(FrameGeometry.attachedBlock(frame), item)) {
-                continue;
-            }
-            if (wouldLoop(current, source, frame, destination)) {
-                continue;
-            }
-            ranking.add(match.priority(), frame);
-            destinations.put(frame, destination);
-        }
-        BlockKey origin = FrameGeometry.key(source);
-        Comparator<ItemFrame> nearest = Comparator.comparingLong(frame -> FrameGeometry.distanceSquared(frame, origin));
         List<Level> levels = new ArrayList<>();
-        for (List<ItemFrame> tied : ranking.levels()) {
+        boolean stale = false;
+        for (List<Match> tied : matches(source, owner, range, item)) {
             Map<Destination, List<ItemFrame>> split = new EnumMap<>(Destination.class);
-            for (ItemFrame frame : tied.stream().sorted(nearest).toList()) {
-                split.computeIfAbsent(destinations.get(frame), key -> new ArrayList<>()).add(frame);
+            for (Match match : tied) {
+                ItemFrame frame = match.frame();
+                if (isStale(match)) {
+                    stale = true;
+                    continue;
+                }
+                Destination destination = destination(current, frame);
+                if (destination == Destination.CONTAINER && !takes(FrameGeometry.attachedBlock(frame), item)) {
+                    continue;
+                }
+                if (!wouldLoop(current, source, frame, destination)) {
+                    split.computeIfAbsent(destination, key -> new ArrayList<>()).add(frame);
+                }
             }
-            levels.add(new Level(split.getOrDefault(Destination.CONTAINER, List.of()),
-                    split.getOrDefault(Destination.DROPPED, List.of()),
-                    split.getOrDefault(Destination.DESTROYED, List.of())));
+            if (!split.isEmpty()) {
+                levels.add(new Level(split.getOrDefault(Destination.CONTAINER, List.of()),
+                        split.getOrDefault(Destination.DROPPED, List.of()),
+                        split.getOrDefault(Destination.DESTROYED, List.of())));
+            }
         }
         return new Plan(levels, stale);
     }
 
     private static boolean isStale(Match match) {
         ItemFrame frame = match.frame();
-        return !frame.isValid() || !FrameGeometry.attachedLoaded(frame) || !frame.getItem().equals(match.frameItem());
+        return !frame.isValid() || !FrameGeometry.attachedLoaded(frame)
+                || !frame.getItem().equals(match.shown().item());
     }
 
     public Destination destination(ItemFrame frame) {
@@ -172,33 +177,48 @@ public final class TargetResolver {
         return custom == null ? Component.translatable(block.getType()) : custom;
     }
 
-    private List<Match> matches(Block source, @Nullable UUID owner, int range, ItemStack item) {
+    private List<List<Match>> matches(Block source, @Nullable UUID owner, int range, ItemStack item) {
         BlockKey key = FrameGeometry.key(source);
         CacheKey cacheKey = new CacheKey(key, owner, range, item.asOne());
         long epoch = index.epoch(key.world());
         Entry entry = cache.get(cacheKey);
         if (entry != null && entry.epoch() == epoch) {
-            return entry.matches();
+            return entry.levels();
         }
-        List<Match> matches = compute(source, owner, key, range, cacheKey.item());
-        if (cache.size() >= MAX_CACHED) {
-            cache.clear();
+        List<List<Match>> levels = compute(source, owner, key, range, cacheKey.item());
+        store(cacheKey, new Entry(epoch, levels, ENTRY_COST + levels.stream().mapToInt(List::size).sum()));
+        return levels;
+    }
+
+    private void store(CacheKey key, Entry entry) {
+        forget(key);
+        if (cacheCost + entry.cost() > MAX_CACHE_COST) {
+            clear();
         }
-        cache.put(cacheKey, new Entry(epoch, matches));
-        return matches;
+        cache.put(key, entry);
+        cacheCost += entry.cost();
+    }
+
+    private void forget(CacheKey key) {
+        Entry removed = cache.remove(key);
+        if (removed != null) {
+            cacheCost -= removed.cost();
+        }
     }
 
     public void forget(Block source, @Nullable UUID owner, int range, ItemStack item) {
-        cache.remove(new CacheKey(FrameGeometry.key(source), owner, range, item.asOne()));
+        forget(new CacheKey(FrameGeometry.key(source), owner, range, item.asOne()));
     }
 
     public void clear() {
         cache.clear();
+        cacheCost = 0;
     }
 
     public void forget(World world) {
         UUID id = world.getUID();
         cache.keySet().removeIf(key -> key.source().world().equals(id));
+        cacheCost = cache.values().stream().mapToInt(Entry::cost).sum();
     }
 
     private int priority(ItemStack frameItem, ItemStack item, @Nullable String itemId) {
@@ -243,7 +263,8 @@ public final class TargetResolver {
     /** Whether {@code source} may send to {@code frame} at all, whatever the item; the caller checks the distance. */
     public boolean reaches(Block source, @Nullable UUID owner, ItemFrame frame) {
         FrameSortSettings current = settings.get();
-        return eligible(current, source, owner, frame)
+        ItemStack shown = frame.getItem();
+        return !shown.isEmpty() && eligible(current, source, owner, frame, shown)
                 && !wouldLoop(current, source, frame, destination(current, frame))
                 && new TargetBindEvent(source, frame).callEvent();
     }
@@ -251,36 +272,41 @@ public final class TargetResolver {
     /** The frames in range that {@code source} may send to, whatever the item. */
     public List<ItemFrame> targets(Block source, @Nullable UUID owner, int range) {
         List<ItemFrame> found = new ArrayList<>();
-        for (ItemFrame frame : index.near(FrameGeometry.key(source), range)) {
-            if (reaches(source, owner, frame)) {
-                found.add(frame);
+        for (TargetIndex.Near near : index.near(FrameGeometry.key(source), range)) {
+            if (reaches(source, owner, near.frame())) {
+                found.add(near.frame());
             }
         }
         return List.copyOf(found);
     }
 
-    private List<Match> compute(Block source, @Nullable UUID owner, BlockKey key, int range, ItemStack item) {
+    private List<List<Match>> compute(Block source, @Nullable UUID owner, BlockKey key, int range, ItemStack item) {
         FrameSortSettings current = settings.get();
         String itemId = customItems.id(item);
-        List<Match> matches = new ArrayList<>();
-        for (ItemFrame frame : index.near(key, range)) {
-            if (!eligible(current, source, owner, frame)) {
+        Map<ItemStack, Shown> seen = new HashMap<>();
+        List<Found> found = new ArrayList<>();
+        for (TargetIndex.Near near : index.near(key, range)) {
+            ItemFrame frame = near.frame();
+            ItemStack inFrame = frame.getItem();
+            if (inFrame.isEmpty()) {
                 continue;
             }
-            ItemStack shown = frame.getItem();
-            int priority = priority(shown, item, itemId);
+            Shown shown = seen.computeIfAbsent(inFrame, stack -> new Shown(stack, priority(stack, item, itemId)));
             // The event goes last: other plugins' handlers cost more than matching the item.
-            if (priority == MatchTier.NO_MATCH || !new TargetBindEvent(source, frame).callEvent()) {
-                continue;
+            if (shown.priority() != MatchTier.NO_MATCH && eligible(current, source, owner, frame, inFrame)
+                    && new TargetBindEvent(source, frame).callEvent()) {
+                found.add(new Found(new Match(frame, shown), near.distanceSquared()));
             }
-            matches.add(new Match(frame, priority, shown.clone()));
         }
-        return List.copyOf(matches);
+        found.sort(Comparator.comparingLong(Found::distanceSquared));
+        Ranking<Match> ranking = new Ranking<>();
+        found.forEach(match -> ranking.add(match.match().shown().priority(), match.match()));
+        return ranking.levels();
     }
 
-    private boolean eligible(FrameSortSettings current, Block source, @Nullable UUID owner, ItemFrame frame) {
-        ItemStack shown = frame.getItem();
-        if (shown.isEmpty() || !FrameGeometry.attachedLoaded(frame)) {
+    private boolean eligible(FrameSortSettings current, Block source, @Nullable UUID owner, ItemFrame frame,
+                             ItemStack shown) {
+        if (!FrameGeometry.attachedLoaded(frame)) {
             return false;
         }
         Block attached = FrameGeometry.attachedBlock(frame);
