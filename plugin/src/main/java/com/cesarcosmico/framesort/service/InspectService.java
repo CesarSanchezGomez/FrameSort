@@ -15,6 +15,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.JoinConfiguration;
 import net.kyori.adventure.text.event.ClickCallback;
 import net.kyori.adventure.text.event.ClickEvent;
+import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import org.bukkit.Location;
@@ -361,14 +362,15 @@ public final class InspectService {
             case DROPPED -> text.get("inspect.target.dropped");
             case DESTROYED -> text.get("inspect.target.lava");
         };
-        Location location = frame.getLocation();
-        return text.get(key,
-                Placeholder.component("item", frame.getItem().effectiveName()),
-                Placeholder.component("target", target),
+        Component data = text.get("inspect.hover",
                 Placeholder.component("fill", fill(text, frame, destination)),
-                coordinates(location),
+                coordinates(frame.getLocation()),
                 Placeholder.unparsed("distance",
                         String.valueOf(Math.round(Math.sqrt(FrameGeometry.distanceSquared(frame, center))))));
+        return text.get(key,
+                        Placeholder.component("item", frame.getItem().effectiveName()),
+                        Placeholder.component("target", target))
+                .hoverEvent(HoverEvent.showText(data));
     }
 
     private Component fill(Messages text, ItemFrame frame, Destination destination) {

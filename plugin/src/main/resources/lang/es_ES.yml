@@ -8,31 +8,31 @@ command:
       - ''
       - '<gradient:#F7B733:#FC4A1A>◤<st>                          </st></gradient> <prefix><gradient:#FC4A1A:#F7B733><st>                          </st>◥</gradient>'
       - ''
-      - '   <color:#F7B733>•</color> <hover:show_text:"<gray>Con la mano vacía: sus destinos brillan<newline>y se listan. Con un item en la otra mano,<newline>solo adónde va ese item.</gray>"><white>Shift + clic derecho</white> <gray>a un sorter o pad</gray> <dark_gray>·</dark_gray> <gray>ver sus destinos</gray></hover>'
-      - '   <color:#F7B733>•</color> <hover:show_text:"<gray>Con la mano vacía: lo marca o<newline>desmarca como destino.</gray>"><white>Shift + clic derecho</white> <gray>a un marco</gray> <dark_gray>·</dark_gray> <gray>marcarlo como destino</gray></hover>'
-      - '   <color:#F7B733>•</color> <hover:show_text:"<gray>Muestra qué acepta un marco,<newline>de quién es y adónde van los items.</gray>"><white>Shift + clic izquierdo</white> <gray>a un marco</gray> <dark_gray>·</dark_gray> <gray>ver qué acepta</gray></hover>'
+      - '   <color:#F7B733>•</color> <hover:show_text:"<newline> <gray>Con la mano vacía: sus destinos brillan <newline> y se listan. Con un item en la otra mano, <newline> solo adónde va ese item.</gray> <newline>"><white>Shift + clic dcho.</white> <gray>a un sorter o pad</gray> <dark_gray>·</dark_gray> <gray>ver sus destinos</gray></hover>'
+      - '   <color:#F7B733>•</color> <hover:show_text:"<newline> <gray>Con la mano vacía: lo marca o <newline> desmarca como destino.</gray> <newline>"><white>Shift + clic dcho.</white> <gray>a un marco</gray> <dark_gray>·</dark_gray> <gray>marcarlo como destino</gray></hover>'
+      - '   <color:#F7B733>•</color> <hover:show_text:"<newline> <gray>Muestra qué acepta un marco, <newline> de quién es y adónde van los items.</gray> <newline>"><white>Shift + clic izq.</white> <gray>a un marco</gray> <dark_gray>·</dark_gray> <gray>ver qué acepta</gray></hover>'
       - ''
       - '<entries>'
       - ''
-      - '<gradient:#F7B733:#FC4A1A>◣<st>                                   </st></gradient><gradient:#FC4A1A:#F7B733><st>                                  </st>◢</gradient>'
+      - '<gradient:#F7B733:#FC4A1A>◣<st>                         </st></gradient> <previous> <white>| <page>—<pages> |</white> <next> <gradient:#FC4A1A:#F7B733><st>                         </st>◢</gradient>'
       - ''
-    automark: '   <color:#F7B733>•</color> <hover:show_text:"<gray>Si un item que metes en un marco<newline>sobre un contenedor lo marca.</gray>"><white><usage></white> <dark_gray>·</dark_gray> <gray>al poner un item</gray></hover>'
-    tag-list: '   <color:#F7B733>•</color> <hover:show_text:"<gray>Todos los tags de items y bloques,<newline>y los de tags.yml.</gray>"><white><usage></white> <gray>[página]</gray> <dark_gray>·</dark_gray> <gray>todos</gray></hover>'
-    tag-search: '   <color:#F7B733>•</color> <hover:show_text:"<gray>Tags cuyo nombre contiene un texto.</gray>"><white><usage></white> <gray>\<texto> [página]</gray> <dark_gray>·</dark_gray> <gray>buscar por nombre</gray></hover>'
-    tag-show: '   <color:#F7B733>•</color> <hover:show_text:"<gray>Los items o bloques de un tag.</gray>"><white><usage></white> <gray>\<tag> [página]</gray> <dark_gray>·</dark_gray> <gray>qué contiene</gray></hover>'
-    tag-apply: '   <color:#F7B733>•</color> <hover:show_text:"<gray>El item de tu mano representa el tag<newline>cuando lo pones en un marco.</gray>"><white><usage></white> <gray>\<tag></gray> <dark_gray>·</dark_gray> <gray>en el item de la mano</gray></hover>'
-    tag-remove: '   <color:#F7B733>•</color> <hover:show_text:"<gray>Quita el tag del item de tu mano.</gray>"><white><usage></white> <dark_gray>·</dark_gray> <gray>del item de la mano</gray></hover>'
-    where: '   <color:#F7B733>•</color> <hover:show_text:"<gray>Adónde iría el item de tu mano<newline>desde el sorter o pad más cercano.</gray>"><white><usage></white> <dark_gray>·</dark_gray> <gray>ruta del item de la mano</gray></hover>'
-    trace: '   <color:#F7B733>•</color> <hover:show_text:"<gray>Muestra las entregas a tu alrededor<newline>un rato, o deja de mostrarlas.</gray>"><white><usage></white> <gray>[segundos|stop]</gray> <dark_gray>·</dark_gray> <gray>ver las entregas</gray></hover>'
-    trust: '   <color:#F7B733>•</color> <hover:show_text:"<gray>Tus sorters y pads también envían<newline>a los marcos de ese jugador.</gray>"><white><usage></white> <gray>\<jugador></gray> <dark_gray>·</dark_gray> <gray>enviar a sus marcos</gray></hover>'
-    untrust: '   <color:#F7B733>•</color> <hover:show_text:"<gray>Deja de confiar en un jugador.</gray>"><white><usage></white> <gray>\<jugador></gray> <dark_gray>·</dark_gray> <gray>dejar de enviarle</gray></hover>'
-    trusted: '   <color:#F7B733>•</color> <hover:show_text:"<gray>En quién confías y quién confía en ti.</gray>"><white><usage></white> <gray>[página]</gray> <dark_gray>·</dark_gray> <gray>quién comparte con quién</gray></hover>'
-    give: '   <color:#F7B733>•</color> <hover:show_text:"<white><usage></white> <gray>sorter [jugador] [cantidad]</gray><newline><white><usage></white> <gray>pad \<tipo> [jugador] [cantidad]</gray><newline><gray>Da activadores de sorter y bloques de pad.</gray>"><white><usage></white> <gray>sorter|pad …</gray> <dark_gray>·</dark_gray> <gray>dar items</gray></hover>'
-    reload: '   <color:#F7B733>•</color> <hover:show_text:"<gray>config.yml, pads.yml, tags.yml<newline>y el archivo de idioma.</gray>"><white><usage></white> <dark_gray>·</dark_gray> <gray>releer la config</gray></hover>'
+    automark: '   <color:#F7B733>•</color> <hover:show_text:"<newline> <gray>Si un item que metes en un marco <newline> sobre un contenedor lo marca.</gray> <newline>"><white><usage></white> <dark_gray>·</dark_gray> <gray>al poner un item</gray></hover>'
+    tag-list: '   <color:#F7B733>•</color> <hover:show_text:"<newline> <gray>Todos los tags de items y bloques, <newline> y los de tags.yml.</gray> <newline>"><white><usage></white> <gray>[página]</gray> <dark_gray>·</dark_gray> <gray>todos</gray></hover>'
+    tag-search: '   <color:#F7B733>•</color> <hover:show_text:"<newline> <gray>Tags cuyo nombre contiene un texto.</gray> <newline>"><white><usage></white> <gray>\<texto> [página]</gray> <dark_gray>·</dark_gray> <gray>buscar por nombre</gray></hover>'
+    tag-show: '   <color:#F7B733>•</color> <hover:show_text:"<newline> <gray>Los items o bloques de un tag.</gray> <newline>"><white><usage></white> <gray>\<tag> [página]</gray> <dark_gray>·</dark_gray> <gray>qué contiene</gray></hover>'
+    tag-apply: '   <color:#F7B733>•</color> <hover:show_text:"<newline> <gray>El item de tu mano representa el tag <newline> cuando lo pones en un marco.</gray> <newline>"><white><usage></white> <gray>\<tag></gray> <dark_gray>·</dark_gray> <gray>en el item de la mano</gray></hover>'
+    tag-remove: '   <color:#F7B733>•</color> <hover:show_text:"<newline> <gray>Quita el tag del item de tu mano.</gray> <newline>"><white><usage></white> <dark_gray>·</dark_gray> <gray>del item de la mano</gray></hover>'
+    where: '   <color:#F7B733>•</color> <hover:show_text:"<newline> <gray>Adónde iría el item de tu mano <newline> desde el sorter o pad más cercano.</gray> <newline>"><white><usage></white> <dark_gray>·</dark_gray> <gray>ruta del item de la mano</gray></hover>'
+    trace: '   <color:#F7B733>•</color> <hover:show_text:"<newline> <gray>Muestra las entregas a tu alrededor <newline> un rato, o deja de mostrarlas.</gray> <newline>"><white><usage></white> <gray>[segundos|stop]</gray> <dark_gray>·</dark_gray> <gray>ver las entregas</gray></hover>'
+    trust: '   <color:#F7B733>•</color> <hover:show_text:"<newline> <gray>Tus sorters y pads también envían <newline> a los marcos de ese jugador.</gray> <newline>"><white><usage></white> <gray>\<jugador></gray> <dark_gray>·</dark_gray> <gray>enviar a sus marcos</gray></hover>'
+    untrust: '   <color:#F7B733>•</color> <hover:show_text:"<newline> <gray>Deja de confiar en un jugador.</gray> <newline>"><white><usage></white> <gray>\<jugador></gray> <dark_gray>·</dark_gray> <gray>dejar de enviarle</gray></hover>'
+    trusted: '   <color:#F7B733>•</color> <hover:show_text:"<newline> <gray>En quién confías y quién confía en ti.</gray> <newline>"><white><usage></white> <gray>[página]</gray> <dark_gray>·</dark_gray> <gray>quién comparte con quién</gray></hover>'
+    give: '   <color:#F7B733>•</color> <hover:show_text:"<newline> <white><usage></white> <gray>sorter [jugador] [cantidad]</gray> <newline> <white><usage></white> <gray>pad \<tipo> [jugador] [cantidad]</gray> <newline> <gray>Da activadores de sorter y bloques de pad.</gray> <newline>"><white><usage></white> <gray>sorter|pad …</gray> <dark_gray>·</dark_gray> <gray>dar items</gray></hover>'
+    reload: '   <color:#F7B733>•</color> <hover:show_text:"<newline> <gray>config.yml, pads.yml, tags.yml <newline> y el archivo de idioma.</gray> <newline>"><white><usage></white> <dark_gray>·</dark_gray> <gray>releer la config</gray></hover>'
   reloaded: '<prefix><white>Config <green>recargada</green> en <ms> ms.</white>'
-  reloaded-with-warnings: '<prefix><white>Config recargada en <ms> ms con <hover:show_text:"<gray>Esos ajustes usan su valor por defecto.<newline>Mira la consola.</gray>"><yellow><count> aviso(s)</yellow></hover>.</white>'
-  reload-failed: '<prefix><white>La recarga <red>falló</red>: <hover:show_text:"<gray><white><error></white><newline>Sigue activa la configuración anterior.</gray>">mira la consola</hover>.</white>'
-  reload-running: '<prefix><white>Ya hay una recarga <hover:show_text:"<gray>Vuelve a intentarlo cuando termine.</gray>"><yellow>en curso</yellow></hover>.</white>'
+  reloaded-with-warnings: '<prefix><white>Config recargada en <ms> ms con <hover:show_text:"<newline> <gray>Esos ajustes usan su valor por defecto. <newline> Mira la consola.</gray> <newline>"><yellow><count> aviso(s)</yellow></hover>.</white>'
+  reload-failed: '<prefix><white>La recarga <red>falló</red>: <hover:show_text:"<newline> <gray><white><error></white> <newline> Sigue activa la configuración anterior.</gray> <newline>">mira la consola</hover>.</white>'
+  reload-running: '<prefix><white>Ya hay una recarga <hover:show_text:"<newline> <gray>Vuelve a intentarlo cuando termine.</gray> <newline>"><yellow>en curso</yellow></hover>.</white>'
   players-only: '<prefix><white><red>Solo</red> para jugadores.</white>'
 
 pager:
@@ -48,10 +48,10 @@ pager:
     - ''
   empty: '<gray>   Nada que mostrar</gray>'
   previous:
-    enabled: '<hover:show_text:"<gray>Clic para ir a la página <white><page></white>.</gray>"><gradient:#F7B733:#FC4A1A>«</gradient></hover>'
+    enabled: '<hover:show_text:"<newline> <gray>Clic para ir a la página <white><page></white>.</gray> <newline>"><gradient:#F7B733:#FC4A1A>«</gradient></hover>'
     disabled: '<dark_gray>«</dark_gray>'
   next:
-    enabled: '<hover:show_text:"<gray>Clic para ir a la página <white><page></white>.</gray>"><gradient:#FC4A1A:#F7B733>»</gradient></hover>'
+    enabled: '<hover:show_text:"<newline> <gray>Clic para ir a la página <white><page></white>.</gray> <newline>"><gradient:#FC4A1A:#F7B733>»</gradient></hover>'
     disabled: '<dark_gray>»</dark_gray>'
 
 inspect:
@@ -62,7 +62,7 @@ inspect:
   title-item: '<white>Adónde va <item></white> <dark_gray>(<x>, <y>, <z>)</dark_gray>'
   details:
     owner: '   <color:#F7B733>•</color> <gray>Dueño:</gray> <player-head> <white><player></white>'
-    no-owner: '   <color:#F7B733>•</color> <hover:show_text:"<gray>Se construyó antes de que hubiera dueños.<newline>Rehazlo para que sea tuyo.</gray>"><gray>Sin dueño</gray></hover>'
+    no-owner: '   <color:#F7B733>•</color> <hover:show_text:"<newline> <gray>Se construyó antes de que hubiera dueños. <newline> Rehazlo para que sea tuyo.</gray> <newline>"><gray>Sin dueño</gray></hover>'
     sorted: '   <color:#F7B733>•</color> <gray>Enviados:</gray> <white><count></white> <gray>items</gray>'
   level:
     first: '   <color:#F7B733><number>.</color> <white>Primera opción</white>'
@@ -77,13 +77,18 @@ inspect:
     dropped: '<yellow>se suelta aquí</yellow>'
     lava: '<red>lava</red>'
   line: '   <color:#F7B733>•</color> <entry>'
-  entry: '<white><item></white> <dark_gray>→</dark_gray> <hover:show_text:"<white><x>, <y>, <z></white>"><target></hover> <dark_gray><distance> m</dark_gray><fill>'
-  entry-same-item: '<hover:show_text:"<white><x>, <y>, <z></white>"><target></hover> <dark_gray><distance> m</dark_gray><fill>'
-  fill: ' <dark_gray>·</dark_gray> <white><percent>%</white>'
-  gone: '<prefix><white><hover:show_text:"<gray>Se quitó, su chunk no está cargado<newline>o ya no puedes verlo.</gray>"><yellow>Desactualizado</yellow>: míralo otra vez</hover>.</white>'
-  not-trusted: '<prefix><white><hover:show_text:"<gray>Solo su dueño y los jugadores en<newline>quienes confía pueden inspeccionarlo.</gray>"><red>No puedes ver</red></hover> el <source> de <player-head> <player>.</white>'
-  no-owner: '<prefix><white><hover:show_text:"<gray>Se construyó antes de que hubiera dueños.<newline>Rehazlo para que sea tuyo.</gray>">Este <source> <red>no tiene dueño</red></hover>.</white>'
-  opens: '<prefix><white><hover:show_text:"<gray>El sorter envía primero lo de dentro;<newline>cuando nada de dentro puede ir a ningún<newline>sitio, lo envía entero, como se lista.</gray>">Abre <item> primero</hover>.</white>'
+  entry: '<white><item></white> <dark_gray>→</dark_gray> <target>'
+  entry-same-item: '<target>'
+  hover:
+    - ''
+    - ' <gray>Coords:</gray> <white><x>, <y>, <z></white> '
+    - ' <gray>Distancia:</gray> <white><distance> m</white><fill> '
+    - ''
+  fill: ' <newline> <gray>Lleno:</gray> <white><percent>%</white>'
+  gone: '<prefix><white><hover:show_text:"<newline> <gray>Se quitó, su chunk no está cargado <newline> o ya no puedes verlo.</gray> <newline>"><yellow>Desactualizado</yellow>: míralo otra vez</hover>.</white>'
+  not-trusted: '<prefix><white><hover:show_text:"<newline> <gray>Solo su dueño y los jugadores en <newline> quienes confía pueden inspeccionarlo.</gray> <newline>"><red>No puedes ver</red></hover> el <source> de <player-head> <player>.</white>'
+  no-owner: '<prefix><white><hover:show_text:"<newline> <gray>Se construyó antes de que hubiera dueños. <newline> Rehazlo para que sea tuyo.</gray> <newline>">Este <source> <red>no tiene dueño</red></hover>.</white>'
+  opens: '<prefix><white><hover:show_text:"<newline> <gray>El sorter envía primero lo de dentro; <newline> cuando nada de dentro puede ir a ningún <newline> sitio, lo envía entero, como se lista.</gray> <newline>">Abre <item> primero</hover>.</white>'
 
 frame:
   layout:
@@ -101,25 +106,25 @@ frame:
     unmarked: '<red>✘</red> <white>Marco sin marcar</white> <dark_gray>(<x>, <y>, <z>)</dark_gray>'
     wrong-type: '<red>✘</red> <white>Marco que no puede ser destino</white> <dark_gray>(<x>, <y>, <z>)</dark_gray>'
   not-target:
-    unmarked: '   <color:#F7B733>•</color> <gray>Márcalo:</gray> <white>shift + clic derecho</white><gray>, mano vacía</gray>'
+    unmarked: '   <color:#F7B733>•</color> <gray>Márcalo:</gray> <white>shift + clic dcho.</white><gray>, mano vacía</gray>'
     wrong-type: '   <color:#F7B733>•</color> <gray>Su tipo no está en</gray> <white>targets.frame-types</white>'
   owner: '   <color:#F7B733>•</color> <gray>Dueño:</gray> <player-head> <white><player></white>'
-  no-owner: '   <color:#F7B733>•</color> <hover:show_text:"<gray>Desmárcalo y vuelve a marcarlo<newline>para que sea tuyo.</gray>"><gray>Sin dueño</gray></hover>'
+  no-owner: '   <color:#F7B733>•</color> <hover:show_text:"<newline> <gray>Desmárcalo y vuelve a marcarlo <newline> para que sea tuyo.</gray> <newline>"><gray>Sin dueño</gray></hover>'
   into:
-    container: '   <color:#F7B733>•</color> <gray>Van a</gray> <white><block></white>'
+    container: '   <color:#F7B733>•</color> <gray>Van a:</gray> <white><block></white>'
     dropped: '   <color:#F7B733>•</color> <yellow>Se sueltan</yellow> <gray>delante</gray>'
-    lava: '   <color:#F7B733>•</color> <gray>Van a la</gray> <red>lava</red>'
+    lava: '   <color:#F7B733>•</color> <gray>Van a:</gray> <red>lava</red>'
   accepts:
-    plain: '   <color:#F7B733>•</color> <hover:show_text:"<gray>El item exacto primero,<newline>después cualquier otro del mismo tipo.</gray>"><gray>Acepta</gray> <white><item></white></hover>'
-    exact: '   <color:#F7B733>•</color> <hover:show_text:"<gray>Primero el item exacto: mismo nombre,<newline>encantamientos y contenido.</gray>"><gray>Primero</gray> <white><item></white></hover>'
-    tag: '   <color:#F7B733>•</color> <hover:show_text:"<gray><white><count></white> items.</gray>"><gray>Acepta</gray> <white>#<tag></white> <white>[</white><color:#F7B733><count></color><white>]</white></hover>'
-    tag-link: '   <color:#F7B733>•</color> <hover:show_text:"<gray><white><count></white> items. Clic para verlos.</gray>"><gray>Acepta</gray> <white>#<tag></white> <white>[</white><color:#F7B733><count></color><white>]</white></hover>'
-    contents: '   <color:#F7B733>•</color> <hover:show_text:"<gray>Los <white><count></white> stacks que tiene dentro.</gray>"><gray>Acepta lo que contiene</gray></hover>'
-    similar: '   <color:#F7B733>•</color> <hover:show_text:"<gray>Cuando nada coincide mejor.</gray>"><gray>Luego cualquier</gray> <white><material></white></hover>'
-    custom: '   <color:#F7B733>•</color> <hover:show_text:"<gray>Cuando nada coincide mejor.</gray>"><gray>Luego cualquier</gray> <white><id></white></hover>'
-    default: '   <color:#F7B733>•</color> <hover:show_text:"<gray>Lo que no encaja en ningún otro marco<newline>o ya no cabe en ellos.</gray>"><gray>Acepta lo que sobre</gray></hover>'
-  on-sorter: '   <color:#F7B733>•</color> <hover:show_text:"<gray>Un sorter nunca envía a otro sorter.</gray>"><gray>En un sorter: solo pads</gray></hover>'
-  sources: '   <color:#F7B733>•</color> <hover:show_text:"<gray>Sorters y pads cuyos items<newline>pueden llegar a este marco.</gray>"><gray>Fuentes al alcance:</gray> <white><count></white></hover>'
+    plain: '   <color:#F7B733>•</color> <hover:show_text:"<newline> <gray>El item exacto primero, <newline> después cualquier otro del mismo tipo.</gray> <newline>"><gray>Acepta:</gray> <white><item></white></hover>'
+    exact: '   <color:#F7B733>•</color> <hover:show_text:"<newline> <gray>Primero el item exacto: mismo nombre, <newline> encantamientos y contenido.</gray> <newline>"><gray>Primero:</gray> <white><item></white></hover>'
+    tag: '   <color:#F7B733>•</color> <hover:show_text:"<newline> <gray><white><count></white> items.</gray> <newline>"><gray>Acepta:</gray> <white>#<tag></white> <white>[</white><color:#F7B733><count></color><white>]</white></hover>'
+    tag-link: '   <color:#F7B733>•</color> <hover:show_text:"<newline> <gray><white><count></white> items. Clic para verlos.</gray> <newline>"><gray>Acepta:</gray> <white>#<tag></white> <white>[</white><color:#F7B733><count></color><white>]</white></hover>'
+    contents: '   <color:#F7B733>•</color> <hover:show_text:"<newline> <gray>Los <white><count></white> stacks que tiene dentro.</gray> <newline>"><gray>Acepta lo que contiene</gray></hover>'
+    similar: '   <color:#F7B733>•</color> <hover:show_text:"<newline> <gray>Cuando nada coincide mejor.</gray> <newline>"><gray>Luego cualquier:</gray> <white><material></white></hover>'
+    custom: '   <color:#F7B733>•</color> <hover:show_text:"<newline> <gray>Cuando nada coincide mejor.</gray> <newline>"><gray>Luego cualquier:</gray> <white><id></white></hover>'
+    default: '   <color:#F7B733>•</color> <hover:show_text:"<newline> <gray>Lo que no encaja en ningún otro marco <newline> o ya no cabe en ellos.</gray> <newline>"><gray>Acepta lo que sobre</gray></hover>'
+  on-sorter: '   <color:#F7B733>•</color> <hover:show_text:"<newline> <gray>Un sorter nunca envía a otro sorter.</gray> <newline>"><gray>En un sorter: solo pads</gray></hover>'
+  sources: '   <color:#F7B733>•</color> <hover:show_text:"<newline> <gray>Sorters y pads cuyos items <newline> pueden llegar a este marco.</gray> <newline>"><gray>Fuentes al alcance:</gray> <white><count></white></hover>'
 
 mark:
   marked: '<prefix><white><green>Marcado</green> como destino.</white>'
@@ -129,21 +134,21 @@ mark:
   not-yours: '<prefix><white><red>No puedes desmarcarlo</red>: es de <player-head> <player>.</white>'
 
 automark:
-  enabled: '<prefix><white>Automarcado: <hover:show_text:"<gray>Un item que metes en un marco sobre<newline>un contenedor o compostador lo marca.<newline>Otros bloques: shift + clic derecho.</gray>"><green>sí</green></hover>.</white>'
-  disabled: '<prefix><white>Automarcado: <hover:show_text:"<gray>Shift + clic derecho a un marco<newline>con la mano vacía para marcarlo.</gray>"><red>no</red></hover>.</white>'
+  enabled: '<prefix><white>Automarcado: <hover:show_text:"<newline> <gray>Un item que metes en un marco sobre <newline> un contenedor o compostador lo marca. <newline> Otros bloques: <white>shift + clic dcho.</white></gray> <newline>"><green>sí</green></hover>.</white>'
+  disabled: '<prefix><white>Automarcado: <hover:show_text:"<newline> <gray><white>Shift + clic dcho.</white> a un marco <newline> con la mano vacía para marcarlo.</gray> <newline>"><red>no</red></hover>.</white>'
 
 tag-item:
-  applied: '<prefix><white><hover:show_text:"<gray>En un marco representa el tag.</gray>"><green>Etiquetado</green> #<tag></hover>.</white>'
+  applied: '<prefix><white><hover:show_text:"<newline> <gray>En un marco representa el tag.</gray> <newline>"><green>Etiquetado</green> #<tag></hover>.</white>'
   removed: '<prefix><white>Tag <red>quitado</red>.</white>'
   not-tagged: '<prefix><white>Ese item no tiene tag.</white>'
   empty-hand: '<prefix><white>Sin item en la mano.</white>'
 
 where:
   empty-hand: '<prefix><white>Sin item en la mano.</white>'
-  no-source: '<prefix><white><hover:show_text:"<gray>Solo los sorters y pads que puedes inspeccionar:<newline>los tuyos o de quien confía en ti.</gray>">Ninguno al alcance</hover>.</white>'
+  no-source: '<prefix><white><hover:show_text:"<newline> <gray>Solo los sorters y pads que puedes inspeccionar: <newline> los tuyos o de quien confía en ti.</gray> <newline>">Ninguno al alcance</hover>.</white>'
 
 trace:
-  started: '<prefix><white><hover:show_text:"<gray>Entregas a menos de <white><radius></white> bloques.<newline>Para con <white><stop></white>.</gray>"><green>Rastreando</green> <seconds> s</hover>.</white>'
+  started: '<prefix><white><hover:show_text:"<newline> <gray>Entregas a menos de <white><radius></white> bloques. <newline> Para con <white><stop></white>.</gray> <newline>"><green>Rastreando</green> <seconds> s</hover>.</white>'
   stopped: '<prefix><white>Rastreo <red>detenido</red>.</white>'
   not-running: '<prefix><white>No estás rastreando.</white>'
   ended: '<prefix><white>Rastreo <red>terminado</red>.</white>'
@@ -154,42 +159,49 @@ trace:
     destroyed: '<red>lava</red>'
 
 tag:
-  title: '<apply><hover:show_text:"<gray><kind></gray>">#<tag></hover>'
-  apply-button: '<hover:show_text:"<gray>Aplica este tag al item de tu mano.</gray>"><white>[</white><gradient:#F7B733:#FC4A1A>Aplicar</gradient><white>]</white></hover> '
+  title: '<apply><hover:show_text:"<newline> <white><kind></white> <newline>">#<tag></hover>'
+  apply-button: '<hover:show_text:"<newline> <gray>Aplica este tag al item de tu mano.</gray> <newline>"><white>[</white><gradient:#F7B733:#FC4A1A>Aplicar</gradient><white>]</white></hover> '
   kind:
     item: 'tag de items'
     block: 'tag de bloques'
     custom: 'tag de tags.yml'
   entry: '   <color:#F7B733>•</color> <white><item></white>'
+  hover:
+    - ''
+    - ' <white><id></white> '
+    - ''
   unknown: '<prefix><white><red>No existe</red> el tag #<tag>.<hint></white>'
   unknown-hint: ' Prueba <usage>.'
   list:
     title: 'Tags'
     title-search: 'Tags que contienen "<text>"'
     entry: '   <color:#F7B733>•</color> <white>#<tag></white>'
-    hover: '<gray>Clic para ver qué contiene este tag.</gray>'
+    hover:
+      - ''
+      - ' <gray>Clic para ver qué contiene este tag.</gray> '
+      - ''
 
 give:
   done: '<prefix><white><green>Entregado</green> <amount>× <item> a <player>.</white>'
   players-only: '<prefix><white><red>Indica un jugador</red>: <usage> ... [jugador].</white>'
-  unavailable: '<prefix><white><hover:show_text:"<gray>Revisa su ID en la config<newline>o espera a que termine <white>/ce reload</white>.</gray>">CraftEngine <red>no puede crearlo</red> ahora</hover>.</white>'
+  unavailable: '<prefix><white><hover:show_text:"<newline> <gray>Revisa su ID en la config <newline> o espera a que termine <white>/ce reload</white>.</gray> <newline>">CraftEngine <red>no puede crearlo</red> ahora</hover>.</white>'
   unknown-pad: '<prefix><white><red>No existe</red> el pad <type>.</white>'
 
 trust:
-  granted: '<prefix><white><hover:show_text:"<gray>Tus sorters y pads también envían<newline>a sus marcos.</gray>">Ahora <green>confías</green> en <player></hover>.</white>'
-  revoked: '<prefix><white><hover:show_text:"<gray>Tus sorters y pads ya no envían<newline>a sus marcos.</gray>"><red>Ya no confías</red> en <player></hover>.</white>'
+  granted: '<prefix><white><hover:show_text:"<newline> <gray>Tus sorters y pads también envían <newline> a sus marcos.</gray> <newline>">Ahora <green>confías</green> en <player></hover>.</white>'
+  revoked: '<prefix><white><hover:show_text:"<newline> <gray>Tus sorters y pads ya no envían <newline> a sus marcos.</gray> <newline>"><red>Ya no confías</red> en <player></hover>.</white>'
   already: '<prefix><white>Ya confías en <player>.</white>'
   not-trusted: '<prefix><white>No confías en <player>.</white>'
   unknown-player: '<prefix><white><player> <red>nunca</red> ha jugado aquí.</white>'
-  self: '<prefix><white><hover:show_text:"<gray>Tus propios marcos ya reciben<newline>de tus sorters y pads.</gray>"><red>No puedes</red> confiar en ti</hover>.</white>'
-  failed: '<prefix><white><hover:show_text:"<gray>Si sigue fallando, pide a un admin<newline>que mire la consola.</gray>"><red>No se guardó</red>: reinténtalo</hover>.</white>'
+  self: '<prefix><white><hover:show_text:"<newline> <gray>Tus propios marcos ya reciben <newline> de tus sorters y pads.</gray> <newline>"><red>No puedes</red> confiar en ti</hover>.</white>'
+  failed: '<prefix><white><hover:show_text:"<newline> <gray>Si sigue fallando, pide a un admin <newline> que mire la consola.</gray> <newline>"><red>No se guardó</red>: reinténtalo</hover>.</white>'
   list:
     title: 'Confianza'
     trusted: '   <color:#F7B733>→</color> <player-head> <white><player></white> <gray>desde</gray> <dark_gray><date></dark_gray>'
     trusting: '   <color:#F7B733>←</color> <player-head> <white><player></white> <gray>confía en ti</gray>'
 
 sorter:
-  created: '<prefix><white><hover:show_text:"<gray>Lo que haya en este dispensador<newline>irá a sus marcos destino.</gray>">Sorter <green>creado</green></hover>.</white>'
+  created: '<prefix><white><hover:show_text:"<newline> <gray>Lo que haya en este dispensador <newline> irá a sus marcos destino.</gray> <newline>">Sorter <green>creado</green></hover>.</white>'
   removed: '<prefix><white>Sorter <red>eliminado</red>.</white>'
 
 pad:
@@ -198,4 +210,4 @@ pad:
   not-allowed: '<prefix><white><red>No puedes</red> crear pads aquí.</white>'
   needs-base: '<prefix><white>El pad <type> <red>va sobre</red> <base>.</white>'
   world-disabled: '<prefix><white>Los pads <red>no funcionan</red> en este mundo.</white>'
-  unavailable: '<prefix><white><hover:show_text:"<gray>CraftEngine no distingue sus bloques<newline>ni crea sus items ahora.<newline>Espera a que termine <white>/ce reload</white><newline>o avisa a un admin.</gray>">Pads <red>no listos</red>: reinténtalo</hover>.</white>'
+  unavailable: '<prefix><white><hover:show_text:"<newline> <gray>CraftEngine no distingue sus bloques <newline> ni crea sus items ahora. <newline> Espera a que termine <white>/ce reload</white> <newline> o avisa a un admin.</gray> <newline>">Pads <red>no listos</red>: reinténtalo</hover>.</white>'

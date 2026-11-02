@@ -180,7 +180,7 @@ public final class FrameSortPlugin extends JavaPlugin {
             scanFrames(index, sorters);
         };
         List<CommandFeature> features = List.of(
-                new HelpCommand(messages, commands, helpLines),
+                new HelpCommand(messages, commands, helpLines, () -> settings.get().inspect().pageSize()),
                 new AutomarkCommand(automark, messages),
                 new TagListCommand(listing),
                 new TagSearchCommand(listing),

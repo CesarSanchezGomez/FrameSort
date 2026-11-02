@@ -80,6 +80,6 @@ public final class TagShowCommand implements CommandFeature {
 
     private static Component entry(Messages text, Component item, String id) {
         return text.get("tag.entry", Placeholder.component("item", item))
-                .hoverEvent(HoverEvent.showText(Component.text(id)));
+                .hoverEvent(HoverEvent.showText(text.get("tag.hover", Placeholder.unparsed("id", id))));
     }
 }

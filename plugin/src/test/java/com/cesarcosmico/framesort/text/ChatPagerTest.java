@@ -32,6 +32,10 @@ class ChatPagerTest {
               next:
                 enabled: '><page>'
                 disabled: '-'
+            help:
+              - 'Fixed'
+              - '<entries>'
+              - '<previous> <page>/<pages> <next>'
             """;
 
     private static final class Recorder implements Audience {
@@ -132,6 +136,16 @@ class ChatPagerTest {
 
         assertEquals("Sorter (5)\nOwner: Cesar\nSorted: 3\ne1\ne2\n- 01/03 >2", plain(audience.received.get(0)));
         assertEquals("Sorter (5)\nOwner: Cesar\nSorted: 3\ne5\n<2 03/03 -", plain(audience.received.get(1)));
+    }
+
+    @Test
+    void aListWithItsOwnLayoutPagesLikeTheOthers() throws Exception {
+        Recorder audience = new Recorder();
+        ChatPager.send(audience, messages(), "help", lines(5), 2, 2, "/p %d");
+
+        assertEquals("Fixed\ne3\ne4\n<1 02/03 >3", plain(audience.received.getFirst()));
+        ClickEvent click = firstClick(audience.received.getFirst());
+        assertTrue(click != null && click.payload().toString().contains("/p 1"), String.valueOf(click));
     }
 
     @Test

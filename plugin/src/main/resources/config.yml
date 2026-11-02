@@ -71,7 +71,7 @@ inspect:
     container: '#55FF55'
     dropped: '#FFFF55'
     lava: '#FF5555'
-  # Entries per page in chat lists (tags, inspection).
+  # Entries per page in chat lists (help, tags, trust, inspection).
   page-size: 8
   # Blocks around you that /framesort trace covers.
   trace-radius: 32

@@ -65,8 +65,8 @@ keeps its hidden frame until it loads with FrameSort installed, so before removi
    ![A player crouching on a tuff pad, sending their inventory to the target frame on a chest](docs/inventory-pad.gif)
 
 4. **Inspect.** Sneak + right-click a sorter or pad with an empty hand: its targets' items glow (only for you, in
-   configurable colours) and are listed page by page, each container with how full it is. Sneak + left-click a target
-   frame to see what it accepts.
+   configurable colours) and are listed page by page; hovering one shows where it is, how far and how full. Sneak +
+   left-click a target frame to see what it accepts.
    `/framesort trace` shows the deliveries around you live.
 
    ![Inspecting a sorter: its targets glow by what they do with the items, and the chat lists them](docs/inspect.gif)
@@ -106,7 +106,7 @@ never duplicated.
 
 | Command | Permission | Default |
 |---|---|---|
-| `/framesort` (help) | `framesort.command.help` | everyone |
+| `/framesort [page]` (help) | `framesort.command.help` | everyone |
 | `/framesort automark` | `framesort.command.automark` | everyone |
 | `/framesort tag list [page]` | `framesort.command.tag-list` | everyone |
 | `/framesort tag search <text> [page]` | `framesort.command.tag-search` | everyone |
