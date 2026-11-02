@@ -33,9 +33,7 @@ dependencies {
     // Database tests run against real SQLite with the driver version the server ships.
     testImplementation(libs.hikaricp)
     testRuntimeOnly(libs.sqlite.jdbc)
-    // What only a shared server does also runs against real MySQL and MariaDB: ./gradlew mysqlTest, with Docker.
-    testImplementation(libs.testcontainers.mysql)
-    testImplementation(libs.testcontainers.mariadb)
+    // What only a shared server does also runs against real MySQL and MariaDB: ./gradlew mysqlTest, on your servers.
     testRuntimeOnly(libs.mysql.connector.j)
     testRuntimeOnly(libs.mariadb.java.client)
 }
@@ -72,6 +70,11 @@ tasks.register<Test>("mysqlTest") {
     testClassesDirs = files(sourceSets.test.map { it.output.classesDirs })
     classpath = files(sourceSets.test.map { it.runtimeClasspath })
     useJUnitPlatform { includeTags("mysql") }
+    // Each developer's own servers, in ~/.gradle/gradle.properties: no address or password in the repository.
+    val servers = providers.gradlePropertiesPrefixedBy("testServer.")
+    doFirst { servers.get().forEach { (key, value) -> (this as Test).systemProperty(key, value) } }
+    // Those servers change without Gradle knowing.
+    outputs.upToDateWhen { false }
 }
 
 // The full check runs on the newest supported line; the minimum line gets its own server for the start-up check.

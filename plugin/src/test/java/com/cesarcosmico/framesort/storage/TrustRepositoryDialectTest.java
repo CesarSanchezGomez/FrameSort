@@ -1,13 +1,9 @@
 package com.cesarcosmico.framesort.storage;
 
 import com.cesarcosmico.framesort.config.DatabaseSettings;
-import com.cesarcosmico.framesort.config.DatabaseType;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
-import org.testcontainers.containers.JdbcDatabaseContainer;
-import org.testcontainers.mariadb.MariaDBContainer;
-import org.testcontainers.mysql.MySQLContainer;
 
 import java.nio.file.Path;
 import java.util.Map;
@@ -16,7 +12,7 @@ import java.util.logging.Logger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-// The insert differs by dialect, so it runs against real MySQL and MariaDB servers: ./gradlew mysqlTest, with Docker.
+// The insert differs by dialect, so it runs against real MySQL and MariaDB servers: ./gradlew mysqlTest.
 @Tag("mysql")
 class TrustRepositoryDialectTest {
 
@@ -28,25 +24,17 @@ class TrustRepositoryDialectTest {
 
     @Test
     void mysql() throws Exception {
-        try (MySQLContainer server = new MySQLContainer("mysql:8.4")) {
-            server.start();
-            check(server, DatabaseType.MYSQL, "useSSL=false&allowPublicKeyRetrieval=true");
-        }
+        check(TestServers.mysql());
     }
 
     @Test
     void mariadb() throws Exception {
-        try (MariaDBContainer server = new MariaDBContainer("mariadb:11.4")) {
-            server.start();
-            check(server, DatabaseType.MARIADB, "");
-        }
+        check(TestServers.mariadb());
     }
 
-    private void check(JdbcDatabaseContainer<?> server, DatabaseType type, String properties) throws Exception {
-        DatabaseSettings settings = new DatabaseSettings(type, "unused.db", new DatabaseSettings.Remote(
-                server.getHost(), server.getMappedPort(3306), server.getDatabaseName(), server.getUsername(),
-                server.getPassword(), properties));
-        TrustRepository repository = new TrustRepository(type);
+    private void check(DatabaseSettings settings) throws Exception {
+        TestServers.dropTables(settings, "framesort_trust, framesort_schema_version");
+        TrustRepository repository = new TrustRepository(settings.type());
         try (Database database = Database.open(settings, dir.toFile(), "framesort", Runnable::run, null, "db",
                 Logger.getLogger("test"))) {
             database.update(c -> {
