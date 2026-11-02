@@ -343,7 +343,11 @@ Where FrameSort keeps who trusts whom. Everything else stays in the world. Read 
 | `remote.host`, `port`, `database`, `username`, `password` | `localhost`, `3306`, `framesort`, `root`, `''` | The MySQL or MariaDB server. FrameSort's tables start with `framesort_`, so it can share a database with other plugins. |
 | `remote.properties` | `''` | Extra JDBC URL parameters, such as `sslMode=REQUIRED`. Empty uses the driver's defaults: MySQL connects with TLS when the server offers it, which MySQL 8.4's default login needs after each restart. |
 
-FrameSort reads the whole list when it starts; if the database can't be reached, FrameSort does not start. Each
+FrameSort reads the whole list when it starts; if the database can't be reached, FrameSort does not start. Servers
+sharing a database can start together: with a schema change to apply, each waits for the one applying it. After 30
+seconds still waiting, FrameSort does not start on that server, so start it again once the other is done. On a cluster
+(Galera, NDB, Group Replication) that wait doesn't protect the change, so start those servers one at a time; and if the
+database refuses the lock it needs, FrameSort can't apply the change and does not start. Each
 `/framesort trust` or `untrust` is saved before it applies. With MySQL or MariaDB, each server reads the list again
 every minute, so trust given on another server applies here within a minute; one given on this server applies at once.
 MariaDB's driver is downloaded on the first start, like HikariCP; the SQLite and MySQL drivers come with the server.

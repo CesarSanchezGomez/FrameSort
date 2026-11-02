@@ -30,7 +30,6 @@ class TrustRepositoryDialectTest {
     void mysql() throws Exception {
         try (MySQLContainer server = new MySQLContainer("mysql:8.4")) {
             server.start();
-            // MySQL 8 signs in with caching_sha2_password, which needs the server's key without TLS.
             check(server, DatabaseType.MYSQL, "useSSL=false&allowPublicKeyRetrieval=true");
         }
     }

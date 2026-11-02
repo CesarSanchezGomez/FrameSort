@@ -33,7 +33,7 @@ dependencies {
     // Database tests run against real SQLite with the driver version the server ships.
     testImplementation(libs.hikaricp)
     testRuntimeOnly(libs.sqlite.jdbc)
-    // The SQL that differs by dialect also runs against real MySQL and MariaDB: ./gradlew mysqlTest, with Docker.
+    // What only a shared server does also runs against real MySQL and MariaDB: ./gradlew mysqlTest, with Docker.
     testImplementation(libs.testcontainers.mysql)
     testImplementation(libs.testcontainers.mariadb)
     testRuntimeOnly(libs.mysql.connector.j)
