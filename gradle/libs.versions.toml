@@ -13,7 +13,6 @@ mariadb-java-client = "3.5.11"
 # The drivers the server ships (Paper's paper-server/build.gradle.kts).
 sqlite-jdbc = "3.49.1.0"
 mysql-connector-j = "9.2.0"
-testcontainers = "2.0.5"
 # Static checks: NullAway turns the JSpecify annotations into compile errors, through Error Prone.
 errorprone = "2.51.0"
 nullaway = "0.14.3"
@@ -30,8 +29,6 @@ hikaricp = { module = "com.zaxxer:HikariCP", version.ref = "hikaricp" }
 mariadb-java-client = { module = "org.mariadb.jdbc:mariadb-java-client", version.ref = "mariadb-java-client" }
 sqlite-jdbc = { module = "org.xerial:sqlite-jdbc", version.ref = "sqlite-jdbc" }
 mysql-connector-j = { module = "com.mysql:mysql-connector-j", version.ref = "mysql-connector-j" }
-testcontainers-mysql = { module = "org.testcontainers:testcontainers-mysql", version.ref = "testcontainers" }
-testcontainers-mariadb = { module = "org.testcontainers:testcontainers-mariadb", version.ref = "testcontainers" }
 errorprone-core = { module = "com.google.errorprone:error_prone_core", version.ref = "errorprone" }
 nullaway = { module = "com.uber.nullaway:nullaway", version.ref = "nullaway" }
 

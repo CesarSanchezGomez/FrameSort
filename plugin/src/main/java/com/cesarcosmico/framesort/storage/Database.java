@@ -37,6 +37,9 @@ public final class Database implements AutoCloseable {
     private static final String MIGRATIONS = "db";
     private static final int SHUTDOWN_SECONDS = 10;
     private static final long CONNECTION_TIMEOUT_MILLIS = 10_000;
+    private static final int MIGRATION_LOCK_SECONDS = 30;
+    // Lock names are server-wide, and MySQL takes 64 characters at most.
+    private static final String MIGRATION_LOCK_NAME = "LEFT(CONCAT(DATABASE(), '.', ?), 64)";
 
     @FunctionalInterface
     public interface SqlFunction<T extends @Nullable Object> {
@@ -66,7 +69,9 @@ public final class Database implements AutoCloseable {
     /**
      * Opens the pool and applies pending migrations. Blocks: call it from {@code onEnable}, before players join. The
      * applied versions go in {@code <plugin>_schema_version}, the plugin's name in lower case with anything but a
-     * letter, a digit or {@code _} as {@code _}, because servers often give several plugins one MySQL database.
+     * letter, a digit or {@code _} as {@code _}, because servers often give several plugins one MySQL database. On
+     * MySQL and MariaDB, migrations to apply wait up to {@value MIGRATION_LOCK_SECONDS} s for any other server applying
+     * them, and fail after that.
      */
     public static Database open(Plugin plugin, DatabaseSettings settings) throws SQLException {
         String name = tablePrefix(plugin.getName());
@@ -198,32 +203,75 @@ public final class Database implements AutoCloseable {
         return result;
     }
 
-    // MySQL commits DDL implicitly, so a failing MySQL migration can leave its earlier statements applied.
     private void migrate(String root, String versions) throws SQLException {
         try (Connection connection = dataSource.getConnection()) {
             try (Statement statement = connection.createStatement()) {
                 statement.execute("CREATE TABLE IF NOT EXISTS " + versions + " (version INTEGER PRIMARY KEY)");
             }
-            for (int version = currentVersion(connection, versions) + 1; ; version++) {
-                List<String> statements = migration(root + "/" + type.dialect() + "/V" + version + ".sql");
-                if (statements == null) {
-                    return;
-                }
-                int applied = version;
-                inTransaction(connection, c -> {
-                    try (Statement statement = c.createStatement()) {
-                        for (String sql : statements) {
-                            statement.execute(sql);
-                        }
-                    }
-                    try (PreparedStatement insert = c.prepareStatement(
-                            "INSERT INTO " + versions + " (version) VALUES (?)")) {
-                        insert.setInt(1, applied);
-                        insert.executeUpdate();
-                    }
-                    return null;
-                });
+            // With nothing to apply no server waits for another, and a cluster that refuses the lock still starts.
+            if (migration(root, currentVersion(connection, versions) + 1) == null) {
+                return;
             }
+            boolean sharedServer = type != DatabaseType.SQLITE;
+            if (sharedServer) {
+                takeMigrationLock(connection, versions);
+            }
+            applyPending(connection, root, versions);
+            // On a failure open() closes the pool, which ends the session and its lock.
+            if (sharedServer) {
+                releaseMigrationLock(connection, versions);
+            }
+        }
+    }
+
+    private static void takeMigrationLock(Connection connection, String versions) throws SQLException {
+        try (PreparedStatement lock = connection.prepareStatement("SELECT GET_LOCK(" + MIGRATION_LOCK_NAME + ", ?)")) {
+            lock.setString(1, versions);
+            lock.setInt(2, MIGRATION_LOCK_SECONDS);
+            try (ResultSet result = lock.executeQuery()) {
+                result.next();
+                int obtained = result.getInt(1);
+                if (result.wasNull()) {
+                    throw new SQLException("The database gave no lock for the migrations of " + versions
+                            + ": GET_LOCK answered NULL.");
+                }
+                if (obtained != 1) {
+                    throw new SQLException("Another server kept the lock for the migrations of " + versions + " for "
+                            + MIGRATION_LOCK_SECONDS + " s. Start this one again when it ends.");
+                }
+            }
+        }
+    }
+
+    private static void releaseMigrationLock(Connection connection, String versions) throws SQLException {
+        try (PreparedStatement release = connection.prepareStatement(
+                "SELECT RELEASE_LOCK(" + MIGRATION_LOCK_NAME + ")")) {
+            release.setString(1, versions);
+            release.executeQuery().close();
+        }
+    }
+
+    // MySQL commits DDL implicitly, so a failing MySQL migration can leave its earlier statements applied.
+    private void applyPending(Connection connection, String root, String versions) throws SQLException {
+        for (int version = currentVersion(connection, versions) + 1; ; version++) {
+            List<String> statements = migration(root, version);
+            if (statements == null) {
+                return;
+            }
+            int applied = version;
+            inTransaction(connection, c -> {
+                try (Statement statement = c.createStatement()) {
+                    for (String sql : statements) {
+                        statement.execute(sql);
+                    }
+                }
+                try (PreparedStatement insert = c.prepareStatement(
+                        "INSERT INTO " + versions + " (version) VALUES (?)")) {
+                    insert.setInt(1, applied);
+                    insert.executeUpdate();
+                }
+                return null;
+            });
         }
     }
 
@@ -234,7 +282,8 @@ public final class Database implements AutoCloseable {
         }
     }
 
-    private static @Nullable List<String> migration(String resource) {
+    private @Nullable List<String> migration(String root, int version) {
+        String resource = root + "/" + type.dialect() + "/V" + version + ".sql";
         try (InputStream in = Database.class.getClassLoader().getResourceAsStream(resource)) {
             return in == null ? null : statements(new String(in.readAllBytes(), StandardCharsets.UTF_8));
         } catch (IOException e) {

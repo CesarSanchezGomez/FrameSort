@@ -70,7 +70,8 @@ Who trusts whom is read while the player who gave it is offline, so it lives in 
 one table, `framesort_trust`, with a row per trust (`owner`, `trusted`, `created_at`). UUIDs are 16 bytes, most
 significant half first, so one UUID has one form; `created_at` is epoch milliseconds, which MySQL's `TIMESTAMP`
 could not hold past 2038. The primary key is the pair (`WITHOUT ROWID` in SQLite). Migrations are
-`db/<sqlite|mysql>/V<n>.sql`, applied in order, with the applied versions in `framesort_schema_version`.
+`db/<sqlite|mysql>/V<n>.sql`, applied in order, with the applied versions in `framesort_schema_version`. On MySQL and
+MariaDB they apply under `GET_LOCK`, taken only when one is pending, because servers can start at once on one database.
 
 The UUID columns are binary (`BLOB` in SQLite, `BINARY(16)` in MySQL and MariaDB), so database tools show them as
 blobs. In game, `/framesort trusted` lists the names. To read the table by hand:
@@ -156,9 +157,10 @@ answers once that is done, a player through their own scheduler, so nothing is s
 while another runs is not started, and says so. The first load, at enable, runs on the main thread, because nothing can
 be registered before the configuration is read.
 
-The only I/O is the trust table, on the database's single thread (`storage.Database`):
+The only I/O is the trust table, on the database's single thread (`storage.Database`), and the schema at enable:
 - at enable, the whole table is read with a timeout before anything else runs; if it fails, FrameSort disables
-  itself instead of starting with nobody trusted;
+  itself instead of starting with nobody trusted. A schema change to apply runs on the main thread before that, and can
+  wait up to 30 s for another server applying it;
 - `/framesort trust` and `untrust` write first, and the database thread swaps the snapshot (`TrustService`) in the
   same task. Being the only thread that changes it, it applies writes and re-reads in the database's order, and a
   failed write never leaves a trust in memory. The cached matches are then cleared on the main thread through the
