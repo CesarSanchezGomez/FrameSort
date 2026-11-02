@@ -9,15 +9,19 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 // The plugin reads its bundled YAML strictly at runtime, so a broken file must fail the build instead.
 class BundledYamlTest {
 
     private static final Path RESOURCES = Path.of("src/main/resources");
+    private static final Pattern SHOW_TEXT = Pattern.compile("show_text:(\"?)([^\"]*)");
 
     private static List<Path> yamlFiles() throws IOException {
         try (Stream<Path> files = Files.walk(RESOURCES)) {
@@ -62,6 +66,36 @@ class BundledYamlTest {
                 assertEquals(english, keys(file), file.getFileName() + " keys differ from en_US.yml");
             }
         }
+    }
+
+    // Nothing else stops a new hover from going without the margin, and on a server it only looks cramped.
+    @Test
+    void everyHoverHasItsMargin() throws Exception {
+        for (Path file : yamlFiles()) {
+            YamlConfiguration yaml = new YamlConfiguration();
+            yaml.load(file.toFile());
+            for (String key : yaml.getKeys(true)) {
+                String text = yaml.isList(key)
+                        ? String.join("<newline>", yaml.getStringList(key))
+                        : yaml.getString(key, "");
+                Matcher hover = SHOW_TEXT.matcher(text);
+                while (hover.find()) {
+                    assertTrue(!hover.group(1).isEmpty() && hasMargin(hover.group(2)), file + ": " + key);
+                }
+                if (key.endsWith(".hover")) {
+                    assertTrue(hasMargin(text), file + ": " + key);
+                }
+            }
+        }
+    }
+
+    private static boolean hasMargin(String hover) {
+        String newline = "<newline>";
+        if (!hover.startsWith(newline + " ") || !hover.endsWith(" " + newline)) {
+            return false;
+        }
+        String inner = hover.substring(newline.length(), hover.length() - newline.length());
+        return !inner.replace(" " + newline + " ", "").contains(newline);
     }
 
     private static Set<String> keys(Path file) throws Exception {

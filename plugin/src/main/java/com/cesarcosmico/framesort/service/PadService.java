@@ -24,6 +24,7 @@ import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
+import org.bukkit.block.BlockState;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -124,8 +125,11 @@ public final class PadService {
         pads.remove(FrameGeometry.key(chunk));
     }
 
-    /** Registers a pad when {@code block}, just placed by {@code player} from {@code hand}, completes one. */
-    public Placement registerPlaced(Player player, Block block, ItemStack hand) {
+    /**
+     * Registers a pad when {@code block}, just placed by {@code player} from {@code hand} over {@code replaced},
+     * completes one. Being the base a pad above was waiting for also counts as created.
+     */
+    public Placement registerPlaced(Player player, Block block, BlockState replaced, ItemStack hand) {
         if (!worksIn.test(block.getWorld())) {
             return new Placement.NotAPad();
         }
@@ -148,6 +152,11 @@ public final class PadService {
                 return new Placement.Created(type);
             }
             blocked = true;
+        }
+        PadType waiting = padAt(block.getRelative(BlockFace.UP));
+        boolean addedToItself = replaced.getType() == block.getType();
+        if (waiting != null && !addedToItself) {
+            return new Placement.Created(waiting);
         }
         // In item mode a plain block is just a block: building with it is not an error worth a message.
         boolean silent = current.creation() == PadMode.ITEM && marker == null;
@@ -210,7 +219,7 @@ public final class PadService {
 
     /**
      * {@code block} broke: drops the special item built for it, if its drops are still off ({@code dropsRemoved}), and
-     * forgets its pad. Returns whether it was one.
+     * forgets its pad. Returns whether a pad stops working: its own, or the one above if it was that pad's base.
      */
     public boolean removeBrokenPad(Block block, boolean dropsRemoved) {
         ItemStack item = handBack.remove(FrameGeometry.key(block));
@@ -219,14 +228,24 @@ public final class PadService {
             block.getWorld().dropItemNaturally(block.getLocation().toCenterLocation(), item);
         }
         if (registered(block) == null) {
-            return false;
+            // The block is still there during the event, so the pad above still reads as whole.
+            return padAt(block.getRelative(BlockFace.UP)) != null;
         }
         unregister(block);
         return true;
     }
 
-    public boolean isPadTop(Block block) {
+    private boolean isPadTop(Block block) {
         return registered(block) != null;
+    }
+
+    /** Whether {@code block} is the top block of a registered pad or the base it stands on. */
+    public boolean isPadPart(Block block) {
+        if (isPadTop(block)) {
+            return true;
+        }
+        PadType above = registered(block.getRelative(BlockFace.UP));
+        return above != null && isPart(read(block), above.base());
     }
 
     /** The pad whose top block this is, if it is registered, its column is complete and its world isn't turned off. */
@@ -302,7 +321,7 @@ public final class PadService {
             return;
         }
         PadBlock seen = read(top);
-        if (!isTop(seen, type)) {
+        if (!isPart(seen, type.top())) {
             unregister(top);
             return;
         }
@@ -468,8 +487,8 @@ public final class PadService {
         return top.is(type.top()) && base.is(type.base());
     }
 
-    private static boolean isTop(PadBlock block, PadType type) {
-        return block.is(type.top()) || type.top() instanceof ItemReference.Custom && block.unbound();
+    private static boolean isPart(PadBlock block, ItemReference part) {
+        return block.is(part) || part instanceof ItemReference.Custom && block.unbound();
     }
 
     private PadBlock read(Block block) {
@@ -479,7 +498,7 @@ public final class PadService {
 
     private @Nullable PadType registered(Block block) {
         PadType type = stored(block);
-        return type != null && isTop(read(block), type) ? type : null;
+        return type != null && isPart(read(block), type.top()) ? type : null;
     }
 
     private @Nullable PadType stored(Block block) {

@@ -36,6 +36,13 @@ class CommandTreeTest {
         }
     }
 
+    private record Paged(String id) implements CommandFeature {
+        @Override
+        public void attach(LiteralArgumentBuilder<CommandSourceStack> node, String path) {
+            PageArgument.optional(node, (context, page) -> page);
+        }
+    }
+
     private static CommandsConfig config(String text) throws Exception {
         YamlConfiguration yaml = new YamlConfiguration();
         yaml.loadFromString(text);
@@ -80,6 +87,21 @@ class CommandTreeTest {
         dispatcher.getRoot().addChild(CommandTree.build(List.of(new PlayersOnly("open")), config).getFirst());
 
         assertThrows(CommandSyntaxException.class, () -> dispatcher.execute("p", null));
+    }
+
+    @Test
+    void aPageOnTheRootLivesBesideItsLiterals() throws Exception {
+        CommandsConfig config = config("""
+                help: {permission: '', usage: ['/p']}
+                reload: {permission: '', usage: ['/p reload']}
+                """);
+        CommandDispatcher<CommandSourceStack> dispatcher = new CommandDispatcher<>();
+        dispatcher.getRoot().addChild(
+                CommandTree.build(List.of(new Paged("help"), new Feature("reload")), config).getFirst());
+
+        assertEquals(1, dispatcher.execute("p", null));
+        assertEquals(7, dispatcher.execute("p 7", null));
+        assertEquals(Command.SINGLE_SUCCESS, dispatcher.execute("p reload", null));
     }
 
     @Test

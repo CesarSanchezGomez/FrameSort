@@ -12,7 +12,9 @@ the previous configuration stays active.
 
 Text values are written in single quotes; an apostrophe inside one is written twice (`'can''t'`). Text with
 several lines (help, lore, the page layout) is a YAML list, one line per entry. Item lore starts and ends with an
-empty line (`''`) and keeps each line short.
+empty line (`''`) and keeps each line short. Every hover in `lang/` has the same margin: an empty line above and below,
+and a space at both ends of each line:
+`<hover:show_text:"<newline> <gray>First line <newline> second.</gray> <newline>">`.
 
 ## Item look
 
@@ -91,7 +93,7 @@ key no world has; the server start doesn't, because another plugin may load its 
   activator in is still recorded as the owner.
 - **Pads** send nothing, pull nothing and can't be inspected, and no new ones are created. With `creation: item`, the
   special block can't be placed, because it would be lost as a plain block. A pad already built stays protected, and
-  breaking it still gives its special block back.
+  breaking it still gives its special block back. Breaking or placing its base says nothing.
 - **Frames** behave as in vanilla: sneaking and clicking neither marks nor inspects them, and automark marks nothing.
   Marks stay, except that a new item in a marked frame ends its mark, as everywhere; it can only be marked again once
   the world is off the list.
@@ -215,7 +217,7 @@ breaking and placing a pad's top block again gives it an owner. More in
 |---|---|---|
 | `highlight-seconds` | `5` | How long targets glow for the player who inspected them. Nobody else sees the glow. |
 | `colors.container`, `colors.dropped`, `colors.lava` | `#55FF55`, `#FFFF55`, `#FF5555` | Glow and trace colours (`#RRGGBB`) for targets that put items into a container, drop them, or destroy them in lava. |
-| `page-size` | `8` | Entries per page in lists. |
+| `page-size` | `8` | Entries per page in lists, the help included. Above 10, a page of the help no longer fits in the open chat. |
 | `trace-radius` | `32` | `/framesort trace` shows deliveries from sorters and pads within this radius. |
 | `trace-default-seconds`, `trace-max-seconds` | `60`, `600` | Tracing duration. A default above the maximum is lowered to it, with a warning. |
 
@@ -235,12 +237,16 @@ A key a type doesn't take, in it or in its `item`, is reported with its path as 
 
 A pad is created when its top block is placed on its base, so place the base first. It counts as long as both blocks
 stay; breaking the top block removes it, and whoever broke it is told so. If the top block goes any other way
-(WorldEdit, a command, gravity), the pad is forgotten at the next sweep. Without its base a pad waits, and works again
-once the base is back. Changing a type's top block in `pads.yml` forgets, at their next check, its pads built with the
-old one (`/framesort reload` says so); changing only the base leaves them waiting for it. In `item` mode, breaking it
-gives the special item back, and the special block can't be placed where it wouldn't complete its own pad: the player is
-told which base it goes on and keeps the block. The top block of a registered pad can't be pushed by pistons, blown up
-or changed where it stands: an axe can't scrape the wax off a copper top block, nor a mob change it.
+(WorldEdit, a command, gravity), the pad is forgotten at the next sweep. Without its base a pad waits, and works again,
+for the same owner, once the base is back. A player who breaks the base is told the pad was removed (`pad.removed`), and
+one who puts it back that it was created (`pad.created`). Changing a type's top block in `pads.yml` forgets, at their
+next check, its pads built with the old one (`/framesort reload` says so); changing only the base leaves them waiting
+for it. In `item` mode, breaking its top block gives the special item back, and the special block can't be placed where
+it wouldn't complete its own pad: the player is told which base it goes on and keeps the block.
+
+Neither block of a registered pad can be pushed by pistons, blown up or changed by an entity: an axe can't scrape the
+wax off a copper pad, nor a mob change it. This covers nothing else: a block that burns, melts or falls still does, and
+a pad whose type left `pads.yml`, or any other block under a pad waiting for its base, isn't protected.
 
 Items resting up to one block above the top block count, so carpets or slabs on the pad are fine.
 
@@ -281,8 +287,8 @@ furniture can't be part of a pad: it is not a block. A pad with a CraftEngine bl
 - in `item` mode, the special item is CraftEngine's item for that block with FrameSort's mark, so it doesn't stack
   with the same item from `/ce give`, and breaking the pad gives it back;
 - while `/ce reload` runs, the pad is kept and protected but sends nothing, because CraftEngine's blocks can't be
-  told apart until it ends; in `item` mode its special block can't be placed then either, and the player is told
-  to try again;
+  told apart until it ends; breaking or placing its base says nothing then, and in `item` mode its special block can't
+  be placed either, and the player is told to try again;
 - in `item` mode, a pad whose item CraftEngine can't build (while `/ce reload` runs, or for an ID it no longer knows)
   can't be broken, so its item is never lost; the player is told why. A player in creative mode can still break it;
 - an ID CraftEngine doesn't know never makes a pad.
@@ -348,7 +354,10 @@ MariaDB's driver is downloaded on the first start, like HikariCP; the SQLite and
 key missing from your file comes from the bundled copy of that language, then from the bundled `en_US`; a key missing
 everywhere shows as the key and is reported once in the console. Your file is compared with the bundled one of its
 language when it loads: missing keys, unknown ones (a typo) and an old `config-version` are reported. Messages use
-[MiniMessage](https://docs.papermc.io/adventure/minimessage/format/); `<prefix>` is the `prefix` key.
+[MiniMessage](https://docs.papermc.io/adventure/minimessage/format/); `<prefix>` is the `prefix` key. A Bedrock player
+through Geyser gets no hovers or clicks: what is only in a hover doesn't reach them, and the buttons of a list can't be
+clicked. They type the page in the lists that have a command (`/framesort 2`, `/framesort tag list 2`), and see only the
+first page of an inspection list, which has none.
 
 `<player-head>`, where a key has it, is the head of the player that `<player>` names: by the UUID of their Mojang
 account, which the client looks up, or Steve's on an offline-mode server or for a Bedrock player through Floodgate. A
@@ -364,15 +373,17 @@ Write colours as tags (`<green>`, `<bold>`).
 
 ### Help
 
-The help is one message built from `command.help.layout` (a list: one line per entry). `<entries>` in it is one
-`command.help.<id>` line for each command the player may run, where `<usage>` is the first path of that command in
-`commands.yml`. If you move a
+The help is one message per page, built from `command.help.layout` (a list: one line per entry). It has no title or
+total, and takes `<entries>`, `<page>`, `<pages>`, `<previous>` and `<next>` like a list (see [Pages](#pages)).
+`<entries>` is one `command.help.<id>` line for each command the player may run, where `<usage>` is the first path of
+that command in `commands.yml`. If you move a
 command, the help follows it, and so do `trace.started` (`<stop>`), `tag.unknown-hint` and `give.players-only`
 (`<usage>`); any path you wrote by hand in the text does not.
 
 ### Pages
 
-Lists (`tag list`, `tag search`, `tag show`, `trusted` and the inspection lists) are built from the `pager` keys:
+Lists (`tag list`, `tag search`, `tag show`, `trusted` and the inspection lists) are built from the `pager` keys; the
+help uses all but `pager.layout`:
 
 | Key | Content |
 |---|---|
@@ -386,12 +397,14 @@ Lists (`tag list`, `tag search`, `tag show`, `trusted` and the inspection lists)
 `inspect.title` and `inspect.title-item` carry where the sorter or pad is (`<x>`, `<y>`, `<z>`). Under them, on every
 page, are the `inspect.details` lines that apply, in `<header>`: its owner (`owner`, or `no-owner`) and, for a
 sorter, how many items it has sent (`sorted`). What you look up every time is in the text; the rest of `lang/`
-keeps explanations, and what would not fit on a chat line (each target's coordinates), in a hover. With an item in
-the off hand, a target holding that same item uses `inspect.entry-same-item`, without repeating its name.
+keeps explanations, and the data of each target, in a hover. With an item in the off hand, a target holding that same
+item uses `inspect.entry-same-item`, without repeating its name.
 
-Both entries end with `<fill>`: how full the target's container or composter is, from `inspect.fill` (`<percent>`), and
-nothing for a drop spot or lava. It counts slot by slot, so a stack at half its maximum counts as half a slot. It is
-rounded down, so 100% means nothing more fits. A drawer counts its items against all it can hold of the item it stores.
+`inspect.hover` is the hover of the whole entry, one line per datum: the target's coordinates (`<x>`, `<y>`, `<z>`), its
+`<distance>` and `<fill>`. `<fill>` is `inspect.fill` (`<percent>`), which starts with its own line break: how full the
+target's container or composter is, and no line at all for a drop spot or lava. Fill counts slot by slot, so a stack
+at half its maximum counts as half a slot. It is rounded down, so 100% means nothing more fits. A drawer counts its
+items against all it can hold of the item it stores.
 
 ### Frame card
 

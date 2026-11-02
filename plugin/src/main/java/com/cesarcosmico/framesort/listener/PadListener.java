@@ -68,7 +68,8 @@ public final class PadListener implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onPlace(BlockPlaceEvent event) {
-        switch (pads.registerPlaced(event.getPlayer(), event.getBlockPlaced(), event.getItemInHand())) {
+        switch (pads.registerPlaced(event.getPlayer(), event.getBlockPlaced(), event.getBlockReplacedState(),
+                event.getItemInHand())) {
             case PadService.Placement.Created(PadType type) -> event.getPlayer().sendMessage(
                     messages.get().get("pad.created", Placeholder.unparsed("type", type.id())));
             case PadService.Placement.NotAllowed() -> event.getPlayer().sendMessage(
@@ -115,27 +116,27 @@ public final class PadListener implements Listener {
         }
     }
 
-    // A top block with gravity still falls; the sweep then forgets the pad.
+    // A block with gravity falls rather than float.
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onEntityChangeBlock(EntityChangeBlockEvent event) {
-        if (!(event.getEntity() instanceof FallingBlock) && pads.isPadTop(event.getBlock())) {
+        if (!(event.getEntity() instanceof FallingBlock) && pads.isPadPart(event.getBlock())) {
             event.setCancelled(true);
         }
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onEntityExplode(EntityExplodeEvent event) {
-        event.blockList().removeIf(pads::isPadTop);
+        event.blockList().removeIf(pads::isPadPart);
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onBlockExplode(BlockExplodeEvent event) {
-        event.blockList().removeIf(pads::isPadTop);
+        event.blockList().removeIf(pads::isPadPart);
     }
 
     private boolean movesPad(List<Block> blocks) {
         for (Block block : blocks) {
-            if (pads.isPadTop(block)) {
+            if (pads.isPadPart(block)) {
                 return true;
             }
         }

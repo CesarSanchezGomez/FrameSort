@@ -57,13 +57,30 @@ public final class ChatPager {
     /** Like {@link #send(Audience, Messages, Component, List, int, int, IntFunction)}, with lines under the title. */
     public static void send(Audience audience, Messages messages, Heading heading, List<Component> lines,
                             int requested, int pageSize, @Nullable IntFunction<ClickEvent<?>> pageClick) {
+        render(audience, messages, "pager.layout", heading, lines, requested, pageSize, pageClick);
+    }
+
+    /**
+     * For a list with its own template, such as a help with no title.
+     *
+     * @param layout the key of the template, used instead of {@code pager.layout}
+     */
+    public static void send(Audience audience, Messages messages, String layout, List<Component> lines,
+                            int requested, int pageSize, String pageCommand) {
+        render(audience, messages, layout, new Heading(Component.empty(), List.of()), lines, requested, pageSize,
+                target -> ClickEvent.runCommand(pageCommand.formatted(target)));
+    }
+
+    private static void render(Audience audience, Messages messages, String layout, Heading heading,
+                               List<Component> lines, int requested, int pageSize,
+                               @Nullable IntFunction<ClickEvent<?>> pageClick) {
         Page page = Page.of(requested, lines.size(), pageSize);
         Component entries = lines.isEmpty()
                 ? messages.get("pager.empty")
                 : Component.join(JoinConfiguration.newlines(), lines.subList(page.from(), page.to()));
         Component previous = button(messages, "pager.previous", page.hasPrevious(), pageClick, page.number() - 1);
         Component next = button(messages, "pager.next", page.hasNext(), pageClick, page.number() + 1);
-        audience.sendMessage(messages.get("pager.layout",
+        audience.sendMessage(messages.get(layout,
                 Placeholder.component("title", heading.title()),
                 Placeholder.component("header", Component.join(JoinConfiguration.noSeparators(),
                         heading.header().stream().map(line -> Component.newline().append(line)).toList())),

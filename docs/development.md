@@ -135,7 +135,7 @@ SELECT HEX(owner), HEX(trusted), FROM_UNIXTIME(created_at / 1000) FROM framesort
 - **Disabled worlds.** A sorter never exists in one: `SorterService.consider` removes it, and a reload runs that for
   every loaded frame, so its tick costs nothing. Pads stay loaded, because their protections and giving their block
   back still apply: the sweep stops after forgetting a pad whose top block is gone, and `PadService.padAt` answers as
-  if there were no pad, which covers inspecting it and `/framesort where`.
+  if there were no pad, which covers inspecting it, `/framesort where` and the messages about its base.
 - **Chunk borders.** A frame on a chunk border can hang on a block of the next chunk. That block is only read when
   its chunk is loaded, so FrameSort never loads chunks.
 - **Tracing.** With nobody tracing, a delivery costs one empty-map check.

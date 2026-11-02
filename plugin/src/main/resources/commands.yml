@@ -10,7 +10,7 @@
 
 config-version: 1
 
-# Usage: [COMMAND]
+# Usage: [COMMAND] [page]
 help:
   enabled: true
   permission: 'framesort.command.help'
