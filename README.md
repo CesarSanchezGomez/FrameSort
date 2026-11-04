@@ -78,11 +78,11 @@ keeps its hidden frame until it loads with FrameSort installed, so before removi
    trusts each other. Breaking blocks or opening chests is still up to the server's protection. See
    [docs/commands.md](docs/commands.md#owners-and-trust).
 
-**WorldGuard.** When it is installed, a sorter or pad only sends to target frames on blocks in exactly the same
-regions as itself, whether they hold a container, a drop spot or lava, and a pad only pulls items lying in those
-regions; both outside every region is fine. Nobody can
-fill a chest in a region from outside it, or from another region. Inspecting a sorter or pad lists only the targets
-it can reach. Targets are cached, so after changing regions run `/framesort reload`.
+**WorldGuard.** When it is installed, sorters and pads follow WorldGuard's rule for pistons: they count as members of
+the regions they stand in, and send or pull only where such a member could build. So a chest in a region only takes
+from sorters and pads inside it or its parent regions, unless the region says otherwise with its `build` flag or
+FrameSort's own flags, `framesort-deliver` and `framesort-pull`. Inspecting a sorter or pad lists only the targets it
+can reach. See [docs/configuration.md](docs/configuration.md#worldguard-regions).
 
 **CraftEngine.** When it is installed, a custom item counts as itself, never as the vanilla material it is made of
 (many custom items share one). Where a frame would take the same material, a custom item in it takes the same

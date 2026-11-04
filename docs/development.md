@@ -14,7 +14,9 @@ com.cesarcosmico.framesort
 ├── text/             messages, the chat pager and player heads
 ├── command/          one class per command feature; CommandTree builds the roots from commands.yml
 ├── listener/         Bukkit listeners, one per feature
-├── integration/      worldguard/, craftengine/: the only code that imports those plugins, each loaded only when enabled
+├── integration/      worldguard/, craftengine/: the only code that imports those plugins, each loaded only when
+│                     that plugin is installed; worldguard/ registers its region flags in onLoad, before WorldGuard
+│                     enables
 └── api/              TargetBindEvent and PadPullEvent, for other plugins
 ```
 
@@ -65,6 +67,9 @@ it out of step:
 | Item | `framesort:pad-item` | The pad type of a special pad block. |
 | Item entity | `framesort:dropped` | Set on what FrameSort drops at a drop spot, so no pad pulls it back. It is on the entity, not the stack: picking the item up ends it. |
 | Player | `framesort:automark` | Present while the player has `/framesort automark` on. Saved with the player's data on this server, so each server of a network keeps its own, and read only while the player is online. |
+
+WorldGuard keeps the values of the `framesort-deliver` and `framesort-pull` flags in its own region data, under those
+names, so renaming a flag would leave every value set on it behind.
 
 Who trusts whom is read while the player who gave it is offline, so it lives in the database (`database.yml`):
 one table, `framesort_trust`, with a row per trust (`owner`, `trusted`, `created_at`). UUIDs are 16 bytes, most
