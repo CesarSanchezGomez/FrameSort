@@ -37,5 +37,5 @@ nullaway = { module = "com.uber.nullaway:nullaway", version.ref = "nullaway" }
 
 [plugins]
 run-paper = { id = "xyz.jpenilla.run-paper", version = "3.1.0" }
-errorprone = { id = "net.ltgt.errorprone", version = "5.1.1" }
+errorprone = { id = "net.ltgt.errorprone", version = "5.2.0" }
 shadow = { id = "com.gradleup.shadow", version = "9.6.1" }
