@@ -379,8 +379,32 @@ WorldGuard's own settings count too. With `protection.use-max-priority-associati
 a sorter or pad stands in count as its own. In a world with `regions.enable: false`, nothing is checked. Where
 WorldGuard couldn't load a world's region data, nothing is sent or pulled.
 
-Deliveries are cached, so after changing regions, these flags or those settings, run `/framesort reload`; pads check
-pulls on every sweep. If you remove FrameSort, WorldGuard keeps the flags on the regions, and they do nothing.
+Inspecting a sorter or pad with empty hands asks again every time, so it shows a change at once: use it to check one.
+What sorters and pads send is worked out once and kept, so after a change of regions, these flags or those settings
+they may keep sending as before until `/framesort reload`. Pads check what they pull on every sweep. If you remove
+FrameSort, WorldGuard keeps the flags on the regions, and they do nothing.
+
+### Examples
+
+Regions `a` and `b`, a child region `a-child` inside `a`, a sorter in `a` (outside `a-child`) and another one outside
+every region, with nothing else set:
+
+![After each case's /rg flag commands and /framesort reload, each sorter's reachable chests glow](worldguard.gif)
+
+| Flags | The sorter in `a` sends to | The sorter outside sends to |
+|---|---|---|
+| none | `a`, `a-child` and outside | outside |
+| `/rg flag b framesort-deliver allow` | `a`, `a-child`, outside and `b` | outside and `b` |
+| `/rg flag a framesort-deliver deny` | outside | outside |
+| `/rg flag a framesort-deliver -g nonmembers allow` | `a`, `a-child` and outside | outside, `a` and `a-child` |
+| `/rg flag a nonplayer-protection-domains shared`, and the same on `b` | `a`, `a-child`, outside and `b` | outside |
+| `/rg flag a build deny` | outside | outside |
+| `/rg flag a build deny` and `/rg flag a framesort-deliver allow` | `a`, `a-child` and outside | outside, `a` and `a-child` |
+| `/rg flag __global__ build deny` | `a` and `a-child` | nothing |
+
+A flag set on `a` also applies in `a-child`, which sets none of its own. Pads pull the same way: a pad outside every
+region doesn't pull items lying in `a` until `/rg flag a framesort-pull allow`, and a pad in `a` pulls items lying
+outside.
 
 ## Language
 

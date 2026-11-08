@@ -106,7 +106,8 @@ SELECT HEX(owner), HEX(trusted), FROM_UNIXTIME(created_at / 1000) FROM framesort
 - **What the cache can't see.** Another plugin that changes a frame's item through the API, or moves a frame, raises no
   epoch: a frame a delivery doesn't reach keeps its cached place until the epoch rises or a delivery gets there. A
   player's changes always show: putting an item in unmarks the frame, and taking it out leaves a frame that no longer
-  matches.
+  matches. Nor does it see a change in what `TargetBindEvent` listeners answer, such as WorldGuard's regions (see
+  [WorldGuard regions](configuration.md#worldguard-regions)).
 - **One order.** Targets go in levels of preference, nearest to the source first, and one method decides what each
   frame does (fill, drop, destroy or nothing). A delivery asks it frame by frame and stops at the frame that takes the
   last item, so the frames past it cost nothing. `/framesort where` and inspecting with an item in the off hand ask it
