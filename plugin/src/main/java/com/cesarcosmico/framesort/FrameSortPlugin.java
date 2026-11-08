@@ -108,6 +108,14 @@ public final class FrameSortPlugin extends JavaPlugin {
     private @Nullable HighlightService highlights;
 
     @Override
+    public void onLoad() {
+        // WorldGuard takes new flags only until it enables, and it enables before FrameSort.
+        if (getServer().getPluginManager().getPlugin("WorldGuard") != null) {
+            WorldGuardListener.registerFlags(getLogger());
+        }
+    }
+
+    @Override
     public void onEnable() {
         // Read once: CraftEngine loads before FrameSort, and a reload checks the config against it too.
         boolean craftEngine = getServer().getPluginManager().isPluginEnabled("CraftEngine");

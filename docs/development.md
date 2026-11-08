@@ -14,7 +14,9 @@ com.cesarcosmico.framesort
 ├── text/             messages, the chat pager and player heads
 ├── command/          one class per command feature; CommandTree builds the roots from commands.yml
 ├── listener/         Bukkit listeners, one per feature
-├── integration/      worldguard/, craftengine/: the only code that imports those plugins, each loaded only when enabled
+├── integration/      worldguard/, craftengine/: the only code that imports those plugins, each loaded only when
+│                     that plugin is installed; worldguard/ registers its region flags in onLoad, before WorldGuard
+│                     enables
 └── api/              TargetBindEvent and PadPullEvent, for other plugins
 ```
 
@@ -66,6 +68,9 @@ it out of step:
 | Item entity | `framesort:dropped` | Set on what FrameSort drops at a drop spot, so no pad pulls it back. It is on the entity, not the stack: picking the item up ends it. |
 | Player | `framesort:automark` | Present while the player has `/framesort automark` on. Saved with the player's data on this server, so each server of a network keeps its own, and read only while the player is online. |
 
+WorldGuard keeps the values of the `framesort-deliver` and `framesort-pull` flags in its own region data, under those
+names, so renaming a flag would leave every value set on it behind.
+
 Who trusts whom is read while the player who gave it is offline, so it lives in the database (`database.yml`):
 one table, `framesort_trust`, with a row per trust (`owner`, `trusted`, `created_at`). UUIDs are 16 bytes, most
 significant half first, so one UUID has one form; `created_at` is epoch milliseconds, which MySQL's `TIMESTAMP`
@@ -101,7 +106,8 @@ SELECT HEX(owner), HEX(trusted), FROM_UNIXTIME(created_at / 1000) FROM framesort
 - **What the cache can't see.** Another plugin that changes a frame's item through the API, or moves a frame, raises no
   epoch: a frame a delivery doesn't reach keeps its cached place until the epoch rises or a delivery gets there. A
   player's changes always show: putting an item in unmarks the frame, and taking it out leaves a frame that no longer
-  matches.
+  matches. Nor does it see a change in what `TargetBindEvent` listeners answer, such as WorldGuard's regions (see
+  [WorldGuard regions](configuration.md#worldguard-regions)).
 - **One order.** Targets go in levels of preference, nearest to the source first, and one method decides what each
   frame does (fill, drop, destroy or nothing). A delivery asks it frame by frame and stops at the frame that takes the
   last item, so the frames past it cost nothing. `/framesort where` and inspecting with an item in the off hand ask it

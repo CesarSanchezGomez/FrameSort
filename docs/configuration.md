@@ -263,9 +263,10 @@ over it is empty or leaves room on top (a carpet, a bottom slab) and the one abo
 like ice, an item slides much further, so such a pad only pulls items close enough to land softly. It doesn't pull
 items already on a pad, items no flight of two seconds or less can bring in, or what FrameSort itself dropped at a
 drop spot, except once if that item merged with another one lying there. Where two pads reach the same item, it goes
-to one of them. Items no target takes stay on top of the pad. With WorldGuard, a pad only pulls items lying in exactly
-its own regions; without it, or another plugin cancelling `PadPullEvent`, a pad pulls across claim borders, so set
-every type's `pull-radius` to `0` on servers that need it.
+to one of them. Items no target takes stay on top of the pad. With WorldGuard, a pad only pulls items from where its
+regions and the `framesort-pull` flag let it (see [WorldGuard regions](#worldguard-regions)); without it, or another
+plugin cancelling `PadPullEvent`, a pad pulls across claim borders, so set every type's `pull-radius` to `0` on
+servers that need it.
 
 **Pads that take inventories.** On every check, a pad whose type has `takes-from-inventory: true` sends one stack
 from the main inventory (the 27 slots above the hotbar) of every player crouching on its top, picked at random like a
@@ -351,6 +352,59 @@ database refuses the lock it needs, FrameSort can't apply the change and does no
 `/framesort trust` or `untrust` is saved before it applies. With MySQL or MariaDB, each server reads the list again
 every minute, so trust given on another server applies here within a minute; one given on this server applies at once.
 MariaDB's driver is downloaded on the first start, like HikariCP; the SQLite and MySQL drivers come with the server.
+
+## WorldGuard regions
+
+With WorldGuard installed, a sorter or pad counts as a member of the regions it stands in, as WorldGuard counts a
+piston. It sends to a target frame's block (container, drop spot or lava), and a pad pulls an item, only where a player
+who is a member of just those regions could build: inside them and their child regions, and outside every region. A
+region that shares a `nonplayer-protection-domains` value with one of them counts as theirs too. So a chest in a
+region only takes from sorters and pads inside it or its parent regions. Two flags change that per region:
+- `framesort-deliver`, for sorters and pads sending to target frames on the region's blocks:
+  `/rg flag warehouse framesort-deliver allow` lets all of them in, also from outside, and
+  `/rg flag spawn framesort-deliver deny` stops all of them, also those inside.
+- `framesort-pull`, for pads pulling items that lie in the region, the same way.
+
+With `-g members`, a flag applies only to the sorters and pads that count as members of the region, as above, and with
+`-g nonmembers` only to the rest. Unset, the region's `build` decides:
+- a region with `build deny` also stops its own sorters and pads, until you set the flag to `allow`;
+- a region with `build allow` takes them from anywhere;
+- with `build deny` on `__global__`, nothing is sent or pulled outside every region, where no player could build
+  either.
+
+A FrameSort flag set on `__global__`, unlike `build`, applies in every region that doesn't set its own, so `allow`
+there opens all of those regions too.
+
+WorldGuard's own settings count too. With `protection.use-max-priority-association`, only the highest-priority regions
+a sorter or pad stands in count as its own. In a world with `regions.enable: false`, nothing is checked. Where
+WorldGuard couldn't load a world's region data, nothing is sent or pulled.
+
+Inspecting a sorter or pad with empty hands asks again every time, so it shows a change at once: use it to check one.
+What sorters and pads send is worked out once and kept, so after a change of regions, these flags or those settings
+they may keep sending as before until `/framesort reload`. Pads check what they pull on every sweep. If you remove
+FrameSort, WorldGuard keeps the flags on the regions, and they do nothing.
+
+### Examples
+
+Regions `a` and `b`, a child region `a-child` inside `a`, a sorter in `a` (outside `a-child`) and another one outside
+every region, with nothing else set:
+
+![After each case's /rg flag commands and /framesort reload, each sorter's reachable chests glow](worldguard.gif)
+
+| Flags | The sorter in `a` sends to | The sorter outside sends to |
+|---|---|---|
+| none | `a`, `a-child` and outside | outside |
+| `/rg flag b framesort-deliver allow` | `a`, `a-child`, outside and `b` | outside and `b` |
+| `/rg flag a framesort-deliver deny` | outside | outside |
+| `/rg flag a framesort-deliver -g nonmembers allow` | `a`, `a-child` and outside | outside, `a` and `a-child` |
+| `/rg flag a nonplayer-protection-domains shared`, and the same on `b` | `a`, `a-child`, outside and `b` | outside |
+| `/rg flag a build deny` | outside | outside |
+| `/rg flag a build deny` and `/rg flag a framesort-deliver allow` | `a`, `a-child` and outside | outside, `a` and `a-child` |
+| `/rg flag __global__ build deny` | `a` and `a-child` | nothing |
+
+A flag set on `a` also applies in `a-child`, which sets none of its own. Pads pull the same way: a pad outside every
+region doesn't pull items lying in `a` until `/rg flag a framesort-pull allow`, and a pad in `a` pulls items lying
+outside.
 
 ## Language
 
