@@ -16,7 +16,8 @@ com.cesarcosmico.framesort
 ├── listener/         Bukkit listeners, one per feature
 ├── integration/      worldguard/, craftengine/: the only code that imports those plugins, each loaded only when
 │                     that plugin is installed; worldguard/ registers its region flags in onLoad, before WorldGuard
-│                     enables
+│                     enables; bstats/ starts and stops bStats, which is inside the jar and always loads
+├── libs/             only in the jar: bStats, relocated there by the build
 └── api/              TargetBindEvent and PadPullEvent, for other plugins
 ```
 
@@ -163,7 +164,8 @@ answers once that is done, a player through their own scheduler, so nothing is s
 while another runs is not started, and says so. The first load, at enable, runs on the main thread, because nothing can
 be registered before the configuration is read.
 
-The only I/O is the trust table, on the database's single thread (`storage.Database`), and the schema at enable:
+Besides bStats (below), the only I/O is the trust table, on the database's single thread (`storage.Database`), and
+the schema at enable:
 - at enable, the whole table is read with a timeout before anything else runs; if it fails, FrameSort disables
   itself instead of starting with nobody trusted. A schema change to apply runs on the main thread before that, and can
   wait up to 30 s for another server applying it;
@@ -173,8 +175,13 @@ The only I/O is the trust table, on the database's single thread (`storage.Datab
   global scheduler, which runs even if the player who typed the command has left; their message uses theirs;
 - with MySQL or MariaDB, a timer re-reads the whole table every minute, for trust given on another server. A failed
   read keeps the snapshot and is logged once until a read works again;
-- `onDisable` cancels that timer and the tick task, then closes the database, which waits for queued writes;
-  nothing is scheduled any more once the plugin is disabling.
+- `onDisable` stops bStats, cancels that timer and the tick task, then closes the database, which waits for queued
+  writes; nothing is scheduled any more once the plugin is disabling.
+
+bStats starts as the last step of enable, so a failed start sends nothing. It reads or writes
+`plugins/bStats/config.yml` on the main thread then, and from its own daemon thread sends every 30 minutes, first
+gathering its data on the main thread through the scheduler. Stopping it in `onDisable` cancels the sends it has
+scheduled and ends that thread; otherwise it would live on, with FrameSort disabled, until its next send.
 
 Command arguments can be parsed off the main thread: on Paper 26.3, when another plugin answers
 `AsyncTabCompleteEvent`, Paper parses the command on its suggestion thread. The tag and pad-type arguments therefore
@@ -205,6 +212,10 @@ Tracing ends on a timer per player, so the "tracing ended" message arrives on ti
 (`@ApiStatus.Experimental`), through which `TagCatalog` reads item and block tags, and the data components
 (`@MinecraftVersionDependent`) behind item templates, the overlay on tagged and CraftEngine items, and shulker box
 and bundle contents. Check them again whenever Paper or Minecraft changes.
+
+bStats 3.2.1, bundled in the jar, calls two deprecated Bukkit methods, `YamlConfigurationOptions#header(String)` and
+`Plugin#getDescription()`, and its terms forbid changing its class. Both still work on 26.2 and 26.3; check them again
+whenever Paper changes, or move to a bStats version that no longer uses them.
 
 `model.Pull` copies the game's item physics in 26.2 and 26.3: gravity 0.04 and air drag 0.98 per tick (`ItemEntity`,
 `Entity#getAirDrag`); the move up or down before sideways (Paper's `CollisionUtil`); on the ground, sideways speed times

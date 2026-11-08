@@ -27,6 +27,7 @@ import com.cesarcosmico.framesort.config.DatabaseType;
 import com.cesarcosmico.framesort.config.FrameSortSettings;
 import com.cesarcosmico.framesort.config.PadSettings;
 import com.cesarcosmico.framesort.config.TagSettings;
+import com.cesarcosmico.framesort.integration.bstats.UsageMetrics;
 import com.cesarcosmico.framesort.integration.craftengine.CraftEngineItemResolver;
 import com.cesarcosmico.framesort.integration.worldguard.WorldGuardListener;
 import com.cesarcosmico.framesort.item.ItemTemplate;
@@ -86,6 +87,8 @@ import java.util.logging.Level;
 public final class FrameSortPlugin extends JavaPlugin {
 
     private static final String COMMAND_DESCRIPTION = "Sort items into item frames";
+    // FrameSort's id on bstats.org.
+    private static final int BSTATS_SERVICE_ID = 35215;
     // Nothing can check trust before the whole table is in memory, so a slow database only delays the start.
     private static final long TRUST_LOAD_SECONDS = 10;
     private static final long TRUST_REFRESH_TICKS = Ticks.ofSeconds(60);
@@ -106,6 +109,7 @@ public final class FrameSortPlugin extends JavaPlugin {
     private @Nullable BukkitTask trustRefresh;
     private @Nullable SorterService sorters;
     private @Nullable HighlightService highlights;
+    private @Nullable UsageMetrics metrics;
 
     @Override
     public void onLoad() {
@@ -224,10 +228,14 @@ public final class FrameSortPlugin extends JavaPlugin {
             trustRefresh = getServer().getScheduler().runTaskTimer(this, trust::refresh, TRUST_REFRESH_TICKS,
                     TRUST_REFRESH_TICKS);
         }
+        metrics = new UsageMetrics(this, BSTATS_SERVICE_ID);
     }
 
     @Override
     public void onDisable() {
+        if (metrics != null) {
+            metrics.stop();
+        }
         if (trustRefresh != null) {
             trustRefresh.cancel();
         }
