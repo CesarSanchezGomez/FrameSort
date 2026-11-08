@@ -6,6 +6,7 @@ plugins {
     java
     alias(libs.plugins.run.paper)
     alias(libs.plugins.errorprone)
+    alias(libs.plugins.shadow)
 }
 
 group = property("group") as String
@@ -24,6 +25,8 @@ dependencies {
     compileOnly(libs.craftengine.bukkit)
     // Downloaded on first start by FrameSortLoader, which names the same version.
     compileOnly(libs.hikaricp)
+    // Shaded into the jar and relocated below: nothing else goes in the runtime classpath.
+    implementation(libs.bstats.bukkit)
 
     // Tests use the Paper API types (YAML, Adventure) without a running server.
     testImplementation(libs.paper.api)
@@ -85,8 +88,19 @@ tasks.runServer {
 tasks.register<RunServer>("runServerMinimum") {
     minecraftVersion(v("minecraft_version_minimum"))
     // run-paper finds the plugin jar only for runServer.
-    pluginJars(tasks.jar.flatMap { it.archiveFile })
+    pluginJars(tasks.shadowJar.flatMap { it.archiveFile })
     runDirectory(layout.projectDirectory.dir("run-minimum").asFile)
+}
+
+tasks.shadowJar {
+    // The plugin's only jar. bStats refuses to start unless it is relocated, and its terms allow nothing more.
+    archiveClassifier = ""
+    relocate("org.bstats", "com.cesarcosmico.framesort.libs.bstats")
+}
+
+// A jar without bStats inside would not start.
+tasks.jar {
+    enabled = false
 }
 
 tasks.processResources {

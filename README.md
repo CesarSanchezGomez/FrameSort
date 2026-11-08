@@ -19,7 +19,8 @@ other block.
 1. Put `FrameSort-<version>.jar` in the server's `plugins/` folder.
 2. Start the server once. FrameSort writes `config.yml`, `pads.yml`, `tags.yml`, `commands.yml`, `database.yml` and
    the language file in use (`lang/en_US.yml`) to `plugins/FrameSort/`, and downloads HikariCP and the MariaDB driver
-   on that first start.
+   on that first start. bStats, inside the jar, writes `plugins/bStats/config.yml` if no other plugin has (see
+   [Metrics](#metrics)).
 3. Edit them and run `/framesort reload` (`commands.yml` and `database.yml` need a restart).
 
 `/version FrameSort` shows the installed version.
@@ -145,6 +146,20 @@ Every command also runs as `/fs`. Where each command lives, its permission and w
 can create them), `tags.yml` (tags of your own and replacements for the game's), `database.yml` (where trust is kept)
 and `lang/`. See [docs/configuration.md](docs/configuration.md).
 
+## Metrics
+
+FrameSort sends usage statistics to
+[bStats](https://bstats.org/plugin/bukkit/FrameSort/35215),
+which shows them publicly: how many players are online, whether the server runs in online mode, the server software
+and its version, the Java version, the operating system (name, architecture and version), the number of CPU cores,
+the FrameSort version, a random ID bStats gives the server, and the country, which bStats works out itself. Nothing
+else: no player names, and nothing about your worlds. The first send is 3 to 6 minutes after the server starts, then
+one every 30 minutes.
+
+To turn them off, set `enabled: false` in `plugins/bStats/config.yml`. Every plugin that uses bStats reads that file,
+so this turns bStats off for all of them; FrameSort has no setting of its own. `logSentData: true` in the same file
+prints each send in the console.
+
 ## Performance
 
 A server has 50 ms for each tick. On a large test server (50 sorters, 100 pads, 2000 chests with target frames),
@@ -167,4 +182,5 @@ Paper 26.2 one. How the plugin is put together (packages, stored data, threads) 
 ## License
 
 FrameSort is free software under the GNU General Public License v3.0 only (`GPL-3.0-only`); see
-[LICENSE](LICENSE).
+[LICENSE](LICENSE). The jar bundles [bStats Metrics](https://github.com/Bastian/bStats-Metrics) under the MIT License,
+whose text is in `META-INF/licenses/bstats.txt` inside the jar.
