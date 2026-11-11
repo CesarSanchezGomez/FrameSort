@@ -9,14 +9,14 @@ command:
       - '<gradient:#F7B733:#FC4A1A>◤<st>                          </st></gradient> <prefix><gradient:#FC4A1A:#F7B733><st>                          </st>◥</gradient>'
       - ''
       - '   <color:#F7B733>•</color> <hover:show_text:"<newline> <gray>Con la mano vacía: sus destinos brillan <newline> y se listan. Con un item en la otra mano, <newline> solo adónde va ese item.</gray> <newline>"><white>Shift + clic dcho.</white> <gray>a un sorter o pad</gray> <dark_gray>·</dark_gray> <gray>ver sus destinos</gray></hover>'
-      - '   <color:#F7B733>•</color> <hover:show_text:"<newline> <gray>Con la mano vacía: lo marca o <newline> desmarca como destino.</gray> <newline>"><white>Shift + clic dcho.</white> <gray>a un marco</gray> <dark_gray>·</dark_gray> <gray>marcarlo como destino</gray></hover>'
+      - '   <color:#F7B733>•</color> <hover:show_text:"<newline> <gray>Con la mano vacía: lo marca como <newline> destino cerca de un sorter o pad <newline> que te envía, o lo desmarca.</gray> <newline>"><white>Shift + clic dcho.</white> <gray>a un marco</gray> <dark_gray>·</dark_gray> <gray>marcarlo como destino</gray></hover>'
       - '   <color:#F7B733>•</color> <hover:show_text:"<newline> <gray>Muestra qué acepta un marco, <newline> de quién es y adónde van los items.</gray> <newline>"><white>Shift + clic izq.</white> <gray>a un marco</gray> <dark_gray>·</dark_gray> <gray>ver qué acepta</gray></hover>'
       - ''
       - '<entries>'
       - ''
       - '<gradient:#F7B733:#FC4A1A>◣<st>                         </st></gradient> <previous> <white>| <page>—<pages> |</white> <next> <gradient:#FC4A1A:#F7B733><st>                         </st>◢</gradient>'
       - ''
-    automark: '   <color:#F7B733>•</color> <hover:show_text:"<newline> <gray>Si un item que metes en un marco <newline> sobre un contenedor lo marca.</gray> <newline>"><white><usage></white> <dark_gray>·</dark_gray> <gray>al poner un item</gray></hover>'
+    automark: '   <color:#F7B733>•</color> <hover:show_text:"<newline> <gray>Si un item que metes en un marco <newline> sobre un contenedor lo marca, cerca <newline> de un sorter o pad que te envía.</gray> <newline>"><white><usage></white> <dark_gray>·</dark_gray> <gray>al poner un item</gray></hover>'
     tag-list: '   <color:#F7B733>•</color> <hover:show_text:"<newline> <gray>Todos los tags de items y bloques, <newline> y los de tags.yml.</gray> <newline>"><white><usage></white> <gray>[página]</gray> <dark_gray>·</dark_gray> <gray>todos</gray></hover>'
     tag-search: '   <color:#F7B733>•</color> <hover:show_text:"<newline> <gray>Tags cuyo nombre contiene un texto.</gray> <newline>"><white><usage></white> <gray>\<texto> [página]</gray> <dark_gray>·</dark_gray> <gray>buscar por nombre</gray></hover>'
     tag-show: '   <color:#F7B733>•</color> <hover:show_text:"<newline> <gray>Los items o bloques de un tag.</gray> <newline>"><white><usage></white> <gray>\<tag> [página]</gray> <dark_gray>·</dark_gray> <gray>qué contiene</gray></hover>'
@@ -109,7 +109,7 @@ frame:
     unmarked: '   <color:#F7B733>•</color> <gray>Márcalo:</gray> <white>shift + clic dcho.</white><gray>, mano vacía</gray>'
     wrong-type: '   <color:#F7B733>•</color> <gray>Su tipo no está en</gray> <white>targets.frame-types</white>'
   owner: '   <color:#F7B733>•</color> <gray>Dueño:</gray> <player-head> <white><player></white>'
-  no-owner: '   <color:#F7B733>•</color> <hover:show_text:"<newline> <gray>Desmárcalo y vuelve a marcarlo <newline> para que sea tuyo.</gray> <newline>"><gray>Sin dueño</gray></hover>'
+  no-owner: '   <color:#F7B733>•</color> <hover:show_text:"<newline> <gray>Desmárcalo y vuelve a marcarlo, cerca <newline> de tu sorter o pad, para que sea tuyo.</gray> <newline>"><gray>Sin dueño</gray></hover>'
   into:
     container: '   <color:#F7B733>•</color> <gray>Van a:</gray> <white><block></white>'
     dropped: '   <color:#F7B733>•</color> <yellow>Se sueltan</yellow> <gray>delante</gray>'
@@ -134,8 +134,8 @@ mark:
   not-yours: '<prefix><white><red>No puedes desmarcarlo</red>: es de <player-head> <player>.</white>'
 
 automark:
-  enabled: '<prefix><white>Automarcado: <hover:show_text:"<newline> <gray>Un item que metes en un marco sobre <newline> un contenedor o compostador lo marca. <newline> Otros bloques: <white>shift + clic dcho.</white></gray> <newline>"><green>sí</green></hover>.</white>'
-  disabled: '<prefix><white>Automarcado: <hover:show_text:"<newline> <gray><white>Shift + clic dcho.</white> a un marco <newline> con la mano vacía para marcarlo.</gray> <newline>"><red>no</red></hover>.</white>'
+  enabled: '<prefix><white>Automarcado: <hover:show_text:"<newline> <gray>Un item que metes en un marco sobre <newline> un contenedor o compostador lo marca, <newline> cerca de un sorter o pad que te envía. <newline> Otros bloques: <white>shift + clic dcho.</white></gray> <newline>"><green>sí</green></hover>.</white>'
+  disabled: '<prefix><white>Automarcado: <hover:show_text:"<newline> <gray><white>Shift + clic dcho.</white> a un marco <newline> con la mano vacía para marcarlo, <newline> cerca de un sorter o pad que te envía.</gray> <newline>"><red>no</red></hover>.</white>'
 
 tag-item:
   applied: '<prefix><white><hover:show_text:"<newline> <gray>En un marco representa el tag.</gray> <newline>"><green>Etiquetado</green> #<tag></hover>.</white>'

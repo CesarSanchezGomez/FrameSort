@@ -31,7 +31,7 @@ sorter:
   frame-types: [ITEM_FRAME, GLOW_ITEM_FRAME]
   # Optional title of a sorter's inventory; '' = the dispenser's own name.
   custom-name: '<gradient:#F7B733:#FC4A1A>Sorter</gradient>'
-  # Blocks around a sorter where its targets are searched.
+  # Blocks around a sorter where its targets are searched. Only there can the players it sends to mark frames.
   range: 64
   # Ticks between two turns of the same sorter.
   tick-rate: 20

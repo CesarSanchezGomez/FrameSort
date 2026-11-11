@@ -58,7 +58,7 @@ it out of step:
 
 | Where | Key | Content |
 |---|---|---|
-| Item frame entity | `framesort:target` | Present from marking until the frame is unmarked or another item is put in. An item can leave a frame with no event that confirms it, so the mark ends when the next one goes in; an empty frame is never a target, so a mark left on one does nothing. |
+| Item frame entity | `framesort:target` | Present from marking until the frame is unmarked, a player takes its item out (by hand, or with an arrow or TNT of theirs: only the hand gets the message, told apart by the frame's last damage cause), or another item is put in. An item can leave a frame with no player behind it and no event that confirms it, so the mark also ends when the next one goes in; an empty frame is never a target, so a mark left on one does nothing. |
 | Item frame entity | `framesort:owner` | The UUID, as text, of whoever marked the target or put a sorter's activator in. Removed when the mark ends. |
 | Chunk | `framesort:pads` | The pads registered in the chunk, as `"x,y,z,type"` or `"x,y,z,type,owner"`; one saved before owners existed has none. A type id can't contain `,`. |
 | Item | `framesort:item-tag` | The tag a tagged item stands for, such as `minecraft:logs` (`/framesort tag apply <tag>`). |
@@ -98,16 +98,17 @@ SELECT HEX(owner), HEX(trusted), FROM_UNIXTIME(created_at / 1000) FROM framesort
   in the world.
 - **Cache.** Matches are cached per source and item (amount ignored), ranked and nearest first, and invalidated by a
   per-world epoch that rises when a frame becomes a target or stops being one. A cached frame is checked again when it
-  is reached: one that is gone, unloaded or holds another item is skipped and its cache entry is dropped, so taking an
-  item out, rotating or hitting a frame needs no epoch. The loop guards (a frame on another sorter, items that would
+  is reached: one that is gone, unloaded or holds another item is skipped and its cache entry is dropped, so an item
+  leaving with no player or a rotation needs no epoch; a player taking the item out of a marked frame unmarks it,
+  which raises it. The loop guards (a frame on another sorter, items that would
   land on a pad) are checked at that moment too: sorters and the blocks below change without touching a frame.
   Cached matches hold live frames, so a world's entries go when it unloads. Memory follows the matches held, not the
   entries, so the cache empties itself at about 8 million matches. A miss stays cheap: the frames in range are read
   once, and each distinct item in them is matched once.
 - **What the cache can't see.** Another plugin that changes a frame's item through the API, or moves a frame, raises no
   epoch: a frame a delivery doesn't reach keeps its cached place until the epoch rises or a delivery gets there. A
-  player's changes always show: putting an item in unmarks the frame, and taking it out leaves a frame that no longer
-  matches. Nor does it see a change in what `TargetBindEvent` listeners answer, such as WorldGuard's regions (see
+  player's changes always show: putting an item in or taking it out unmarks the frame. Nor does it see a change in
+  what `TargetBindEvent` listeners answer, such as WorldGuard's regions (see
   [WorldGuard regions](configuration.md#worldguard-regions)).
 - **One order.** Targets go in levels of preference, nearest to the source first, and one method decides what each
   frame does (fill, drop, destroy or nothing). A delivery asks it frame by frame and stops at the frame that takes the

@@ -95,8 +95,8 @@ key no world has; the server start doesn't, because another plugin may load its 
   special block can't be placed, because it would be lost as a plain block. A pad already built stays protected, and
   breaking it still gives its special block back. Breaking or placing its base says nothing.
 - **Frames** behave as in vanilla: sneaking and clicking neither marks nor inspects them, and automark marks nothing.
-  Marks stay, except that a new item in a marked frame ends its mark, as everywhere; it can only be marked again once
-  the world is off the list.
+  Marks stay, except that a player taking the item out of a marked frame, or a new item in it, ends its mark, as
+  everywhere but without a message; it can only be marked again once the world is off the list.
 - **Commands** work as usual, but `/framesort where` finds nothing to answer with.
 
 Taking a world off the list brings its sorters and pads back, with their owners and counts.
@@ -110,7 +110,7 @@ Taking a world off the list brings its sorters and pads back, with their owners 
 | `activator.name`, `lore`, `glint`, `components` | | *Optional.* Look of the activator FrameSort hands out (see [Item look](#item-look)); over a CraftEngine one, `name`, `lore` and `glint` only. Left out, or set to `''`, `[]` or `false`, the activator has none of it: with no name it shows the item's own name. |
 | `frame-types` | `[ITEM_FRAME, GLOW_ITEM_FRAME]` | Frames that can hold the activator. |
 | `custom-name` | `<gradient:#F7B733:#FC4A1A>Sorter</gradient>` | *Optional.* Title of a sorter's inventory. Left out or `''` = the dispenser's own name. The dispenser itself is never renamed: once it stops sorting it shows its own name again (from an anvil, or none), and a broken sorter drops it with that name. |
-| `range` | `64` | A sorter's targets are searched within this many blocks of it (1 to 512). Each pad type has its own `range` in `pads.yml`. |
+| `range` | `64` | A sorter's targets are searched within this many blocks of it (1 to 512). Each pad type has its own `range` in `pads.yml`. Only within it can the players it sends to mark frames, by hand or with automark ([where frames answer](commands.md#where-frames-answer)). |
 | `tick-rate` | `20` | Ticks between two turns of the same sorter. |
 | `disable-when-powered` | `false` | A powered sorter stops sending. |
 | `hide-frame` | `true` | Hides the activator's frame while the sorter works. A reload applies a change to every sorter. |
@@ -207,7 +207,8 @@ frame does nothing.
 What a player sets up is theirs: a target frame belongs to whoever marked it, a sorter to whoever put the activator
 in, a pad to whoever placed its top block. Owners are recorded even with `enabled: false`, so turning it on later
 finds them. What has no owner (built before owners existed, or pasted without its data) only sends to frames that
-have none either, and only admins inspect it; unmarking and marking a frame again, putting the activator back, or
+have none either, and only admins inspect it; unmarking and marking a frame again (within range of a sorter or pad
+you may inspect), putting the activator back, or
 breaking and placing a pad's top block again gives it an owner. More in
 [docs/commands.md](commands.md#owners-and-trust).
 
@@ -228,7 +229,7 @@ breaking and placing a pad's top block again gives it an owner. More in
 | `creation` | `anyone` | `anyone`: any player who places the top block on its base. `permission`: only players with `framesort.pad.create`. `item`: only by placing the pad's special item (from `/framesort give pad`) as the top block. |
 | `sweep-interval` | `10` | Ticks between checks for items resting on pads, for loose items near them to pull, and for players crouching on pads that take inventories. Items that arrive by water or fall onto a pad are picked up then. |
 | `types.<id>.structure` | | Exactly two blocks: the top, where items rest, then its base. The `<id>` ignores case (an id named again is reported and the first one counts) and can't contain `,`: each pad keeps it in its chunk between commas. Each one is a material or a CraftEngine block (`'craftengine:<namespace>:<id>'`). Players build pads by hand, so a material must be a block a player can place (not `STICK`, `WATER` or `AIR`); otherwise the type is skipped with a warning. |
-| `types.<id>.range` | `64` | Targets of a pad of this type are searched within this many blocks of it (1 to 512). Left out, it is reported and `64` is used. |
+| `types.<id>.range` | `64` | Targets of a pad of this type are searched within this many blocks of it (1 to 512), and only within it can the players it sends to mark frames, by hand or with automark ([where frames answer](commands.md#where-frames-answer)). Left out, it is reported and `64` is used. |
 | `types.<id>.pull-radius` | `4` | Blocks around a pad of this type whose loose items it pulls onto itself (0 to 16; `0` = off). See below. Left out, it is reported and `4` is used. |
 | `types.<id>.takes-from-inventory` | `false` | `true`: a player crouching on a pad of this type sends a stack of their main inventory on every check. See below. Left out, it is reported and `false` is used. |
 | `types.<id>.item` | | *Optional*, and so is each key in it: `name`, `lore` and `glint` of the special top block (see [Item look](#item-look)). Left out, or set to `''`, `[]` or `false`, the block has none of it. Its material is the top block of the structure and it looks like that block, so it takes no `components` (they are reported and ignored). With a CraftEngine top block the item is CraftEngine's, and `name`, `lore` and `glint` are laid over it (see [CraftEngine items and blocks](#item-look)). |

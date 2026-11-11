@@ -78,10 +78,13 @@ public final class TargetIndex {
         reindex(frame);
     }
 
-    public void unmarkForNewItem(ItemFrame frame) {
-        if (isMarked(frame)) {
-            unmark(frame);
+    /** Called when a player takes the frame's item out or another goes in; false if the frame had no mark. */
+    public boolean endMark(ItemFrame frame) {
+        if (!isMarked(frame)) {
+            return false;
         }
+        unmark(frame);
+        return true;
     }
 
     // Removing and adding again always moves the frame in or out of the index, or out and back in, so the epoch rises.
