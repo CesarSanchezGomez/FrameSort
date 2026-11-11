@@ -206,9 +206,58 @@ public final class InspectService {
         return true;
     }
 
-    public void inspectFrame(Player player, ItemFrame frame) {
+    /**
+     * Toggles the mark, or inspects the sorter of a sorter's frame; false, doing nothing, for a frame that is neither
+     * a target nor in reach of a source {@code player} may inspect.
+     */
+    public boolean markOrInspectSorter(Player player, ItemFrame frame) {
+        if (inspectedSorterOf(player, frame)) {
+            return true;
+        }
+        if (!index.isTarget(frame) && !isInReachFor(player, frame)) {
+            return false;
+        }
+        toggleMark(player, frame);
+        return true;
+    }
+
+    /**
+     * Shows the frame's card, or inspects the sorter of a sorter's frame; false, doing nothing, for a frame that is
+     * neither a target nor in reach of a source {@code player} may inspect.
+     */
+    public boolean inspectFrameOrSorter(Player player, ItemFrame frame) {
+        if (inspectedSorterOf(player, frame)) {
+            return true;
+        }
+        boolean target = index.isTarget(frame);
+        List<Source> sources = sourcesNear(frame.getLocation().getBlock());
+        if (!target && !hasViewableSource(player, sources)) {
+            return false;
+        }
+        inspectFrame(player, frame, target, sources);
+        return true;
+    }
+
+    private boolean inspectedSorterOf(Player player, ItemFrame frame) {
+        Block sorter = sorters.blockOf(frame);
+        if (sorter != null) {
+            inspectSource(player, sorter, null, player.getInventory().getItemInOffHand());
+        }
+        return sorter != null;
+    }
+
+    /** Whether a sorter or pad that {@code player} may inspect has {@code frame} in range. */
+    public boolean isInReachFor(Player player, ItemFrame frame) {
+        return hasViewableSource(player, sourcesNear(frame.getLocation().getBlock()));
+    }
+
+    private boolean hasViewableSource(Player player, List<Source> sources) {
+        return sources.stream().anyMatch(source -> trust.canView(player, source.owner()));
+    }
+
+    private void inspectFrame(Player player, ItemFrame frame, boolean target, List<Source> near) {
         Messages text = messages.get();
-        if (!index.isTarget(frame)) {
+        if (!target) {
             boolean canBeMarked = index.markable(frame);
             sendFrameCard(player, text, frame, canBeMarked ? "frame.title.unmarked" : "frame.title.wrong-type",
                     List.of(text.get(canBeMarked ? "frame.not-target.unmarked" : "frame.not-target.wrong-type")));
@@ -231,7 +280,7 @@ public final class InspectService {
 
         addAcceptsLines(text, player, frame.getItem(), lines);
 
-        long sources = sourcesNear(frame.getLocation().getBlock()).stream()
+        long sources = near.stream()
                 .filter(source -> resolver.reaches(source.block(), source.owner(), frame))
                 .count();
         lines.add(text.get("frame.sources", Placeholder.unparsed("count", String.valueOf(sources))));
@@ -282,7 +331,7 @@ public final class InspectService {
                 Placeholder.component("lines", Component.join(JoinConfiguration.newlines(), lines))));
     }
 
-    public void toggleMark(Player player, ItemFrame frame) {
+    private void toggleMark(Player player, ItemFrame frame) {
         Messages text = messages.get();
         if (!player.hasPermission(TargetIndex.MARK_PERMISSION)) {
             player.sendActionBar(text.get("mark.no-permission"));
@@ -312,9 +361,14 @@ public final class InspectService {
 
     /** How marking or unmarking a frame answers, by hand or by automark: the action bar, and the item glowing. */
     public void showMark(Player player, ItemFrame frame, boolean marked) {
-        player.sendActionBar(messages.get().get(marked ? "mark.marked" : "mark.unmarked"));
+        tellMark(player, marked);
         InspectSettings.Colors colors = settings.get().inspect().colors();
         highlight(player, List.of(new HighlightService.Highlight(frame, marked ? colors.container() : colors.lava())));
+    }
+
+    /** The action bar of {@link #showMark} alone, for a frame whose item is leaving and so can't glow. */
+    public void tellMark(Player player, boolean marked) {
+        player.sendActionBar(messages.get().get(marked ? "mark.marked" : "mark.unmarked"));
     }
 
     private void filtered(Messages text, Source shown, BlockKey center, ItemStack filter, List<Component> lines,

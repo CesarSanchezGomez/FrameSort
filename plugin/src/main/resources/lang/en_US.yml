@@ -9,14 +9,14 @@ command:
       - '<gradient:#F7B733:#FC4A1A>◤<st>                          </st></gradient> <prefix><gradient:#FC4A1A:#F7B733><st>                          </st>◥</gradient>'
       - ''
       - '   <color:#F7B733>•</color> <hover:show_text:"<newline> <gray>With an empty hand: its targets glow <newline> and are listed. Hold an item in your <newline> off hand to see only where it goes.</gray> <newline>"><white>Sneak + right-click</white> <gray>a sorter or pad</gray> <dark_gray>·</dark_gray> <gray>see its targets</gray></hover>'
-      - '   <color:#F7B733>•</color> <hover:show_text:"<newline> <gray>With an empty hand: marks or <newline> unmarks it as a target.</gray> <newline>"><white>Sneak + right-click</white> <gray>a frame</gray> <dark_gray>·</dark_gray> <gray>mark it as a target</gray></hover>'
+      - '   <color:#F7B733>•</color> <hover:show_text:"<newline> <gray>With an empty hand: marks it as a <newline> target near a sorter or pad that <newline> sends to you, or unmarks it.</gray> <newline>"><white>Sneak + right-click</white> <gray>a frame</gray> <dark_gray>·</dark_gray> <gray>mark it as a target</gray></hover>'
       - '   <color:#F7B733>•</color> <hover:show_text:"<newline> <gray>Shows what a frame accepts, <newline> who owns it and where items go.</gray> <newline>"><white>Sneak + left-click</white> <gray>a frame</gray> <dark_gray>·</dark_gray> <gray>see what it takes</gray></hover>'
       - ''
       - '<entries>'
       - ''
       - '<gradient:#F7B733:#FC4A1A>◣<st>                         </st></gradient> <previous> <white>| <page>—<pages> |</white> <next> <gradient:#FC4A1A:#F7B733><st>                         </st>◢</gradient>'
       - ''
-    automark: '   <color:#F7B733>•</color> <hover:show_text:"<newline> <gray>Whether an item you put in a frame <newline> on a container marks it.</gray> <newline>"><white><usage></white> <dark_gray>·</dark_gray> <gray>when you fill a frame</gray></hover>'
+    automark: '   <color:#F7B733>•</color> <hover:show_text:"<newline> <gray>Whether an item you put in a frame <newline> on a container marks it, near a <newline> sorter or pad that sends to you.</gray> <newline>"><white><usage></white> <dark_gray>·</dark_gray> <gray>when you fill a frame</gray></hover>'
     tag-list: '   <color:#F7B733>•</color> <hover:show_text:"<newline> <gray>Every item and block tag, <newline> and the tags in tags.yml.</gray> <newline>"><white><usage></white> <gray>[page]</gray> <dark_gray>·</dark_gray> <gray>all of them</gray></hover>'
     tag-search: '   <color:#F7B733>•</color> <hover:show_text:"<newline> <gray>Tags whose name contains a text.</gray> <newline>"><white><usage></white> <gray>\<text> [page]</gray> <dark_gray>·</dark_gray> <gray>find by name</gray></hover>'
     tag-show: '   <color:#F7B733>•</color> <hover:show_text:"<newline> <gray>The items or blocks in a tag.</gray> <newline>"><white><usage></white> <gray>\<tag> [page]</gray> <dark_gray>·</dark_gray> <gray>what''s inside</gray></hover>'
@@ -109,7 +109,7 @@ frame:
     unmarked: '   <color:#F7B733>•</color> <gray>Mark it:</gray> <white>sneak + right-click</white><gray>, empty hand</gray>'
     wrong-type: '   <color:#F7B733>•</color> <gray>Its kind isn''t in</gray> <white>targets.frame-types</white>'
   owner: '   <color:#F7B733>•</color> <gray>Owner:</gray> <player-head> <white><player></white>'
-  no-owner: '   <color:#F7B733>•</color> <hover:show_text:"<newline> <gray>Unmark it and mark it again <newline> to make it yours.</gray> <newline>"><gray>No owner</gray></hover>'
+  no-owner: '   <color:#F7B733>•</color> <hover:show_text:"<newline> <gray>Unmark it and mark it again, near <newline> your sorter or pad, to make it yours.</gray> <newline>"><gray>No owner</gray></hover>'
   into:
     container: '   <color:#F7B733>•</color> <gray>Into:</gray> <white><block></white>'
     dropped: '   <color:#F7B733>•</color> <yellow>Dropped</yellow> <gray>in front of it</gray>'
@@ -134,8 +134,8 @@ mark:
   not-yours: '<prefix><white><red>Can''t unmark</red>: this target is <player-head> <player>''s.</white>'
 
 automark:
-  enabled: '<prefix><white>Automark <hover:show_text:"<newline> <gray>An item you put in a frame on a <newline> container or composter marks it. <newline> Other blocks: <white>sneak + right-click</white>.</gray> <newline>"><green>on</green></hover>.</white>'
-  disabled: '<prefix><white>Automark <hover:show_text:"<newline> <gray><white>Sneak + right-click</white> a frame <newline> with an empty hand to mark it.</gray> <newline>"><red>off</red></hover>.</white>'
+  enabled: '<prefix><white>Automark <hover:show_text:"<newline> <gray>An item you put in a frame on a <newline> container or composter marks it, <newline> near a sorter or pad that sends to you. <newline> Other blocks: <white>sneak + right-click</white>.</gray> <newline>"><green>on</green></hover>.</white>'
+  disabled: '<prefix><white>Automark <hover:show_text:"<newline> <gray><white>Sneak + right-click</white> a frame <newline> with an empty hand to mark it, <newline> near a sorter or pad that sends to you.</gray> <newline>"><red>off</red></hover>.</white>'
 
 tag-item:
   applied: '<prefix><white><hover:show_text:"<newline> <gray>In a frame it stands for the tag.</gray> <newline>"><green>Tagged</green> #<tag></hover>.</white>'

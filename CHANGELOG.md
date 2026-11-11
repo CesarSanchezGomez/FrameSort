@@ -3,6 +3,15 @@
 Notable changes to FrameSort. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+
+- Taking the item out of a marked frame ends its mark at once; by hand, the action bar says so.
+- Marking a frame, by hand or with automark, works only within range of a sorter or pad that sends to the player
+  (any, with `framesort.inspect.others`); elsewhere sneak-clicks on a frame that isn't a target stay vanilla, without
+  a message. A target answers sneak-clicks everywhere, for everyone.
+
 ## [1.0.0] - 2026-11-08
 
 First release, for Paper 26.2 – 26.3 on Java 25.
@@ -31,4 +40,5 @@ First release, for Paper 26.2 – 26.3 on Java 25.
 - `TargetBindEvent` and `PadPullEvent`, for other plugins.
 - Usage metrics with bStats.
 
+[Unreleased]: https://github.com/CesarSanchezGomez/FrameSort/compare/v1.0.0...HEAD
 [1.0.0]: https://github.com/CesarSanchezGomez/FrameSort/releases/tag/v1.0.0

@@ -4,7 +4,8 @@
 # Each type under 'types' is one kind of pad; its key is the <type> of /framesort give pad.
 #   structure             top and base, each a block a player can place or 'craftengine:<namespace>:<id>'.
 #                         Items resting on the top go to the targets.
-#   range                 blocks around the pad where its targets are searched.
+#   range                 blocks around the pad where its targets are searched. Only there can the players it
+#                         sends to mark frames.
 #   pull-radius           blocks around the pad whose loose items it pulls onto itself, if it can see them; 0 = off.
 #   takes-from-inventory  true: a player crouching on the pad sends a stack of their main inventory on every check
 #                         (not the hotbar, armour or off hand).

@@ -33,8 +33,10 @@ keeps its hidden frame until it loads with FrameSort installed, so before removi
 
 1. **Targets.** Put an item in a frame on a container and sneak + right-click the frame with an empty hand to
    mark it as a target: it glows and the action bar says so. With `/framesort automark` on, putting the item in is
-   enough. The mark goes with that item: putting another one in leaves the frame unmarked, or, with automark,
-   marked for whoever put it in. A frame accepts items in this order of preference:
+   enough. Marking works only within range of a sorter or pad of yours, or of a player who trusts you, so put that
+   up first; elsewhere sneak-clicks on a frame that isn't a target stay vanilla. The mark goes with that item:
+   taking it out unmarks the frame, and by hand the action bar says so; the next item put in leaves it unmarked, or,
+   with automark, marks it for whoever put it in. A frame accepts items in this order of preference:
    1. the exact item;
    2. a tag, when the frame item has one applied (`/framesort tag apply <tag>`): a game tag, or one of your own in
       `tags.yml`;
@@ -47,7 +49,10 @@ keeps its hidden frame until it loads with FrameSort installed, so before removi
    matches nothing else, and whatever the other targets have no room for. A frame on a lava cauldron destroys
    leftovers.
 
-   ![Marking a frame on a chest by hand, then with /fs automark on, just by putting the item in](docs/mark.gif)
+   ![Marking a frame on a chest near a sorter by hand, then with /fs automark on, just by putting the item
+   in](docs/mark.gif)
+   ![Taking the item out of a marked frame unmarks it, so the sorter stops sending there until it is marked
+   again](docs/unmark.gif)
 
 2. **Sorters.** Put a hopper in a frame on a dispenser. The frame disappears and every second the dispenser
    sends up to 64 items from its inventory, at random, taking them from inside shulker boxes and bundles too. A
@@ -135,7 +140,7 @@ Every command also runs as `/fs`. Where each command lives, its permission and w
 | `framesort.use` | everyone | inspecting, marking targets and the help, automark, tag, where, trace, trust, untrust and trusted commands (every `framesort.command.tag-*`) |
 | `framesort.admin` | op | creating pads in `permission` mode, inspecting anyone's sorters and pads, and the give and reload commands |
 | `framesort.inspect` | everyone | inspecting sorters, pads and frames |
-| `framesort.inspect.others` | op | inspecting and tracing sorters and pads whose owner doesn't trust you |
+| `framesort.inspect.others` | op | inspecting and tracing sorters and pads whose owner doesn't trust you, and marking frames near them |
 | `framesort.target.create` | everyone | marking frames as targets, by hand (with `framesort.inspect`) or with automark |
 | `framesort.pad.create` | op | creating pads when `pads.yml` has `creation: permission` |
 | `framesort.command.<command>` | as in the table above | each command |

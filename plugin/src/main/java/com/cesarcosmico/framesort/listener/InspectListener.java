@@ -67,13 +67,11 @@ public final class InspectListener implements Listener {
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onMark(PlayerInteractAtEntityEvent event) {
         Player player = event.getPlayer();
-        if (!(event.getRightClicked() instanceof ItemFrame frame) || frame.getItem().isEmpty() || !inspects(player)) {
-            return;
-        }
+        ItemFrame frame = inspectedFrame(player, event.getRightClicked());
+        boolean offHand = event.getHand() == EquipmentSlot.OFF_HAND;
         // Both hands, so the frame never rotates its item.
-        event.setCancelled(true);
-        if (event.getHand() == EquipmentSlot.HAND && !inspectSorterOf(player, frame)) {
-            inspect.toggleMark(player, frame);
+        if (frame != null && (offHand || inspect.markOrInspectSorter(player, frame))) {
+            event.setCancelled(true);
         }
     }
 
@@ -85,21 +83,9 @@ public final class InspectListener implements Listener {
             return;
         }
         ItemFrame frame = inspectedFrame(player, event.getEntity());
-        if (frame == null) {
-            return;
+        if (frame != null && inspect.inspectFrameOrSorter(player, frame)) {
+            event.setCancelled(true);
         }
-        event.setCancelled(true);
-        if (!inspectSorterOf(player, frame)) {
-            inspect.inspectFrame(player, frame);
-        }
-    }
-
-    private boolean inspectSorterOf(Player player, ItemFrame frame) {
-        Block sorter = sorters.blockOf(frame);
-        if (sorter != null) {
-            inspect.inspectSource(player, sorter, null, player.getInventory().getItemInOffHand());
-        }
-        return sorter != null;
     }
 
     private @Nullable ItemFrame inspectedFrame(Player player, Entity entity) {
