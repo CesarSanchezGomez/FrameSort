@@ -53,6 +53,8 @@ keeps its hidden frame until it loads with FrameSort installed, so before removi
    in](docs/mark.gif)
    ![Taking the item out of a marked frame unmarks it, so the sorter stops sending there until it is marked
    again](docs/unmark.gif)
+   ![A sorter sending diamonds to their target until its chest is full; bones, rotten flesh and the diamonds that no
+   longer fit go to the frame holding a recovery compass](docs/default-target.gif)
 
 2. **Sorters.** Put a hopper in a frame on a dispenser. The frame disappears and every second the dispenser
    sends up to 64 items from its inventory, at random, taking them from inside shulker boxes and bundles too. A
