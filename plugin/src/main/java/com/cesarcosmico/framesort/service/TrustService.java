@@ -25,6 +25,7 @@ public final class TrustService implements Supplier<TrustList> {
     public enum Revoke { REVOKED, NOT_TRUSTED, FAILED }
 
     private static final String SEE_OTHERS = "framesort.inspect.others";
+    private static final String CHANGE_OTHERS = "framesort.unmark.others";
 
     private final Plugin plugin;
     private final Database database;
@@ -49,9 +50,20 @@ public final class TrustService implements Supplier<TrustList> {
         return list;
     }
 
-    /** Whether {@code viewer} may see where a source of {@code owner} sends: inspecting it shows those chests. */
+    /**
+     * Whether {@code viewer} may see the network of {@code owner}: where their sorters and pads send, and the cards of
+     * their target frames. With no owner, only admins and, with ownership off, anyone.
+     */
     public boolean canView(Player viewer, @Nullable UUID owner) {
         return !settings.get().ownership() || viewer.hasPermission(SEE_OTHERS) || isOwnerOrTrusted(viewer, owner);
+    }
+
+    /**
+     * Whether {@code player} may undo what {@code owner} set up: unmark their target frames, or take the item out of
+     * them or the activator out of their sorters.
+     */
+    public boolean mayChange(Player player, UUID owner) {
+        return !settings.get().ownership() || player.hasPermission(CHANGE_OTHERS) || isOwnerOrTrusted(player, owner);
     }
 
     private boolean isOwnerOrTrusted(Player viewer, @Nullable UUID owner) {

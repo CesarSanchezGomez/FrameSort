@@ -58,8 +58,8 @@ delivery:
 
 # Who sorters, pads and targets belong to: whoever set them up.
 ownership:
-  # true: a sorter or pad sends only to its owner's frames and to those of players the owner trusts
-  # (/framesort trust), and only they inspect it. false: any frame, anyone inspects, no trust commands.
+  # true: a sorter or pad sends only to its owner's frames and to those of players the owner trusts (/framesort
+  # trust); only they and admins inspect it or unmark and empty the owner's frames. false: anyone, no trust commands.
   enabled: true
 
 # Inspection, chat lists and /framesort trace.

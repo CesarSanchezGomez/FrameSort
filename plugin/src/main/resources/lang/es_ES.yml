@@ -55,10 +55,11 @@ pager:
     disabled: '<dark_gray>»</dark_gray>'
 
 inspect:
-  source:
+  kind:
     sorter: 'sorter'
     pad: 'pad'
-  title: '<white>Destinos de este <source></white> <dark_gray>(<x>, <y>, <z>)</dark_gray>'
+    target: 'marco destino'
+  title: '<white>Destinos de este <kind></white> <dark_gray>(<x>, <y>, <z>)</dark_gray>'
   title-item: '<white>Adónde va <item></white> <dark_gray>(<x>, <y>, <z>)</dark_gray>'
   details:
     owner: '   <color:#F7B733>•</color> <gray>Dueño:</gray> <player-head> <white><player></white>'
@@ -86,8 +87,8 @@ inspect:
     - ''
   fill: ' <newline> <gray>Lleno:</gray> <white><percent>%</white>'
   gone: '<prefix><white><hover:show_text:"<newline> <gray>Se quitó, su chunk no está cargado <newline> o ya no puedes verlo.</gray> <newline>"><yellow>Desactualizado</yellow>: míralo otra vez</hover>.</white>'
-  not-trusted: '<prefix><white><hover:show_text:"<newline> <gray>Solo su dueño y los jugadores en <newline> quienes confía pueden inspeccionarlo.</gray> <newline>"><red>No puedes ver</red></hover> el <source> de <player-head> <player>.</white>'
-  no-owner: '<prefix><white><hover:show_text:"<newline> <gray>Se construyó antes de que hubiera dueños. <newline> Rehazlo para que sea tuyo.</gray> <newline>">Este <source> <red>no tiene dueño</red></hover>.</white>'
+  not-trusted: '<prefix><white><red>No puedes</red> ver el <kind> de <player-head> <player>.</white>'
+  no-owner: '<prefix><white>Este <kind> <red>no tiene</red> dueño.</white>'
   opens: '<prefix><white><hover:show_text:"<newline> <gray>El sorter envía primero lo de dentro; <newline> cuando nada de dentro puede ir a ningún <newline> sitio, lo envía entero, como se lista.</gray> <newline>">Abre <item> primero</hover>.</white>'
 
 frame:
@@ -124,14 +125,14 @@ frame:
     custom: '   <color:#F7B733>•</color> <hover:show_text:"<newline> <gray>Cuando nada coincide mejor.</gray> <newline>"><gray>Luego cualquier:</gray> <white><id></white></hover>'
     default: '   <color:#F7B733>•</color> <hover:show_text:"<newline> <gray>Lo que no encaja en ningún otro marco <newline> o ya no cabe en ellos.</gray> <newline>"><gray>Acepta lo que sobre</gray></hover>'
   on-sorter: '   <color:#F7B733>•</color> <hover:show_text:"<newline> <gray>Un sorter nunca envía a otro sorter.</gray> <newline>"><gray>En un sorter: solo pads</gray></hover>'
-  sources: '   <color:#F7B733>•</color> <hover:show_text:"<newline> <gray>Sorters y pads cuyos items <newline> pueden llegar a este marco.</gray> <newline>"><gray>Fuentes al alcance:</gray> <white><count></white></hover>'
+  sources: '   <color:#F7B733>•</color> <hover:show_text:"<newline> <gray>Sorters y pads que puedes inspeccionar <newline> y cuyos items llegan a este marco.</gray> <newline>"><gray>Fuentes al alcance:</gray> <white><count></white></hover>'
 
 mark:
   marked: '<prefix><white><green>Marcado</green> como destino.</white>'
   unmarked: '<prefix><white>Marco <red>desmarcado</red>.</white>'
   no-permission: '<prefix><white><red>No puedes</red> marcar destinos.</white>'
   wrong-type: '<prefix><white>Este marco <red>no puede</red> ser destino.</white>'
-  not-yours: '<prefix><white><red>No puedes desmarcarlo</red>: es de <player-head> <player>.</white>'
+  not-yours: '<prefix><white><red>No puedes</red> desmarcarlo: es de <player-head> <player>.</white>'
 
 automark:
   enabled: '<prefix><white>Automarcado: <hover:show_text:"<newline> <gray>Un item que metes en un marco sobre <newline> un contenedor o compostador lo marca, <newline> cerca de un sorter o pad que te envía. <newline> Otros bloques: <white>shift + clic dcho.</white></gray> <newline>"><green>sí</green></hover>.</white>'
@@ -203,6 +204,7 @@ trust:
 sorter:
   created: '<prefix><white><hover:show_text:"<newline> <gray>Lo que haya en este dispensador <newline> irá a sus marcos destino.</gray> <newline>">Sorter <green>creado</green></hover>.</white>'
   removed: '<prefix><white>Sorter <red>eliminado</red>.</white>'
+  not-yours: '<prefix><white><red>No puedes</red> quitarlo: este sorter es de <player-head> <player>.</white>'
 
 pad:
   created: '<prefix><white>Pad <type> <green>creado</green>.</white>'

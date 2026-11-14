@@ -58,8 +58,8 @@ it out of step:
 
 | Where | Key | Content |
 |---|---|---|
-| Item frame entity | `framesort:target` | Present from marking until the frame is unmarked, a player takes its item out (by hand, or with an arrow or TNT of theirs: only the hand gets the message, told apart by the frame's last damage cause), or another item is put in. An item can leave a frame with no player behind it and no event that confirms it, so the mark also ends when the next one goes in; an empty frame is never a target, so a mark left on one does nothing. |
-| Item frame entity | `framesort:owner` | The UUID, as text, of whoever marked the target or put a sorter's activator in. Removed when the mark ends. |
+| Item frame entity | `framesort:target` | Present from marking until the frame is unmarked, a player takes its item out (by hand, or with a projectile of theirs: only the hand gets the message, told apart by the frame's last damage cause; where FrameSort works, only one who may unmark it, as anyone else's take-out is cancelled at `HIGHEST`), or another item is put in. An explosion never takes the item out alone: it breaks the whole frame. An item can leave a frame with no player behind it and no event that confirms it, so the mark also ends when the next one goes in; an empty frame is never a target, so a mark left on one does nothing. |
+| Item frame entity | `framesort:owner` | The UUID, as text, of whoever marked the target or put a sorter's activator in. Removed when the mark ends; a sorter's frame keeps it after its activator comes out, until the frame is marked or gets an activator again. |
 | Chunk | `framesort:pads` | The pads registered in the chunk, as `"x,y,z,type"` or `"x,y,z,type,owner"`; one saved before owners existed has none. A type id can't contain `,`. |
 | Item | `framesort:item-tag` | The tag a tagged item stands for, such as `minecraft:logs` (`/framesort tag apply <tag>`). |
 | Item | `framesort:item-tag-original` | The name, lore and glint a tagged item had before its tag, as item bytes, so `/framesort tag remove` gives them back. |

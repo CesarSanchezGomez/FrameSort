@@ -5,21 +5,18 @@ import com.cesarcosmico.framesort.service.HighlightService;
 import com.cesarcosmico.framesort.service.InspectService;
 import com.cesarcosmico.framesort.service.PadService;
 import com.cesarcosmico.framesort.service.SorterService;
+import io.papermc.paper.event.player.PlayerItemFrameChangeEvent;
 import org.bukkit.World;
 import org.bukkit.block.Block;
-import org.bukkit.entity.Entity;
 import org.bukkit.entity.ItemFrame;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
-import org.bukkit.event.entity.EntityDamageByEntityEvent;
-import org.bukkit.event.player.PlayerInteractAtEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.EquipmentSlot;
-import org.jspecify.annotations.Nullable;
 
 import java.util.function.Predicate;
 
@@ -64,37 +61,27 @@ public final class InspectListener implements Listener {
         }
     }
 
+    // The frame's own events: the server fires them only if nothing cancelled the click or the hit, even at MONITOR.
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
-    public void onMark(PlayerInteractAtEntityEvent event) {
+    public void onFrameGesture(PlayerItemFrameChangeEvent event) {
         Player player = event.getPlayer();
-        ItemFrame frame = inspectedFrame(player, event.getRightClicked());
-        boolean offHand = event.getHand() == EquipmentSlot.OFF_HAND;
-        // Both hands, so the frame never rotates its item.
-        if (frame != null && (offHand || inspect.markOrInspectSorter(player, frame))) {
+        ItemFrame frame = event.getItemFrame();
+        boolean answered = switch (event.getAction()) {
+            case ROTATE -> answers(player, frame) && inspect.markOrInspectSorter(player, frame);
+            case REMOVE -> InspectService.isInspectHit(player, frame) && worksIn.test(player.getWorld())
+                    && inspect.inspectFrameOrSorter(player, frame);
+            case PLACE -> false;
+        };
+        if (answered) {
             event.setCancelled(true);
         }
     }
 
-    // A hit drops the frame's item before PrePlayerAttackEntityEvent fires; this event comes first and, cancelled,
-    // keeps the item in the frame.
-    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
-    public void onInspectFrame(EntityDamageByEntityEvent event) {
-        if (!(event.getDamager() instanceof Player player)) {
-            return;
-        }
-        ItemFrame frame = inspectedFrame(player, event.getEntity());
-        if (frame != null && inspect.inspectFrameOrSorter(player, frame)) {
-            event.setCancelled(true);
-        }
-    }
-
-    private @Nullable ItemFrame inspectedFrame(Player player, Entity entity) {
-        return entity instanceof ItemFrame frame && !frame.getItem().isEmpty() && inspects(player) ? frame : null;
+    private boolean answers(Player player, ItemFrame frame) {
+        return !frame.getItem().isEmpty() && inspects(player);
     }
 
     private boolean inspects(Player player) {
-        return player.isSneaking() && worksIn.test(player.getWorld())
-                && player.getInventory().getItemInMainHand().isEmpty()
-                && player.hasPermission(InspectService.INSPECT_PERMISSION);
+        return InspectService.isInspectGesture(player) && worksIn.test(player.getWorld());
     }
 }

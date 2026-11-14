@@ -53,6 +53,8 @@ keeps its hidden frame until it loads with FrameSort installed, so before removi
    in](docs/mark.gif)
    ![Taking the item out of a marked frame unmarks it, so the sorter stops sending there until it is marked
    again](docs/unmark.gif)
+   ![A sorter sending diamonds to their target until its chest is full; bones, rotten flesh and the diamonds that no
+   longer fit go to the frame holding a recovery compass](docs/default-target.gif)
 
 2. **Sorters.** Put a hopper in a frame on a dispenser. The frame disappears and every second the dispenser
    sends up to 64 items from its inventory, at random, taking them from inside shulker boxes and bundles too. A
@@ -72,16 +74,18 @@ keeps its hidden frame until it loads with FrameSort installed, so before removi
 
 4. **Inspect.** Sneak + right-click a sorter or pad with an empty hand: its targets' items glow (only for you, in
    configurable colours) and are listed page by page; hovering one shows where it is, how far and how full. Sneak +
-   left-click a target frame to see what it accepts.
+   left-click one of your target frames, or of a player who trusts you, to see what it accepts.
    `/framesort trace` shows the deliveries around you live.
 
    ![Inspecting a sorter: its targets glow by what they do with the items, and the chat lists them](docs/inspect.gif)
 
 5. **Owners and trust.** What you set up is yours: the frames you mark, the sorters you put the activator in, the
    pads you build. Your sorters and pads send only to your frames, so nobody can mark a frame near them and take
-   your items, and only you, the players you trust and admins see where they send.
-   `/framesort trust <player>` makes that player's frames count as yours for your sorters and pads, one way: a team
-   trusts each other. Breaking blocks or opening chests is still up to the server's protection. See
+   your items, and only you, the players you trust and admins see where they send. Only they, too, unmark your
+   frames or take the item out of them or the activator out of your sorters: anyone else's hit or projectile leaves
+   it in. `/framesort trust <player>` makes that player's frames count as yours for your sorters and pads, and lets
+   them change yours, one way: a team trusts each other. Breaking blocks, opening chests, and whatever else reaches a
+   frame (an explosion, a mob, a dispenser's arrow) are still up to the server's protection. See
    [docs/commands.md](docs/commands.md#owners-and-trust).
 
 **WorldGuard.** When it is installed, sorters and pads follow WorldGuard's rule for pistons: they count as members of
@@ -138,9 +142,10 @@ Every command also runs as `/fs`. Where each command lives, its permission and w
 |---|---|---|
 | `framesort.*` | op | everything |
 | `framesort.use` | everyone | inspecting, marking targets and the help, automark, tag, where, trace, trust, untrust and trusted commands (every `framesort.command.tag-*`) |
-| `framesort.admin` | op | creating pads in `permission` mode, inspecting anyone's sorters and pads, and the give and reload commands |
+| `framesort.admin` | op | creating pads in `permission` mode, inspecting anyone's sorters, pads and target frames, unmarking and emptying anyone's frames and sorters, and the give and reload commands |
 | `framesort.inspect` | everyone | inspecting sorters, pads and frames |
-| `framesort.inspect.others` | op | inspecting and tracing sorters and pads whose owner doesn't trust you, and marking frames near them |
+| `framesort.inspect.others` | op | inspecting and tracing sorters and pads whose owner doesn't trust you, the cards of their target frames, and marking frames near them |
+| `framesort.unmark.others` | op | unmarking target frames whose owner doesn't trust you, and taking the item out of them or the activator out of their sorters |
 | `framesort.target.create` | everyone | marking frames as targets, by hand (with `framesort.inspect`) or with automark |
 | `framesort.pad.create` | op | creating pads when `pads.yml` has `creation: permission` |
 | `framesort.command.<command>` | as in the table above | each command |
