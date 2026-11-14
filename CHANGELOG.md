@@ -21,6 +21,7 @@ First release, for Paper 26.2 – 26.3 on Java 25.
 - Inspection of a sorter or pad, which highlights and lists its targets, a card for each target frame,
   `/framesort where` and `/framesort trace`. A target answers sneak-clicks everywhere, for everyone; any other frame
   only within range of a sorter or pad that sends to the player, and elsewhere stays vanilla, without a message.
+  Neither answers when a protection plugin keeps the player from using the frame, or when the frame is fixed.
 - Owners and trust: sorters and pads send only to their owner's frames and to those of players the owner trusts
   (`/framesort trust`, `untrust`, `trusted`). Only a target's owner, the players they trust and admins
   (`framesort.unmark.others`) unmark it or take its item out, by hand or with a projectile, and the same goes for a

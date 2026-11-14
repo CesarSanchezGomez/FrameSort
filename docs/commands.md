@@ -28,7 +28,9 @@ hit doesn't take the item out of a target or a sorter's frame you may not change
 [Owners and trust](#owners-and-trust)); every click in a world listed in
 [`disabled-worlds`](configuration.md#disabled-worlds) stays vanilla. A target frame and a
 sorter's frame always answer; any other frame answers only within range of a sorter or pad you may inspect (see
-[Where frames answer](#where-frames-answer)), and elsewhere clicks on it stay vanilla too, without a message.
+[Where frames answer](#where-frames-answer)), and elsewhere clicks on it stay vanilla too, without a message. A fixed
+frame (one fixed in place by a command, an adventure map or another plugin) answers no sneak-click, as the server
+lets nobody turn or hit it; to unmark a fixed target, unfix it first (`Fixed:0b` with `/data merge entity`).
 
 | Action | Result |
 |---|---|
@@ -88,9 +90,9 @@ it an owner.
 
 ### Where frames answer
 
-A frame that is already a target answers sneak-clicks for everyone, wherever it is: its card shows, and with
-`ownership.enabled` only its owner, the players they trust and admins unmark it, while anyone else is told whose it
-is. Marking a frame, by hand or with
+A frame that is already a target answers sneak-clicks for everyone, wherever it is, unless it is fixed (see
+[Inspecting](#inspecting)): its card shows, and with `ownership.enabled` only its owner, the players they trust and
+admins unmark it, while anyone else is told whose it is. Marking a frame, by hand or with
 automark, and the card of a frame that isn't a target work only within range (`sorter.range`, or the pad type's
 `range`) of a sorter or pad you may inspect: yours, one of a player who trusts you, or anyone's with
 `framesort.inspect.others`; with `ownership.enabled: false`, any. So a sorter or pad goes up before its frames are

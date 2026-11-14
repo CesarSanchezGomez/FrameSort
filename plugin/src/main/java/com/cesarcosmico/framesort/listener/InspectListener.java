@@ -5,6 +5,7 @@ import com.cesarcosmico.framesort.service.HighlightService;
 import com.cesarcosmico.framesort.service.InspectService;
 import com.cesarcosmico.framesort.service.PadService;
 import com.cesarcosmico.framesort.service.SorterService;
+import io.papermc.paper.event.player.PlayerItemFrameChangeEvent;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
@@ -15,7 +16,6 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
-import org.bukkit.event.player.PlayerInteractAtEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.EquipmentSlot;
@@ -64,13 +64,13 @@ public final class InspectListener implements Listener {
         }
     }
 
+    // The frame's own event: the server fires it only if nothing cancelled the click, even at MONITOR.
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
-    public void onMark(PlayerInteractAtEntityEvent event) {
+    public void onMark(PlayerItemFrameChangeEvent event) {
         Player player = event.getPlayer();
-        ItemFrame frame = inspectedFrame(player, event.getRightClicked());
-        boolean offHand = event.getHand() == EquipmentSlot.OFF_HAND;
-        // Both hands, so the frame never rotates its item.
-        if (frame != null && (offHand || inspect.markOrInspectSorter(player, frame))) {
+        ItemFrame frame = event.getItemFrame();
+        if (event.getAction() == PlayerItemFrameChangeEvent.ItemFrameChangeAction.ROTATE && answers(player, frame)
+                && inspect.markOrInspectSorter(player, frame)) {
             event.setCancelled(true);
         }
     }
@@ -89,7 +89,11 @@ public final class InspectListener implements Listener {
     }
 
     private @Nullable ItemFrame inspectedFrame(Player player, Entity entity) {
-        return entity instanceof ItemFrame frame && !frame.getItem().isEmpty() && inspects(player) ? frame : null;
+        return entity instanceof ItemFrame frame && answers(player, frame) ? frame : null;
+    }
+
+    private boolean answers(Player player, ItemFrame frame) {
+        return !frame.getItem().isEmpty() && inspects(player);
     }
 
     private boolean inspects(Player player) {
