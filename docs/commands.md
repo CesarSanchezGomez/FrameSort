@@ -34,8 +34,8 @@ lets nobody turn or hit it; to unmark a fixed target, unfix it first (`Fixed:0b`
 
 | Action | Result |
 |---|---|
-| Sneak + right-click a sorter or the top block of a pad | Only yours, those of a player who trusts you, or any with `framesort.inspect.others` (see [Owners and trust](#owners-and-trust)). The items in the target frames it can send to glow for you only (green: into a container, yellow: dropped, red: lava; see `inspect.colors`) and those targets are listed, nearest first; hovering one shows where it is, how far and, for a container or composter, how full. Two targets with the same item and block read alike and stay as two lines, each with its own hover. Frames that WorldGuard regions and the `framesort-deliver` flag (see [WorldGuard regions](configuration.md#worldguard-regions)), or another plugin cancelling `TargetBindEvent`, keep it from reaching are left out; a sorter's list also shows how many items it has sent. With an item in your off hand, only where that item would go, as numbered levels in order of preference: each level's containers nearest first, then the one drop spot or lava that takes the rest (the nearest, a drop spot before lava); the next level only gets what doesn't fit. From a sorter, a shulker box or bundle with contents comes with a note: the sorter opens it first, and the list shows where it goes whole once nothing inside can go. |
-| Sneak + left-click a frame with an item | Whether it is a target. If it is: who owns it, where its items go, what it accepts and how many sorters and pads reach it. If not: how to mark it, or that its kind of frame can't be one. |
+| Sneak + right-click a sorter or the top block of a pad | Only yours, those of a player who trusts you, or any with `framesort.inspect.others` (see [Owners and trust](#owners-and-trust)); for anyone else, the action bar says whose it is, or that it has no owner. The items in the target frames it can send to glow for you only (green: into a container, yellow: dropped, red: lava; see `inspect.colors`) and those targets are listed, nearest first; hovering one shows where it is, how far and, for a container or composter, how full. Two targets with the same item and block read alike and stay as two lines, each with its own hover. Frames that WorldGuard regions and the `framesort-deliver` flag (see [WorldGuard regions](configuration.md#worldguard-regions)), or another plugin cancelling `TargetBindEvent`, keep it from reaching are left out; a sorter's list also shows how many items it has sent. With an item in your off hand, only where that item would go, as numbered levels in order of preference: each level's containers nearest first, then the one drop spot or lava that takes the rest (the nearest, a drop spot before lava); the next level only gets what doesn't fit. From a sorter, a shulker box or bundle with contents comes with a note: the sorter opens it first, and the list shows where it goes whole once nothing inside can go. |
+| Sneak + left-click a frame with an item | Whether it is a target. If it is, and it is yours, of a player who trusts you, or you have `framesort.inspect.others`: who owns it, where its items go, what it accepts and how many of the sorters and pads you may inspect reach it; otherwise the action bar says whose it is, or that it has no owner, as for a sorter you can't inspect. If not: how to mark it, or that its kind of frame can't be one. |
 | Sneak + right- or left-click a sorter's frame | Inspects the sorter, as clicking its dispenser does. That frame is never a target. |
 | Sneak + right-click a frame with an item | Marks or unmarks it as a target (needs `framesort.inspect` and `framesort.target.create`). Its item glows green or red for you, and the action bar says whether it was marked or unmarked, or why it can't be. Marking makes it yours, and unmarking frees it; with `ownership.enabled`, only you, the players you trust and admins unmark it then (see [Owners and trust](#owners-and-trust)). A mark lives with the item: when one of them takes it out by hand, the mark ends and their action bar says so, and with a projectile of theirs (an arrow, a snowball) it ends without a message; anyone else's hit or projectile leaves the item in, and by hand their action bar says whose it is. An item that leaves any other way (an explosion, a mob, a dispenser's arrow, another plugin) ends the mark without a message, at once or when the next item is put in (with `/framesort automark` on, the new item marks a frame on a container or composter for whoever put it in); its card (sneak + left-click) says whether it is one. The item does not rotate. |
 
@@ -53,7 +53,8 @@ to frames of its owner, so nobody can mark a frame near your sorter and take you
   to a chest of Beto's when his frame asks for it first, or as much and nearer to the sorter.
 - **One way.** Beto's sorters still don't send to Ana's frames until Beto trusts Ana: a team trusts both ways.
 - **Not passed on.** If Ana trusts Beto and Beto trusts Carla, Ana's sorters don't send to Carla.
-- **Beto can see it:** he may inspect Ana's sorters and pads and sees their deliveries in `/framesort trace`.
+- **Beto can see it:** he may inspect Ana's sorters and pads and the cards of her target frames, and sees their
+  deliveries in `/framesort trace`.
 - **Beto can change it:** he may unmark Ana's frames and take the item out of them or the activator out of her
   sorters, as she can. A frame he marks again, or a sorter he puts his activator in, is his.
 - **It works while Ana is offline or banned,** and `/framesort untrust Beto` stops it from the next delivery. What
@@ -91,16 +92,17 @@ it an owner.
 ### Where frames answer
 
 A frame that is already a target answers sneak-clicks for everyone, wherever it is, unless it is fixed (see
-[Inspecting](#inspecting)): its card shows, and with `ownership.enabled` only its owner, the players they trust and
-admins unmark it, while anyone else is told whose it is. Marking a frame, by hand or with
-automark, and the card of a frame that isn't a target work only within range (`sorter.range`, or the pad type's
-`range`) of a sorter or pad you may inspect: yours, one of a player who trusts you, or anyone's with
-`framesort.inspect.others`; with `ownership.enabled: false`, any. So a sorter or pad goes up before its frames are
-marked. Anywhere else sneak-clicks on a frame that isn't a target stay vanilla and automark marks nothing, without a
-message, so building with frames away from your sorters and pads is left alone.
+[Inspecting](#inspecting)). Its card shows to whoever may inspect its owner's sorters and pads; anyone else's action
+bar says whose it is, or that it has no owner. With `ownership.enabled` only its owner, the players they trust and
+admins unmark it; anyone else's action bar says whose it is.
+Marking a frame, by hand or with automark, and the card of a frame that isn't a target work only within range
+(`sorter.range`, or the pad type's `range`) of a sorter or pad you may inspect: yours, one of a player who trusts
+you, or anyone's with `framesort.inspect.others`; with `ownership.enabled: false`, any. So a sorter or pad goes up
+before its frames are marked. Anywhere else sneak-clicks on a frame that isn't a target stay vanilla and automark
+marks nothing, without a message, so building with frames away from your sorters and pads is left alone.
 Only distance and owner count: a sorter or pad in an unloaded chunk doesn't, a pad waiting for its base does, and
 WorldGuard regions and the rule that a sorter never sends to another are left to the frame card, whose
-`Sources in range` counts what can really reach the frame.
+`Sources in range` counts what can really reach the frame, among the sorters and pads you may inspect.
 
 ## Permissions
 
@@ -110,7 +112,7 @@ WorldGuard regions and the rule that a sorter never sends to another are left to
 | `framesort.use` | everyone | `framesort.inspect`, `framesort.target.create` and the help, automark, tag, where, trace, trust, untrust and trusted commands (every `framesort.command.tag-*`) |
 | `framesort.admin` | op | `framesort.pad.create`, `framesort.inspect.others`, `framesort.unmark.others` and the give and reload commands |
 | `framesort.inspect` | everyone | inspecting sorters, pads and frames |
-| `framesort.inspect.others` | op | inspecting, `/framesort where` and `/framesort trace` on sorters and pads whose owner doesn't trust you, and the frame gestures and automark near them |
+| `framesort.inspect.others` | op | inspecting, `/framesort where` and `/framesort trace` on sorters and pads whose owner doesn't trust you, the cards of their target frames, and the frame gestures and automark near them |
 | `framesort.unmark.others` | op | unmarking target frames whose owner doesn't trust you, and taking the item out of them or the activator out of their sorters |
 | `framesort.target.create` | everyone | marking frames as targets, by hand or with automark |
 | `framesort.pad.create` | op | creating pads when `creation: permission` |

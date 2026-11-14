@@ -202,7 +202,7 @@ frame does nothing.
 
 | Key | Default | Meaning |
 |---|---|---|
-| `enabled` | `true` | `true`: a sorter or pad sends only to frames of its owner and of the players its owner trusts (`/framesort trust`), and only they inspect it or see its deliveries in `/framesort trace`; only the owner, those players and admins (`framesort.unmark.others`) unmark the owner's frames or take the item out of them or the activator out of the owner's sorters. `false`: it sends to any frame, anyone inspects it and anyone unmarks or empties any frame, as without owners, and `/framesort trust`, `untrust` and `trusted` are hidden. A reload applies it, to the commands too. |
+| `enabled` | `true` | `true`: a sorter or pad sends only to frames of its owner and of the players its owner trusts (`/framesort trust`), and only they and admins (`framesort.inspect.others`) inspect it, see the cards of the owner's target frames or see its deliveries in `/framesort trace`; only the owner, those players and admins (`framesort.unmark.others`) unmark the owner's frames or take the item out of them or the activator out of the owner's sorters. `false`: it sends to any frame, anyone inspects it and anyone unmarks or empties any frame, as without owners, and `/framesort trust`, `untrust` and `trusted` are hidden. A reload applies it, to the commands too. |
 
 What a player sets up is theirs: a target frame belongs to whoever marked it, a sorter to whoever put the activator
 in, a pad to whoever placed its top block. Owners are recorded even with `enabled: false`, so turning it on later
@@ -418,6 +418,11 @@ through Geyser gets no hovers or clicks: what is only in a hover doesn't reach t
 clicked. They type the page in the lists that have a command (`/framesort 2`, `/framesort tag list 2`), and see only the
 first page of an inspection list, which has none.
 
+The one-sentence answers to a sneak-click or hit on a frame, sorter or pad go to the action bar and carry no hover,
+so they say everything in their text: the `mark.*` keys, `sorter.not-yours`, `inspect.not-trusted` and
+`inspect.no-owner`. `mark.no-permission` also answers `/framesort automark`, and there it goes to the chat. Cards,
+lists and the rest of the messages go to the chat.
+
 `<player-head>`, where a key has it, is the head of the player that `<player>` names: by the UUID of their Mojang
 account, which the client looks up, or Steve's on an offline-mode server or for a Bedrock player through Floodgate. A
 reader on Bedrock through Floodgate gets none, since Geyser would write it as text; one who can't be told apart (an
@@ -455,9 +460,9 @@ help uses all but `pager.layout`:
 
 `inspect.title` and `inspect.title-item` carry where the sorter or pad is (`<x>`, `<y>`, `<z>`). Under them, on every
 page, are the `inspect.details` lines that apply, in `<header>`: its owner (`owner`, or `no-owner`) and, for a
-sorter, how many items it has sent (`sorted`). What you look up every time is in the text; the rest of `lang/`
-keeps explanations, and the data of each target, in a hover. With an item in the off hand, a target holding that same
-item uses `inspect.entry-same-item`, without repeating its name.
+sorter, how many items it has sent (`sorted`). What you look up every time is in the text; the rest of the chat
+messages keep explanations, and the data of each target, in a hover. With an item in the off hand, a target holding
+that same item uses `inspect.entry-same-item`, without repeating its name.
 
 `inspect.hover` is the hover of the whole entry, one line per datum: the target's coordinates (`<x>`, `<y>`, `<z>`), its
 `<distance>` and `<fill>`. `<fill>` is `inspect.fill` (`<percent>`), which starts with its own line break: how full the

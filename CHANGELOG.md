@@ -18,9 +18,10 @@ First release, for Paper 26.2 – 26.3 on Java 25.
 - Sorters: a hopper in a frame on a dispenser sends up to 64 items a second, from inside shulker boxes and bundles too.
 - Sorting pads: the copper and lodestone pads send what rests on them and pull in loose items nearby; the tuff pad
   sends the inventory of a player crouching on it. Pad types, their range and who may build them are in `pads.yml`.
-- Inspection of a sorter or pad, which highlights and lists its targets, a card for each target frame,
-  `/framesort where` and `/framesort trace`. A target answers sneak-clicks everywhere, for everyone; any other frame
-  only within range of a sorter or pad that sends to the player, and elsewhere stays vanilla, without a message.
+- Inspection of a sorter or pad, which highlights and lists its targets, a card for each target frame (for whoever
+  may inspect its owner's sorters and pads), `/framesort where` and `/framesort trace`. A target answers sneak-clicks
+  everywhere, for everyone; any other frame only within range of a sorter or pad that sends to the player, and
+  elsewhere stays vanilla, without a message.
   Neither answers when a protection plugin keeps the player from using the frame, or when the frame is fixed.
 - Owners and trust: sorters and pads send only to their owner's frames and to those of players the owner trusts
   (`/framesort trust`, `untrust`, `trusted`). Only a target's owner, the players they trust and admins

@@ -50,7 +50,10 @@ public final class TrustService implements Supplier<TrustList> {
         return list;
     }
 
-    /** Whether {@code viewer} may see where a source of {@code owner} sends: inspecting it shows those chests. */
+    /**
+     * Whether {@code viewer} may see the network of {@code owner}: where their sorters and pads send, and the cards of
+     * their target frames. With no owner, only admins and, with ownership off, anyone.
+     */
     public boolean canView(Player viewer, @Nullable UUID owner) {
         return !settings.get().ownership() || viewer.hasPermission(SEE_OTHERS) || isOwnerOrTrusted(viewer, owner);
     }

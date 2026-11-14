@@ -56,7 +56,7 @@ permissions:
     description: 'Inspect sorters, pads and target frames by sneaking with an empty hand.'
     default: true
   framesort.inspect.others:
-    description: 'Inspect and trace sorters and pads whose owner does not trust you, and mark, inspect and automark frames near them.'
+    description: 'Inspect and trace sorters and pads whose owner does not trust you, see the cards of their target frames, and mark, inspect and automark frames near them.'
     default: op
   framesort.unmark.others:
     description: 'Unmark target frames whose owner does not trust you, and take the item out of them or the activator out of their sorters.'

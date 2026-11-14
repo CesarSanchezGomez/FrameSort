@@ -55,10 +55,11 @@ pager:
     disabled: '<dark_gray>»</dark_gray>'
 
 inspect:
-  source:
+  kind:
     sorter: 'sorter'
     pad: 'sorting pad'
-  title: '<white>Targets of this <source></white> <dark_gray>(<x>, <y>, <z>)</dark_gray>'
+    target: 'target frame'
+  title: '<white>Targets of this <kind></white> <dark_gray>(<x>, <y>, <z>)</dark_gray>'
   title-item: '<white>Where <item> goes</white> <dark_gray>(<x>, <y>, <z>)</dark_gray>'
   details:
     owner: '   <color:#F7B733>•</color> <gray>Owner:</gray> <player-head> <white><player></white>'
@@ -86,8 +87,8 @@ inspect:
     - ''
   fill: ' <newline> <gray>Full:</gray> <white><percent>%</white>'
   gone: '<prefix><white><hover:show_text:"<newline> <gray>It was removed, its chunk isn''t loaded, <newline> or you can''t see it any more.</gray> <newline>"><yellow>Out of date</yellow>: inspect it again</hover>.</white>'
-  not-trusted: '<prefix><white><hover:show_text:"<newline> <gray>Only its owner and the players <newline> they trust can inspect it.</gray> <newline>"><red>Can''t inspect</red></hover> <player-head> <player>''s <source>.</white>'
-  no-owner: '<prefix><white><hover:show_text:"<newline> <gray>Built before owners existed. <newline> Rebuild it to make it yours.</gray> <newline>">This <source> has <red>no owner</red></hover>.</white>'
+  not-trusted: '<prefix><white><red>Can''t</red> inspect <player-head> <player>''s <kind>.</white>'
+  no-owner: '<prefix><white>This <kind> has <red>no</red> owner.</white>'
   opens: '<prefix><white><hover:show_text:"<newline> <gray>The sorter sends what is inside first; <newline> once nothing inside can go anywhere, <newline> it sends it whole, as listed.</gray> <newline>">Opens <item> first</hover>.</white>'
 
 frame:
@@ -124,7 +125,7 @@ frame:
     custom: '   <color:#F7B733>•</color> <hover:show_text:"<newline> <gray>When nothing matches better.</gray> <newline>"><gray>Then any:</gray> <white><id></white></hover>'
     default: '   <color:#F7B733>•</color> <hover:show_text:"<newline> <gray>Whatever matches no other frame, <newline> or has no room left in one.</gray> <newline>"><gray>Takes what''s left</gray></hover>'
   on-sorter: '   <color:#F7B733>•</color> <hover:show_text:"<newline> <gray>A sorter never sends to another sorter.</gray> <newline>"><gray>On a sorter: pads only</gray></hover>'
-  sources: '   <color:#F7B733>•</color> <hover:show_text:"<newline> <gray>Sorters and pads whose items <newline> can reach this frame.</gray> <newline>"><gray>Sources in range:</gray> <white><count></white></hover>'
+  sources: '   <color:#F7B733>•</color> <hover:show_text:"<newline> <gray>Sorters and pads you may inspect <newline> whose items can reach this frame.</gray> <newline>"><gray>Sources in range:</gray> <white><count></white></hover>'
 
 mark:
   marked: '<prefix><white>Frame <green>marked</green> as a target.</white>'

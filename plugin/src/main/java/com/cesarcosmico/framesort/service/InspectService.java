@@ -23,6 +23,7 @@ import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.ItemFrame;
 import org.bukkit.entity.Player;
+import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 import org.jspecify.annotations.Nullable;
@@ -37,6 +38,23 @@ import java.util.stream.Stream;
 public final class InspectService {
 
     public static final String INSPECT_PERMISSION = "framesort.inspect";
+
+    public static boolean isInspectGesture(Player player) {
+        return player.isSneaking() && player.getInventory().getItemInMainHand().isEmpty()
+                && player.hasPermission(INSPECT_PERMISSION);
+    }
+
+    // The card and the take-out guard both ask this, so exactly one of them answers a hit on a frame.
+    public static boolean isInspectHit(Player player, ItemFrame frame) {
+        return isHitByHand(frame) && isInspectGesture(player);
+    }
+
+    // The hit taking the item out is already the frame's last damage cause; a player's projectile is indirect.
+    public static boolean isHitByHand(ItemFrame frame) {
+        EntityDamageEvent hit = frame.getLastDamageCause();
+        return hit != null && !hit.getDamageSource().isIndirect();
+    }
+
     private static final ClickCallback.Options PAGE_BUTTON = ClickCallback.Options.builder()
             .uses(ClickCallback.UNLIMITED_USES).build();
 
@@ -83,11 +101,19 @@ public final class InspectService {
             open(player, new Source(source, pad != null, owner, range), filter, Opened.GESTURE);
             return;
         }
+        tellCannotView(player, kindKey(pad != null), owner);
+    }
+
+    private static String kindKey(boolean pad) {
+        return pad ? "inspect.kind.pad" : "inspect.kind.sorter";
+    }
+
+    private void tellCannotView(Player player, String kindKey, @Nullable UUID owner) {
         Messages text = messages.get();
-        Component kind = text.get(pad != null ? "inspect.source.pad" : "inspect.source.sorter");
-        player.sendMessage(owner == null
-                ? text.get("inspect.no-owner", Placeholder.component("source", kind))
-                : text.get("inspect.not-trusted", Placeholder.component("source", kind),
+        Component kind = text.get(kindKey);
+        player.sendActionBar(owner == null
+                ? text.get("inspect.no-owner", Placeholder.component("kind", kind))
+                : text.get("inspect.not-trusted", Placeholder.component("kind", kind),
                         trust.named(owner, player.getUniqueId())));
     }
 
@@ -105,7 +131,7 @@ public final class InspectService {
         boolean pad = shown.pad();
         UUID owner = shown.owner();
         Messages text = messages.get();
-        Component kind = text.get(pad ? "inspect.source.pad" : "inspect.source.sorter");
+        Component kind = text.get(kindKey(pad));
         BlockKey center = FrameGeometry.key(source);
         List<Component> lines = new ArrayList<>();
         List<HighlightService.Highlight> marks = new ArrayList<>();
@@ -119,7 +145,7 @@ public final class InspectService {
         TagResolver place = coordinates(source.getLocation());
         Component title;
         if (filter.isEmpty()) {
-            title = text.get("inspect.title", Placeholder.component("source", kind), place);
+            title = text.get("inspect.title", Placeholder.component("kind", kind), place);
             List<ItemFrame> frames = new ArrayList<>(resolver.targets(source, owner, shown.range()));
             frames.sort(Comparator.comparingLong(frame -> FrameGeometry.distanceSquared(frame, center)));
             for (ItemFrame frame : frames) {
@@ -129,7 +155,7 @@ public final class InspectService {
                 marks.add(highlight(frame, destination));
             }
         } else {
-            title = text.get("inspect.title-item", Placeholder.component("source", kind),
+            title = text.get("inspect.title-item", Placeholder.component("kind", kind),
                     Placeholder.component("item", filter.effectiveName()), place);
             filtered(text, shown, center, filter, lines, marks);
         }
@@ -222,19 +248,25 @@ public final class InspectService {
     }
 
     /**
-     * Shows the frame's card, or inspects the sorter of a sorter's frame; false, doing nothing, for a frame that is
-     * neither a target nor in reach of a source {@code player} may inspect.
+     * Shows the frame's card, or inspects the sorter of a sorter's frame; for a target whose owner's network
+     * {@code player} may not view, says whose it is, or that it has no owner, instead. False, doing nothing, for a
+     * frame that is neither a target nor in reach of a source {@code player} may inspect.
      */
     public boolean inspectFrameOrSorter(Player player, ItemFrame frame) {
         if (inspectedSorterOf(player, frame)) {
             return true;
         }
         boolean target = index.isTarget(frame);
+        UUID owner = FrameCodec.owner(frame);
+        if (target && !trust.canView(player, owner)) {
+            tellCannotView(player, "inspect.kind.target", owner);
+            return true;
+        }
         List<Source> sources = sourcesNear(frame.getLocation().getBlock());
         if (!target && !hasViewableSource(player, sources)) {
             return false;
         }
-        inspectFrame(player, frame, target, sources);
+        inspectFrame(player, frame, target, owner, sources);
         return true;
     }
 
@@ -255,7 +287,7 @@ public final class InspectService {
         return sources.stream().anyMatch(source -> trust.canView(player, source.owner()));
     }
 
-    private void inspectFrame(Player player, ItemFrame frame, boolean target, List<Source> near) {
+    private void inspectFrame(Player player, ItemFrame frame, boolean target, @Nullable UUID owner, List<Source> near) {
         Messages text = messages.get();
         if (!target) {
             boolean canBeMarked = index.markable(frame);
@@ -264,7 +296,6 @@ public final class InspectService {
             return;
         }
         List<Component> lines = new ArrayList<>();
-        UUID owner = FrameCodec.owner(frame);
         lines.add(owner != null ? text.get("frame.owner", trust.named(owner, player.getUniqueId()))
                 : text.get("frame.no-owner"));
 
@@ -281,7 +312,8 @@ public final class InspectService {
         addAcceptsLines(text, player, frame.getItem(), lines);
 
         long sources = near.stream()
-                .filter(source -> resolver.reaches(source.block(), source.owner(), frame))
+                .filter(source -> trust.canView(player, source.owner())
+                        && resolver.reaches(source.block(), source.owner(), frame))
                 .count();
         lines.add(text.get("frame.sources", Placeholder.unparsed("count", String.valueOf(sources))));
         sendFrameCard(player, text, frame, "frame.title.target", lines);

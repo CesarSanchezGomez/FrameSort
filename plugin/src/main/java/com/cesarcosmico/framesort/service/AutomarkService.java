@@ -4,7 +4,6 @@ import com.cesarcosmico.framesort.item.PlayerCodec;
 import org.bukkit.World;
 import org.bukkit.entity.ItemFrame;
 import org.bukkit.entity.Player;
-import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 
@@ -58,23 +57,19 @@ public final class AutomarkService {
     }
 
     public void endMarkOnTakeOut(Player player, ItemFrame frame) {
-        if (index.endMark(frame) && worksIn.test(frame.getWorld()) && isHitByHand(frame)) {
+        if (index.endMark(frame) && worksIn.test(frame.getWorld()) && InspectService.isHitByHand(frame)) {
             inspect.tellMark(player, false);
         }
     }
 
     /**
      * A player's hit or projectile is taking the item out of {@code frame}: true if that must not happen, and by hand
-     * the action bar says whose it is. Always false in a world FrameSort leaves alone.
+     * the action bar says whose it is. Always false in a world FrameSort leaves alone, and for the inspection gesture,
+     * which answers for every frame this guards.
      */
     public boolean refuseTakeOut(Player player, ItemFrame frame) {
-        return worksIn.test(frame.getWorld()) && inspect.refuseTakeOut(player, frame, isHitByHand(frame));
-    }
-
-    // The hit taking the item out is already the frame's last damage cause; a player's projectile is indirect.
-    private static boolean isHitByHand(ItemFrame frame) {
-        EntityDamageEvent hit = frame.getLastDamageCause();
-        return hit != null && !hit.getDamageSource().isIndirect();
+        return worksIn.test(frame.getWorld()) && !InspectService.isInspectHit(player, frame)
+                && inspect.refuseTakeOut(player, frame, InspectService.isHitByHand(frame));
     }
 
     // Another plugin can empty the item before it goes in.
