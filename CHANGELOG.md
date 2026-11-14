@@ -22,8 +22,10 @@ First release, for Paper 26.2 – 26.3 on Java 25.
   `/framesort where` and `/framesort trace`. A target answers sneak-clicks everywhere, for everyone; any other frame
   only within range of a sorter or pad that sends to the player, and elsewhere stays vanilla, without a message.
 - Owners and trust: sorters and pads send only to their owner's frames and to those of players the owner trusts
-  (`/framesort trust`, `untrust`, `trusted`). Trust is kept in SQLite, or in MySQL or MariaDB to share it between
-  servers.
+  (`/framesort trust`, `untrust`, `trusted`). Only a target's owner, the players they trust and admins
+  (`framesort.unmark.others`) unmark it or take its item out, by hand or with a projectile, and the same goes for a
+  sorter's activator: anyone else's hit or projectile leaves it in and, by hand, says whose it is. Trust is kept in
+  SQLite, or in MySQL or MariaDB to share it between servers.
 - Tags: the game's tags and your own in `tags.yml`, with `/framesort tag list`, `search`, `show`, `apply` and
   `remove`.
 - WorldGuard: sorters and pads follow its rule for pistons, with the `framesort-deliver` and `framesort-pull` flags.

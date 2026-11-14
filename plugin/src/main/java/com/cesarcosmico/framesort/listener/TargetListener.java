@@ -38,6 +38,14 @@ public final class TargetListener implements Listener {
         }
     }
 
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onTakeOut(PlayerItemFrameChangeEvent event) {
+        if (event.getAction() == PlayerItemFrameChangeEvent.ItemFrameChangeAction.REMOVE
+                && automark.refuseTakeOut(event.getPlayer(), event.getItemFrame())) {
+            event.setCancelled(true);
+        }
+    }
+
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onFrameChange(PlayerItemFrameChangeEvent event) {
         switch (event.getAction()) {

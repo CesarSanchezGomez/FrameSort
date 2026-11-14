@@ -343,8 +343,8 @@ public final class InspectService {
         }
         boolean mark = !index.isMarked(frame);
         UUID owner = FrameCodec.owner(frame);
-        if (!mark && owner != null && isSomeoneElses(owner, player)) {
-            player.sendActionBar(text.get("mark.not-yours", trust.named(owner, player.getUniqueId())));
+        if (!mark && owner != null && !trust.mayChange(player, owner)) {
+            tellNotYours(player, "mark.not-yours", owner);
             return;
         }
         if (mark) {
@@ -355,8 +355,25 @@ public final class InspectService {
         showMark(player, frame, mark);
     }
 
-    private boolean isSomeoneElses(UUID owner, Player player) {
-        return settings.get().ownership() && !owner.equals(player.getUniqueId());
+    /**
+     * Refuses {@code player} taking the item out of {@code frame} when it is a target or a sorter's frame whose owner's
+     * things they may not change; with {@code tell}, the action bar says whose it is. True if refused.
+     */
+    public boolean refuseTakeOut(Player player, ItemFrame frame, boolean tell) {
+        boolean sorter = sorters.blockOf(frame) != null;
+        boolean ownedByFrameSort = sorter || index.isTarget(frame);
+        UUID owner = FrameCodec.owner(frame);
+        if (!ownedByFrameSort || owner == null || trust.mayChange(player, owner)) {
+            return false;
+        }
+        if (tell) {
+            tellNotYours(player, sorter ? "sorter.not-yours" : "mark.not-yours", owner);
+        }
+        return true;
+    }
+
+    private void tellNotYours(Player player, String key, UUID owner) {
+        player.sendActionBar(messages.get().get(key, trust.named(owner, player.getUniqueId())));
     }
 
     /** How marking or unmarking a frame answers, by hand or by automark: the action bar, and the item glowing. */

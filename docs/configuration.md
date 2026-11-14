@@ -89,14 +89,14 @@ worlds are `minecraft:overworld`, `minecraft:the_nether` and `minecraft:the_end`
 world another plugin creates by name usually has its name in lowercase, with `_` for spaces. The reload warns about a
 key no world has; the server start doesn't, because another plugin may load its worlds later. In a listed world:
 
-- **Sorters** are plain dispensers: the frame shows, and redstone fires what is inside, as in vanilla. Whoever puts the
-  activator in is still recorded as the owner.
+- **Sorters** are plain dispensers: the frame shows, and redstone fires what is inside, as in vanilla. Anyone can take
+  the activator out. Whoever puts it in is still recorded as the owner.
 - **Pads** send nothing, pull nothing and can't be inspected, and no new ones are created. With `creation: item`, the
   special block can't be placed, because it would be lost as a plain block. A pad already built stays protected, and
   breaking it still gives its special block back. Breaking or placing its base says nothing.
 - **Frames** behave as in vanilla: sneaking and clicking neither marks nor inspects them, and automark marks nothing.
-  Marks stay, except that a player taking the item out of a marked frame, or a new item in it, ends its mark, as
-  everywhere but without a message; it can only be marked again once the world is off the list.
+  Marks stay, except that a player taking the item out of a marked frame (anyone can, there), or a new item in it,
+  ends its mark without a message; it can only be marked again once the world is off the list.
 - **Commands** work as usual, but `/framesort where` finds nothing to answer with.
 
 Taking a world off the list brings its sorters and pads back, with their owners and counts.
@@ -202,14 +202,14 @@ frame does nothing.
 
 | Key | Default | Meaning |
 |---|---|---|
-| `enabled` | `true` | `true`: a sorter or pad sends only to frames of its owner and of the players its owner trusts (`/framesort trust`), and only they inspect it or see its deliveries in `/framesort trace`. `false`: it sends to any frame and anyone inspects it, as without owners, and `/framesort trust`, `untrust` and `trusted` are hidden. A reload applies it, to the commands too. |
+| `enabled` | `true` | `true`: a sorter or pad sends only to frames of its owner and of the players its owner trusts (`/framesort trust`), and only they inspect it or see its deliveries in `/framesort trace`; only the owner, those players and admins (`framesort.unmark.others`) unmark the owner's frames or take the item out of them or the activator out of the owner's sorters. `false`: it sends to any frame, anyone inspects it and anyone unmarks or empties any frame, as without owners, and `/framesort trust`, `untrust` and `trusted` are hidden. A reload applies it, to the commands too. |
 
 What a player sets up is theirs: a target frame belongs to whoever marked it, a sorter to whoever put the activator
 in, a pad to whoever placed its top block. Owners are recorded even with `enabled: false`, so turning it on later
 finds them. What has no owner (built before owners existed, or pasted without its data) only sends to frames that
-have none either, and only admins inspect it; unmarking and marking a frame again (within range of a sorter or pad
-you may inspect), putting the activator back, or
-breaking and placing a pad's top block again gives it an owner. More in
+have none either, only admins inspect it, and anyone unmarks it or takes its item out; unmarking and marking a frame
+again (within range of a sorter or pad you may inspect), putting the activator back, or breaking and placing a pad's
+top block again gives it an owner. More in
 [docs/commands.md](commands.md#owners-and-trust).
 
 ### inspect

@@ -131,7 +131,7 @@ mark:
   unmarked: '<prefix><white>Frame <red>unmarked</red>.</white>'
   no-permission: '<prefix><white>You <red>can''t</red> mark targets.</white>'
   wrong-type: '<prefix><white>This frame <red>can''t</red> be a target.</white>'
-  not-yours: '<prefix><white><red>Can''t unmark</red>: this target is <player-head> <player>''s.</white>'
+  not-yours: '<prefix><white><red>Can''t</red> unmark it: this target is <player-head> <player>''s.</white>'
 
 automark:
   enabled: '<prefix><white>Automark <hover:show_text:"<newline> <gray>An item you put in a frame on a <newline> container or composter marks it, <newline> near a sorter or pad that sends to you. <newline> Other blocks: <white>sneak + right-click</white>.</gray> <newline>"><green>on</green></hover>.</white>'
@@ -203,6 +203,7 @@ trust:
 sorter:
   created: '<prefix><white><hover:show_text:"<newline> <gray>Items in this dispenser now <newline> go to their target frames.</gray> <newline>">Sorter <green>created</green></hover>.</white>'
   removed: '<prefix><white>Sorter <red>removed</red>.</white>'
+  not-yours: '<prefix><white><red>Can''t</red> remove it: this sorter is <player-head> <player>''s.</white>'
 
 pad:
   created: '<prefix><white>Sorting pad <type> <green>created</green>.</white>'

@@ -63,7 +63,15 @@ public final class AutomarkService {
         }
     }
 
-    // The hit taking the item out is already the frame's last damage cause; a player's arrow or lit TNT is indirect.
+    /**
+     * A player's hit or projectile is taking the item out of {@code frame}: true if that must not happen, and by hand
+     * the action bar says whose it is. Always false in a world FrameSort leaves alone.
+     */
+    public boolean refuseTakeOut(Player player, ItemFrame frame) {
+        return worksIn.test(frame.getWorld()) && inspect.refuseTakeOut(player, frame, isHitByHand(frame));
+    }
+
+    // The hit taking the item out is already the frame's last damage cause; a player's projectile is indirect.
     private static boolean isHitByHand(ItemFrame frame) {
         EntityDamageEvent hit = frame.getLastDamageCause();
         return hit != null && !hit.getDamageSource().isIndirect();

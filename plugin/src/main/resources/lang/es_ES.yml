@@ -131,7 +131,7 @@ mark:
   unmarked: '<prefix><white>Marco <red>desmarcado</red>.</white>'
   no-permission: '<prefix><white><red>No puedes</red> marcar destinos.</white>'
   wrong-type: '<prefix><white>Este marco <red>no puede</red> ser destino.</white>'
-  not-yours: '<prefix><white><red>No puedes desmarcarlo</red>: es de <player-head> <player>.</white>'
+  not-yours: '<prefix><white><red>No puedes</red> desmarcarlo: es de <player-head> <player>.</white>'
 
 automark:
   enabled: '<prefix><white>Automarcado: <hover:show_text:"<newline> <gray>Un item que metes en un marco sobre <newline> un contenedor o compostador lo marca, <newline> cerca de un sorter o pad que te envía. <newline> Otros bloques: <white>shift + clic dcho.</white></gray> <newline>"><green>sí</green></hover>.</white>'
@@ -203,6 +203,7 @@ trust:
 sorter:
   created: '<prefix><white><hover:show_text:"<newline> <gray>Lo que haya en este dispensador <newline> irá a sus marcos destino.</gray> <newline>">Sorter <green>creado</green></hover>.</white>'
   removed: '<prefix><white>Sorter <red>eliminado</red>.</white>'
+  not-yours: '<prefix><white><red>No puedes</red> quitarlo: este sorter es de <player-head> <player>.</white>'
 
 pad:
   created: '<prefix><white>Pad <type> <green>creado</green>.</white>'
